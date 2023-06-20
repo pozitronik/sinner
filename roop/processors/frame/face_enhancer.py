@@ -1,6 +1,5 @@
 from typing import Any, List
 import os
-import cv2
 import threading
 import gfpgan
 
@@ -9,7 +8,7 @@ import roop.processors.frame.core
 from roop.core import update_status
 from roop.face_analyser import get_one_face
 from roop.typing import Frame, Face
-from roop.utilities import conditional_download, resolve_relative_path, is_image, is_video
+from roop.utilities import conditional_download, resolve_relative_path, is_image, is_video, read_image, write_image
 from roop import state
 
 FACE_ENHANCER = None
@@ -60,19 +59,19 @@ def process_frame(source_face: Face, temp_frame: Frame) -> Frame:
 
 def process_frames(source_path: str, temp_frame_paths: List[str], progress: Any = None) -> None:
     for temp_frame_path in temp_frame_paths:
-        temp_frame = cv2.imread(temp_frame_path)
+        temp_frame = read_image(temp_frame_path)
         result = process_frame(None, temp_frame)
         processed_frame_path = state.get_frame_processed_name(temp_frame_path)
-        cv2.imwrite(processed_frame_path, result)
+        write_image(result, processed_frame_path)
         os.remove(temp_frame_path)
         if progress:
             progress.update(1)
 
 
 def process_image(source_path: str, target_path: str, output_path: str) -> None:
-    target_frame = cv2.imread(target_path)
+    target_frame = read_image(target_path)
     result = process_frame(None, target_frame)
-    cv2.imwrite(output_path, result)
+    write_image(result, output_path)
 
 
 def process_video(source_path: str, temp_frame_paths: List[str]) -> None:

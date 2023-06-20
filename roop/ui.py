@@ -11,7 +11,7 @@ from roop.face_analyser import get_one_face
 from roop.capturer import get_video_frame, get_video_frame_total
 from roop.predicter import predict_frame
 from roop.processors.frame.core import get_frame_processors_modules
-from roop.utilities import is_image, is_video, resolve_relative_path
+from roop.utilities import is_image, is_video, resolve_relative_path, read_image
 
 ROOT = None
 ROOT_HEIGHT = 700
@@ -215,10 +215,7 @@ def update_preview(frame_number: int = 0) -> None:
         if predict_frame(temp_frame):
             quit()
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
-            temp_frame = frame_processor.process_frame(
-                get_one_face(cv2.imread(roop.globals.source_path)),
-                temp_frame
-            )
+            temp_frame = frame_processor.process_frame(get_one_face(read_image(roop.globals.source_path)), temp_frame)
         image = Image.fromarray(cv2.cvtColor(temp_frame, cv2.COLOR_BGR2RGB))
         image = ImageOps.contain(image, (PREVIEW_MAX_WIDTH, PREVIEW_MAX_HEIGHT), Image.LANCZOS)
         image = ctk.CTkImage(image, size=image.size)
