@@ -13,7 +13,6 @@ import cv2
 from numpy import array, uint8, fromfile
 from tqdm import tqdm
 
-import roop.globals
 from roop import state
 
 TEMP_FILE = 'temp.mp4'
@@ -25,7 +24,7 @@ if platform.system().lower() == 'darwin':
 
 
 def run_ffmpeg(args: List[str]) -> bool:
-    commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-loglevel', roop.globals.log_level]
+    commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
     commands.extend(args)
     try:
         subprocess.check_output(commands, stderr=subprocess.STDOUT)
@@ -54,7 +53,7 @@ def extract_frames(target_path: str) -> None:
 def create_video(target_path: str, fps: float = 30.0) -> None:
     temp_output_path = get_temp_output_path(target_path)
     temp_directory_path = get_temp_directory_path(target_path)
-    run_ffmpeg(['-r', str(fps), '-i', os.path.join(temp_directory_path, state.PROCESSED_PREFIX + '%04d.png'), '-c:v', roop.globals.video_encoder, '-crf', str(roop.globals.video_quality), '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', temp_output_path])
+    run_ffmpeg(['-r', str(fps), '-i', os.path.join(temp_directory_path, state.PROCESSED_PREFIX + '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', temp_output_path])
 
 
 def restore_audio(target_path: str, output_path: str) -> None:
@@ -102,10 +101,10 @@ def move_temp(target_path: str, output_path: str) -> None:
         shutil.move(temp_output_path, output_path)
 
 
-def clean_temp(target_path: str) -> None:
+def clean_temp(target_path: str, keep_frames: bool = False) -> None:
     temp_directory_path = get_temp_directory_path(target_path)
     parent_directory_path = os.path.dirname(temp_directory_path)
-    if not roop.globals.keep_frames and os.path.isdir(temp_directory_path):
+    if not keep_frames and os.path.isdir(temp_directory_path):
         shutil.rmtree(temp_directory_path)
     if os.path.exists(parent_directory_path) and not os.listdir(parent_directory_path):
         os.rmdir(parent_directory_path)
