@@ -1,31 +1,27 @@
-from typing import Any
+from typing import List
 import insightface
 
-import roop.globals
-from roop.typing import Frame
-
-FACE_ANALYSER = None
+from roop.typing import Frame, Face
 
 
-def get_face_analyser() -> Any:
-    global FACE_ANALYSER
+class FaceAnalyser:
+    _face_analyser = None
+    _execution_providers: List[str]
 
-    if FACE_ANALYSER is None:
-        FACE_ANALYSER = insightface.app.FaceAnalysis(name='buffalo_l', providers=roop.globals.execution_providers)
-        FACE_ANALYSER.prepare(ctx_id=0, det_size=(640, 640))
-    return FACE_ANALYSER
+    def __init__(self, execution_providers: List[str]):
+        self._execution_providers = execution_providers
+        self._face_analyser = insightface.app.FaceAnalysis(name='buffalo_l', providers=self._execution_providers)
+        self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
 
+    def get_one_face(self, frame: Frame) -> [None, Face]:
+        face = self._face_analyser.get(frame)
+        try:
+            return min(face, key=lambda x: x.bbox[0])
+        except ValueError:
+            return None
 
-def get_one_face(frame: Frame) -> Any:
-    face = get_face_analyser().get(frame)
-    try:
-        return min(face, key=lambda x: x.bbox[0])
-    except ValueError:
-        return None
-
-
-def get_many_faces(frame: Frame) -> Any:
-    try:
-        return get_face_analyser().get(frame)
-    except IndexError:
-        return None
+    def get_many_faces(self, frame: Frame) -> [None, List[Face]]:
+        try:
+            return self._face_analyser.get(frame)
+        except IndexError:
+            return None
