@@ -5,9 +5,7 @@ from typing import Callable, Tuple
 import cv2
 from PIL import Image, ImageOps
 
-import roop.globals
 import roop.metadata
-from roop.face_analyser import get_one_face
 from roop.capturer import get_video_frame, get_video_frame_total
 from roop.predicter import predict_frame
 from roop.processors.frame.core import get_frame_processors_modules
