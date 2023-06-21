@@ -1,8 +1,11 @@
 import platform
+from argparse import Namespace
 from dataclasses import dataclass, field
 from typing import List
 
 import onnxruntime
+
+from roop.utilities import normalize_output_path
 
 
 def default_frame_processors():
@@ -16,9 +19,9 @@ def suggest_max_memory() -> int:
 
 
 def suggest_execution_threads() -> int:
-    if 'DmlExecutionProvider' in Params.execution_providers:
+    if 'DmlExecutionProvider' in Parameters.execution_providers:
         return 1
-    if 'ROCMExecutionProvider' in Params.execution_providers:
+    if 'ROCMExecutionProvider' in Parameters.execution_providers:
         return 2
     return 8
 
@@ -50,5 +53,16 @@ class Parameters:
     execution_providers: List[str] = field(default_factory=lambda: suggest_execution_providers())
     execution_threads: int = lambda: suggest_execution_threads()
 
-
-Params = Parameters()
+    def __init__(self, args: Namespace):
+        self.source_path = args.source_path
+        self.target_path = args.target_path
+        self.output_path = normalize_output_path(self.source_path, self.target_path, args.output_path)
+        self.frame_processors = args.frame_processor
+        self.headless = args.source_path or args.target_path or args.output_path
+        self.keep_fps = args.keep_fps
+        self.keep_audio = args.keep_audio
+        self.keep_frames = args.keep_frames
+        self.many_faces = args.many_faces
+        self.max_memory = args.max_memory
+        self.execution_providers = decode_execution_providers(args.execution_provider)
+        self.execution_threads = args.execution_threads
