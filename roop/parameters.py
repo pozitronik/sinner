@@ -19,9 +19,9 @@ def suggest_max_memory() -> int:
 
 
 def suggest_execution_threads() -> int:
-    if 'DmlExecutionProvider' in Parameters.execution_providers:
+    if 'DmlExecutionProvider' in suggest_execution_providers():
         return 1
-    if 'ROCMExecutionProvider' in Parameters.execution_providers:
+    if 'ROCMExecutionProvider' in suggest_execution_providers():
         return 2
     return 8
 
