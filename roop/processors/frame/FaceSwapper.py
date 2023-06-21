@@ -19,7 +19,6 @@ class FaceSwapper(BaseFrameProcessor):
     source: [None, str] = None  # none | file path
     target: [None, str] = None  # none | file path
     many_faces: bool = False
-    frame_list: List[str] = []
     state: State
 
     _face_analyser: FaceAnalyser
@@ -45,6 +44,7 @@ class FaceSwapper(BaseFrameProcessor):
         if not self._source_face:
             update_status('No face in source path detected.')
             return False
+        return True
 
     def swap_face(self, target_face: Face, temp_frame: Frame) -> Frame:
         return self._face_swapper.get(temp_frame, target_face, self._source_face, paste_back=True)
@@ -81,4 +81,4 @@ class FaceSwapper(BaseFrameProcessor):
         total = self.state.total_frames_count()
         with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
             progress.set_postfix({'execution_providers': self.execution_providers, 'threads': self.execution_threads, 'memory': self.max_memory})
-            self.multi_process_frame(self.source, self.frame_list, self.process_frames, progress)
+            self.multi_process_frame(self.source, self.state.unprocessed_frames(), self.process_frames, progress)
