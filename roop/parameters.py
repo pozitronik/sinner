@@ -45,7 +45,7 @@ class Parameters:
     target_path: [None, str] = None
     output_path: [None, str] = None
     frame_processors: List[str] = field(default_factory=lambda: default_frame_processors())
-    keep_fps: bool = True
+    fps: [None, float] = None #  None for auto
     keep_audio: bool = True
     keep_frames: bool = False
     many_faces: bool = True
@@ -59,7 +59,7 @@ class Parameters:
         self.output_path = normalize_output_path(self.source_path, self.target_path, args.output_path)
         self.frame_processors = args.frame_processor
         self.headless = args.source_path or args.target_path or args.output_path
-        self.keep_fps = args.keep_fps
+        self.fps = args.fps
         self.keep_audio = args.keep_audio
         self.keep_frames = args.keep_frames
         self.many_faces = args.many_faces

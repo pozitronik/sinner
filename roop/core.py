@@ -22,7 +22,7 @@ import argparse
 import torch
 import tensorflow
 import roop.metadata
-from roop.utilities import clean_temp, normalize_output_path, create_temp, update_status
+from roop.utilities import clean_temp, normalize_output_path, create_temp, update_status, move_temp
 
 params: Parameters
 ffmpeg: FFMPEG
@@ -42,7 +42,7 @@ def parse_args() -> Namespace:
     program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
-    program.add_argument('--keep-fps', help='keep original fps', dest='keep_fps', action='store_true', default=False)
+    program.add_argument('--fps', help='set output video fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
     program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true', default=False)
@@ -51,7 +51,6 @@ def parse_args() -> Namespace:
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
     return program.parse_args()
-
 
 
 def limit_resources() -> None:
@@ -168,3 +167,11 @@ def run() -> None:
     swapper = FaceSwapper(params, roop.core.state)
     swapper.process()
     release_resources()
+
+    # handles fps
+    ffmpeg.create_video(roop.core.params.fps)
+    # handle audio
+    if roop.core.params.keep_audio:
+        ffmpeg.restore_audio(roop.core.params.output_path)
+    else:
+        move_temp(roop.core.params.target_path, roop.core.params.output_path)

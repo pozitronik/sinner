@@ -8,11 +8,12 @@ from roop.utilities import get_temp_directory_path, get_temp_output_path, move_t
 
 
 class FFMPEG:
+    fps: float
     _target_path: str
 
     def __init__(self, params: Parameters):
         self._target_path = params.target_path
-
+        self.fps = self.detect_fps()
 
     def run_ffmpeg(self, args: List[str]) -> bool:
         commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
@@ -31,7 +32,8 @@ class FFMPEG:
         try:
             numerator, denominator = map(int, output)
             return numerator / denominator
-        except Exception:
+        except Exception as exception:
+            print(exception)
             pass
         return 30.0
 
@@ -39,7 +41,8 @@ class FFMPEG:
         temp_directory_path = get_temp_directory_path(self._target_path)
         self.run_ffmpeg(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(temp_directory_path, '%04d.png')])
 
-    def create_video(self,  fps: float = 30.0) -> None:
+    def create_video(self, fps: [None, float]) -> None:
+        if None == fps: fps = self.fps
         temp_output_path = get_temp_output_path(self._target_path)
         temp_directory_path = get_temp_directory_path(self._target_path)
         self.run_ffmpeg(['-r', str(fps), '-i', os.path.join(temp_directory_path, State.PROCESSED_PREFIX + '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
