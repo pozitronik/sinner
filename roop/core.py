@@ -22,7 +22,7 @@ import argparse
 import torch
 import tensorflow
 import roop.metadata
-from roop.utilities import clean_temp, normalize_output_path, create_temp, update_status, move_temp
+from roop.utilities import clean_temp, create_temp, update_status, move_temp
 
 params: Parameters
 ffmpeg: FFMPEG
