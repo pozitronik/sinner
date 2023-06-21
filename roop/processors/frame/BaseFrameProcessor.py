@@ -3,7 +3,7 @@ from typing import List, Callable, Any
 
 from concurrent.futures import ThreadPoolExecutor
 
-from roop.parameters import Params
+from roop.parameters import Parameters
 
 
 class BaseFrameProcessor(ABC):
@@ -14,7 +14,7 @@ class BaseFrameProcessor(ABC):
     execution_threads: int = 1
     max_memory: int = 1
 
-    def __init__(self, params: Params):
+    def __init__(self, params: Parameters):
         self.source = params.source_path
         self.target = params.target_path
         self.execution_providers = params.execution_providers
@@ -34,11 +34,6 @@ class BaseFrameProcessor(ABC):
                 futures.append(future)
             for future in futures:
                 future.result()
-
-    def update_status(self, message: str) -> None:
-        print(f'[{self.__class__.__name__}] {message}')
-        # if not roop.globals.headless:
-        #     ui.update_status(message)
 
     @abstractmethod
     def validate(self):
