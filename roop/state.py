@@ -1,4 +1,6 @@
+import glob
 import os
+from typing import List
 
 from roop.capturer import get_video_frame_total
 from roop.parameters import Parameters
@@ -50,3 +52,8 @@ class State:
     def get_frame_processed_name(self, unprocessed_frame_name: str) -> str:
         directory, filename = os.path.split(unprocessed_frame_name)
         return str(os.path.join(directory, self.PROCESSED_PREFIX + filename))
+
+    #  Returns all unprocessed frames
+    def unprocessed_frames(self) -> List[str]:
+        temp_directory_path = get_temp_directory_path(self.target_path)
+        return [file for file in glob.glob(os.path.join(glob.escape(temp_directory_path), '*.png')) if not os.path.basename(file).startswith(self.PROCESSED_PREFIX)]
