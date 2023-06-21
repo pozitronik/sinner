@@ -4,7 +4,6 @@ from typing import List, Callable, Iterable
 
 from tqdm import tqdm
 
-from roop.parameters import Parameters
 from roop.typing import Frame
 
 
