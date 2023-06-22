@@ -6,6 +6,7 @@ The tasks that I'm aiming to accomplish here are:
 1) rewriting the code using OOP
 2) providing code coverage with tests
 3) adding strict typing and static analysis on top of it
+4) using cv2 to provide in-memory video manipulation
 
 And yes, I named this project like 💩, because why not? 
 
