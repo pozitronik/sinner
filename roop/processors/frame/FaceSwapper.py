@@ -33,7 +33,7 @@ class FaceSwapper(BaseFrameProcessor):
         self.state = state
         self._face_swapper = insightface.model_zoo.get_model(resolve_relative_path('../models/inswapper_128.onnx'), providers=self.execution_providers)
 
-    def validate(self):
+    def validate(self) -> bool:
         if not is_image(self.source):
             update_status('Select an image for source path.')
             return False
