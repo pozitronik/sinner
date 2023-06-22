@@ -87,67 +87,6 @@ def pre_check() -> bool:
     return True
 
 
-"""
-def start() -> None:
-    for frame_processor in get_frame_processors_modules(Params.frame_processors):
-        if not frame_processor.pre_start():
-            return
-    # process image to image
-    if has_image_extension(Params.target_path):
-        if predict_image(Params.target_path):
-            destroy()
-        shutil.copy2(Params.target_path, Params.output_path)
-        for frame_processor in get_frame_processors_modules(Params.frame_processors):
-            update_status('Progressing...', frame_processor.NAME)
-            frame_processor.process_image(Params.source_path, Params.output_path, Params.output_path)
-            release_resources()
-        if is_image(Params.target_path):
-            update_status('Processing to image succeed!')
-        else:
-            update_status('Processing to image failed!')
-        return
-    # process image to videos
-    if predict_video(Params.target_path):
-        destroy()
-    if state.is_resumable(Params.target_path):
-        update_status(f'Temp resources for this target already exists with {state.processed_frames_count(Params.target_path)} frames processed, continue processing...')
-    else:
-        update_status('Creating temp resources...')
-        create_temp(Params.target_path)
-        update_status('Extracting frames...')
-        extract_frames(Params.target_path)
-    temp_frame_paths = get_temp_frame_paths(Params.target_path)
-    for frame_processor in get_frame_processors_modules(Params.frame_processors):
-        update_status('Progressing...', frame_processor.NAME)
-        frame_processor.process_video(Params.source_path, temp_frame_paths)
-        release_resources()
-    # handles fps
-    if Params.keep_fps:
-        update_status('Detecting fps...')
-        fps = detect_fps(Params.target_path)
-        update_status(f'Creating video with {fps} fps...')
-        create_video(Params.target_path, fps)
-    else:
-        update_status('Creating video with 30.0 fps...')
-        create_video(Params.target_path)
-    # handle audio
-    if Params.keep_audio:
-        if Params.keep_fps:
-            update_status('Restoring audio...')
-        else:
-            update_status('Restoring audio might cause issues as fps are not kept...')
-        restore_audio(Params.target_path, Params.output_path)
-    else:
-        move_temp(Params.target_path, Params.output_path)
-    # clean and validate
-    clean_temp(Params.target_path)
-    if is_video(Params.target_path):
-        update_status('Processing to video succeed!')
-    else:
-        update_status('Processing to video failed!')
-"""
-
-
 def destroy() -> None:
     if state.is_finished():
         clean_temp(params.target_path, params.keep_frames)
@@ -156,22 +95,28 @@ def destroy() -> None:
 
 def run() -> None:
     roop.core.params = Parameters(parse_args())
-    roop.core.ffmpeg = FFMPEG(roop.core.params)
     roop.core.state = State(roop.core.params)
-    if not state.is_resumable():
-        update_status('Creating temp resources...')
-        create_temp(roop.core.state.target_path)
-        update_status('Extracting frames...')
-        ffmpeg.extract_frames()
+    update_status('Creating temp resources...')
+    temp_dir = create_temp(roop.core.state.target_path)
+    if roop.core.state.is_multi_frame:  # picture to video swap
+        roop.core.ffmpeg = FFMPEG(roop.core.params)
+        if not state.is_resumable():
+            update_status('Extracting frames...')
+            ffmpeg.extract_frames()
+    else:
+        temp_file = shutil.copy(roop.core.state.target_path, temp_dir)  # todo move to state
 
     swapper = FaceSwapper(params, roop.core.state)
     swapper.process()
     release_resources()
 
-    # handles fps
-    ffmpeg.create_video(roop.core.params.fps)
-    # handle audio
-    if roop.core.params.keep_audio:
-        ffmpeg.restore_audio(roop.core.params.output_path)
+    if roop.core.state.is_multi_frame:  # picture to video swap
+        # handles fps
+        ffmpeg.create_video(roop.core.params.fps)
+        # handle audio
+        if roop.core.params.keep_audio:
+            ffmpeg.restore_audio(roop.core.params.output_path)
+        else:
+            move_temp(roop.core.params.target_path, roop.core.params.output_path)
     else:
-        move_temp(roop.core.params.target_path, roop.core.params.output_path)
+        shutil.move(roop.core.state.get_frame_processed_name(temp_file), roop.core.params.output_path)
