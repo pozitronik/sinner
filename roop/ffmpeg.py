@@ -14,8 +14,9 @@ class FFMPEG:
         self.fps = self.detect_fps()
 
     def run_ffmpeg(self, args: List[str]) -> bool:
-        commands = ['ffmpeg', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
+        commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
         commands.extend(args)
+        print(' '.join(commands))
         try:
             subprocess.check_output(commands, stderr=subprocess.STDOUT)
             return True
@@ -40,6 +41,6 @@ class FFMPEG:
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if None == fps: fps = self.fps
-        command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', filename]
+        command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target: command.extend(['-i', audio_target, '-shortest'])
         self.run_ffmpeg(command)
