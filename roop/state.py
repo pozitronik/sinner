@@ -62,5 +62,5 @@ class State:
     def unprocessed_frames(self) -> List[str]:
         temp_directory_path = get_temp_directory_path(self.target_path)
         if not self.is_multi_frame:
-            return [os.path.join(glob.escape(temp_directory_path), os.path.basename(self.target_path))];
+            return [os.path.join(glob.escape(temp_directory_path), os.path.basename(self.target_path))]
         return [file for file in glob.glob(os.path.join(glob.escape(temp_directory_path), '*.png')) if not os.path.basename(file).startswith(self.PROCESSED_PREFIX)]
