@@ -9,7 +9,7 @@ from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 from roop.typing import Face, Frame, FaceSwapperType
-from roop.utilities import is_image, resolve_relative_path, conditional_download, update_status
+from roop.utilities import is_image, resolve_relative_path, conditional_download, update_status, write_image, read_image
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -36,7 +36,7 @@ class FaceSwapper(BaseFrameProcessor):
         if not is_image(self.source):
             update_status('Select an image for source path.')
             return False
-        self._source_face = self._face_analyser.get_one_face(self.read_image(self.source))
+        self._source_face = self._face_analyser.get_one_face(read_image(self.source))
         if not self._source_face:
             update_status('No face in source path detected.')
             return False
@@ -60,7 +60,7 @@ class FaceSwapper(BaseFrameProcessor):
     def process_frames(self, frame_paths: List[str], progress: [None, tqdm] = None) -> None:
         for frame_path in frame_paths:
             try:
-                self.write_image(self.process_frame(self.read_image(frame_path)), self.state.get_frame_processed_name(frame_path))
+                write_image(self.process_frame(read_image(frame_path)), self.state.get_frame_processed_name(frame_path))
                 self.state.set_processed(frame_path)
             except Exception as exception:
                 print(exception)
