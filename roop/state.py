@@ -13,6 +13,7 @@ class State:
     target_path: str
     state_directory: str
     is_multi_frame: bool  # for single frame changes (i.e. picture to picture) the state is always persistent
+    preserve_source_frames: bool = True #  keeps extracted source frames for future usage
 
     def __init__(self, params: Parameters):
         self.target_path = params.target_path
@@ -58,3 +59,6 @@ class State:
         if not self.is_multi_frame:
             return [os.path.join(glob.escape(self.state_directory), os.path.basename(self.target_path))]
         return [file for file in glob.glob(os.path.join(glob.escape(self.state_directory), '*.png')) if not os.path.basename(file).startswith(self.PROCESSED_PREFIX)]
+
+    def set_processed(self, frame_path):
+        if not self.preserve_source_frames: os.remove(frame_path)

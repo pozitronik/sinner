@@ -1,7 +1,11 @@
+import platform
 from abc import ABC, abstractmethod
 from typing import List, Callable, Any
 
 from concurrent.futures import ThreadPoolExecutor
+
+import cv2
+from numpy import array, uint8, fromfile
 
 from roop.parameters import Parameters
 
@@ -37,3 +41,18 @@ class BaseFrameProcessor(ABC):
     @abstractmethod
     def validate(self):
         pass
+
+    def read_image(self, path: str) -> array:
+        if platform.system().lower() == 'windows':  # issue #511
+            return cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
+        else:
+            return cv2.imread(path)
+
+
+    def write_image(self, image: array, path: str) -> bool:
+        if platform.system().lower() == 'windows':  # issue #511
+            is_success, im_buf_arr = cv2.imencode(".png", image)
+            im_buf_arr.tofile(path)
+            return is_success
+        else:
+            return cv2.imwrite(path, array)

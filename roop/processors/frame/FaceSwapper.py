@@ -1,6 +1,6 @@
 import os
 import threading
-from typing import Any, List, Callable
+from typing import Any, List
 
 import insightface
 from tqdm import tqdm
@@ -10,7 +10,7 @@ from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 from roop.typing import Face, Frame, FaceSwapperType
-from roop.utilities import is_image, read_image, resolve_relative_path, conditional_download, write_image, create_temp, update_status
+from roop.utilities import is_image,  resolve_relative_path, conditional_download,  update_status
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -37,7 +37,7 @@ class FaceSwapper(BaseFrameProcessor):
         if not is_image(self.source):
             update_status('Select an image for source path.')
             return False
-        self._source_face = self._face_analyser.get_one_face(read_image(self.source))
+        self._source_face = self._face_analyser.get_one_face(self.read_image(self.source))
         if not self._source_face:
             update_status('No face in source path detected.')
             return False
@@ -58,14 +58,11 @@ class FaceSwapper(BaseFrameProcessor):
                 temp_frame = self.swap_face(target_face, temp_frame)
         return temp_frame
 
-    def process_frames(self, tmp: Any, temp_frame_paths: List[str], progress: [None, tqdm] = None) -> None:
-        for temp_frame_path in temp_frame_paths:
-            temp_frame = read_image(temp_frame_path)
+    def process_frames(self, tmp: Any, frame_paths: List[str], progress: [None, tqdm] = None) -> None:
+        for frame_path in frame_paths:
             try:
-                result = self.process_frame(temp_frame)
-                processed_frame_path = self.state.get_frame_processed_name(temp_frame_path)
-                write_image(result, processed_frame_path)
-                os.remove(temp_frame_path)
+                self.write_image(self.process_frame(self.read_image(frame_path)), self.state.get_frame_processed_name(frame_path))
+                self.state.set_processed(frame_path)
             except Exception as exception:
                 print(exception)
                 pass
