@@ -3,8 +3,6 @@ import subprocess
 from typing import List
 
 from roop.parameters import Parameters
-from roop.state import State
-from roop.utilities import get_temp_directory_path, get_temp_output_path, move_temp
 
 
 class FFMPEG:
@@ -37,19 +35,13 @@ class FFMPEG:
             pass
         return 30.0
 
-    def extract_frames(self) -> None:
-        temp_directory_path = get_temp_directory_path(self._target_path)
-        self.run_ffmpeg(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(temp_directory_path, '%04d.png')])
+    def extract_frames(self, to_dir: str) -> None:
+        self.run_ffmpeg(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
 
-    def create_video(self, fps: [None, float]) -> None:
+    def create_video(self, from_dir: str, filename: str, fps: [None, float]) -> None:
         if None == fps: fps = self.fps
-        temp_output_path = get_temp_output_path(self._target_path)
-        temp_directory_path = get_temp_directory_path(self._target_path)
-        self.run_ffmpeg(['-r', str(fps), '-i', os.path.join(temp_directory_path, State.PROCESSED_PREFIX + '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
-                         'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', temp_output_path])
+        self.run_ffmpeg(['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
+                         'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', filename])
 
-    def restore_audio(self, output_path: str) -> None:
-        temp_output_path = get_temp_output_path(self._target_path)
-        done = self.run_ffmpeg(['-i', temp_output_path, '-i', self._target_path, '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-y', output_path])
-        if not done:
-            move_temp(self._target_path, output_path)
+    def restore_audio(self, target: str) -> None:
+        self.run_ffmpeg(['-i', target, '-i', self._target_path, '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-y', target])
