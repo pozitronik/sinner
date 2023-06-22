@@ -8,7 +8,6 @@ from roop.parameters import Parameters
 
 class BaseFrameProcessor(ABC):
     source: [None, str, List[str]] = None  # none | file path | list of files
-    target: [None, str] = None  # none | file path
 
     execution_providers: List[str] = ["CPUExecutionProvider"]
     execution_threads: int = 1

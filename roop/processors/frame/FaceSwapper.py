@@ -17,13 +17,12 @@ from roop.utilities import is_image, read_image, is_video, resolve_relative_path
 
 class FaceSwapper(BaseFrameProcessor):
     source: [None, str] = None  # none | file path
-    target: [None, str] = None  # none | file path
     many_faces: bool = False
     state: State
 
     _face_analyser: FaceAnalyser
     _face_swapper: Any  # todo type
-    _source_face: [None, Face]  # todo type
+    _source_face: [None, Face]
 
     THREAD_LOCK = threading.Lock()
 
