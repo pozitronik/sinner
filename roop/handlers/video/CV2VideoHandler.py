@@ -10,7 +10,7 @@ from roop.typing import Frame
 from roop.utilities import write_image
 
 
-class Cv2VideoHandler(BaseVideoHandler):
+class CV2VideoHandler(BaseVideoHandler):
 
     def open(self) -> VideoCapture:
         cap = cv2.VideoCapture(self._target_path)
