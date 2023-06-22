@@ -45,9 +45,10 @@ def normalize_output_path(source_path: str, target_path: str, output_path: str) 
     return output_path
 
 
-def create_temp(target_path: str) -> None:
+def create_temp(target_path: str) -> str:
     temp_directory_path = get_temp_directory_path(target_path)
     Path(temp_directory_path).mkdir(parents=True, exist_ok=True)
+    return temp_directory_path
 
 
 def move_temp(target_path: str, output_path: str) -> None:
