@@ -2,17 +2,14 @@ import os
 import subprocess
 from typing import List
 
+import cv2
+from numpy import uint8, frombuffer
+
 from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
-from roop.parameters import Parameters
+from roop.typing import Frame
 
 
 class FFmpegVideoHandler(BaseVideoHandler):
-    fps: float
-    _target_path: str
-
-    def __init__(self, params: Parameters):
-        self._target_path = params.target_path
-        self.fps = self.detect_fps()
 
     def run(self, args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
@@ -37,13 +34,18 @@ class FFmpegVideoHandler(BaseVideoHandler):
             pass
         return 30.0
 
+    def detect_fc(self) -> int:
+        command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
+        output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
+        return int(output)
+
     def extract_frames(self, to_dir: str) -> None:
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
 
-    def extract_frame(self, frame_number: int, to_dir: str) -> str:
-        filename = os.path.join(to_dir, str(frame_number).zfill(4) + '.png')
-        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f'select=eq(n,{frame_number})', '-vframes', '1', ])
-        return filename
+    def extract_frame(self, frame_number: int) -> Frame:
+        command = ['-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f'select=eq(n,{frame_number})', '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-pix_fmt', 'rgb24', '-']
+        output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
+        return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if None == fps: fps = self.fps

@@ -1,13 +1,24 @@
 from abc import ABC, abstractmethod
 
-class BaseVideoHandler(ABC):
+from roop.typing import Frame
 
-    @abstractmethod
-    def __init__(self):
-        pass
+
+class BaseVideoHandler(ABC):
+    fps: float
+    fc: int
+    _target_path: str
+
+    def __init__(self, target_path: str):
+        self._target_path = target_path
+        self.fps = self.detect_fps()
+        self.fc = self.detect_fc()
 
     @abstractmethod
     def detect_fps(self) -> float:
+        pass
+
+    @abstractmethod
+    def detect_fc(self) -> int:
         pass
 
     @abstractmethod
@@ -15,7 +26,7 @@ class BaseVideoHandler(ABC):
         pass
 
     @abstractmethod
-    def extract_frame(self, frame_number: int, to_dir: str) -> str:
+    def extract_frame(self, frame_number: int) -> Frame:
         pass
 
     @abstractmethod
