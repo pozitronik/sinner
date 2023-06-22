@@ -9,11 +9,9 @@ from roop.face_analyser import FaceAnalyser
 from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
-from roop.typing import Face, Frame
-from roop.utilities import is_image, read_image, is_video, resolve_relative_path, conditional_download, write_image, create_temp, update_status
+from roop.typing import Face, Frame, FaceSwapperType
+from roop.utilities import is_image, read_image, resolve_relative_path, conditional_download, write_image, create_temp, update_status
 
-
-# процессор ничего не знает о видео, у него на входе набор кадров, на выходе набор кадров
 
 class FaceSwapper(BaseFrameProcessor):
     source: [None, str] = None  # none | file path
@@ -21,7 +19,7 @@ class FaceSwapper(BaseFrameProcessor):
     state: State
 
     _face_analyser: FaceAnalyser
-    _face_swapper: Any  # todo type
+    _face_swapper: FaceSwapperType
     _source_face: [None, Face]
 
     THREAD_LOCK = threading.Lock()
