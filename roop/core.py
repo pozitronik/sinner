@@ -4,7 +4,8 @@ import os
 import sys
 from argparse import Namespace
 
-from roop.handlers.video.FFmpegVideoHandler import FFmpegVideoHandler
+from roop.handlers.video import BaseVideoHandler
+from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
 from roop.parameters import suggest_max_memory, suggest_execution_providers, suggest_execution_threads, Parameters
 from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
@@ -25,7 +26,7 @@ import roop.metadata
 from roop.utilities import clean_temp, update_status, move_temp
 
 params: Parameters
-ffmpeg: FFmpegVideoHandler
+video_handler: BaseVideoHandler
 state: State
 #
 # if 'ROCMExecutionProvider' in params.execution_providers:
@@ -98,16 +99,16 @@ def run() -> None:
     roop.core.state = State(roop.core.params)
     roop.core.state.create()
     if roop.core.state.is_multi_frame:  # picture to video swap
-        roop.core.ffmpeg = FFmpegVideoHandler(roop.core.params)
+        roop.core.video_handler = CV2VideoHandler(roop.core.params.target_path)
         if not state.is_resumable():
-            ffmpeg.extract_frames(state.in_dir)
+            roop.core.video_handler.extract_frames(state.in_dir)
 
     swapper = FaceSwapper(params, roop.core.state)
     swapper.process()
     release_resources()
 
     if roop.core.state.is_multi_frame:  # picture to video swap
-        ffmpeg.create_video(roop.core.state.out_dir, roop.core.params.output_path, roop.core.params.fps, roop.core.params.target_path if roop.core.params.keep_audio else None)
+        roop.core.video_handler.create_video(roop.core.state.out_dir, roop.core.params.output_path, roop.core.params.fps, roop.core.params.target_path if roop.core.params.keep_audio else None)
     else:
         move_temp(roop.core.params.target_path, roop.core.params.output_path)
     roop.core.state.finish()

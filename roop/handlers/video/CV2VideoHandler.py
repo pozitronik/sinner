@@ -3,7 +3,6 @@ import os.path
 
 import cv2
 from cv2 import VideoCapture
-from numpy import array
 
 from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
 from roop.typing import Frame
@@ -32,11 +31,13 @@ class CV2VideoHandler(BaseVideoHandler):
 
     def extract_frames(self, to_dir: str) -> None:
         capture = self.open()
-        ret, frame = capture.read()
-        frame_array = array(frame)
+        i = 1
+        while True:
+            ret, frame = capture.read()
+            if not ret: break
+            write_image(frame, os.path.join(to_dir, f"{i:04d}.png"))
+            i += 1
         capture.release()
-        for i, frame in enumerate(frame_array):
-            write_image(frame, os.path.join(to_dir, str(i + 1).zfill(4)))
 
     def extract_frame(self, frame_number: int) -> Frame:
         capture = self.open()
