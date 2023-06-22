@@ -11,7 +11,7 @@ from roop.parameters import Parameters
 
 
 class BaseFrameProcessor(ABC):
-    source: [None, str, List[str]] = None  # none | file path | list of files
+    source: None | str | List[str] = None  # none | file path | list of files
 
     execution_providers: List[str] = ["CPUExecutionProvider"]
     execution_threads: int = 1
