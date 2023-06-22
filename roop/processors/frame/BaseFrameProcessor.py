@@ -29,11 +29,11 @@ class BaseFrameProcessor(ABC):
     def process(self):
         pass
 
-    def multi_process_frame(self, source_path: str, temp_frame_paths: List[str], process_frames: Callable[[str, List[str], Any], None], progress: Any = None) -> None:
+    def multi_process_frame(self, source_path: str, temp_frame_paths: List[str], process_frames: Callable[[List[str], Any], None], progress: Any = None) -> None:
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for path in temp_frame_paths:
-                future = executor.submit(process_frames, source_path, [path], progress)
+                future = executor.submit(process_frames, [path], progress)
                 futures.append(future)
             for future in futures:
                 future.result()
