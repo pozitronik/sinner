@@ -20,7 +20,7 @@ class FaceSwapper(BaseFrameProcessor):
 
     _face_analyser: FaceAnalyser
     _face_swapper: FaceSwapperType
-    _source_face: [None, Face]
+    _source_face: None | Face
 
     THREAD_LOCK = threading.Lock()
 
