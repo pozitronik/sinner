@@ -38,10 +38,8 @@ class FFMPEG:
     def extract_frames(self, to_dir: str) -> None:
         self.run_ffmpeg(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
 
-    def create_video(self, from_dir: str, filename: str, fps: [None, float]) -> None:
+    def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if None == fps: fps = self.fps
-        self.run_ffmpeg(['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
-                         'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', filename])
-
-    def restore_audio(self, target: str) -> None:
-        self.run_ffmpeg(['-i', target, '-i', self._target_path, '-c:v', 'copy', '-map', '0:v:0', '-map', '1:a:0', '-y', target])
+        command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', '-y', filename]
+        if audio_target: command.extend(['-i', audio_target, '-shortest'])
+        self.run_ffmpeg(command)
