@@ -11,6 +11,8 @@ from numpy import array, uint8, fromfile
 
 from tqdm import tqdm
 
+from roop.typing import Frame
+
 TEMP_FILE = 'temp.mp4'
 TEMP_DIRECTORY = 'temp'
 
@@ -102,14 +104,14 @@ def resolve_relative_path(path: str) -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
 
 
-def read_image(path: str) -> array:
+def read_image(path: str) -> Frame:
     if platform.system().lower() == 'windows':  # issue #511
         return cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
     else:
         return cv2.imread(path)
 
 
-def write_image(image: array, path: str) -> bool:
+def write_image(image: Frame, path: str) -> bool:
     if platform.system().lower() == 'windows':  # issue #511
         is_success, im_buf_arr = cv2.imencode(".png", image)
         im_buf_arr.tofile(path)
