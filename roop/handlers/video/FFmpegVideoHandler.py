@@ -2,10 +2,11 @@ import os
 import subprocess
 from typing import List
 
+from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
 from roop.parameters import Parameters
 
 
-class FFMPEG:
+class FFmpegVideoHandler(BaseVideoHandler):
     fps: float
     _target_path: str
 
@@ -13,7 +14,7 @@ class FFMPEG:
         self._target_path = params.target_path
         self.fps = self.detect_fps()
 
-    def run_ffmpeg(self, args: List[str]) -> bool:
+    def run(self, args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
         commands.extend(args)
         print(' '.join(commands))
@@ -37,10 +38,15 @@ class FFMPEG:
         return 30.0
 
     def extract_frames(self, to_dir: str) -> None:
-        self.run_ffmpeg(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
+        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
+
+    def extract_frame(self, frame_number: int, to_dir: str) -> str:
+        filename = os.path.join(to_dir, str(frame_number).zfill(4) + '.png')
+        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f'select=eq(n,{frame_number})', '-vframes', '1', ])
+        return filename
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if None == fps: fps = self.fps
         command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target: command.extend(['-i', audio_target, '-shortest'])
-        self.run_ffmpeg(command)
+        self.run(command)

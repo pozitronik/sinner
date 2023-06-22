@@ -4,7 +4,7 @@ import os
 import sys
 from argparse import Namespace
 
-from roop.ffmpeg import FFMPEG
+from roop.handlers.video.FFmpegVideoHandler import FFmpegVideoHandler
 from roop.parameters import suggest_max_memory, suggest_execution_providers, suggest_execution_threads, Parameters
 from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
@@ -22,10 +22,10 @@ import argparse
 import torch
 import tensorflow
 import roop.metadata
-from roop.utilities import clean_temp, create_temp, update_status, move_temp
+from roop.utilities import clean_temp, update_status, move_temp
 
 params: Parameters
-ffmpeg: FFMPEG
+ffmpeg: FFmpegVideoHandler
 state: State
 #
 # if 'ROCMExecutionProvider' in params.execution_providers:
@@ -98,7 +98,7 @@ def run() -> None:
     roop.core.state = State(roop.core.params)
     roop.core.state.create()
     if roop.core.state.is_multi_frame:  # picture to video swap
-        roop.core.ffmpeg = FFMPEG(roop.core.params)
+        roop.core.ffmpeg = FFmpegVideoHandler(roop.core.params)
         if not state.is_resumable():
             ffmpeg.extract_frames(state.in_dir)
 
