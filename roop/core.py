@@ -96,27 +96,18 @@ def destroy() -> None:
 def run() -> None:
     roop.core.params = Parameters(parse_args())
     roop.core.state = State(roop.core.params)
-    update_status('Creating temp resources...')
-    temp_dir = create_temp(roop.core.state.target_path)
+    roop.core.state.create()
     if roop.core.state.is_multi_frame:  # picture to video swap
         roop.core.ffmpeg = FFMPEG(roop.core.params)
         if not state.is_resumable():
-            update_status('Extracting frames...')
-            ffmpeg.extract_frames()
-    else:
-        temp_file = shutil.copy(roop.core.state.target_path, temp_dir)  # todo move to state
+            ffmpeg.extract_frames(state.in_dir)
 
     swapper = FaceSwapper(params, roop.core.state)
     swapper.process()
     release_resources()
 
     if roop.core.state.is_multi_frame:  # picture to video swap
-        # handles fps
-        ffmpeg.create_video(roop.core.params.fps)
-        # handle audio
-        if roop.core.params.keep_audio:
-            ffmpeg.restore_audio(roop.core.params.output_path)
-        else:
-            move_temp(roop.core.params.target_path, roop.core.params.output_path)
+        ffmpeg.create_video(roop.core.state.out_dir, roop.core.params.output_path, roop.core.params.fps, roop.core.params.target_path if roop.core.params.keep_audio else None)
     else:
-        shutil.move(roop.core.state.get_frame_processed_name(temp_file), roop.core.params.output_path)
+        move_temp(roop.core.params.target_path, roop.core.params.output_path)
+    roop.core.state.finish()
