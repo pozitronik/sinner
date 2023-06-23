@@ -10,7 +10,6 @@ from roop.typing import Frame
 
 
 class FFmpegVideoHandler(BaseVideoHandler):
-
     def run(self, args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
         commands.extend(args)
@@ -42,10 +41,10 @@ class FFmpegVideoHandler(BaseVideoHandler):
     def extract_frames(self, to_dir: str) -> None:
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
 
-    def extract_frame(self, frame_number: int) -> Frame:
+    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         command = ['-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f'select=eq(n,{frame_number})', '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-pix_fmt', 'rgb24', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
-        return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
+        return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if None == fps: fps = self.fps

@@ -39,14 +39,14 @@ class CV2VideoHandler(BaseVideoHandler):
             i += 1
         capture.release()
 
-    def extract_frame(self, frame_number: int) -> Frame:
+    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         ret, frame = capture.read()
         capture.release()
         if not ret:
             raise Exception(f"Error reading frame {frame_number}")
-        return frame
+        return frame, frame_number
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if None == fps: fps = self.fps

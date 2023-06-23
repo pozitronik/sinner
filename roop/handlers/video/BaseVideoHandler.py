@@ -7,6 +7,7 @@ class BaseVideoHandler(ABC):
     fps: float
     fc: int
     _target_path: str
+    current_frame_index: int = 0
 
     def __init__(self, target_path: str):
         self._target_path = target_path
@@ -26,9 +27,19 @@ class BaseVideoHandler(ABC):
         pass
 
     @abstractmethod
-    def extract_frame(self, frame_number: int) -> Frame:
+    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         pass
 
     @abstractmethod
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         pass
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> tuple[Frame, int]:
+        if self.current_frame_index + 1 >= self.fc:
+            raise StopIteration
+        frame, index = self.extract_frame(self.current_frame_index)
+        self.current_frame_index += 1
+        return frame, index
