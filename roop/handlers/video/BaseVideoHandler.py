@@ -38,7 +38,7 @@ class BaseVideoHandler(ABC):
         return self
 
     def __next__(self) -> tuple[Frame, int]:
-        if self.current_frame_index + 1 >= self.fc:
+        if self.current_frame_index == self.fc:
             raise StopIteration
         frame, index = self.extract_frame(self.current_frame_index)
         self.current_frame_index += 1
