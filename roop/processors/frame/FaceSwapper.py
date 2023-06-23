@@ -72,7 +72,7 @@ class FaceSwapper(BaseFrameProcessor):
                 print(exception)
                 pass
             if progress:
-                progress.update(1)
+                progress.update()
 
     def process(self, frames_provider: Iterable):
         update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
