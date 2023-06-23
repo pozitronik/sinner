@@ -81,17 +81,7 @@ def release_resources() -> None:
         torch.cuda.empty_cache()
 
 
-def pre_check() -> bool:
-    if sys.version_info < (3, 9):
-        update_status('Python version is not supported - please upgrade to 3.9 or higher.')
-        return False
-    if not shutil.which('ffmpeg'):
-        update_status('ffmpeg is not installed.')
-        return False
-    return True
-
-
-def get_video_handler() -> BaseVideoHandler:
+def get_video_handler() -> BaseVideoHandler:  # temporary, will be replaced to a factory
     if 'cv2' == roop.core.params.video_handler: return CV2VideoHandler(roop.core.params.target_path)
     return FFmpegVideoHandler(roop.core.params.target_path)
 

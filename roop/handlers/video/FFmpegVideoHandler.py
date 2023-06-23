@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from typing import List
 
@@ -10,6 +11,13 @@ from roop.typing import Frame
 
 
 class FFmpegVideoHandler(BaseVideoHandler):
+
+    def __init__(self, target_path: str):
+        if not shutil.which('ffmpeg'):
+            raise Exception('ffmpeg is not installed. Install it or use --video-handler=cv2')
+
+        super().__init__(target_path)
+
     def run(self, args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
         commands.extend(args)
