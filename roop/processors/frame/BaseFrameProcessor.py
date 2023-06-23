@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import cv2
 from numpy import array, uint8, fromfile
+from tqdm import tqdm
 
 from roop.parameters import Parameters
 from roop.utilities import read_image, write_image
@@ -30,7 +31,7 @@ class BaseFrameProcessor(ABC):
     def process(self):
         pass
 
-    def multi_process_frame(self, temp_frame_paths: List[str], process_frames: Callable[[List[str], Any], None], progress: Any = None) -> None:
+    def multi_process_frame(self, temp_frame_paths: List[str], process_frames: Callable[[List[str], None | tqdm], None], progress: None | tqdm = None) -> None:
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for path in temp_frame_paths:
