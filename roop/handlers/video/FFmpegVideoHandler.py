@@ -42,9 +42,14 @@ class FFmpegVideoHandler(BaseVideoHandler):
         return 30.0
 
     def detect_fc(self) -> int:
-        command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
-        output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
-        return int(output)
+        try:
+            command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
+            if 'N/A' == output: return 1  # non-video files, still processable
+            return int(output)
+        except Exception as exception:
+            print(exception)
+            return 0
 
     def extract_frames(self, to_dir: str) -> None:
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])

@@ -30,7 +30,7 @@ class State:
         self.output_path = params.output_path
         self.in_dir, self.out_dir = self.get_state_dirs()
         self.is_multi_frame = is_video(self.target_path)
-        self.frames_count = get_video_frame_total(self.target_path) if self.is_multi_frame else None
+        self.frames_count = get_video_frame_total(self.target_path) if self.is_multi_frame else 1
 
     #  creates the state for a provided target
     def create(self):
@@ -88,7 +88,7 @@ class State:
 
     #  Returns all unprocessed frames
     def unprocessed_frames(self) -> List[str]:
-        if not self.is_multi_frame: return [os.path.join(glob.escape(self.out_dir), os.path.basename(self.target_path))]
+        if not self.is_multi_frame: return [os.path.join(glob.escape(self.in_dir), os.path.basename(self.target_path))]
         processed_frames = self.processed_frames(True)
         return [file for file in glob.glob(os.path.join(glob.escape(self.in_dir), '*.png')) if not (os.path.basename(file) in processed_frames)]
 
