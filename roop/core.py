@@ -2,9 +2,9 @@
 
 import os
 import sys
-from roop.handlers.video import BaseVideoHandler
+from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
 from roop.parameters import Parameters
-from roop.processors.frame import BaseFrameProcessor
+from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -26,10 +26,10 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 class Core:
     params: Parameters
     state: State
-    video_handler: BaseVideoHandler
+    video_handler: BaseVideoHandler | None
     frame_processor: BaseFrameProcessor
 
-    def __init__(self, params: Parameters, state: State, video_handler: BaseVideoHandler, frame_processor: BaseFrameProcessor):
+    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, video_handler: BaseVideoHandler | None):
         self.params = params
         self.state = state
         self.video_handler = video_handler
@@ -40,7 +40,9 @@ class Core:
             if not self.params.less_files and not self.state.is_resumable():
                 self.video_handler.extract_frames(self.state.in_dir)
 
-        self.frame_processor.process(self.video_handler)
+        frames_provider = self.video_handler if self.params.less_files and self.state.is_multi_frame else self.state.unprocessed_frames()
+
+        self.frame_processor.process(frames_provider=frames_provider)
         self.release_resources()
 
         if self.state.is_multi_frame:  # picture to video swap
