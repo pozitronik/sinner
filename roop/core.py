@@ -2,13 +2,9 @@
 
 import os
 import sys
-from argparse import Namespace
-
 from roop.handlers.video import BaseVideoHandler
-from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
-from roop.handlers.video.FFmpegVideoHandler import FFmpegVideoHandler
-from roop.parameters import suggest_max_memory, suggest_execution_providers, suggest_execution_threads, Parameters
-from roop.processors.frame.FaceSwapper import FaceSwapper
+from roop.parameters import Parameters
+from roop.processors.frame import BaseFrameProcessor
 from roop.state import State
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -17,18 +13,8 @@ if any(arg.startswith('--execution-provider') for arg in sys.argv):
 # reduce tensorflow log level
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import warnings
-import platform
-import signal
-import shutil
-import argparse
 import torch
-import tensorflow
-import roop.metadata
-from roop.utilities import clean_temp, update_status, move_temp
 
-params: Parameters
-video_handler: BaseVideoHandler
-state: State
 #
 # if 'ROCMExecutionProvider' in params.execution_providers:
 #     del torch
@@ -37,76 +23,32 @@ warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
-def parse_args() -> Namespace:
-    signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
-    program = argparse.ArgumentParser()
-    program.add_argument('-s', '--source', help='select an source image', dest='source_path')
-    program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
-    program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
-    program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
-    program.add_argument('--video-handler', help='video engine', dest='video_handler', default=['ffmpeg'], choices=['ffmpeg', 'cv2'])
-    program.add_argument('--less-files', help='in memory frames processing', dest='less_files', action='store_true', default=True)
-    program.add_argument('--fps', help='set output video fps', dest='fps', default=None)
-    program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
-    program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
-    program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true', default=False)
-    program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=suggest_max_memory())
-    program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
-    program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
-    program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
-    return program.parse_args()
+class Core:
+    params: Parameters
+    state: State
+    video_handler: BaseVideoHandler
+    frame_processor: BaseFrameProcessor
 
+    def __init__(self, params: Parameters, state: State, video_handler: BaseVideoHandler, frame_processor: BaseFrameProcessor):
+        self.params = params
+        self.state = state
+        self.video_handler = video_handler
+        self.frame_processor = frame_processor
 
-def limit_resources() -> None:
-    # prevent tensorflow memory leak
-    gpus = tensorflow.config.experimental.list_physical_devices('GPU')
-    for gpu in gpus:
-        tensorflow.config.experimental.set_memory_growth(gpu, True)
-    # limit memory usage
-    if params.max_memory:
-        memory = params.max_memory * 1024 ** 3
-        if platform.system().lower() == 'darwin':
-            memory = params.max_memory * 1024 ** 6
-        if platform.system().lower() == 'windows':
-            import ctypes
-            kernel32 = ctypes.windll.kernel32
-            kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
+    def run(self) -> None:
+        if self.state.is_multi_frame:  # picture to video swap
+            if not self.params.less_files and not self.state.is_resumable():
+                self.video_handler.extract_frames(self.state.in_dir)
+
+        self.frame_processor.process(self.video_handler)
+        self.release_resources()
+
+        if self.state.is_multi_frame:  # picture to video swap
+            self.video_handler.create_video(self.state.out_dir, self.params.output_path, self.params.fps, self.params.target_path if self.params.keep_audio else None)
         else:
-            import resource
-            resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))
+            pass  # move_temp(params.target_path, params.output_path) # check this
+        self.state.finish()
 
-
-def release_resources() -> None:
-    if 'CUDAExecutionProvider' in params.execution_providers:
-        torch.cuda.empty_cache()
-
-
-def get_video_handler() -> BaseVideoHandler:  # temporary, will be replaced to a factory
-    if 'cv2' == roop.core.params.video_handler: return CV2VideoHandler(roop.core.params.target_path)
-    return FFmpegVideoHandler(roop.core.params.target_path)
-
-
-def destroy() -> None:
-    if state.is_finished():
-        clean_temp(params.target_path, params.keep_frames)
-    quit()
-
-
-def run() -> None:
-    roop.core.params = Parameters(parse_args())
-    roop.core.state = State(roop.core.params)
-    roop.core.state.create()
-    if roop.core.state.is_multi_frame:  # picture to video swap
-        roop.core.video_handler = get_video_handler()
-        if not roop.core.params.less_files and not state.is_resumable():
-            roop.core.video_handler.extract_frames(state.in_dir)
-
-    swapper = FaceSwapper(params, roop.core.state)
-    swapper.process(roop.core.video_handler)
-    release_resources()
-
-    if roop.core.state.is_multi_frame:  # picture to video swap
-        roop.core.video_handler.create_video(roop.core.state.out_dir, roop.core.params.output_path, roop.core.params.fps, roop.core.params.target_path if roop.core.params.keep_audio else None)
-    else:
-        move_temp(roop.core.params.target_path, roop.core.params.output_path)
-    roop.core.state.finish()
+    def release_resources(self):
+        if 'CUDAExecutionProvider' in self.params.execution_providers:
+            torch.cuda.empty_cache()

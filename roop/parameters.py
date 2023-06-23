@@ -1,3 +1,4 @@
+import argparse
 import platform
 from argparse import Namespace
 from dataclasses import dataclass, field
@@ -39,6 +40,23 @@ def suggest_execution_providers() -> List[str]:
     return encode_execution_providers(onnxruntime.get_available_providers())
 
 
+def parse_args() -> Namespace:
+    program = argparse.ArgumentParser()
+    program.add_argument('-s', '--source', help='select an source image', dest='source_path')
+    program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
+    program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
+    program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
+    program.add_argument('--video-handler', help='video engine', dest='video_handler', default=['ffmpeg'], choices=['ffmpeg', 'cv2'])
+    program.add_argument('--less-files', help='in memory frames processing', dest='less_files', action='store_true', default=True)
+    program.add_argument('--fps', help='set output video fps', dest='fps', default=None)
+    program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
+    program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
+    program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true', default=False)
+    program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=suggest_max_memory())
+    program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
+    program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
+    return program.parse_args()
+
 @dataclass
 class Parameters:
     source_path: None | str = None
@@ -55,7 +73,8 @@ class Parameters:
     video_handler: None | str = 'ffmpeg'
     less_files: bool = True
 
-    def __init__(self, args: Namespace):
+    def __init__(self):
+        args = parse_args()
         self.source_path = args.source_path
         self.target_path = args.target_path
         self.output_path = normalize_output_path(self.source_path, self.target_path, args.output_path)
