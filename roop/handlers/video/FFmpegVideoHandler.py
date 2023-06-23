@@ -42,7 +42,7 @@ class FFmpegVideoHandler(BaseVideoHandler):
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
 
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
-        command = ['-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f'select=eq(n,{frame_number})', '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
+        command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select=gte(n\,{frame_number}),setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
         return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
 
