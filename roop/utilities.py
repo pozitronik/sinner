@@ -16,10 +16,6 @@ from roop.typing import Frame
 TEMP_FILE = 'temp.mp4'
 TEMP_DIRECTORY = 'temp'
 
-# monkey patch ssl for mac
-if platform.system().lower() == 'darwin':
-    ssl._create_default_https_context = ssl._create_unverified_context
-
 
 def update_status(message: str, caller: str = 'GLOBAL') -> None:
     print(f'[{caller}] {message}')
