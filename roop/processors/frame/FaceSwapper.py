@@ -1,9 +1,10 @@
 import threading
-from typing import List, Iterable, Any
+from typing import List, Iterable, Any, Union
 
 import insightface
 from tqdm import tqdm
 from roop.face_analyser import FaceAnalyser
+from roop.handlers.video import BaseVideoHandler
 from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
@@ -66,18 +67,18 @@ class FaceSwapper(BaseFrameProcessor):
                     write_image(self.process_frame(read_image(frame)), self.state.get_frame_processed_name(frame))
                     self.state.set_processed(frame)
                 else:
-                    write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(str(frame[1]+1).zfill(4) + '.png')) # todo
+                    write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(str(frame[1] + 1).zfill(4) + '.png'))  # todo
             except Exception as exception:
                 print(exception)
                 pass
             if progress:
                 progress.update(1)
 
-    def process(self, frames_provider: Iterable):
+    def process(self, frames_provider: BaseVideoHandler):
         update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         total = self.state.frames_count
         with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
             progress.set_postfix({'execution_providers': self.execution_providers, 'threads': self.execution_threads, 'memory': self.max_memory})
-            frames_provider.current_frame_index=self.state.processed_frames_count()-1
+            frames_provider.current_frame_index = self.state.processed_frames_count()
             self.multi_process_frame(frames_provider, self.process_frames, progress)
