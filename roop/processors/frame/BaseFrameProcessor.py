@@ -17,7 +17,7 @@ class BaseFrameProcessor(ABC):
     execution_threads: int = 1
     max_memory: int = 1
 
-    def __init__(self, params: Parameters):
+    def __init__(self, params: Parameters) -> None:
         self.source = params.source_path
         self.target = params.target_path
         self.execution_providers = params.execution_providers
@@ -27,7 +27,7 @@ class BaseFrameProcessor(ABC):
             quit()
 
     @abstractmethod
-    def process(self, frames_provider: Iterable):
+    def process(self, frames_provider: Iterable) -> None:
         pass
 
     def multi_process_frame(self, frames_provider: Iterable, process_frames: Callable[[Iterable, None | tqdm], None], progress: None | tqdm = None) -> None:
@@ -40,5 +40,5 @@ class BaseFrameProcessor(ABC):
                 future.result()
 
     @abstractmethod
-    def validate(self):
+    def validate(self) -> bool:
         pass

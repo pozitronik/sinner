@@ -75,7 +75,7 @@ class FaceSwapper(BaseFrameProcessor):
             if progress:
                 progress.update()
 
-    def process(self, frames_provider: Iterable):
+    def process(self, frames_provider: Iterable) -> None:
         update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         total = self.state.frames_count

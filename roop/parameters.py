@@ -9,7 +9,7 @@ import onnxruntime
 from roop.utilities import normalize_output_path
 
 
-def default_frame_processors():
+def default_frame_processors() -> List[str]:
     return ["CPUExecutionProvider"]
 
 
@@ -74,7 +74,7 @@ class Parameters:
     video_handler: None | str = 'ffmpeg'
     less_files: bool = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         args = parse_args()
         self.source_path = args.source_path
         self.target_path = args.target_path

@@ -6,7 +6,7 @@ import sys
 import tensorflow
 
 from roop.core import Core
-from roop.handlers.video import BaseVideoHandler
+from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
 from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
 from roop.handlers.video.FFmpegVideoHandler import FFmpegVideoHandler
 from roop.parameters import Parameters
@@ -42,7 +42,8 @@ def destroy() -> None:
 
 
 def get_video_handler(target_path: str, handler_name: str = 'ffmpeg') -> BaseVideoHandler:  # temporary, will be replaced with a factory
-    if 'cv2' == handler_name: return CV2VideoHandler(target_path)
+    if 'cv2' == handler_name:
+        return CV2VideoHandler(target_path)
     return FFmpegVideoHandler(target_path)
 
 

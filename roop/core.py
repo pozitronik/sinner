@@ -51,6 +51,6 @@ class Core:
             pass  # move_temp(params.target_path, params.output_path) # check this
         self.state.finish()
 
-    def release_resources(self):
+    def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.params.execution_providers:
             torch.cuda.empty_cache()

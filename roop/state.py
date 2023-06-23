@@ -30,10 +30,10 @@ class State:
         self.output_path = params.output_path
         self.in_dir, self.out_dir = self.get_state_dirs()
         self.is_multi_frame = is_video(self.target_path)
-        self.frames_count = CV2VideoHandler(self.target_path).fps if self.is_multi_frame else 1
+        self.frames_count = CV2VideoHandler(self.target_path).fc if self.is_multi_frame else 1
 
     #  creates the state for a provided target
-    def create(self):
+    def create(self) -> None:
         Path(self.in_dir).mkdir(parents=True, exist_ok=True)
         Path(self.out_dir).mkdir(parents=True, exist_ok=True)
         if self.is_multi_frame:
@@ -41,7 +41,7 @@ class State:
         else:
             shutil.copy(self.target_path, self.in_dir)
 
-    def finish(self):
+    def finish(self) -> None:
         if self.is_multi_frame:
             pass
         else:
