@@ -52,6 +52,8 @@ class Parameters:
     max_memory: int = lambda: suggest_max_memory()
     execution_providers: List[str] = field(default_factory=lambda: suggest_execution_providers())
     execution_threads: int = lambda: suggest_execution_threads()
+    video_handler: None | str = 'ffmpeg'
+    less_files: bool = True
 
     def __init__(self, args: Namespace):
         self.source_path = args.source_path
@@ -66,3 +68,5 @@ class Parameters:
         self.max_memory = args.max_memory
         self.execution_providers = decode_execution_providers(args.execution_provider)
         self.execution_threads = args.execution_threads
+        self.video_handler = args.video_handler
+        self.less_files = args.less_files

@@ -6,6 +6,7 @@ from argparse import Namespace
 
 from roop.handlers.video import BaseVideoHandler
 from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
+from roop.handlers.video.FFmpegVideoHandler import FFmpegVideoHandler
 from roop.parameters import suggest_max_memory, suggest_execution_providers, suggest_execution_threads, Parameters
 from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
@@ -43,6 +44,8 @@ def parse_args() -> Namespace:
     program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
+    program.add_argument('--video-handler', help='video engine', dest='video_handler', default=['ffmpeg'], choices=['ffmpeg', 'cv2'])
+    program.add_argument('--less-files', help='in memory frames processing', dest='less_files', action='store_true', default=True)
     program.add_argument('--fps', help='set output video fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
@@ -88,6 +91,11 @@ def pre_check() -> bool:
     return True
 
 
+def get_video_handler() -> BaseVideoHandler:
+    if 'cv2' == roop.core.params.video_handler: return CV2VideoHandler(roop.core.params.target_path)
+    return FFmpegVideoHandler(roop.core.params.target_path)
+
+
 def destroy() -> None:
     if state.is_finished():
         clean_temp(params.target_path, params.keep_frames)
@@ -99,12 +107,12 @@ def run() -> None:
     roop.core.state = State(roop.core.params)
     roop.core.state.create()
     if roop.core.state.is_multi_frame:  # picture to video swap
-        roop.core.video_handler = CV2VideoHandler(roop.core.params.target_path)
-        if not state.is_resumable():
+        roop.core.video_handler = get_video_handler()
+        if not roop.core.params.less_files and not state.is_resumable():
             roop.core.video_handler.extract_frames(state.in_dir)
 
     swapper = FaceSwapper(params, roop.core.state)
-    swapper.process()
+    swapper.process(roop.core.video_handler)
     release_resources()
 
     if roop.core.state.is_multi_frame:  # picture to video swap
