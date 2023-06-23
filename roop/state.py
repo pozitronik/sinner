@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from roop.capturer import get_video_frame_total
+from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
 from roop.parameters import Parameters
 from roop.utilities import is_video
 
@@ -30,7 +30,7 @@ class State:
         self.output_path = params.output_path
         self.in_dir, self.out_dir = self.get_state_dirs()
         self.is_multi_frame = is_video(self.target_path)
-        self.frames_count = get_video_frame_total(self.target_path) if self.is_multi_frame else 1
+        self.frames_count = CV2VideoHandler(self.target_path).fps if self.is_multi_frame else 1
 
     #  creates the state for a provided target
     def create(self):
