@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Callable, Any, Iterable
-
 from concurrent.futures import ThreadPoolExecutor
+from typing import List, Callable, Iterable
 
 from tqdm import tqdm
 

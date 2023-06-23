@@ -1,10 +1,10 @@
 import threading
-from typing import List, Iterable, Any, Union
+from typing import Iterable
 
 import insightface
 from tqdm import tqdm
+
 from roop.face_analyser import FaceAnalyser
-from roop.handlers.video import BaseVideoHandler
 from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State

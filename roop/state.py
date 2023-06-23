@@ -1,12 +1,12 @@
 import glob
 import os
 import shutil
-from typing import List
 from pathlib import Path
+from typing import List
 
 from roop.capturer import get_video_frame_total
 from roop.parameters import Parameters
-from roop.utilities import get_temp_directory_path, is_video, create_temp
+from roop.utilities import is_video
 
 TEMP_DIRECTORY = 'temp'
 IN_DIR = 'in'

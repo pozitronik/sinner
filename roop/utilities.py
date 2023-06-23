@@ -2,13 +2,12 @@ import mimetypes
 import os
 import platform
 import shutil
-import ssl
 import urllib
 from pathlib import Path
 from typing import List, Any
+
 import cv2
 from numpy import array, uint8, fromfile
-
 from tqdm import tqdm
 
 from roop.typing import Frame
