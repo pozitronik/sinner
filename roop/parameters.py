@@ -57,13 +57,14 @@ def parse_args() -> Namespace:
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     return program.parse_args()
 
+
 @dataclass
 class Parameters:
     source_path: None | str = None
     target_path: None | str = None
     output_path: None | str = None
     frame_processors: List[str] = field(default_factory=lambda: default_frame_processors())
-    fps: None | float = None #  None for auto
+    fps: None | float = None  # None for auto
     keep_audio: bool = True
     keep_frames: bool = False
     many_faces: bool = True

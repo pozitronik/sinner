@@ -46,7 +46,8 @@ class FFmpegVideoHandler(BaseVideoHandler):
         try:
             command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
             output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
-            if 'N/A' == output: return 1  # non-video files, still processable
+            if 'N/A' == output:
+                return 1  # non-video files, still processable
             return int(output)
         except Exception as exception:
             print(exception)
@@ -61,7 +62,9 @@ class FFmpegVideoHandler(BaseVideoHandler):
         return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
-        if None == fps: fps = self.fps
+        if fps is None:
+            fps = self.fps
         command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
-        if audio_target: command.extend(['-i', audio_target, '-shortest'])
+        if audio_target:
+            command.extend(['-i', audio_target, '-shortest'])
         self.run(command)

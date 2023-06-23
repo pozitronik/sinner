@@ -34,7 +34,8 @@ class CV2VideoHandler(BaseVideoHandler):
         i = 1
         while True:
             ret, frame = capture.read()
-            if not ret: break
+            if not ret:
+                break
             write_image(frame, os.path.join(to_dir, f"{i:04d}.png"))
             i += 1
         capture.release()
@@ -49,8 +50,10 @@ class CV2VideoHandler(BaseVideoHandler):
         return frame, frame_number
 
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
-        if None == fps: fps = self.fps
-        if None != audio_target: print('Sound is not supported in CV2VideoHandler')
+        if fps is None:
+            fps = self.fps
+        if audio_target is not None:
+            print('Sound is not supported in CV2VideoHandler')
         frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
         first_frame = cv2.imread(frame_files[0])
         height, width, channels = first_frame.shape

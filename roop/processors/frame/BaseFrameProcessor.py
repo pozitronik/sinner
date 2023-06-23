@@ -23,7 +23,8 @@ class BaseFrameProcessor(ABC):
         self.execution_providers = params.execution_providers
         self.execution_threads = params.execution_threads
         self.max_memory = params.max_memory
-        if not self.validate(): quit()
+        if not self.validate():
+            quit()
 
     @abstractmethod
     def process(self, frames_provider: Iterable):

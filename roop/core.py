@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import warnings
+import torch
 import os
 import sys
 from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
@@ -12,8 +14,6 @@ if any(arg.startswith('--execution-provider') for arg in sys.argv):
     os.environ['OMP_NUM_THREADS'] = '1'
 # reduce tensorflow log level
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-import warnings
-import torch
 
 #
 # if 'ROCMExecutionProvider' in params.execution_providers:

@@ -69,12 +69,14 @@ class State:
 
     #  Returns count of already processed frames for this target path (0, if none).
     def processed_frames_count(self) -> int:
-        if not self.is_multi_frame: return 0;
+        if not self.is_multi_frame:
+            return 0
         return len([os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
     #  Returns count of still unprocessed frames for this target path (0, if none).
     def unprocessed_frames_count(self) -> int:
-        if not self.is_multi_frame: return 1;
+        if not self.is_multi_frame:
+            return 1
         return self.in_frames_count() - self.processed_frames_count()
 
     #  returns count of extracted frames in the input dir
@@ -88,14 +90,17 @@ class State:
 
     #  Returns all unprocessed frames
     def unprocessed_frames(self) -> List[str]:
-        if not self.is_multi_frame: return [os.path.join(glob.escape(self.in_dir), os.path.basename(self.target_path))]
+        if not self.is_multi_frame:
+            return [os.path.join(glob.escape(self.in_dir), os.path.basename(self.target_path))]
         processed_frames = self.processed_frames(True)
         return [file for file in glob.glob(os.path.join(glob.escape(self.in_dir), '*.png')) if not (os.path.basename(file) in processed_frames)]
 
     def processed_frames(self, basename: bool = False) -> List[str]:
-        if not self.is_multi_frame: return []
+        if not self.is_multi_frame:
+            return []
         frame_paths = [file for file in glob.glob(os.path.join(glob.escape(self.out_dir), '*.png'))]
         return [os.path.basename(file) for file in frame_paths] if basename else frame_paths
 
     def set_processed(self, frame_path):
-        if not self.preserve_source_frames: os.remove(frame_path)
+        if not self.preserve_source_frames:
+            os.remove(frame_path)
