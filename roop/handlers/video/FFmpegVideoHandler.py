@@ -18,7 +18,8 @@ class FFmpegVideoHandler(BaseVideoHandler):
 
         super().__init__(target_path)
 
-    def run(self, args: List[str]) -> bool:
+    @staticmethod
+    def run(args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
         commands.extend(args)
         print(' '.join(commands))
