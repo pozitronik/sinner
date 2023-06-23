@@ -1,5 +1,5 @@
 import threading
-from typing import List
+from typing import List, Iterable, Any
 
 import insightface
 from tqdm import tqdm
@@ -56,22 +56,28 @@ class FaceSwapper(BaseFrameProcessor):
                 temp_frame = self.swap_face(target_face, temp_frame)
         return temp_frame
 
-    def process_frames(self, frame_paths: List[str], progress: None | tqdm = None) -> None:
-        for frame_path in frame_paths:
+    def process_frames(self, frames: Iterable, progress: None | tqdm = None) -> None:
+        frame_type: None | int = None
+        frame: str | tuple[Frame, int]
+        for frame in frames:
             try:
-                write_image(self.process_frame(read_image(frame_path)), self.state.get_frame_processed_name(frame_path))
-                self.state.set_processed(frame_path)
+                if None == frame_type: frame_type = self.FT_PATH if isinstance(frame, str) else self.FT_FRAME_TUPLE
+                if self.FT_PATH == frame_type:
+                    write_image(self.process_frame(read_image(frame)), self.state.get_frame_processed_name(frame))
+                    self.state.set_processed(frame)
+                else:
+                    write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(str(frame[1]+1).zfill(4) + '.png')) # todo
             except Exception as exception:
                 print(exception)
                 pass
             if progress:
                 progress.update(1)
 
-
-    def process(self):
+    def process(self, frames_provider: Iterable):
         update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         total = self.state.frames_count
         with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
             progress.set_postfix({'execution_providers': self.execution_providers, 'threads': self.execution_threads, 'memory': self.max_memory})
-            self.multi_process_frame(self.state.unprocessed_frames(), self.process_frames, progress)
+            frames_provider.current_frame_index=self.state.processed_frames_count()-1
+            self.multi_process_frame(frames_provider, self.process_frames, progress)

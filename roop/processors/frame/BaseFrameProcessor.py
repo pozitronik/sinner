@@ -1,18 +1,17 @@
-import platform
 from abc import ABC, abstractmethod
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Iterable
 
 from concurrent.futures import ThreadPoolExecutor
 
-import cv2
-from numpy import array, uint8, fromfile
 from tqdm import tqdm
 
 from roop.parameters import Parameters
-from roop.utilities import read_image, write_image
 
 
 class BaseFrameProcessor(ABC):
+    FT_PATH = 1
+    FT_FRAME_TUPLE = 2
+
     source: None | str | List[str] = None  # none | file path | list of files
 
     execution_providers: List[str] = ["CPUExecutionProvider"]
@@ -28,14 +27,14 @@ class BaseFrameProcessor(ABC):
         if not self.validate(): quit()
 
     @abstractmethod
-    def process(self):
+    def process(self, frames_provider: Iterable):
         pass
 
-    def multi_process_frame(self, temp_frame_paths: List[str], process_frames: Callable[[List[str], None | tqdm], None], progress: None | tqdm = None) -> None:
+    def multi_process_frame(self, frames_provider: Iterable, process_frames: Callable[[Iterable, None | tqdm], None], progress: None | tqdm = None) -> None:
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
-            for path in temp_frame_paths:
-                future = executor.submit(process_frames, [path], progress)
+            for frame in frames_provider:
+                future = executor.submit(process_frames, [frame], progress)
                 futures.append(future)
             for future in futures:
                 future.result()
