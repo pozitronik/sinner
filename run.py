@@ -15,16 +15,16 @@ from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
 
 
-def limit_resources() -> None:
+def limit_resources(max_memory: int) -> None:
     # prevent tensorflow memory leak
     gpus = tensorflow.config.experimental.list_physical_devices('GPU')
     for gpu in gpus:
         tensorflow.config.experimental.set_memory_growth(gpu, True)
     # limit memory usage
-    if params.max_memory:
-        memory = params.max_memory * 1024 ** 3
+    if max_memory:
+        memory = max_memory * 1024 ** 3
         if platform.system().lower() == 'darwin':
-            memory = params.max_memory * 1024 ** 6
+            memory = max_memory * 1024 ** 6
         if platform.system().lower() == 'windows':
             import ctypes
             kernel32 = ctypes.windll.kernel32
@@ -54,12 +54,11 @@ if __name__ == '__main__':
     if sys.version_info < (3, 9):
         raise Exception('Python version is not supported - please upgrade to 3.9 or higher.')
     signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
-    limit_resources()
 
     params = Parameters()
     state = State(params)
     state.create()
-
+    limit_resources(params.max_memory)
     core = Core(params=params, state=state, video_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(state))
 
     core.run()
