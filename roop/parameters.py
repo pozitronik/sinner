@@ -60,9 +60,9 @@ def parse_args() -> Namespace:
 
 @dataclass
 class Parameters:
-    source_path: None | str = None
-    target_path: None | str = None
-    output_path: None | str = None
+    source_path: str
+    target_path: str
+    output_path: str
     frame_processors: List[str] = field(default_factory=lambda: default_frame_processors())
     fps: None | float = None  # None for auto
     keep_audio: bool = True
