@@ -5,14 +5,10 @@ from typing import List, Callable, Iterable
 from tqdm import tqdm
 
 from roop.parameters import Parameters
+from roop.typing import Frame
 
 
 class BaseFrameProcessor(ABC):
-    FT_PATH = 1
-    FT_FRAME_TUPLE = 2
-
-    source: None | str | List[str] = None  # none | file path | list of files
-
     execution_providers: List[str] = ["CPUExecutionProvider"]
     execution_threads: int = 1
     max_memory: int = 1
@@ -30,7 +26,7 @@ class BaseFrameProcessor(ABC):
     def process(self, frames_provider: Iterable) -> None:
         pass
 
-    def multi_process_frame(self, frames_provider: Iterable, process_frames: Callable[[Iterable, None | tqdm], None], progress: None | tqdm = None) -> None:
+    def multi_process_frame(self, frames_provider: Iterable, process_frames: Callable[[Iterable[tuple[Frame, int]], None | tqdm], None], progress: None | tqdm = None) -> None:
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for frame in frames_provider:

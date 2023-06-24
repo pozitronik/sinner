@@ -40,9 +40,7 @@ class Core:
             if not self.params.less_files and not self.state.is_resumable():
                 self.video_handler.extract_frames(self.state.in_dir)
 
-        frames_provider = self.video_handler if self.params.less_files and self.state.is_multi_frame else self.state.unprocessed_frames()
-
-        self.frame_processor.process(frames_provider=frames_provider)
+        self.frame_processor.process(frames_provider=self.video_handler)
         self.release_resources()
 
         if self.state.is_multi_frame:  # picture to video swap

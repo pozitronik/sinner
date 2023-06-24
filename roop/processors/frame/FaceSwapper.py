@@ -13,7 +13,7 @@ from roop.utilities import is_image, resolve_relative_path, conditional_download
 
 
 class FaceSwapper(BaseFrameProcessor):
-    source: None | str = None  # none | file path
+    source: None | str = None  # todo: remove
     many_faces: bool = False
     state: State
 
@@ -57,18 +57,10 @@ class FaceSwapper(BaseFrameProcessor):
                 temp_frame = self.swap_face(target_face, temp_frame)
         return temp_frame
 
-    def process_frames(self, frames: Iterable, progress: None | tqdm = None) -> None:
-        frame_type: None | int = None
-        frame: str | tuple[Frame, int]
+    def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:
         for frame in frames:
             try:
-                if frame_type is None:
-                    frame_type = self.FT_PATH if isinstance(frame, str) else self.FT_FRAME_TUPLE
-                if self.FT_PATH == frame_type:
-                    write_image(self.process_frame(read_image(frame)), self.state.get_frame_processed_name(frame))
-                    self.state.set_processed(frame)
-                else:
-                    write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(str(frame[1] + 1).zfill(4) + '.png'))  # todo
+                write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(str(frame[1] + 1).zfill(4) + '.png'))  # todo
             except Exception as exception:
                 print(exception)
                 pass
