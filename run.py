@@ -4,14 +4,9 @@ import sys
 
 
 from roop.core import Core
-from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
-from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
-from roop.handlers.video.FFmpegVideoHandler import FFmpegVideoHandler
 from roop.parameters import Parameters
-from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
-from roop.utilities import limit_resources
+from roop.utilities import limit_resources, get_video_handler, get_frame_processor
 
 
 def destroy() -> None:
@@ -19,16 +14,6 @@ def destroy() -> None:
     # if state.is_finished():
     #     clean_temp(params.target_path, params.keep_frames)
     exit()
-
-
-def get_video_handler(target_path: str, handler_name: str = 'ffmpeg') -> BaseVideoHandler:  # temporary, will be replaced with a factory
-    if 'cv2' == handler_name:
-        return CV2VideoHandler(target_path)
-    return FFmpegVideoHandler(target_path)
-
-
-def get_frame_processor(state_var: State) -> BaseFrameProcessor:  # temporary, will be replaced with a factory
-    return FaceSwapper(params, state_var)
 
 
 if __name__ == '__main__':
