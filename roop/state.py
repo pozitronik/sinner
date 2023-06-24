@@ -101,6 +101,6 @@ class State:
         frame_paths = [file for file in glob.glob(os.path.join(glob.escape(self.out_dir), '*.png'))]
         return [os.path.basename(file) for file in frame_paths] if basename else frame_paths
 
-    def set_processed(self, frame_path):
+    def set_processed(self, frame_path) -> None:
         if not self.preserve_source_frames:
             os.remove(frame_path)
