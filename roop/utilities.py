@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List
 
 import cv2
+import tensorflow
 from numpy import array, uint8, fromfile
 from tqdm import tqdm
 
@@ -14,6 +15,24 @@ from roop.typing import Frame
 
 TEMP_FILE = 'temp.mp4'
 TEMP_DIRECTORY = 'temp'
+
+def limit_resources(max_memory: int) -> None:
+    # prevent tensorflow memory leak
+    gpus = tensorflow.config.experimental.list_physical_devices('GPU')
+    for gpu in gpus:
+        tensorflow.config.experimental.set_memory_growth(gpu, True)
+    # limit memory usage
+    if max_memory:
+        memory = max_memory * 1024 ** 3
+        if platform.system().lower() == 'darwin':
+            memory = max_memory * 1024 ** 6
+        if platform.system().lower() == 'windows':
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
+        else:
+            import resource
+            resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))
 
 
 def update_status(message: str, caller: str = 'GLOBAL') -> None:

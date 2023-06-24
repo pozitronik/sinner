@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-import platform
 import signal
 import sys
 
-import tensorflow
 
 from roop.core import Core
 from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
@@ -13,25 +11,7 @@ from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
-
-
-def limit_resources(max_memory: int) -> None:
-    # prevent tensorflow memory leak
-    gpus = tensorflow.config.experimental.list_physical_devices('GPU')
-    for gpu in gpus:
-        tensorflow.config.experimental.set_memory_growth(gpu, True)
-    # limit memory usage
-    if max_memory:
-        memory = max_memory * 1024 ** 3
-        if platform.system().lower() == 'darwin':
-            memory = max_memory * 1024 ** 6
-        if platform.system().lower() == 'windows':
-            import ctypes
-            kernel32 = ctypes.windll.kernel32
-            kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
-        else:
-            import resource
-            resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))
+from roop.utilities import limit_resources
 
 
 def destroy() -> None:
