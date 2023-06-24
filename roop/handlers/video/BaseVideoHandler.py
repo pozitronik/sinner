@@ -34,7 +34,7 @@ class BaseVideoHandler(ABC):
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         pass
 
-    def __iter__(self):
+    def __iter__(self) -> 'BaseVideoHandler':
         return self
 
     def __next__(self) -> tuple[Frame, int]:
