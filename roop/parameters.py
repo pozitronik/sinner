@@ -46,7 +46,6 @@ def parse_args() -> Namespace:
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
     program.add_argument('--video-handler', help='video engine', dest='video_handler', default=['ffmpeg'], choices=['ffmpeg', 'cv2'])
-    program.add_argument('--less-files', help='in memory frames processing', dest='less_files', action='store_true', default=True)
     program.add_argument('--fps', help='set output video fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
@@ -70,7 +69,6 @@ class Parameters:
     execution_providers: List[str]
     execution_threads: int
     video_handler: str = 'ffmpeg'
-    less_files: bool = True
 
     def __init__(self) -> None:
         args = parse_args()
@@ -87,4 +85,3 @@ class Parameters:
         self.execution_providers = decode_execution_providers(args.execution_provider)
         self.execution_threads = args.execution_threads
         self.video_handler = args.video_handler
-        self.less_files = args.less_files
