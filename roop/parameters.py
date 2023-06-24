@@ -1,7 +1,6 @@
 import argparse
 import platform
 from argparse import Namespace
-from dataclasses import dataclass, field
 from typing import List
 
 import onnxruntime
@@ -58,19 +57,18 @@ def parse_args() -> Namespace:
     return program.parse_args()
 
 
-@dataclass
 class Parameters:
     source_path: str
     target_path: str
     output_path: str
-    frame_processors: List[str] = field(default_factory=lambda: default_frame_processors())
-    fps: None | float = None  # None for auto
+    frame_processors: List[str]
+    fps: float  # None for auto
     keep_audio: bool = True
     keep_frames: bool = False
     many_faces: bool = True
-    max_memory: int = lambda: suggest_max_memory()
-    execution_providers: List[str] = field(default_factory=lambda: suggest_execution_providers())
-    execution_threads: int = lambda: suggest_execution_threads()
+    max_memory: int
+    execution_providers: List[str]
+    execution_threads: int
     video_handler: str = 'ffmpeg'
     less_files: bool = True
 
