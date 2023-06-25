@@ -36,9 +36,9 @@ class Core:
         self.frame_processor = frame_processor
 
     def run(self) -> None:
-        if self.state.is_multi_frame:  # picture to video swap
-            if not self.params.less_files and not self.state.is_resumable():
-                self.video_handler.extract_frames(self.state.in_dir)
+        # if self.state.is_multi_frame:  # picture to video swap
+            # if not self.params.less_files and not self.state.is_resumable():
+            #     self.video_handler.extract_frames(self.state.in_dir)
 
         self.frame_processor.process(frames_provider=self.video_handler)
         self.release_resources()
