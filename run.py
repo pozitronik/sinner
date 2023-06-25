@@ -6,7 +6,7 @@ import sys
 from roop.core import Core
 from roop.parameters import Parameters
 from roop.state import State
-from roop.tests.prototypes import get_video_handler, get_frame_processor
+from roop.prototypes import get_video_handler, get_frame_processor
 from roop.utilities import limit_resources
 
 
