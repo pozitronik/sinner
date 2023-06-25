@@ -70,8 +70,8 @@ class Parameters:
     execution_threads: int
     video_handler: str = 'ffmpeg'
 
-    def __init__(self) -> None:
-        args = parse_args()
+    def __init__(self, args: Namespace | None = None) -> None:
+        args = parse_args() if args is None else args
         self.source_path = args.source_path
         self.target_path = args.target_path
         self.output_path = normalize_output_path(self.source_path, self.target_path, args.output_path)
