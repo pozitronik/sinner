@@ -115,8 +115,8 @@ def conditional_download(download_directory_path: str, urls: List[str]) -> None:
                 urllib.request.urlretrieve(url, download_file_path, reporthook=lambda count, block_size, total_size: progress.update(block_size))  # type: ignore[attr-defined]
 
 
-def resolve_relative_path(path: str) -> str:
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
+def resolve_relative_path(path: str, from_file: str = __file__) -> str:
+    return os.path.abspath(os.path.join(os.path.dirname(from_file), path))
 
 
 def read_image(path: str) -> Frame:
