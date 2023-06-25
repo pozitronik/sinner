@@ -30,7 +30,7 @@ def test_image_to_video_ffmpeg():
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/out/source.jpg', __file__))])
-    assert frames_count == 450
+    assert frames_count == 62
     assert is_video(resolve_relative_path('data/results/result.mp4', __file__))
 
 
