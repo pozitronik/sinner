@@ -28,7 +28,7 @@ class State:
         self.out_dir = self.get_out_dir()
         self.is_multi_frame = is_video(self.target_path)  # todo подумать
         self.frames_count = CV2VideoHandler(self.target_path).fc if self.is_multi_frame else 1
-        self._zfill_name = len(str(self.frames_count)) if len(str(self.frames_count)) > 4 else 4
+        self._zfill_name = len(str(self.frames_count))
 
     #  creates the state for a provided target
     def create(self) -> None:
