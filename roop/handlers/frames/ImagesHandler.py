@@ -20,7 +20,7 @@ class ImagesHandler(BaseFramesHandler):
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         return read_image(self._target_path), frame_number
 
-    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
+    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         try:
             shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
             return True
