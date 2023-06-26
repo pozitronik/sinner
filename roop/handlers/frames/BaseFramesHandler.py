@@ -32,12 +32,12 @@ class BaseFramesHandler(ABC):
     def detect_fc(self) -> int:
         pass
 
-    def get_frames_paths(self, to_dir: str) -> List[str]:
+    def get_frames_paths(self, path: str) -> List[str]:
         """
         Return the list of path for frames in the target.
         Frames should be extracted to `to_dir` if necessary
         """
-        return glob.glob(os.path.join(glob.escape(to_dir), '*.png'))
+        return glob.glob(os.path.join(glob.escape(path), '*.png'))
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:

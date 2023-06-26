@@ -15,7 +15,7 @@ target_png: str = resolve_relative_path('data/targets/target.png', __file__)
 result_jpg: str = resolve_relative_path('data/results/result.jpg', __file__)
 result_mp4: str = resolve_relative_path('data/results/result.mp4', __file__)
 results_dir: str = resolve_relative_path('data/results/', __file__)
-tmp_dir: str = resolve_relative_path('data/targets/tmp', __file__)
+tmp_dir: str = resolve_relative_path('data/targets/temp', __file__)
 
 
 def setup():
@@ -40,7 +40,7 @@ def test_image_to_video_ffmpeg():
         keep_audio=True,
         keep_frames=False,
         frame_processor='FaceSwapper',
-        video_handler='ffmpeg',
+        frame_handler='ffmpeg',
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -53,7 +53,7 @@ def test_image_to_video_ffmpeg():
     core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/out/source.jpg', __file__))])
+    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = get_video_handler(result_mp4, params.frame_handler)
@@ -82,7 +82,7 @@ def test_image_to_video_cv2():
     core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/out/source.jpg', __file__))])
+    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = get_video_handler(result_mp4, params.frame_handler)

@@ -56,9 +56,10 @@ class FFmpegVideoHandler(BaseFramesHandler):
             print(exception)
             return 0
 
-    def get_frames_paths(self, to_dir: str) -> List[str]:
-        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
-        return super().get_frames_paths(to_dir)
+    def get_frames_paths(self, path: str) -> List[str]:
+        filename_length = len(str(os.path.splitext(os.listdir(path).pop())[0]))  # a way to determine frame names length
+        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
+        return super().get_frames_paths(path)
 
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select=gte(n\,{frame_number}),setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
@@ -69,7 +70,9 @@ class FFmpegVideoHandler(BaseFramesHandler):
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
-        command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
+        filename_length = len(str(os.path.splitext(os.listdir(from_dir).pop())[0]))  # a way to determine frame names length
+        command = ['-r', str(fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
+                   'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target:
             command.extend(['-i', audio_target, '-shortest'])
         return self.run(command)

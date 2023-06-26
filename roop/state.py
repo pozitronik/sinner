@@ -17,6 +17,8 @@ class State:
 
     preserve_source_frames: bool = True  # keeps extracted source frames for future usage
 
+    _zfill_name: int = 4
+
     def __init__(self, params: Parameters):
         self.source_path = params.source_path
         self.target_path = params.target_path
@@ -24,6 +26,7 @@ class State:
         self.out_dir = self.get_out_dir()
         self.is_multi_frame = is_video(self.target_path)  # todo подумать
         self.frames_count = CV2VideoHandler(self.target_path).fc if self.is_multi_frame else 1
+        self._zfill_name = len(str(self.frames_count)) if len(str(self.frames_count)) > 4 else 4
 
     #  creates the state for a provided target
     def create(self) -> None:
@@ -33,9 +36,7 @@ class State:
         pass
 
     def get_out_dir(self) -> str:
-        target_name = os.path.basename(self.target_path)
-        target_directory_path = os.path.dirname(self.target_path)
-        return os.path.join(target_directory_path, TEMP_DIRECTORY, target_name)
+        return os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, os.path.basename(self.target_path), os.path.basename(self.source_path))
 
     #  Checks if some frames already processed
     def is_started(self) -> bool:
@@ -55,5 +56,5 @@ class State:
 
     #  Returns a processed file name for an unprocessed frame index
     def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index + 1).zfill(len(str(self.frames_count))) + '.png'
+        filename = str(frame_index + 1).zfill(self._zfill_name) + '.png'
         return str(os.path.join(self.out_dir, filename))
