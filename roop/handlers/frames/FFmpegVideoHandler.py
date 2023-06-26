@@ -6,15 +6,15 @@ from typing import List
 import cv2
 from numpy import uint8, frombuffer
 
-from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
+from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.typing import Frame
 
 
-class FFmpegVideoHandler(BaseVideoHandler):
+class FFmpegVideoHandler(BaseFramesHandler):
 
     def __init__(self, target_path: str):
         if not shutil.which('ffmpeg'):
-            raise Exception('ffmpeg is not installed. Install it or use --video-handler=cv2')
+            raise Exception('ffmpeg is not installed. Install it or use --frames-handler=cv2')
 
         super().__init__(target_path)
 
@@ -47,14 +47,15 @@ class FFmpegVideoHandler(BaseVideoHandler):
             command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
             output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
             if 'N/A' == output:
-                return 1  # non-video files, still processable
+                return 1  # non-frames files, still processable
             return int(output)
         except Exception as exception:
             print(exception)
             return 0
 
-    def extract_frames(self, to_dir: str) -> None:
+    def get_frames_paths(self, to_dir: str) -> List[str]:
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(to_dir, '%04d.png')])
+        return super().get_frames_paths(to_dir)
 
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select=gte(n\,{frame_number}),setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']

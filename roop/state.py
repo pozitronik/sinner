@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from roop.handlers.video.CV2VideoHandler import CV2VideoHandler
+from roop.handlers.frames.CV2VideoHandler import CV2VideoHandler
 from roop.parameters import Parameters
 from roop.utilities import is_video
 

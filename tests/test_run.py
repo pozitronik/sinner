@@ -3,6 +3,7 @@ import shutil
 from argparse import Namespace
 
 from roop.core import Core
+from roop.handlers.frames.ImagesHandler import ImagesHandler
 from roop.parameters import Parameters
 from roop.state import State
 from roop.prototypes import get_video_handler, get_frame_processor
@@ -14,10 +15,13 @@ target_png: str = resolve_relative_path('data/targets/target.png', __file__)
 result_jpg: str = resolve_relative_path('data/results/result.jpg', __file__)
 result_mp4: str = resolve_relative_path('data/results/result.mp4', __file__)
 results_dir: str = resolve_relative_path('data/results/', __file__)
+tmp_dir: str = resolve_relative_path('data/targets/tmp', __file__)
 
 
 def setup():
     #  clean previous results, if exists
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
     if os.path.exists(results_dir):
         shutil.rmtree(results_dir)
     if not os.path.exists(results_dir):
@@ -95,7 +99,7 @@ def test_image_to_image():
         keep_audio=True,
         keep_frames=False,
         frame_processor='FaceSwapper',
-        video_handler=None,  # not required in img-to-img swap
+        video_handler='None',  # not required in img-to-img swap
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -105,7 +109,7 @@ def test_image_to_image():
     state = State(params)
     state.create()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frame_processor=get_frame_processor(params, state))
+    core = Core(params=params, state=state, frame_processor=get_frame_processor(params, state), video_handler=ImagesHandler(params.target_path))
     core.run()
 
     assert os.path.exists(result_jpg) is True

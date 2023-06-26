@@ -1,20 +1,21 @@
 import os.path
 import shutil
+from typing import List
 
-from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
+from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.typing import Frame
 from roop.utilities import read_image
 
 
-class ImagesHandler(BaseVideoHandler):
+class ImagesHandler(BaseFramesHandler):
     def detect_fps(self) -> float:
         return 1
 
     def detect_fc(self) -> int:
         return 1
 
-    def extract_frames(self, to_dir: str) -> None:
-        pass
+    def get_frames_paths(self, to_dir: str) -> List[str]:
+        return [self._target_path]
 
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         return read_image(self._target_path), frame_number

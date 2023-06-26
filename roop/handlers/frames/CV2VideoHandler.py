@@ -1,20 +1,21 @@
 import glob
 import os.path
+from typing import List
 
 import cv2
 from cv2 import VideoCapture
 
-from roop.handlers.video.BaseVideoHandler import BaseVideoHandler
+from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.typing import Frame
 from roop.utilities import write_image
 
 
-class CV2VideoHandler(BaseVideoHandler):
+class CV2VideoHandler(BaseFramesHandler):
 
     def open(self) -> VideoCapture:
         cap = cv2.VideoCapture(self._target_path)
         if not cap.isOpened():
-            raise Exception("Error opening video file")
+            raise Exception("Error opening frames file")
         return cap
 
     def detect_fps(self) -> float:
@@ -29,7 +30,7 @@ class CV2VideoHandler(BaseVideoHandler):
         capture.release()
         return video_frame_total
 
-    def extract_frames(self, to_dir: str) -> None:
+    def get_frames_paths(self, to_dir: str) -> List[str]:
         capture = self.open()
         i = 1
         while True:
@@ -39,6 +40,7 @@ class CV2VideoHandler(BaseVideoHandler):
             write_image(frame, os.path.join(to_dir, f"{i:04d}.png"))
             i += 1
         capture.release()
+        return super().get_frames_paths(to_dir)
 
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         capture = self.open()
@@ -57,7 +59,7 @@ class CV2VideoHandler(BaseVideoHandler):
         frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
         first_frame = cv2.imread(frame_files[0])
         height, width, channels = first_frame.shape
-        fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the video codec
+        fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the frames codec
         video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
         for frame_path in frame_files:
             frame = cv2.imread(frame_path)
