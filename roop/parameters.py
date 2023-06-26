@@ -95,7 +95,7 @@ class Parameters:
             if preferred_handler is None:
                 return 'ffmpeg' if FFmpegVideoHandler.available() else 'cv2'
             else:
-                if preferred_handler is 'ffmpeg' and not FFmpegVideoHandler.available():
+                if preferred_handler == 'ffmpeg' and not FFmpegVideoHandler.available():
                     warnings.warn("ffmpeg is not available in your system, falling back to cv2 handler", category=Warning)
                     return 'cv2'
         return preferred_handler  # type: ignore[return-value]

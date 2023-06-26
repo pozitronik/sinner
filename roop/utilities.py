@@ -106,11 +106,11 @@ def write_image(image: Frame, path: str) -> bool:
 def get_mem_usage(size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
     process = psutil.Process(os.getpid())
     memory_usage = process.memory_info().rss
-    if size is 'b':
+    if size == 'b':
         return memory_usage
-    if size is 'k':
+    if size == 'k':
         return memory_usage / 1024
-    if size is 'm':
+    if size == 'm':
         return memory_usage / 1024**2
-    if size is 'g':
+    if size == 'g':
         return memory_usage / 1024**3
