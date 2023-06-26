@@ -81,7 +81,7 @@ def test_image_to_video_ffmpeg_continue():
     state = State(params)
     state.create()
     assert [] == os.listdir(state.out_dir)  # check if out directory is empty
-    for filename in [f'{"%04d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
+    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
         shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(state.out_dir, filename))
     assert 30 == len(os.listdir(state.out_dir))
     assert 30 == state.processed_frames_count()
@@ -144,7 +144,7 @@ def test_image_to_video_cv2_continue():
     state = State(params)
     state.create()
     assert [] == os.listdir(state.out_dir)  # check if out directory is empty
-    for filename in [f'{"%04d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
+    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
         shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(state.out_dir, filename))
     assert 30 == len(os.listdir(state.out_dir))
     assert 30 == state.processed_frames_count()
