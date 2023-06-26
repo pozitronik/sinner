@@ -5,11 +5,10 @@ import insightface
 from tqdm import tqdm
 
 from roop.face_analyser import FaceAnalyser
-from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 from roop.typing import Face, Frame, FaceSwapperType
-from roop.utilities import is_image, resolve_relative_path, conditional_download, update_status, write_image, read_image
+from roop.utilities import resolve_relative_path, conditional_download, update_status, write_image
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -46,14 +45,14 @@ class FaceSwapper(BaseFrameProcessor):
                 temp_frame = self.swap_face(target_face, temp_frame)
         return temp_frame
 
-    def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:
+    def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
         for frame in frames:
             try:
                 write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(frame[1]))
             except Exception as exception:
                 print(exception)
                 pass
-            if progress:
+            if progress is not None:
                 progress.update()
 
     def process(self, frames_provider: Iterable[tuple[Frame, int]]) -> None:
