@@ -31,7 +31,7 @@ def limit_resources(max_memory: int) -> None:
             kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
         else:
             import resource
-            resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))
+            resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
 
 
 def update_status(message: str, caller: str = 'GLOBAL') -> None:
