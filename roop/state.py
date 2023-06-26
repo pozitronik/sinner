@@ -8,7 +8,7 @@ from roop.handlers.frames.CV2VideoHandler import CV2VideoHandler
 from roop.parameters import Parameters
 from roop.utilities import is_video
 
-TEMP_DIRECTORY = 'temp'
+TEMP_DIRECTORY = 'temp'  # todo: make a parameter
 IN_DIR = 'in'
 OUT_DIR = 'out'
 
