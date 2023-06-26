@@ -67,5 +67,6 @@ class FaceSwapper(BaseFrameProcessor):
                 'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB',
                 'execution_providers': self.execution_providers,
                 'threads': self.execution_threads,
-                'memory': self.max_memory})
+                'memory': self.max_memory
+            })
             self.multi_process_frame(frames_provider, self.process_frames, progress)
