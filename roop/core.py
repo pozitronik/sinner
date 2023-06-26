@@ -42,6 +42,8 @@ class Core:
 
         if self.frames_handler.result(self.state.out_dir, self.params.output_path, self.params.fps, self.params.target_path if self.params.keep_audio else None) is True:
             self.state.finish()
+        else:
+            raise Exception("Something went wrong while resulting frames")
 
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.params.execution_providers:

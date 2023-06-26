@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 
 from roop.handlers.frames.CV2VideoHandler import CV2VideoHandler
@@ -23,6 +24,7 @@ class State:
         self.source_path = params.source_path
         self.target_path = params.target_path
         self.output_path = params.output_path
+        self.keep_frames = params.keep_frames
         self.out_dir = self.get_out_dir()
         self.is_multi_frame = is_video(self.target_path)  # todo подумать
         self.frames_count = CV2VideoHandler(self.target_path).fc if self.is_multi_frame else 1
@@ -33,7 +35,8 @@ class State:
         Path(self.out_dir).mkdir(parents=True, exist_ok=True)
 
     def finish(self) -> None:
-        pass
+        if self.keep_frames is False:
+            shutil.rmtree(self.out_dir)
 
     def get_out_dir(self) -> str:
         return os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, os.path.basename(self.target_path), os.path.basename(self.source_path))
