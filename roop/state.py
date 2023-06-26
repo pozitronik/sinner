@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 
 from roop.handlers.frames.CV2VideoHandler import CV2VideoHandler
-from roop.parameters import Parameters
 from roop.utilities import is_video
 
 TEMP_DIRECTORY = 'temp'  # todo: make a parameter
@@ -20,15 +19,16 @@ class State:
 
     _zfill_name: int = 4
 
-    def __init__(self, params: Parameters):
-        self.source_path = params.source_path
-        self.target_path = params.target_path
-        self.output_path = params.output_path
-        self.keep_frames = params.keep_frames
+    def __init__(self, source_path: str, target_path: str, output_path: str, keep_frames: bool = False):
+        self.source_path = source_path
+        self.target_path = target_path
+        self.output_path = output_path
+        self.keep_frames = keep_frames
         self.out_dir = self.get_out_dir()
         self.is_multi_frame = is_video(self.target_path)  # todo подумать
         self.frames_count = CV2VideoHandler(self.target_path).fc if self.is_multi_frame else 1
         self._zfill_name = len(str(self.frames_count))
+        self.create()
 
     #  creates the state for a provided target
     def create(self) -> None:
