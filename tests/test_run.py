@@ -95,6 +95,7 @@ def test_image_to_image():
         keep_audio=True,
         keep_frames=False,
         frame_processor='FaceSwapper',
+        video_handler=None,  # not required in img-to-img swap
         fps=None,
         many_faces=False,
         source_path=source_jpg,
