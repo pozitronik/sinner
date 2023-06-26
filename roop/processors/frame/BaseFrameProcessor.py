@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Callable, Iterable
 
 from tqdm import tqdm
@@ -29,7 +29,7 @@ class BaseFrameProcessor(ABC):
             for frame in frames_provider:
                 future = executor.submit(process_frames, [frame], progress)
                 futures.append(future)
-            for future in futures:
+            for future in as_completed(futures):
                 future.result()
 
     @staticmethod
