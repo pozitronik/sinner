@@ -2,7 +2,7 @@ from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.handlers.frames.CV2VideoHandler import CV2VideoHandler
 from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
 from roop.parameters import Parameters
-from roop.processors.frame import BaseFrameProcessor
+from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.processors.frame.FaceSwapper import FaceSwapper
 from roop.state import State
 
