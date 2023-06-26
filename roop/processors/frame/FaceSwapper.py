@@ -1,9 +1,7 @@
-import os
 import threading
 from typing import Iterable, List
 
 import insightface
-import psutil
 from tqdm import tqdm
 
 from roop.face_analyser import FaceAnalyser
