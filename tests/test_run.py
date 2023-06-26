@@ -178,3 +178,31 @@ def test_image_to_image():
     core.run()
 
     assert os.path.exists(result_jpg) is True
+
+
+def test_image_to_video_ffmpeg_multi_provider():
+    params = Parameters(Namespace(
+        max_memory=4,
+        execution_provider='cuda' + 'cpu',
+        execution_threads=4,
+        keep_audio=True,
+        keep_frames=True,
+        frame_processor='FaceSwapper',
+        frame_handler='ffmpeg',
+        fps=None,
+        many_faces=False,
+        source_path=source_jpg,
+        target_path=target_mp4,
+        output_path=result_mp4,
+    ))
+    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
+    limit_resources(params.max_memory)
+    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    core.run()
+
+    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
+    assert frames_count == 62
+    assert is_video(result_mp4)
+    test_video_handler = get_video_handler(result_mp4, params.frame_handler)
+    assert test_video_handler.fc == 62
+    assert test_video_handler.fps == 30
