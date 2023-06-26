@@ -29,7 +29,7 @@ class Core:
     video_handler: BaseVideoHandler | None
     frame_processor: BaseFrameProcessor
 
-    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, video_handler: BaseVideoHandler | None):
+    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, video_handler: BaseVideoHandler | None = None):
         self.params = params
         self.state = state
         self.video_handler = video_handler

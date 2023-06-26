@@ -68,7 +68,7 @@ class Parameters:
     max_memory: int
     execution_providers: List[str]
     execution_threads: int
-    video_handler: str = 'ffmpeg'
+    video_handler: str | None = 'ffmpeg'
 
     def __init__(self, args: Namespace | None = None) -> None:
         args = parse_args() if args is None else args
