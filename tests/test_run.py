@@ -48,8 +48,7 @@ def test_image_to_video_ffmpeg():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(params)
-    state.create()
+    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
     core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
     core.run()
@@ -78,8 +77,7 @@ def test_image_to_video_ffmpeg_continue():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(params)
-    state.create()
+    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     assert [] == os.listdir(state.out_dir)  # check if out directory is empty
     for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
         shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(state.out_dir, filename))

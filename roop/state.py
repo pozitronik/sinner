@@ -14,16 +14,15 @@ class State:
 
     preserve_source_frames: bool = True  # keeps extracted source frames for future usage
 
-    _zfill_name: int = 4
+    _zfill_length: int | None
 
-    def __init__(self, source_path: str, target_path: str, output_path: str, keep_frames: bool = False, frames_count: int | None = None):
+    def __init__(self, source_path: str, target_path: str, output_path: str, keep_frames: bool = False):
         self.source_path = source_path
         self.target_path = target_path
         self.output_path = output_path
         self.keep_frames = keep_frames
         self.out_dir = self.get_out_dir()
-        self.frames_count = frames_count
-        self._zfill_name = len(str(self.frames_count))
+        self._zfill_length = None
         self.create()
 
     #  creates the state for a provided target
@@ -55,5 +54,10 @@ class State:
 
     #  Returns a processed file name for an unprocessed frame index
     def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index + 1).zfill(self._zfill_name) + '.png'
+        filename = str(frame_index + 1).zfill(self.get_zfill_length()) + '.png'
         return str(os.path.join(self.out_dir, filename))
+
+    def get_zfill_length(self) -> int | None:
+        if self._zfill_length is None:
+            self._zfill_length = len(str(self.frames_count))
+        return self._zfill_length
