@@ -22,9 +22,8 @@ class ImagesHandler(BaseFramesHandler):
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         try:
-            shutil.copyfile(os.path.join(from_dir, '0001.png'), filename)
+            shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
             return True
         except Exception:
             pass
             return False
-
