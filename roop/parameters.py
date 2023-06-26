@@ -47,7 +47,7 @@ def parse_args() -> Namespace:
     program.add_argument('-t', '--target', help='select an target image or frames', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
-    program.add_argument('--frames-handler', help='frames engine', dest='frame_handler', default=None, choices=['image', 'ffmpeg', 'cv2', None])
+    program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, choices=['image', 'ffmpeg', 'cv2', None])
     program.add_argument('--fps', help='set output frames fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
