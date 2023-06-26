@@ -35,6 +35,7 @@ class Core:
         self.frames_handler = frames_handler
         self.frames_handler.current_frame_index = state.processed_frames_count()
         self.frame_processor = frame_processor
+        self.state.frames_count = self.frames_handler.fc
 
     def run(self) -> None:
         self.frame_processor.process(frames_provider=self.frames_handler)
