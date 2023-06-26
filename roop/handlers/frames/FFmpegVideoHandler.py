@@ -63,10 +63,10 @@ class FFmpegVideoHandler(BaseFramesHandler):
         return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
 
     # todo: method will fail if save path is not existed
-    def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
+    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
         command = ['-r', str(fps), '-i', os.path.join(from_dir, '%04d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf', 'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target:
             command.extend(['-i', audio_target, '-shortest'])
-        self.run(command)
+        return self.run(command)

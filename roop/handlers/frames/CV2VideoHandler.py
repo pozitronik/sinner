@@ -51,18 +51,21 @@ class CV2VideoHandler(BaseFramesHandler):
             raise Exception(f"Error reading frame {frame_number}")
         return frame, frame_number
 
-    def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
+    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
         if audio_target is not None:
             print('Sound is not supported in CV2VideoHandler')
-        frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
-        first_frame = cv2.imread(frame_files[0])
-        height, width, channels = first_frame.shape
-        fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the frames codec
-        video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
-        for frame_path in frame_files:
-            frame = cv2.imread(frame_path)
-            video_writer.write(frame)
-
-        video_writer.release()
+        try:
+            frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
+            first_frame = cv2.imread(frame_files[0])
+            height, width, channels = first_frame.shape
+            fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the frames codec
+            video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
+            for frame_path in frame_files:
+                frame = cv2.imread(frame_path)
+                video_writer.write(frame)
+            video_writer.release()
+            return True
+        except Exception:
+            return False

@@ -20,5 +20,11 @@ class ImagesHandler(BaseFramesHandler):
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         return read_image(self._target_path), frame_number
 
-    def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
-        shutil.copyfile(os.path.join(from_dir, '0001.png'), filename)
+    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
+        try:
+            shutil.copyfile(os.path.join(from_dir, '0001.png'), filename)
+            return True
+        except Exception:
+            pass
+            return False
+

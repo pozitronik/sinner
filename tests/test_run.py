@@ -50,7 +50,7 @@ def test_image_to_video_ffmpeg():
     state = State(params)
     state.create()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, video_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(params, state))
+    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(params, state))
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/out/source.jpg', __file__))])
@@ -79,7 +79,7 @@ def test_image_to_video_cv2():
     state = State(params)
     state.create()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, video_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(params, state))
+    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(params, state))
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/out/source.jpg', __file__))])
@@ -109,7 +109,7 @@ def test_image_to_image():
     state = State(params)
     state.create()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frame_processor=get_frame_processor(params, state), video_handler=ImagesHandler(params.target_path))
+    core = Core(params=params, state=state, frame_processor=get_frame_processor(params, state), frames_handler=ImagesHandler(params.target_path))
     core.run()
 
     assert os.path.exists(result_jpg) is True

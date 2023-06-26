@@ -26,22 +26,21 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 class Core:
     params: Parameters
     state: State
-    video_handler: BaseFramesHandler | None
+    frames_handler: BaseFramesHandler | None
     frame_processor: BaseFrameProcessor
 
-    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, video_handler: BaseFramesHandler | None = None):
+    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, frames_handler: BaseFramesHandler | None = None):
         self.params = params
         self.state = state
-        self.video_handler = video_handler
+        self.frames_handler = frames_handler
         self.frame_processor = frame_processor
 
     def run(self) -> None:
-        self.frame_processor.process(frames_provider=self.video_handler)
+        self.frame_processor.process(frames_provider=self.frames_handler)
         self.release_resources()
 
-        self.video_handler.create_video(self.state.out_dir, self.params.output_path, self.params.fps, self.params.target_path if self.params.keep_audio else None)
-
-        self.state.finish()
+        if self.frames_handler.result(self.state.out_dir, self.params.output_path, self.params.fps, self.params.target_path if self.params.keep_audio else None) is True:
+            self.state.finish()
 
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.params.execution_providers:

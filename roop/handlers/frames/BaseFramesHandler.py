@@ -36,12 +36,14 @@ class BaseFramesHandler(ABC):
     def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
         """
         Return the certain frame from the target
-        :param frame_number:
         """
         pass
 
     @abstractmethod
-    def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
+    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
+        """
+        Creates a result file from processed frames, return success of operation
+        """
         pass
 
     def __iter__(self) -> 'BaseFramesHandler':

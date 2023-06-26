@@ -26,6 +26,6 @@ if __name__ == '__main__':
     state = State(params)
     state.create()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, video_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(params, state))
+    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.video_handler), frame_processor=get_frame_processor(params, state))
 
     core.run()
