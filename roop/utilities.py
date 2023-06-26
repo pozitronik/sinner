@@ -1,9 +1,7 @@
 import mimetypes
 import os
 import platform
-import shutil
 import urllib
-from pathlib import Path
 from typing import List
 
 import cv2
@@ -38,19 +36,12 @@ def limit_resources(max_memory: int) -> None:
 
 def update_status(message: str, caller: str = 'GLOBAL') -> None:
     print(f'[{caller}] {message}')
-    # if not roop.globals.headless:
-    #      ui.update_status(message)
 
 
 def get_temp_directory_path(target_path: str) -> str:
     target_name, _ = os.path.splitext(os.path.basename(target_path))
     target_directory_path = os.path.dirname(target_path)
     return os.path.join(target_directory_path, TEMP_DIRECTORY, target_name)
-
-
-def get_temp_output_path(target_path: str) -> str:
-    temp_directory_path = get_temp_directory_path(target_path)
-    return os.path.join(temp_directory_path, TEMP_FILE)
 
 
 def normalize_output_path(source_path: str, target_path: str, output_path: str) -> str:
@@ -60,33 +51,6 @@ def normalize_output_path(source_path: str, target_path: str, output_path: str) 
         if os.path.isdir(output_path):
             return os.path.join(output_path, source_name + '-' + target_name + target_extension)
     return output_path
-
-
-def create_temp(target_path: str) -> str:
-    temp_directory_path = get_temp_directory_path(target_path)
-    Path(temp_directory_path).mkdir(parents=True, exist_ok=True)
-    return temp_directory_path
-
-
-def move_temp(target_path: str, output_path: str) -> None:
-    temp_output_path = get_temp_output_path(target_path)
-    if os.path.isfile(temp_output_path):
-        if os.path.isfile(output_path):
-            os.remove(output_path)
-        shutil.move(temp_output_path, output_path)
-
-
-def clean_temp(target_path: str, keep_frames: bool = False) -> None:
-    temp_directory_path = get_temp_directory_path(target_path)
-    parent_directory_path = os.path.dirname(temp_directory_path)
-    if not keep_frames and os.path.isdir(temp_directory_path):
-        shutil.rmtree(temp_directory_path)
-    if os.path.exists(parent_directory_path) and not os.listdir(parent_directory_path):
-        os.rmdir(parent_directory_path)
-
-
-def has_image_extension(image_path: str) -> bool:
-    return image_path.lower().endswith(('png', 'jpg', 'jpeg'))
 
 
 def is_image(image_path: str | None) -> bool:
