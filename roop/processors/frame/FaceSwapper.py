@@ -13,7 +13,6 @@ from roop.utilities import is_image, resolve_relative_path, conditional_download
 
 
 class FaceSwapper(BaseFrameProcessor):
-    source: None | str = None  # todo: remove
     many_faces: bool = False
     state: State
 
@@ -31,16 +30,6 @@ class FaceSwapper(BaseFrameProcessor):
         self.many_faces = params.many_faces
         self.state = state
         self._face_swapper = insightface.model_zoo.get_model(resolve_relative_path('../models/inswapper_128.onnx'), providers=self.execution_providers)
-
-    def validate(self) -> bool:
-        if self.source is None or not is_image(self.source):
-            update_status('Select an image for source path.')
-            return False
-        self._source_face = self._face_analyser.get_one_face(read_image(self.source))
-        if not self._source_face:
-            update_status('No face in source path detected.')
-            return False
-        return True
 
     def swap_face(self, target_face: Face, temp_frame: Frame) -> Frame:
         return self._face_swapper.get(temp_frame, target_face, self._source_face, paste_back=True)

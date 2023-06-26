@@ -14,8 +14,6 @@ class BaseFrameProcessor(ABC):
     max_memory: int = 1
 
     def __init__(self, params: Parameters) -> None:
-        self.source = params.source_path
-        self.target = params.target_path
         self.execution_providers = params.execution_providers
         self.execution_threads = params.execution_threads
         self.max_memory = params.max_memory
@@ -35,6 +33,6 @@ class BaseFrameProcessor(ABC):
             for future in futures:
                 future.result()
 
-    @abstractmethod
-    def validate(self) -> bool:
-        pass
+    @staticmethod
+    def validate() -> bool:
+        return True
