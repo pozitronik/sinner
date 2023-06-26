@@ -13,5 +13,5 @@ def get_video_handler(target_path: str, handler_name: str = 'ffmpeg') -> BaseFra
     return FFmpegVideoHandler(target_path)
 
 
-def get_frame_processor(params: Parameters, state_var: State) -> BaseFrameProcessor:  # temporary, will be replaced with a factory
-    return FaceSwapper(params, state_var)
+def get_frame_processor(params: Parameters, state: State) -> BaseFrameProcessor:  # temporary, will be replaced with a factory
+    return FaceSwapper(execution_providers=params.execution_providers, execution_threads=params.execution_threads, max_memory=params.max_memory, many_faces=params.many_faces, state=state)

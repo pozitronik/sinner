@@ -1,5 +1,5 @@
 import threading
-from typing import Iterable
+from typing import Iterable, List
 
 import insightface
 from tqdm import tqdm
@@ -22,12 +22,12 @@ class FaceSwapper(BaseFrameProcessor):
 
     THREAD_LOCK = threading.Lock()
 
-    def __init__(self, params: Parameters, state: State):
+    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, many_faces: bool, state: State):
         download_directory_path = resolve_relative_path('../models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
         self._face_analyser = FaceAnalyser(self.execution_providers)
-        super().__init__(params)
-        self.many_faces = params.many_faces
+        super().__init__(execution_providers=execution_providers, execution_threads=execution_threads, max_memory=max_memory)
+        self.many_faces = many_faces
         self.state = state
         self._face_swapper = insightface.model_zoo.get_model(resolve_relative_path('../models/inswapper_128.onnx'), providers=self.execution_providers)
 

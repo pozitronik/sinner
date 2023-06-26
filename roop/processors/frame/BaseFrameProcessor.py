@@ -13,10 +13,10 @@ class BaseFrameProcessor(ABC):
     execution_threads: int = 1
     max_memory: int = 1
 
-    def __init__(self, params: Parameters) -> None:
-        self.execution_providers = params.execution_providers
-        self.execution_threads = params.execution_threads
-        self.max_memory = params.max_memory
+    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int) -> None:
+        self.execution_providers = execution_providers
+        self.execution_threads = execution_threads
+        self.max_memory = max_memory
         if not self.validate():
             quit()
 
