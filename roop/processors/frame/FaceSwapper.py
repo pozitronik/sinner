@@ -1,14 +1,16 @@
+import os
 import threading
 from typing import Iterable, List
 
 import insightface
+import psutil
 from tqdm import tqdm
 
 from roop.face_analyser import FaceAnalyser
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 from roop.typing import Face, Frame, FaceSwapperType
-from roop.utilities import resolve_relative_path, conditional_download, update_status, write_image
+from roop.utilities import resolve_relative_path, conditional_download, update_status, write_image, get_mem_usage
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -61,5 +63,9 @@ class FaceSwapper(BaseFrameProcessor):
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         total = self.state.frames_count
         with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
-            progress.set_postfix({'execution_providers': self.execution_providers, 'threads': self.execution_threads, 'memory': self.max_memory})
+            progress.set_postfix({
+                'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB',
+                'execution_providers': self.execution_providers,
+                'threads': self.execution_threads,
+                'memory': self.max_memory})
             self.multi_process_frame(frames_provider, self.process_frames, progress)

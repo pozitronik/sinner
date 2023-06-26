@@ -2,9 +2,10 @@ import mimetypes
 import os
 import platform
 import urllib
-from typing import List
+from typing import List, Literal
 
 import cv2
+import psutil
 import tensorflow
 from numpy import array, uint8, fromfile
 from tqdm import tqdm
@@ -100,3 +101,16 @@ def write_image(image: Frame, path: str) -> bool:
         return is_success
     else:
         return cv2.imwrite(path, array)
+
+
+def get_mem_usage(size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
+    process = psutil.Process(os.getpid())
+    memory_usage = process.memory_info().rss
+    if size is 'b':
+        return memory_usage
+    if size is 'k':
+        return memory_usage / 1024
+    if size is 'm':
+        return memory_usage / 1024**2
+    if size is 'g':
+        return memory_usage / 1024**3
