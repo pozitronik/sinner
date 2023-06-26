@@ -23,10 +23,10 @@ class BaseFrameProcessor(ABC):
             quit()
 
     @abstractmethod
-    def process(self, frames_provider: Iterable) -> None:
+    def process(self, frames_provider: Iterable[tuple[Frame, int]]) -> None:
         pass
 
-    def multi_process_frame(self, frames_provider: Iterable, process_frames: Callable[[Iterable[tuple[Frame, int]], None | tqdm], None], progress: None | tqdm = None) -> None:
+    def multi_process_frame(self, frames_provider: Iterable[tuple[Frame, int]], process_frames: Callable[[Iterable[tuple[Frame, int]], None | tqdm], None], progress: None | tqdm = None) -> None:
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for frame in frames_provider:
