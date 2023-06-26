@@ -6,7 +6,7 @@ TEMP_DIRECTORY = 'temp'  # todo: make a parameter
 
 
 class State:
-    frames_count: int | None
+    frames_count: int
     out_dir: str
     source_path: str
     target_path: str
@@ -57,7 +57,7 @@ class State:
         filename = str(frame_index + 1).zfill(self.get_zfill_length()) + '.png'
         return str(os.path.join(self.out_dir, filename))
 
-    def get_zfill_length(self) -> int | None:
+    def get_zfill_length(self) -> int:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
