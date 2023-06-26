@@ -26,10 +26,10 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 class Core:
     params: Parameters
     state: State
-    frames_handler: BaseFramesHandler | None
+    frames_handler: BaseFramesHandler
     frame_processor: BaseFrameProcessor
 
-    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, frames_handler: BaseFramesHandler | None = None):
+    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, frames_handler: BaseFramesHandler):
         self.params = params
         self.state = state
         self.frames_handler = frames_handler
