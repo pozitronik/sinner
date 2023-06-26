@@ -61,6 +61,7 @@ class FFmpegVideoHandler(BaseVideoHandler):
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
         return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
 
+    # todo: method will fail if save path is not existed
     def create_video(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> None:
         if fps is None:
             fps = self.fps
