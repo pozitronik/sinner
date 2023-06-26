@@ -60,7 +60,7 @@ class FaceSwapper(BaseFrameProcessor):
     def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:
         for frame in frames:
             try:
-                write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(str(frame[1] + 1).zfill(4) + '.png'))  # todo
+                write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(frame[1]))
             except Exception as exception:
                 print(exception)
                 pass
