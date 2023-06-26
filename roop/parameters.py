@@ -5,7 +5,8 @@ from typing import List
 
 import onnxruntime
 
-from roop.utilities import normalize_output_path
+from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
+from roop.utilities import normalize_output_path, is_image, is_video
 
 
 def default_frame_processors() -> List[str]:
@@ -45,7 +46,7 @@ def parse_args() -> Namespace:
     program.add_argument('-t', '--target', help='select an target image or frames', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor')
-    program.add_argument('--frames-handler', help='frames engine', dest='video_handler', default=['ffmpeg'], choices=['ffmpeg', 'cv2'])
+    program.add_argument('--frames-handler', help='frames engine', dest='frame_handler', default=None, choices=['image', 'ffmpeg', 'cv2', None])
     program.add_argument('--fps', help='set output frames fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
@@ -68,7 +69,7 @@ class Parameters:
     max_memory: int
     execution_providers: List[str]
     execution_threads: int
-    video_handler: str | None = 'ffmpeg'
+    frame_handler: str
 
     def __init__(self, args: Namespace | None = None) -> None:
         args = parse_args() if args is None else args
@@ -84,4 +85,13 @@ class Parameters:
         self.max_memory = args.max_memory
         self.execution_providers = decode_execution_providers(args.execution_provider)
         self.execution_threads = args.execution_threads
-        self.video_handler = args.video_handler
+        self.frame_handler = self.set_frame_handler(args.frame_handler)
+
+    def set_frame_handler(self, preferred_handler: str | None = None) -> str:
+        if is_image(self.target_path):
+            return 'image'
+        if is_video(self.target_path):
+            if preferred_handler is None and FFmpegVideoHandler.available():
+                return 'ffmpeg'
+            else:
+                return 'cv2'
