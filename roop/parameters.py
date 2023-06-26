@@ -1,5 +1,6 @@
 import argparse
 import platform
+import warnings
 from argparse import Namespace
 from typing import List
 
@@ -91,7 +92,11 @@ class Parameters:
         if is_image(self.target_path):
             return 'image'
         if is_video(self.target_path):
-            if preferred_handler is None and FFmpegVideoHandler.available():
-                return 'ffmpeg'
+            if preferred_handler is None:
+                return 'ffmpeg' if FFmpegVideoHandler.available() else 'cv2'
             else:
-                return 'cv2'
+                if preferred_handler is 'ffmpeg' and not FFmpegVideoHandler.available():
+                    warnings.warn("ffmpeg is not available in your system, falling back to cv2 handler", category=Warning)
+                    return 'cv2'
+        return preferred_handler
+
