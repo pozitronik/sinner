@@ -121,7 +121,10 @@ def resolve_relative_path(path: str, from_file: str = __file__) -> str:
 
 def read_image(path: str) -> Frame:
     if platform.system().lower() == 'windows':  # issue #511
-        return cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
+        image = cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
+        if image.shape[2] == 4:  # fixes the alpha-channel issue
+            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+        return image
     else:
         return cv2.imread(path)
 
