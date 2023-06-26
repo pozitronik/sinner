@@ -11,13 +11,6 @@ from roop.typing import Frame
 
 
 class FFmpegVideoHandler(BaseFramesHandler):
-
-    def __init__(self, target_path: str):
-        if not shutil.which('ffmpeg'):
-            raise Exception('ffmpeg is not installed. Install it or use --frames-handler=cv2')
-
-        super().__init__(target_path)
-
     @staticmethod
     def run(args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
@@ -30,6 +23,16 @@ class FFmpegVideoHandler(BaseFramesHandler):
             print(exception)
             pass
         return False
+
+    @staticmethod
+    def available() -> bool:
+        return shutil.which('ffmpeg') is not None
+
+    def __init__(self, target_path: str):
+        if not self.available():
+            raise Exception('ffmpeg is not installed. Install it or use --frames-handler=cv2')
+
+        super().__init__(target_path)
 
     def detect_fps(self) -> float:
         command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=r_frame_rate', '-of', 'default=noprint_wrappers=1:nokey=1', self._target_path]

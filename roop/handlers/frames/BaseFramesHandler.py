@@ -12,6 +12,13 @@ class BaseFramesHandler(ABC):
     _target_path: str
     current_frame_index: int = 0
 
+    @staticmethod
+    def available() -> bool:
+        """
+        If this handler is available
+        """
+        return True
+
     def __init__(self, target_path: str):
         self._target_path = target_path
         self.fps = self.detect_fps()
