@@ -10,7 +10,9 @@ from typing import List
 
 import onnxruntime
 
+from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
+from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.utilities import normalize_output_path, is_image, is_video, resolve_relative_path
 
 
@@ -54,9 +56,9 @@ def suggest_frame_processors() -> List[str]:
         module = importlib.util.module_from_spec(spec)
         if module_name not in sys.modules:
             spec.loader.exec_module(module)
-        processor_class = getattr(module, module_name)
-        if hasattr(processor_class, 'short_name'):
-            result.append(processor_class.short_name)
+        handler_class = getattr(module, module_name)
+        if handler_class and issubclass(handler_class, BaseFramesHandler):
+            result.append(module_name)
 
     return result
 
@@ -71,8 +73,8 @@ def suggest_frame_handlers() -> List[str]:
         if module_name not in sys.modules:
             spec.loader.exec_module(module)
         processor_class = getattr(module, module_name)
-        if hasattr(processor_class, 'short_name'):
-            result.append(processor_class.short_name)
+        if processor_class and issubclass(processor_class, BaseFrameProcessor):
+            result.append(module_name)
     return result
 
 

@@ -11,7 +11,6 @@ from roop.utilities import resolve_relative_path, conditional_download, read_ima
 
 
 class FaceSwapper(BaseFrameProcessor):
-    short_name = 'swapper'
     many_faces: bool = False
     source_face: Face
 

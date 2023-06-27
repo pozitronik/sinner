@@ -13,7 +13,6 @@ from roop.utilities import resolve_relative_path, conditional_download, update_s
 
 
 class FaceEnhancer(BaseFrameProcessor):
-    short_name = 'enhancer'
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
 

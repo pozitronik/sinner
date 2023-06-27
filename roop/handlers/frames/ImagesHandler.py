@@ -8,7 +8,6 @@ from roop.utilities import read_image
 
 
 class ImagesHandler(BaseFramesHandler):
-    short_name = 'images'
 
     def detect_fps(self) -> float:
         return 1

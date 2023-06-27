@@ -11,7 +11,6 @@ from roop.utilities import write_image
 
 
 class CV2VideoHandler(BaseFramesHandler):
-    short_name = 'cv2'
 
     def open(self) -> VideoCapture:
         cap = cv2.VideoCapture(self._target_path)

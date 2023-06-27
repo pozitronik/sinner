@@ -11,7 +11,6 @@ from roop.typing import Frame
 
 
 class FFmpegVideoHandler(BaseFramesHandler):
-    short_name = 'ffmpeg'
 
     @staticmethod
     def run(args: List[str]) -> bool:
