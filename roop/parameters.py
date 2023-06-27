@@ -1,5 +1,9 @@
 import argparse
+import glob
+import importlib.util
+import os
 import platform
+import sys
 import warnings
 from argparse import Namespace
 from typing import List
@@ -7,7 +11,7 @@ from typing import List
 import onnxruntime
 
 from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
-from roop.utilities import normalize_output_path, is_image, is_video
+from roop.utilities import normalize_output_path, is_image, is_video, resolve_relative_path
 
 
 def default_frame_processors() -> List[str]:
@@ -41,13 +45,44 @@ def suggest_execution_providers() -> List[str]:
     return encode_execution_providers(onnxruntime.get_available_providers())
 
 
+def suggest_frame_processors() -> List[str]:
+    result: List[str] = []
+    files_list = glob.glob(os.path.join(resolve_relative_path('processors/frame/', __file__), '*.py'))
+    for file in files_list:
+        module_name = os.path.splitext(os.path.basename(file))[0]
+        spec = importlib.util.spec_from_file_location(module_name, file)
+        module = importlib.util.module_from_spec(spec)
+        if module_name not in sys.modules:
+            spec.loader.exec_module(module)
+        processor_class = getattr(module, module_name)
+        if hasattr(processor_class, 'short_name'):
+            result.append(processor_class.short_name)
+
+    return result
+
+
+def suggest_frame_handlers() -> List[str]:
+    result: List[str] = []
+    files_list = glob.glob(os.path.join(resolve_relative_path('handlers/frames/'), '*.py'))
+    for file in files_list:
+        module_name = os.path.splitext(os.path.basename(file))[0]
+        spec = importlib.util.spec_from_file_location(module_name, file)
+        module = importlib.util.module_from_spec(spec)
+        if module_name not in sys.modules:
+            spec.loader.exec_module(module)
+        processor_class = getattr(module, module_name)
+        if hasattr(processor_class, 'short_name'):
+            result.append(processor_class.short_name)
+    return result
+
+
 def parse_args() -> Namespace:
     program = argparse.ArgumentParser()
     program.add_argument('-s', '--source', help='select an source image', dest='source_path')
     program.add_argument('-t', '--target', help='select an target image or frames', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
-    program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'])
-    program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, )
+    program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'], choices=suggest_frame_processors(), nargs='+')
+    program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, choices=suggest_frame_handlers())
     program.add_argument('--fps', help='set output frames fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
@@ -99,4 +134,3 @@ class Parameters:
                     warnings.warn("ffmpeg is not available in your system, falling back to cv2 handler", category=Warning)
                     return 'CV2VideoHandler'
         return preferred_handler  # type: ignore[return-value]
-
