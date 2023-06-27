@@ -24,10 +24,10 @@ class BaseFrameProcessor(ABC):
             quit()
 
     def process(self, frames_provider: Iterable[tuple[Frame, int]]) -> None:
-        update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')  # todo optional
+        if self.state.is_started():
+            update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
-        total = self.state.frames_count
-        with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
+        with tqdm(total=self.state.frames_count, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
             progress.set_postfix({
                 'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB',
                 'execution_providers': self.execution_providers,
