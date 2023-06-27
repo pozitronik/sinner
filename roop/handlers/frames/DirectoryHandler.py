@@ -6,8 +6,8 @@ from roop.utilities import read_image
 class DirectoryHandler(BaseFramesHandler):
 
     def __init__(self, target_path: str):
-        super().__init__(target_path)
         self.frame_list = self.get_frames_paths(target_path)
+        super().__init__(target_path)
 
     def detect_fps(self) -> float:
         return 1  # todo
