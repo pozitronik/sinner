@@ -34,7 +34,6 @@ class FaceEnhancer(BaseFrameProcessor):
     def get_face_enhancer(self) -> GFPGANer:
         with self.THREAD_LOCK:
             model_path = resolve_relative_path('../models/GFPGANv1.4.pth')
-            # todo: set models path https://github.com/TencentARC/GFPGAN/issues/399
             return gfpgan.GFPGANer(model_path=model_path, upscale=1)
 
     def enhance_face(self, temp_frame: Frame) -> Frame:
@@ -43,15 +42,8 @@ class FaceEnhancer(BaseFrameProcessor):
         return temp_frame
 
     def process_frame(self, temp_frame: Frame) -> Frame:
-        if self.many_faces:
-            many_faces = self._face_analyser.get_many_faces(temp_frame)
-            if many_faces:
-                for target_face in many_faces:
-                    temp_frame = self.enhance_face(target_face)
-        else:
-            target_face = self._face_analyser.get_one_face(temp_frame)
-            if target_face:
-                temp_frame = self.enhance_face(target_face)
+        if self._face_analyser.get_one_face(temp_frame):
+            temp_frame = self.enhance_face(temp_frame)
         return temp_frame
 
     def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
@@ -65,7 +57,7 @@ class FaceEnhancer(BaseFrameProcessor):
                 progress.update()
 
     def process(self, frames_provider: Iterable[tuple[Frame, int]]) -> None:
-        update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
+        update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')  # todo optional
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         total = self.state.frames_count
         with tqdm(total=total, desc='Processing', unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
