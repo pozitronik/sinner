@@ -2,7 +2,7 @@ import threading
 from typing import List
 
 import gfpgan
-from gfpgan import GFPGANer
+from gfpgan import GFPGANer  # type: ignore[attr-defined]
 
 from roop.face_analyser import FaceAnalyser
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -25,7 +25,7 @@ class FaceEnhancer(BaseFrameProcessor):
     def get_face_enhancer(self) -> GFPGANer:
         with self.thread_lock:
             model_path = resolve_relative_path('../models/GFPGANv1.4.pth')
-            return gfpgan.GFPGANer(model_path=model_path, upscale=1)
+            return gfpgan.GFPGANer(model_path=model_path, upscale=1)  # type: ignore[attr-defined]
 
     def enhance_face(self, temp_frame: Frame) -> Frame:
         with self.thread_semaphore:
