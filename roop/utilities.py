@@ -1,3 +1,4 @@
+import glob
 import importlib.util
 import mimetypes
 import os
@@ -131,3 +132,19 @@ def load_class(path: str, module_name: str, class_name: str | None = None) -> ty
             return getattr(module, class_name)
     except Exception:
         return None
+
+
+def list_class_descendants(path: str, class_name: str) -> List['str']:
+    """
+    Return all class descendants in its directory
+    """
+    result: List[str] = []
+    files_list = glob.glob(os.path.join(path, '*.py'))
+    for file in files_list:
+        module_name = os.path.splitext(os.path.basename(file))[0]
+        if module_name == '__init__':
+            continue
+        descendant = load_class(os.path.dirname(file), module_name)
+        if descendant and descendant.__base__.__name__ == class_name:  # issubclass will not work here
+            result.append(module_name)
+    return result

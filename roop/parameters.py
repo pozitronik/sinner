@@ -6,10 +6,8 @@ from typing import List
 
 import onnxruntime
 
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
-from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from roop.utilities import normalize_output_path, is_image, is_video
+from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path
 
 
 def default_frame_processors() -> List[str]:
@@ -48,8 +46,9 @@ def parse_args() -> Namespace:
     program.add_argument('-s', '--source', help='select an source image', dest='source_path')
     program.add_argument('-t', '--target', help='select an target image or frames', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
-    program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'], choices=BaseFrameProcessor.list(), nargs='+')
-    program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, choices=BaseFramesHandler.list())
+    program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'],
+                         choices=list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'), nargs='+')
+    program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, choices=list_class_descendants(resolve_relative_path('handlers/frames'), 'BaseFramesHandler'))
     program.add_argument('--fps', help='set output frames fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
