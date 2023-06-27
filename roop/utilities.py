@@ -2,6 +2,7 @@ import importlib.util
 import mimetypes
 import os
 import platform
+import sys
 import urllib
 from typing import List, Literal
 
@@ -125,8 +126,8 @@ def load_class(path: str, module_name: str, class_name: str | None = None) -> ty
         if os.path.exists(module_path):
             spec = importlib.util.spec_from_file_location(module_name, module_path)
             module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
+            if module_name not in sys.modules:
+                spec.loader.exec_module(module)
             return getattr(module, class_name)
     except Exception:
         return None
