@@ -26,8 +26,8 @@ if __name__ == '__main__':
     state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
 
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_processors = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
     frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
-
-    core.run()
+    for frame_processor in frame_processors:
+        core = Core(params=params, state=state, frame_processor=frame_processor, frames_handler=frame_handler)
+        core.run()
