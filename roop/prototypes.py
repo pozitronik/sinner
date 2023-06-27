@@ -21,7 +21,6 @@ def get_frame_processor(params: Parameters, state: State) -> BaseFrameProcessor:
             execution_providers=params.execution_providers,
             execution_threads=params.execution_threads,
             max_memory=params.max_memory,
-            many_faces=params.many_faces,
             state=state
         )
     else:
