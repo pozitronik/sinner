@@ -14,7 +14,7 @@ from roop.utilities import get_mem_usage, update_status, write_image, load_class
 
 class BaseFrameProcessor(ABC):
     state: State
-    execution_providers: List[str] = ["CPUExecutionProvider"]
+    execution_providers: List[str]
     execution_threads: int = 1
 
     @staticmethod
