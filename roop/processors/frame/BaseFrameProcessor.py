@@ -1,3 +1,4 @@
+import glob
 import inspect
 import os.path
 from abc import ABC, abstractmethod
@@ -34,6 +35,20 @@ class BaseFrameProcessor(ABC):
                 result.append(handler_class(**params))
             else:
                 raise ValueError(f"Invalid processor name: {processor_name}")
+        return result
+
+    @staticmethod
+    def list() -> List['str']:
+        """
+        Return all class descendants in the current directory
+        """
+        result: List[str] = []
+        files_list = glob.glob(os.path.join(os.path.dirname(__file__), '*.py'))
+        for file in files_list:
+            module_name = os.path.splitext(os.path.basename(file))[0]
+            processor_class = load_class(file, module_name)
+            if processor_class and issubclass(processor_class, BaseFrameProcessor):
+                result.append(module_name)
         return result
 
     def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State) -> None:

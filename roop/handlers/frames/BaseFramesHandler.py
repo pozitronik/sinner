@@ -24,6 +24,20 @@ class BaseFramesHandler(ABC):
             raise ValueError(f"Invalid handler name: {handler_name}")
 
     @staticmethod
+    def list() -> List['str']:
+        """
+        Return all class descendants in the current directory
+        """
+        result: List[str] = []
+        files_list = glob.glob(os.path.join(os.path.dirname(__file__), '*.py'))
+        for file in files_list:
+            module_name = os.path.splitext(os.path.basename(file))[0]
+            handler_class = load_class(file, module_name)
+            if handler_class and issubclass(handler_class, BaseFramesHandler):
+                result.append(module_name)
+        return result
+
+    @staticmethod
     def available() -> bool:
         """
         If this handler is available
