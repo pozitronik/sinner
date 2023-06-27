@@ -27,19 +27,20 @@ class Core:
     params: Parameters
     state: State
     frames_handler: BaseFramesHandler
-    frame_processor: BaseFrameProcessor
+    frame_processors: list[BaseFrameProcessor]
 
-    def __init__(self, params: Parameters, state: State, frame_processor: BaseFrameProcessor, frames_handler: BaseFramesHandler):
+    def __init__(self, params: Parameters, state: State, frame_processors: list[BaseFrameProcessor], frames_handler: BaseFramesHandler):
         self.params = params
         self.state = state
         self.frames_handler = frames_handler
         self.frames_handler.current_frame_index = state.processed_frames_count()
-        self.frame_processor = frame_processor
+        self.frame_processors = frame_processors
         self.state.frames_count = self.frames_handler.fc
 
     def run(self) -> None:
-        self.frame_processor.process(frames_provider=self.frames_handler, desc=self.frame_processor.__class__.__name__)
-        self.release_resources()
+        for frame_processor in self.frame_processors:
+            frame_processor.process(frames_provider=self.frames_handler, desc=frame_processor.__class__.__name__)
+            self.release_resources()
 
         if self.frames_handler.result(self.state.out_dir, self.params.output_path, self.params.fps, self.params.target_path if self.params.keep_audio else None) is True:
             self.state.finish()
