@@ -1,4 +1,5 @@
 import argparse
+import os.path
 import platform
 import warnings
 from argparse import Namespace
@@ -93,8 +94,10 @@ class Parameters:
             quit()
 
     def set_frame_handler(self, preferred_handler: str | None = None) -> str:
+        if os.path.isdir(self.target_path):
+            return 'DirectoryHandler'
         if is_image(self.target_path):
-            return 'ImagesHandler'
+            return 'ImageHandler'
         if is_video(self.target_path):
             if preferred_handler is None:
                 return 'FFmpegVideoHandler' if FFmpegVideoHandler.available() else 'CV2VideoHandler'
@@ -108,7 +111,7 @@ class Parameters:
         if not is_image(self.source_path):
             update_status('Select an image for source path.')
             return False
-        if not is_image(self.target_path) and not is_video(self.target_path):
-            update_status('Select an image or video for target path.')
+        if not is_image(self.target_path) and not is_video(self.target_path) and not os.path.isdir(self.target_path):
+            update_status('Select an image or video or images directory for target path.')
             return False
         return True
