@@ -49,7 +49,7 @@ class BaseFrameProcessor(ABC):
         with tqdm(total=self.state.frames_count, desc=desc, unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
             progress.set_postfix({
                 'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB',
-                'execution_providers': self.execution_providers,
+                'execution_providers': self.execution_providers, # todo: print once
                 'threads': self.execution_threads,
             })
             self.multi_process_frame(frames_provider, self.process_frames, progress)
