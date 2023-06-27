@@ -43,13 +43,15 @@ class BaseFrameProcessor(ABC):
             quit()
 
     def process(self, frames_provider: Iterable[tuple[Frame, int]], desc: str = 'Processing') -> None:
+        self.state.processor_name = self.__class__.__name__
+        frames_provider.current_frame_index = self.state.processed_frames_count()
         if self.state.is_started():
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         with tqdm(total=self.state.frames_count, desc=desc, unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
             progress.set_postfix({
                 'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB',
-                'execution_providers': self.execution_providers, # todo: print once
+                'execution_providers': self.execution_providers,  # todo: print once
                 'threads': self.execution_threads,
             })
             self.multi_process_frame(frames_provider, self.process_frames, progress)
@@ -61,7 +63,7 @@ class BaseFrameProcessor(ABC):
     def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
         for frame in frames:
             try:
-                write_image(self.process_frame(frame[0]), self.state.get_frame_processed_name(frame[1]))
+                self.state.save_temp_frame(self.process_frame(frame[0]), frame[1])
             except Exception as exception:
                 print(exception)
                 pass

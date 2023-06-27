@@ -2,6 +2,9 @@ import os
 import shutil
 from pathlib import Path
 
+from roop.typing import Frame
+from roop.utilities import write_image
+
 TEMP_DIRECTORY = 'temp'  # todo: make a parameter
 
 
@@ -11,6 +14,7 @@ class State:
     source_path: str
     target_path: str
     output_path: str
+    processor_name: str = ''
 
     preserve_source_frames: bool = True  # keeps extracted source frames for future usage
 
@@ -21,25 +25,24 @@ class State:
         self.target_path = target_path
         self.output_path = output_path
         self.keep_frames = keep_frames
-        self.out_dir = self.get_out_dir()
         self._zfill_length = None
-        self.create()
 
     def reload(self) -> None:
         self.target_path = self.out_dir
-        self.out_dir = self.get_out_dir()
-        self.create()
-
-    #  creates the state for a provided target
-    def create(self) -> None:
-        Path(self.out_dir).mkdir(parents=True, exist_ok=True)
 
     def finish(self) -> None:
         if self.keep_frames is False:
             shutil.rmtree(self.out_dir)
 
-    def get_out_dir(self) -> str:
-        return os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, os.path.basename(self.target_path), os.path.basename(self.source_path))
+    @property
+    def out_dir(self) -> str:
+        path = os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path))
+        if not os.path.exists(path):
+            Path(path).mkdir(parents=True, exist_ok=True)
+        return path
+
+    def save_temp_frame(self, frame: Frame, index: int):
+        write_image(frame, self.get_frame_processed_name(index))
 
     #  Checks if some frames already processed
     def is_started(self) -> bool:
@@ -66,4 +69,3 @@ class State:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
-
