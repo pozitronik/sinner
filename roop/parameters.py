@@ -7,7 +7,7 @@ from typing import List
 import onnxruntime
 
 from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
-from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path
+from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path, update_status
 
 
 def default_frame_processors() -> List[str]:
@@ -89,6 +89,9 @@ class Parameters:
         self.execution_threads = args.execution_threads
         self.frame_handler = self.set_frame_handler(args.frame_handler)
 
+        if not self.validate():
+            quit()
+
     def set_frame_handler(self, preferred_handler: str | None = None) -> str:
         if is_image(self.target_path):
             return 'ImagesHandler'
@@ -100,3 +103,11 @@ class Parameters:
                     warnings.warn("ffmpeg is not available in your system, falling back to cv2 handler", category=Warning)
                     return 'CV2VideoHandler'
         return preferred_handler  # type: ignore[return-value]
+
+    def validate(self) -> bool: # todo: it'll validate also for used processors
+        if not is_image(self.source_path):
+            update_status('Select an image for source path.')
+            return False
+        elif not is_image(self.target_path) and not is_video(self.target_path):
+            update_status('Select an image or video for target path.')
+            return False
