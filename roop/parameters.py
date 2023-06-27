@@ -104,10 +104,10 @@ class Parameters:
                     return 'CV2VideoHandler'
         return preferred_handler  # type: ignore[return-value]
 
-    def validate(self) -> bool: # todo: it'll validate also for used processors
+    def validate(self) -> bool:  # todo: it'll validate also for used processors
         if not is_image(self.source_path):
             update_status('Select an image for source path.')
             return False
-        elif not is_image(self.target_path) and not is_video(self.target_path):
+        if not is_image(self.target_path) and not is_video(self.target_path):
             update_status('Select an image or video for target path.')
             return False
