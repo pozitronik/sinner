@@ -3,9 +3,10 @@ import signal
 import sys
 
 from roop.core import Core
+from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.parameters import Parameters
+from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
-from roop.prototypes import get_video_handler, get_frame_processor
 from roop.utilities import limit_resources
 
 
@@ -25,6 +26,8 @@ if __name__ == '__main__':
     state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
 
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
 
     core.run()

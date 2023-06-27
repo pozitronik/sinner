@@ -3,10 +3,10 @@ import shutil
 from argparse import Namespace
 
 from roop.core import Core
-from roop.handlers.frames.ImagesHandler import ImagesHandler
+from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.parameters import Parameters
+from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
-from roop.prototypes import get_video_handler, get_frame_processor
 from roop.utilities import limit_resources, resolve_relative_path, is_video
 
 source_jpg: str = resolve_relative_path('data/sources/source.jpg', __file__)
@@ -40,8 +40,8 @@ def test_image_to_video_ffmpeg():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor='FaceEnhancer',
-        frame_handler='ffmpeg',
+        frame_processor=['FaceEnhancer'],
+        frame_handler='FFmpegVideoHandler',
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -50,13 +50,15 @@ def test_image_to_video_ffmpeg():
     ))
     state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = get_video_handler(result_mp4, params.frame_handler)
+    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -69,8 +71,8 @@ def test_image_to_video_ffmpeg_continue():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor='FaceEnhancer',
-        frame_handler='ffmpeg',
+        frame_processor=['FaceEnhancer'],
+        frame_handler='FFmpegVideoHandler',
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -84,13 +86,15 @@ def test_image_to_video_ffmpeg_continue():
     assert 30 == len(os.listdir(state.out_dir))
     assert 30 == state.processed_frames_count()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = get_video_handler(result_mp4, params.frame_handler)
+    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -102,8 +106,8 @@ def test_image_to_video_cv2():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor='FaceEnhancer',
-        frame_handler='cv2',
+        frame_processor=['FaceEnhancer'],
+        frame_handler='CV2VideoHandler',
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -112,13 +116,15 @@ def test_image_to_video_cv2():
     ))
     state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = get_video_handler(result_mp4, params.frame_handler)
+    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -130,8 +136,8 @@ def test_image_to_video_cv2_continue():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor='FaceEnhancer',
-        frame_handler='cv2',
+        frame_processor=['FaceEnhancer'],
+        frame_handler='CV2VideoHandler',
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -145,13 +151,15 @@ def test_image_to_video_cv2_continue():
     assert 30 == len(os.listdir(state.out_dir))
     assert 30 == state.processed_frames_count()
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = get_video_handler(result_mp4, params.frame_handler)
+    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -164,8 +172,8 @@ def test_image_to_image():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor='FaceEnhancer',
-        frame_handler='None',  # not required in img-to-img swap
+        frame_processor=['FaceEnhancer'],
+        frame_handler= None,  # not required in img-to-img swap
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -174,7 +182,9 @@ def test_image_to_image():
     ))
     state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frame_processor=get_frame_processor(params, state), frames_handler=ImagesHandler(params.target_path))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
     core.run()
 
     assert os.path.exists(result_jpg) is True
@@ -187,8 +197,8 @@ def test_image_to_video_ffmpeg_multi_provider():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor='FaceEnhancer',
-        frame_handler='ffmpeg',
+        frame_processor=['FaceEnhancer'],
+        frame_handler='FFmpegVideoHandler',
         fps=None,
         many_faces=False,
         source_path=source_jpg,
@@ -197,12 +207,14 @@ def test_image_to_video_ffmpeg_multi_provider():
     ))
     state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    core = Core(params=params, state=state, frames_handler=get_video_handler(params.target_path, params.frame_handler), frame_processor=get_frame_processor(params, state))
+    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
+    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
+    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = get_video_handler(result_mp4, params.frame_handler)
+    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30

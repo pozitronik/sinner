@@ -1,12 +1,15 @@
+import inspect
+import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Callable, Iterable
 
 from tqdm import tqdm
 
+from roop.parameters import Parameters
 from roop.state import State
 from roop.typing import Frame
-from roop.utilities import get_mem_usage, update_status, write_image
+from roop.utilities import get_mem_usage, update_status, write_image, load_class
 
 
 class BaseFrameProcessor(ABC):
@@ -14,6 +17,24 @@ class BaseFrameProcessor(ABC):
     execution_providers: List[str] = ["CPUExecutionProvider"]
     execution_threads: int = 1
     max_memory: int = 1
+
+    @staticmethod
+    def create(processors_name: List[str], parameters: Parameters, state: State) -> List['BaseFrameProcessor']:  # processors factory
+        result: List['BaseFrameProcessor'] = []
+        for processor_name in processors_name:
+            handler_class = load_class(os.path.dirname(__file__), processor_name)
+
+            if handler_class and issubclass(handler_class, BaseFrameProcessor):
+                class_parameters_list = inspect.signature(handler_class.__init__).parameters
+                params: dict = {}
+                for parameter_name in class_parameters_list.keys():
+                    if hasattr(parameters, parameter_name):
+                        params[parameter_name] = getattr(parameters, parameter_name)
+                params['state'] = state
+                result.append(handler_class(**params))
+            else:
+                raise ValueError(f"Invalid processor name: {processor_name}")
+        return result
 
     def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State) -> None:
         self.execution_providers = execution_providers

@@ -1,3 +1,4 @@
+import importlib.util
 import mimetypes
 import os
 import platform
@@ -114,3 +115,18 @@ def get_mem_usage(size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
         return memory_usage / 1024 ** 2
     if size == 'g':
         return memory_usage / 1024 ** 3
+
+
+def load_class(path: str, module_name: str, class_name: str | None = None) -> type | None:
+    if class_name is None:
+        class_name = module_name
+    module_path = os.path.join(path, module_name + '.py')
+    try:
+        if os.path.exists(module_path):
+            spec = importlib.util.spec_from_file_location(module_name, module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            return getattr(module, class_name)
+    except Exception:
+        return None

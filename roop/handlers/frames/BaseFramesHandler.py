@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from roop.typing import Frame
+from roop.utilities import load_class
 
 
 class BaseFramesHandler(ABC):
@@ -11,6 +12,16 @@ class BaseFramesHandler(ABC):
     fc: int
     _target_path: str
     current_frame_index: int = 0
+
+    @staticmethod
+    def create(handler_name: str, target_path: str) -> 'BaseFramesHandler':  # handlers factory
+        handler_class = globals().get(handler_name)
+        if not handler_class:
+            handler_class = load_class(os.path.dirname(__file__), handler_name)
+        if handler_class and issubclass(handler_class, BaseFramesHandler):
+            return handler_class(target_path)
+        else:
+            raise ValueError(f"Invalid handler name: {handler_name}")
 
     @staticmethod
     def available() -> bool:
