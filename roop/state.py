@@ -25,7 +25,7 @@ class State:
         self._zfill_length = None
         self.create()
 
-    def reload(self):
+    def reload(self) -> None:
         self.target_path = self.out_dir
         self.out_dir = self.get_out_dir()
         self.create()

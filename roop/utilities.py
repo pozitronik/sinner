@@ -126,11 +126,14 @@ def load_class(path: str, module_name: str, class_name: str | None = None) -> ty
     try:
         if os.path.exists(module_path):
             spec = importlib.util.spec_from_file_location(module_name, module_path)
-            module = importlib.util.module_from_spec(spec)
-            if module_name not in sys.modules:
-                spec.loader.exec_module(module)
-            return getattr(module, class_name)
+            if spec is not None:
+                module = importlib.util.module_from_spec(spec)
+                if module is not None and module_name not in sys.modules:
+                    spec.loader.exec_module(module)  # type: ignore[union-attr]
+                return getattr(module, class_name)
+        return None
     except Exception:
+        pass
         return None
 
 
