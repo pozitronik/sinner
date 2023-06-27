@@ -25,6 +25,11 @@ class State:
         self._zfill_length = None
         self.create()
 
+    def reload(self):
+        self.target_path = self.out_dir
+        self.out_dir = self.get_out_dir()
+        self.create()
+
     #  creates the state for a provided target
     def create(self) -> None:
         Path(self.out_dir).mkdir(parents=True, exist_ok=True)
@@ -61,3 +66,4 @@ class State:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
+
