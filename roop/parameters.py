@@ -111,3 +111,4 @@ class Parameters:
         if not is_image(self.target_path) and not is_video(self.target_path):
             update_status('Select an image or video for target path.')
             return False
+        return True
