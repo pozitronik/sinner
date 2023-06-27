@@ -68,7 +68,7 @@ def is_video(video_path: str) -> bool:
     return False
 
 
-def conditional_download(download_directory_path: str, urls: List[str]) -> None:
+def conditional_download(download_directory_path: str, urls: List[str], desc: str = 'Downloading') -> None:
     if not os.path.exists(download_directory_path):
         os.makedirs(download_directory_path)
     for url in urls:
@@ -76,7 +76,7 @@ def conditional_download(download_directory_path: str, urls: List[str]) -> None:
         if not os.path.exists(download_file_path):
             request = urllib.request.urlopen(url)  # type: ignore[attr-defined]
             total = int(request.headers.get('Content-Length', 0))
-            with tqdm(total=total, desc='Downloading', unit='B', unit_scale=True, unit_divisor=1024) as progress:
+            with tqdm(total=total, desc=desc, unit='B', unit_scale=True, unit_divisor=1024) as progress:
                 urllib.request.urlretrieve(url, download_file_path, reporthook=lambda count, block_size, total_size: progress.update(block_size))  # type: ignore[attr-defined]
 
 
@@ -111,6 +111,6 @@ def get_mem_usage(size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
     if size == 'k':
         return memory_usage / 1024
     if size == 'm':
-        return memory_usage / 1024**2
+        return memory_usage / 1024 ** 2
     if size == 'g':
-        return memory_usage / 1024**3
+        return memory_usage / 1024 ** 3
