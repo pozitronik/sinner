@@ -16,7 +16,6 @@ class BaseFrameProcessor(ABC):
     state: State
     execution_providers: List[str] = ["CPUExecutionProvider"]
     execution_threads: int = 1
-    max_memory: int = 1
 
     @staticmethod
     def create(processors_name: List[str], parameters: Parameters, state: State) -> List['BaseFrameProcessor']:  # processors factory
@@ -36,10 +35,9 @@ class BaseFrameProcessor(ABC):
                 raise ValueError(f"Invalid processor name: {processor_name}")
         return result
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State) -> None:
+    def __init__(self, execution_providers: List[str], execution_threads: int, state: State) -> None:
         self.execution_providers = execution_providers
         self.execution_threads = execution_threads
-        self.max_memory = max_memory
         self.state = state
         if not self.validate():
             quit()
@@ -53,7 +51,6 @@ class BaseFrameProcessor(ABC):
                 'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB',
                 'execution_providers': self.execution_providers,
                 'threads': self.execution_threads,
-                'memory': self.max_memory
             })
             self.multi_process_frame(frames_provider, self.process_frames, progress)
 
