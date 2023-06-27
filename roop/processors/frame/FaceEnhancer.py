@@ -8,7 +8,7 @@ from roop.face_analyser import FaceAnalyser
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 from roop.typing import Frame
-from roop.utilities import resolve_relative_path, conditional_download, update_status, get_mem_usage, write_image
+from roop.utilities import resolve_relative_path, conditional_download
 
 
 class FaceEnhancer(BaseFrameProcessor):
