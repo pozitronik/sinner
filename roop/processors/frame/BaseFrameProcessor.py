@@ -2,7 +2,7 @@ import inspect
 import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Callable, Iterable
+from typing import List, Callable, Iterable, Any
 
 from tqdm import tqdm
 
@@ -26,7 +26,7 @@ class BaseFrameProcessor(ABC):
 
             if handler_class and issubclass(handler_class, BaseFrameProcessor):
                 class_parameters_list = inspect.signature(handler_class.__init__).parameters
-                params: dict = {}
+                params: dict[str, Any] = {}
                 for parameter_name in class_parameters_list.keys():
                     if hasattr(parameters, parameter_name):
                         params[parameter_name] = getattr(parameters, parameter_name)
