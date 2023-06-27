@@ -48,11 +48,8 @@ def test_image_to_video_ffmpeg():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
-    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
+    core = Core(params=params)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
@@ -79,16 +76,14 @@ def test_image_to_video_ffmpeg_continue():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
-    assert [] == os.listdir(state.out_dir)  # check if out directory is empty
-    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
-        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(state.out_dir, filename))
-    assert 30 == len(os.listdir(state.out_dir))
-    assert 30 == state.processed_frames_count()
+
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
-    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
+    core = Core(params=params)
+    assert [] == os.listdir(core.state.out_dir)  # check if out directory is empty
+    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
+        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(core.state.out_dir, filename))
+    assert 30 == len(os.listdir(core.state.out_dir))
+    assert 30 == core.state.processed_frames_count()
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
@@ -114,11 +109,8 @@ def test_image_to_video_cv2():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
-    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
+    core = Core(params=params)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
@@ -144,16 +136,14 @@ def test_image_to_video_cv2_continue():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
-    assert [] == os.listdir(state.out_dir)  # check if out directory is empty
-    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
-        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(state.out_dir, filename))
-    assert 30 == len(os.listdir(state.out_dir))
-    assert 30 == state.processed_frames_count()
+
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
-    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
+    core = Core(params=params)
+    assert [] == os.listdir(core.state.out_dir)  # check if out directory is empty
+    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
+        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(core.state.out_dir, filename))
+    assert 30 == len(os.listdir(core.state.out_dir))
+    assert 30 == core.state.processed_frames_count()
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
@@ -173,18 +163,15 @@ def test_image_to_image():
         keep_audio=True,
         keep_frames=True,
         frame_processor=['FaceSwapper'],
-        frame_handler=None,  # not required in img-to-img swap
+        frame_handler=None,  # will be auto suggested
         fps=None,
         many_faces=False,
         source_path=source_jpg,
         target_path=target_png,
         output_path=result_jpg,
     ))
-    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
-    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
+    core = Core(params=params)
     core.run()
 
     assert os.path.exists(result_jpg) is True
@@ -205,11 +192,8 @@ def test_image_to_video_ffmpeg_multi_provider():
         target_path=target_mp4,
         output_path=result_mp4,
     ))
-    state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
     limit_resources(params.max_memory)
-    frame_processor = BaseFrameProcessor.create(processors_name=params.frame_processors, parameters=params, state=state)
-    frame_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-    core = Core(params=params, state=state, frame_processor=frame_processor[0], frames_handler=frame_handler)
+    core = Core(params=params)
     core.run()
 
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
