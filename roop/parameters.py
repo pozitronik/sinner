@@ -100,7 +100,7 @@ class Parameters:
             return 'ImageHandler'
         if is_video(self.target_path):
             if preferred_handler is None:
-                return 'FFmpegVideoHandler' if FFmpegVideoHandler.available() else 'CV2VideoHandler'
+                return 'VideoHandler' if FFmpegVideoHandler.available() else 'CV2VideoHandler'
             else:
                 if preferred_handler == 'FFmpegVideoHandler' and not FFmpegVideoHandler.available():
                     warnings.warn("ffmpeg is not available in your system, falling back to cv2 handler", category=Warning)
