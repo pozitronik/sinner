@@ -2,7 +2,6 @@ import threading
 from typing import List
 
 import gfpgan
-import insightface
 from gfpgan import GFPGANer
 
 from roop.face_analyser import FaceAnalyser
