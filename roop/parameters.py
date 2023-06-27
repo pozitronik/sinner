@@ -90,13 +90,13 @@ class Parameters:
 
     def set_frame_handler(self, preferred_handler: str | None = None) -> str:
         if is_image(self.target_path):
-            return 'image'
+            return 'ImagesHandler'
         if is_video(self.target_path):
             if preferred_handler is None:
-                return 'ffmpeg' if FFmpegVideoHandler.available() else 'cv2'
+                return 'FFmpegVideoHandler' if FFmpegVideoHandler.available() else 'CV2VideoHandler'
             else:
-                if preferred_handler == 'ffmpeg' and not FFmpegVideoHandler.available():
+                if preferred_handler == 'FFmpegVideoHandler' and not FFmpegVideoHandler.available():
                     warnings.warn("ffmpeg is not available in your system, falling back to cv2 handler", category=Warning)
-                    return 'cv2'
+                    return 'CV2VideoHandler'
         return preferred_handler  # type: ignore[return-value]
 
