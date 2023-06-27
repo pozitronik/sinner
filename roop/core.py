@@ -38,7 +38,7 @@ class Core:
         self.state.frames_count = self.frames_handler.fc
 
     def run(self) -> None:
-        self.frame_processor.process(frames_provider=self.frames_handler)
+        self.frame_processor.process(frames_provider=self.frames_handler, desc=self.frame_processor.__class__.__name__)
         self.release_resources()
 
         if self.frames_handler.result(self.state.out_dir, self.params.output_path, self.params.fps, self.params.target_path if self.params.keep_audio else None) is True:
