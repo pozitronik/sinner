@@ -26,7 +26,7 @@ class FaceSwapper(BaseFrameProcessor):
         self._face_swapper = insightface.model_zoo.get_model(resolve_relative_path('../models/inswapper_128.onnx'), providers=self.execution_providers)
 
     def swap_face(self, target_face: Face, temp_frame: Frame) -> Frame:
-        return self._face_swapper.get(temp_frame, target_face, self.source_face, paste_back=True)
+        return self._face_swapper.get(temp_frame, target_face, self.source_face)
 
     def process_frame(self, temp_frame: Frame) -> Frame:
         if self.many_faces:

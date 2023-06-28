@@ -5,6 +5,6 @@ import numpy
 from insightface.model_zoo import Landmark, Attribute, RetinaFace, ArcFaceONNX
 from insightface.model_zoo.inswapper import INSwapper
 
-FaceSwapperType = RetinaFace | Landmark | Attribute | INSwapper | ArcFaceONNX | None
+FaceSwapperType = INSwapper
 Face = Face
 Frame = numpy.ndarray[Any, Any]
