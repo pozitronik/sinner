@@ -105,7 +105,7 @@ def write_image(image: Frame, path: str) -> bool:
         im_buf_arr.tofile(path)
         return is_success
     else:
-        return cv2.imwrite(path, array)
+        return cv2.imwrite(path, image)
 
 
 def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 'dirty'] = 'rss', size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
