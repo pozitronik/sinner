@@ -1,4 +1,3 @@
-import threading
 from typing import List
 
 import insightface
@@ -16,8 +15,6 @@ class FaceSwapper(BaseFrameProcessor):
 
     _face_analyser: FaceAnalyser
     _face_swapper: FaceSwapperType
-
-    thread_lock = threading.Lock()
 
     def __init__(self, execution_providers: List[str], execution_threads: int, many_faces: bool, source_path: str, state: State):
         download_directory_path = resolve_relative_path('../models')
