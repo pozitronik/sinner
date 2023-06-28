@@ -108,9 +108,21 @@ def write_image(image: Frame, path: str) -> bool:
         return cv2.imwrite(path, array)
 
 
-def get_mem_usage(size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
+def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 'dirty'] = 'rss', size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
+    """
+    The `memory_info()` method of the `psutil.Process` class provides information about the memory usage of a process. It returns a named tuple containing the following attributes:
+
+    - `rss`: Resident Set Size - the amount of non-swapped physical memory used by the process in bytes.
+    - `vms`: Virtual Memory Size - the total amount of virtual memory used by the process in bytes.
+    - `shared`: Shared Memory - the amount of shared memory used by the process in bytes.
+    - `text`: Text (Code) Segment - the amount of memory used by the executable code of the process in bytes.
+    - `data`: Data Segment - the amount of memory used by the data (initialized variables) of the process in bytes.
+    - `lib`: Library (DLL) Segment - the amount of memory used by shared libraries and dynamically loaded modules in bytes.
+
+    Note that the availability of these attributes may vary depending on the platform and system configuration.
+    """
     process = psutil.Process(os.getpid())
-    memory_usage = process.memory_info().rss
+    memory_usage = getattr(process.memory_info(), param)
     if size == 'b':
         return memory_usage
     if size == 'k':

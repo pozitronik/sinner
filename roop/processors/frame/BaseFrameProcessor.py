@@ -60,7 +60,7 @@ class BaseFrameProcessor(ABC):
             try:
                 self.state.save_temp_frame(self.process_frame(frame[0]), frame[1])
                 progress.set_postfix({
-                    'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB'
+                    'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB' + '/' + '{:.2f}'.format(get_mem_usage('vms')).zfill(5) + 'MB'
                 })
             except Exception as exception:
                 print(exception)
