@@ -15,7 +15,7 @@ class FaceEnhancer(BaseFrameProcessor):
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State):
+    def __init__(self, execution_providers: List[str], execution_threads: int, state: State):
         download_directory_path = resolve_relative_path('../models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
         super().__init__(execution_providers=execution_providers, execution_threads=execution_threads, state=state)
