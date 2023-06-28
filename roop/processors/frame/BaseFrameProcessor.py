@@ -9,7 +9,7 @@ from tqdm import tqdm
 from roop.parameters import Parameters
 from roop.state import State
 from roop.typing import Frame
-from roop.utilities import update_status, load_class
+from roop.utilities import update_status, load_class, get_mem_usage
 
 
 class BaseFrameProcessor(ABC):
@@ -59,6 +59,9 @@ class BaseFrameProcessor(ABC):
         for frame in frames:
             try:
                 self.state.save_temp_frame(self.process_frame(frame[0]), frame[1])
+                progress.set_postfix({
+                    'memory_usage': '{:.2f}'.format(get_mem_usage()).zfill(5) + 'MB'
+                })
             except Exception as exception:
                 print(exception)
                 pass
