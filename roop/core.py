@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import warnings
+from typing import Any
+
 import torch
 import os
 import sys
@@ -37,13 +39,13 @@ class Core:
         self.params = params
         self.state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
         self.frames_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)
-        self.frame_processors = BaseFrameProcessor.create(processors_name=self.params.frame_processors, parameters=self.params, state=self.state)
         self.state.frames_count = self.frames_handler.fc
 
     def run(self) -> None:
-        for frame_processor in self.frame_processors:
+        for processor_name in self.params.frame_processors:
             current_provider = self.suggest_handler(self.frames_handler)
-            frame_processor.process(frames_provider=current_provider, desc=frame_processor.__class__.__name__)
+            current_processor = BaseFrameProcessor.create(processor_name, self.params, self.state)
+            current_processor.process(frames_provider=current_provider, desc=processor_name)
             self.release_resources()
             self.state.reload()
 

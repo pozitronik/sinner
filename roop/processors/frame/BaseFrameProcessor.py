@@ -19,22 +19,19 @@ class BaseFrameProcessor(ABC):
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0}
 
     @staticmethod
-    def create(processors_name: List[str], parameters: Parameters, state: State) -> List['BaseFrameProcessor']:  # processors factory
-        result: List['BaseFrameProcessor'] = []
-        for processor_name in processors_name:
-            handler_class = load_class(os.path.dirname(__file__), processor_name)
+    def create(processor_name: str, parameters: Parameters, state: State) -> 'BaseFrameProcessor':  # processors factory
+        handler_class = load_class(os.path.dirname(__file__), processor_name)
 
-            if handler_class and issubclass(handler_class, BaseFrameProcessor):
-                class_parameters_list = inspect.signature(handler_class.__init__).parameters
-                params: dict[str, Any] = {}
-                for parameter_name in class_parameters_list.keys():
-                    if hasattr(parameters, parameter_name):
-                        params[parameter_name] = getattr(parameters, parameter_name)
-                params['state'] = state
-                result.append(handler_class(**params))
-            else:
-                raise ValueError(f"Invalid processor name: {processor_name}")
-        return result
+        if handler_class and issubclass(handler_class, BaseFrameProcessor):
+            class_parameters_list = inspect.signature(handler_class.__init__).parameters
+            params: dict[str, Any] = {}
+            for parameter_name in class_parameters_list.keys():
+                if hasattr(parameters, parameter_name):
+                    params[parameter_name] = getattr(parameters, parameter_name)
+            params['state'] = state
+            return handler_class(**params)
+        else:
+            raise ValueError(f"Invalid processor name: {processor_name}")
 
     def __init__(self, execution_providers: List[str], execution_threads: int, state: State) -> None:
         self.execution_providers = execution_providers
