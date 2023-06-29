@@ -12,7 +12,6 @@ IN_DIR = 'in'
 
 class State:
     frames_count: int
-    out_dir: str
     source_path: str
     target_path: str
     output_path: str
