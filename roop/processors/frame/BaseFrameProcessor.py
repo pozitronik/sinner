@@ -63,7 +63,10 @@ class BaseFrameProcessor(ABC):
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         with tqdm(total=self.state.frames_count, desc=desc, unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
-            self.multi_process_frame(frames_provider, self.process_frames, progress)
+            if self.execution_threads == 1:
+                self.process_frames(frames_provider, progress)
+            else:
+                self.multi_process_frame(frames_provider, self.process_frames, progress)
 
     @abstractmethod
     def process_frame(self, temp_frame: Frame) -> Frame:
