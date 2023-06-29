@@ -53,7 +53,7 @@ class State:
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
 
-    def save_temp_frame(self, frame: Frame, index: int):
+    def save_temp_frame(self, frame: Frame, index: int) -> None:
         write_image(frame, self.get_frame_processed_name(index))
 
     #  Checks if some frames already processed
@@ -73,7 +73,7 @@ class State:
 
     #  Returns count of already extracted frames for this target (0, if none).
     @property
-    def extracted_frames_count(self):
+    def extracted_frames_count(self) -> int:
         return len([os.path.join(self.in_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
     #  Returns count of still unprocessed frames for this target (0, if none).
