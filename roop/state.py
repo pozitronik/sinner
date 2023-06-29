@@ -58,30 +58,36 @@ class State:
         write_image(frame, self.get_frame_processed_name(index))
 
     #  Checks if some frames already processed
+    @property
     def is_started(self) -> bool:
-        return self.frames_count > self.processed_frames_count() > 0
+        return self.frames_count > self.processed_frames_count > 0
 
     #  Checks if the process is finished
+    @property
     def is_finished(self) -> bool:
-        return self.frames_count == self.processed_frames_count()
+        return self.frames_count == self.processed_frames_count
 
     #  Returns count of already processed frames for this target (0, if none).
+    @property
     def processed_frames_count(self) -> int:
         return len([os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
     #  Returns count of already extracted frames for this target (0, if none).
+    @property
     def extracted_frames_count(self):
         return len([os.path.join(self.in_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
     #  Returns count of still unprocessed frames for this target (0, if none).
+    @property
     def unprocessed_frames_count(self) -> int:
-        return self.frames_count - self.processed_frames_count()
+        return self.frames_count - self.processed_frames_count
 
     #  Returns a processed file name for an unprocessed frame index
     def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index + 1).zfill(self.get_zfill_length()) + '.png'
+        filename = str(frame_index + 1).zfill(self.get_zfill_length) + '.png'
         return str(os.path.join(self.out_dir, filename))
 
+    @property
     def get_zfill_length(self) -> int:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))

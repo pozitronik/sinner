@@ -56,16 +56,16 @@ class BaseFrameProcessor(ABC):
 
     def process(self, frames_handler: BaseFramesHandler, in_memory: bool = False, desc: str = 'Processing') -> None:
         self.state.processor_name = self.__class__.__name__
-        frames_handler.current_frame_index = self.state.processed_frames_count()
+        frames_handler.current_frame_index = self.state.processed_frames_count
         frames_list = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)
-        if self.state.is_started():
-            update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
+        if self.state.is_started:
+            update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...')
         with tqdm(
                 total=self.state.frames_count,
                 desc=desc, unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                initial=self.state.processed_frames_count()
+                initial=self.state.processed_frames_count
         ) as progress:
             self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
 
