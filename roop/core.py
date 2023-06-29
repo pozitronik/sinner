@@ -43,7 +43,7 @@ class Core:
         for processor_name in self.params.frame_processors:
             current_provider = self.suggest_handler(self.frames_handler)
             current_processor = BaseFrameProcessor.create(processor_name, self.params, self.state)
-            current_processor.process(frames_handler=current_provider, desc=processor_name)
+            current_processor.process(frames_handler=current_provider, in_memory=self.params.in_memory, desc=processor_name)
             self.release_resources()
             self.state.reload()
 

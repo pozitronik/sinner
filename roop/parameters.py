@@ -57,6 +57,7 @@ def parse_args() -> Namespace:
     program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=suggest_max_memory())
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
+    program.add_argument('--in-memory', help='use in-memory processing', dest='in_memory', type=bool, default=False)
     return program.parse_args()
 
 
@@ -69,6 +70,7 @@ class Parameters:
     keep_audio: bool = True
     keep_frames: bool = False
     many_faces: bool = True
+    in_memory: bool = False
     max_memory: int
     execution_providers: List[str]
     execution_threads: int
@@ -85,6 +87,7 @@ class Parameters:
         self.keep_audio = args.keep_audio
         self.keep_frames = args.keep_frames
         self.many_faces = args.many_faces
+        self.in_memory = args.in_memory
         self.max_memory = args.max_memory
         self.execution_providers = decode_execution_providers(args.execution_provider)
         self.execution_threads = args.execution_threads
