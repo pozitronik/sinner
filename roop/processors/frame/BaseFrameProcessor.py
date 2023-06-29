@@ -76,7 +76,7 @@ class BaseFrameProcessor(ABC):
             self.multi_process_frame(frames_path_list=frames_path_list, process_frames=self.process_frames, progress=progress)
 
     @abstractmethod
-    def process_frame(self, temp_frame_path: str) -> Frame:
+    def process_frame(self, temp_frame: Frame | str) -> Frame:
         pass
 
     def process_frames(self, frame: tuple[int, str]) -> None:  # type: ignore[type-arg]
