@@ -4,6 +4,7 @@ from typing import List
 
 import cv2
 from cv2 import VideoCapture
+from tqdm import tqdm
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.typing import Frame
@@ -31,17 +32,19 @@ class CV2VideoHandler(BaseFramesHandler):
         return video_frame_total
 
     def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
-        capture = self.open()
-        i = 1
-        filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
-        while True:
-            ret, frame = capture.read()
-            if not ret:
-                break
-            write_image(frame, os.path.join(path, str(i).zfill(filename_length) + ".png"))
-            i += 1
-        capture.release()
-        return super().get_frames_paths(path)
+        with tqdm(total=self.fc, desc='Extracting frames', unit='frame', dynamic_ncols=True, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]') as progress:
+            capture = self.open()
+            i = 1
+            filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
+            while True:
+                ret, frame = capture.read()
+                if not ret:
+                    break
+                write_image(frame, os.path.join(path, str(i).zfill(filename_length) + ".png"))
+                progress.update()
+                i += 1
+            capture.release()
+            return super().get_frames_paths(path)
 
     def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         capture = self.open()
