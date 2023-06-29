@@ -1,6 +1,7 @@
 import inspect
 import os.path
 from abc import ABC, abstractmethod
+from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Callable, Iterable, Any
 
@@ -77,28 +78,31 @@ class BaseFrameProcessor(ABC):
         except Exception as exception:
             print(exception)
             pass
-        if progress is not None:
-            progress.update()
 
     def multi_process_frame(self, frames_provider: Iterable[tuple[Frame, int]], process_frames: Callable[[tuple[Frame, int], None | tqdm], None], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
-        # current_mem_usage = get_mem_usage('vms', 'g')
+        def future_remove(future_: Future):
+            futures.remove(future_)
+            progress.update()
+            progress.set_postfix({
+                'memory_usage': self.get_mem_usage(),
+                'futures': len(futures)
+            })
+
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
+            current_mem_usage = get_mem_usage('vms', 'g')
             futures = []
             for frame in frames_provider:
-                future = executor.submit(process_frames, frame, progress)
+                future: Future = executor.submit(process_frames, frame, progress)
+                future.add_done_callback(future_remove)
                 futures.append(future)
                 progress.set_postfix({
                     'memory_usage': self.get_mem_usage(),
                     'futures': len(futures)
                 })
-                if get_mem_usage('vms', 'g') >= self.max_memory:
-                    for future in as_completed(futures):
-                        future.result()
-                        futures.remove(future)
-                        progress.set_postfix({
-                            'memory_usage': self.get_mem_usage(),
-                            'futures': len(futures)
-                        })
+                if get_mem_usage('vms', 'g') >= current_mem_usage + 4:
+                    futures[:1][0].result()
+            for future in as_completed(futures):
+                future.result()
 
     @staticmethod
     def validate() -> bool:
