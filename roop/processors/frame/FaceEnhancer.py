@@ -8,7 +8,7 @@ from roop.face_analyser import FaceAnalyser
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
 from roop.typing import Frame
-from roop.utilities import resolve_relative_path, conditional_download
+from roop.utilities import resolve_relative_path, conditional_download, read_image
 
 
 class FaceEnhancer(BaseFrameProcessor):
@@ -32,7 +32,9 @@ class FaceEnhancer(BaseFrameProcessor):
             _, _, temp_frame = self._face_enhancer.enhance(temp_frame)
         return temp_frame
 
-    def process_frame(self, temp_frame: Frame) -> Frame:
+    def process_frame(self, temp_frame: Frame | str) -> Frame:
+        if isinstance(temp_frame, str):
+            temp_frame = read_image(temp_frame)
         if self._face_analyser.get_one_face(temp_frame):
             temp_frame = self.enhance_face(temp_frame)
         return temp_frame
