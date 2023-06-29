@@ -71,7 +71,7 @@ class BaseFrameProcessor(ABC):
                 desc=desc, unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                initial=self.state.processed_frames_count() + 1
+                initial=self.state.processed_frames_count()
         ) as progress:
             self.multi_process_frame(frames_path_list=frames_path_list, process_frames=self.process_frames, progress=progress)
 
