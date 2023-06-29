@@ -33,12 +33,12 @@ class CV2VideoHandler(BaseFramesHandler):
     def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
         capture = self.open()
         i = 1
-        filename_length = len(str(os.path.splitext(os.listdir(path).pop())[0]))  # a way to determine frame names length
+        filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
         while True:
             ret, frame = capture.read()
             if not ret:
                 break
-            write_image(frame, os.path.join(path, f"{i}:{filename_length}d.png"))
+            write_image(frame, os.path.join(path, f"{i}:%{filename_length}d.png"))
             i += 1
         capture.release()
         return super().get_frames_paths(path)
