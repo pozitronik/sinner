@@ -5,8 +5,6 @@ from argparse import Namespace
 from roop.core import Core
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.parameters import Parameters
-from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from roop.state import State
 from roop.utilities import limit_resources, resolve_relative_path, is_video
 
 source_jpg: str = resolve_relative_path('data/sources/source.jpg', __file__)
@@ -52,8 +50,10 @@ def test_image_to_video_ffmpeg():
     core = Core(params=params)
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
-    assert frames_count == 62
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 62
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
@@ -86,8 +86,10 @@ def test_image_to_video_ffmpeg_continue():
     assert 30 == core.state.processed_frames_count()
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
-    assert frames_count == 62
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 62
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
@@ -113,8 +115,10 @@ def test_image_to_video_cv2():
     core = Core(params=params)
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
-    assert frames_count == 62
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 62
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
@@ -146,8 +150,10 @@ def test_image_to_video_cv2_continue():
     assert 30 == core.state.processed_frames_count()
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
-    assert frames_count == 62
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 62
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
@@ -196,8 +202,10 @@ def test_image_to_video_ffmpeg_multi_provider():
     core = Core(params=params)
     core.run()
 
-    frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
-    assert frames_count == 62
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 62
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
