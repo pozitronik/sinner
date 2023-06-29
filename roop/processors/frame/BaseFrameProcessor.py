@@ -63,10 +63,7 @@ class BaseFrameProcessor(ABC):
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         progress_bar_format = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'
         with tqdm(total=self.state.frames_count, desc=desc, unit='frame', dynamic_ncols=True, bar_format=progress_bar_format, initial=self.state.processed_frames_count()) as progress:
-            if self.execution_threads == 1:
-                self.process_frames(frames_provider, progress)
-            else:
-                self.multi_process_frame(frames_provider, self.process_frames, progress)
+            self.multi_process_frame(frames_provider, self.process_frames, progress)
 
     @abstractmethod
     def process_frame(self, temp_frame: Frame) -> Frame:
@@ -76,9 +73,6 @@ class BaseFrameProcessor(ABC):
         for frame in frames:
             try:
                 self.state.save_temp_frame(self.process_frame(frame[0]), frame[1])
-                progress.set_postfix({
-                    'memory_usage': self.get_mem_usage()
-                })
             except Exception as exception:
                 print(exception)
                 pass
@@ -86,13 +80,24 @@ class BaseFrameProcessor(ABC):
                 progress.update()
 
     def multi_process_frame(self, frames_provider: Iterable[tuple[Frame, int]], process_frames: Callable[[Iterable[tuple[Frame, int]], None | tqdm], None], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
+        current_mem_usage = get_mem_usage('vms', 'g')
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for frame in frames_provider:
                 future = executor.submit(process_frames, [frame], progress)
                 futures.append(future)
-            for future in as_completed(futures):
-                future.result()
+                progress.set_postfix({
+                    'memory_usage': self.get_mem_usage(),
+                    'futures': len(futures)
+                })
+                if get_mem_usage('vms', 'g') >= current_mem_usage + 1:
+                    for future in as_completed(futures):
+                        future.result()
+                        futures.remove(future)
+                        progress.set_postfix({
+                            'memory_usage': self.get_mem_usage(),
+                            'futures': len(futures)
+                        })
 
     @staticmethod
     def validate() -> bool:
