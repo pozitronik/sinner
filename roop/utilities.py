@@ -10,7 +10,7 @@ from typing import List, Literal
 import cv2
 import psutil
 import tensorflow
-from numpy import array, uint8, fromfile
+from numpy import uint8, fromfile
 from tqdm import tqdm
 
 from roop.typing import Frame
