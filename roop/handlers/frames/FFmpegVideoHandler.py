@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+from pathlib import Path
 from typing import List
 
 import cv2
@@ -67,11 +68,11 @@ class FFmpegVideoHandler(BaseFramesHandler):
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
         return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
 
-    # todo: method will fail if save path is not existed
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
         filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
+        Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
         command = ['-r', str(fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
                    'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target:
