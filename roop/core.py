@@ -45,7 +45,7 @@ class Core:
             current_processor = BaseFrameProcessor.create(processor_name, self.params, self.state)
             current_processor.process(frames_handler=current_provider, in_memory=self.params.in_memory, desc=processor_name)
             self.release_resources()
-            self.state.reload()
+            self.state.reload()  # todo reload only for next processor
 
         if self.frames_handler.result(from_dir=self.state.target_path, filename=self.params.output_path, fps=self.params.fps, audio_target=self.params.target_path if self.params.keep_audio else None) is True:
             self.state.finish()
