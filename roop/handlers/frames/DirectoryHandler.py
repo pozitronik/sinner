@@ -15,8 +15,8 @@ class DirectoryHandler(BaseFramesHandler):
     def detect_fc(self) -> int:
         return len(self.frame_list)
 
-    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
-        return read_image(self.frame_list[frame_number]), frame_number
+    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+        return frame_number, read_image(self.frame_list[frame_number][1])
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         try:

@@ -43,15 +43,15 @@ class BaseFramesHandler(ABC):
     def detect_fc(self) -> int:
         pass
 
-    def get_frames_paths(self, path: str) -> List[str]:
+    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
         """
         Return the list of path for frames in the target.
-        Frames should be extracted to `to_dir` if necessary
+        Frames should be extracted to `path` if necessary
         """
-        return glob.glob(os.path.join(glob.escape(path), '*.png'))
+        return [(i, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(path), '*.png')))]
 
     @abstractmethod
-    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
+    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         """
         Return the certain frame from the target
         """
@@ -67,9 +67,9 @@ class BaseFramesHandler(ABC):
     def __iter__(self) -> 'BaseFramesHandler':
         return self
 
-    def __next__(self) -> tuple[Frame, int]:
+    def __next__(self) -> tuple[int, Frame]:
         if self.current_frame_index == self.fc:
             raise StopIteration
-        frame, index = self.extract_frame(self.current_frame_index)
+        index, frame = self.extract_frame(self.current_frame_index)
         self.current_frame_index += 1
-        return frame, index
+        return index, frame

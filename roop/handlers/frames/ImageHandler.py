@@ -18,8 +18,8 @@ class ImageHandler(BaseFramesHandler):
     def get_frames_paths(self, path: str) -> List[str]:
         return [self._target_path]
 
-    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
-        return read_image(self._target_path), frame_number
+    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+        return frame_number, read_image(self._target_path)
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         try:

@@ -30,7 +30,7 @@ class CV2VideoHandler(BaseFramesHandler):
         capture.release()
         return video_frame_total
 
-    def get_frames_paths(self, path: str) -> List[str]:
+    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
         capture = self.open()
         i = 1
         filename_length = len(str(os.path.splitext(os.listdir(path).pop())[0]))  # a way to determine frame names length
@@ -43,14 +43,14 @@ class CV2VideoHandler(BaseFramesHandler):
         capture.release()
         return super().get_frames_paths(path)
 
-    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
+    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         ret, frame = capture.read()
         capture.release()
         if not ret:
             raise Exception(f"Error reading frame {frame_number}")
-        return frame, frame_number
+        return frame_number, frame
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
