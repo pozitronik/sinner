@@ -15,7 +15,8 @@ from roop.utilities import update_status, load_class, get_mem_usage
 class BaseFrameProcessor(ABC):
     state: State
     execution_providers: List[str]
-    execution_threads: int = 1
+    execution_threads: int
+    max_memory: int
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0}
 
     @staticmethod
@@ -33,9 +34,10 @@ class BaseFrameProcessor(ABC):
         else:
             raise ValueError(f"Invalid processor name: {processor_name}")
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, state: State) -> None:
+    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State) -> None:
         self.execution_providers = execution_providers
         self.execution_threads = execution_threads
+        self.max_memory = max_memory
         self.state = state
         if not self.validate():
             quit()
@@ -79,7 +81,7 @@ class BaseFrameProcessor(ABC):
             progress.update()
 
     def multi_process_frame(self, frames_provider: Iterable[tuple[Frame, int]], process_frames: Callable[[tuple[Frame, int], None | tqdm], None], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
-        current_mem_usage = get_mem_usage('vms', 'g')
+        # current_mem_usage = get_mem_usage('vms', 'g')
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for frame in frames_provider:
@@ -89,7 +91,7 @@ class BaseFrameProcessor(ABC):
                     'memory_usage': self.get_mem_usage(),
                     'futures': len(futures)
                 })
-                if get_mem_usage('vms', 'g') >= current_mem_usage + 4:
+                if get_mem_usage('vms', 'g') >= self.max_memory:
                     for future in as_completed(futures):
                         future.result()
                         futures.remove(future)

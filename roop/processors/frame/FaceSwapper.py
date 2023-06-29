@@ -16,10 +16,10 @@ class FaceSwapper(BaseFrameProcessor):
     _face_analyser: FaceAnalyser
     _face_swapper: FaceSwapperType
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, many_faces: bool, source_path: str, state: State):
+    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, many_faces: bool, source_path: str, state: State):
         download_directory_path = resolve_relative_path('../models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
-        super().__init__(execution_providers=execution_providers, execution_threads=execution_threads, state=state)
+        super().__init__(execution_providers=execution_providers, execution_threads=execution_threads, max_memory=max_memory, state=state)
         self._face_analyser = FaceAnalyser(self.execution_providers)
         self.many_faces = many_faces
         self.source_face = self._face_analyser.get_one_face(read_image(source_path))
