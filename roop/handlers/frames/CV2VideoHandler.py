@@ -32,9 +32,17 @@ class CV2VideoHandler(BaseFramesHandler):
         return video_frame_total
 
     def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
-        with tqdm(total=self.fc, desc='Extracting frames', unit='frame', dynamic_ncols=True, bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]') as progress:
+        i = self.current_frame_index
+        with tqdm(
+                total=self.fc,
+                desc='Extracting frames',
+                unit='frame',
+                dynamic_ncols=True,
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]',
+                initial=i
+        ) as progress:
             capture = self.open()
-            i = 1
+            capture.set(cv2.CAP_PROP_POS_FRAMES, i)
             filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
             while True:
                 ret, frame = capture.read()

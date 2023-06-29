@@ -61,9 +61,13 @@ class State:
     def is_finished(self) -> bool:
         return self.frames_count == self.processed_frames_count()
 
-    #  Returns count of already processed frames for this target  (0, if none).
+    #  Returns count of already processed frames for this target (0, if none).
     def processed_frames_count(self) -> int:
         return len([os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
+
+    #  Returns count of already extracted frames for this target (0, if none).
+    def extracted_frames_count(self):
+        return len([os.path.join(self.in_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
     #  Returns count of still unprocessed frames for this target (0, if none).
     def unprocessed_frames_count(self) -> int:
@@ -78,3 +82,5 @@ class State:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
+
+
