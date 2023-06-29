@@ -6,6 +6,8 @@ from roop.typing import Frame
 from roop.utilities import write_image
 
 TEMP_DIRECTORY = 'temp'  # todo: make a parameter
+OUT_DIR = 'out'
+IN_DIR = 'in'
 
 
 class State:
@@ -36,7 +38,14 @@ class State:
 
     @property
     def out_dir(self) -> str:
-        path = os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path))
+        path = os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
+        if not os.path.exists(path):
+            Path(path).mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def in_dir(self) -> str:
+        path = os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
