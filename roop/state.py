@@ -84,7 +84,7 @@ class State:
 
     #  Returns a processed file name for an unprocessed frame index
     def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index + 1).zfill(self.get_zfill_length) + '.png'
+        filename = str(frame_index).zfill(self.get_zfill_length) + '.png'
         return str(os.path.join(self.out_dir, filename))
 
     @property
