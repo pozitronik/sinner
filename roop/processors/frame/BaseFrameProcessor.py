@@ -3,7 +3,7 @@ import os.path
 from abc import ABC, abstractmethod
 from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Callable, Iterable, Any
+from typing import List, Callable, Any
 
 from tqdm import tqdm
 
