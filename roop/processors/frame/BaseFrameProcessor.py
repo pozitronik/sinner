@@ -3,7 +3,7 @@ import os.path
 from abc import ABC, abstractmethod
 from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Iterable
 
 from tqdm import tqdm
 
@@ -54,10 +54,10 @@ class BaseFrameProcessor(ABC):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFramesHandler, desc: str = 'Processing') -> None:
+    def process(self, frames_handler: BaseFramesHandler, in_memory: bool = True, desc: str = 'Processing') -> None:
         self.state.processor_name = self.__class__.__name__
         frames_handler.current_frame_index = self.state.processed_frames_count()
-        frames_path_list = frames_handler.get_frames_paths(self.state.in_dir)
+        frames_list = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)
         if self.state.is_started():
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
         with tqdm(
@@ -67,20 +67,21 @@ class BaseFrameProcessor(ABC):
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                 initial=self.state.processed_frames_count()
         ) as progress:
-            self.multi_process_frame(frames_path_list=frames_path_list, process_frames=self.process_frames, progress=progress)
+            self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
 
     @abstractmethod
     def process_frame(self, temp_frame: Frame | str) -> Frame:
         pass
 
-    def process_frames(self, frame: tuple[int, str]) -> None:  # type: ignore[type-arg]
+    def process_frames(self, frame: tuple[int, str] | tuple[int, Frame]) -> None:  # type: ignore[type-arg]
         try:
             self.state.save_temp_frame(self.process_frame(frame[1]), frame[0])
         except Exception as exception:
             print(exception)
             pass
 
-    def multi_process_frame(self, frames_path_list: List[tuple[int, str]], process_frames: Callable[[tuple[int, str]], None], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, frames_list: List[tuple[int, str]] | Iterable[tuple[int, Frame]], process_frames: Callable[[tuple[int, str] | tuple[int, Frame]], None],
+                            progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
         def future_remove(future_: Future):
             futures.remove(future_)
             progress.update()
@@ -91,7 +92,7 @@ class BaseFrameProcessor(ABC):
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
-            for frame in frames_path_list:
+            for frame in frames_list:
                 future: Future = executor.submit(process_frames, frame)
                 future.add_done_callback(future_remove)
                 futures.append(future)
