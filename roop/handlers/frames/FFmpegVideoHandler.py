@@ -71,7 +71,7 @@ class FFmpegVideoHandler(BaseFramesHandler):
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
-        filename_length = len(str(os.path.splitext(os.listdir(from_dir).pop())[0]))  # a way to determine frame names length
+        filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
         command = ['-r', str(fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
                    'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target:
