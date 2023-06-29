@@ -5,7 +5,7 @@ from pathlib import Path
 from roop.typing import Frame
 from roop.utilities import write_image
 
-TEMP_DIRECTORY = 'temp'  # todo: make a parameter
+TEMP_DIRECTORY = 'temp'
 OUT_DIR = 'out'
 IN_DIR = 'in'
 
@@ -17,17 +17,19 @@ class State:
     target_path: str
     output_path: str
     processor_name: str = ''
+    temp_dir: str | None
 
     preserve_source_frames: bool = True  # keeps extracted source frames for future usage
 
     _zfill_length: int | None
 
-    def __init__(self, source_path: str, target_path: str, output_path: str, keep_frames: bool = False):
+    def __init__(self, source_path: str, target_path: str, output_path: str, keep_frames: bool = False, temp_dir: str | None = None):
         self.source_path = source_path
         self.target_path = target_path
         self.output_path = output_path
         self.keep_frames = keep_frames
         self._zfill_length = None
+        self.temp_dir = temp_dir
 
     def reload(self) -> None:
         self.target_path = self.out_dir
@@ -38,14 +40,16 @@ class State:
 
     @property
     def out_dir(self) -> str:
-        path = os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
+        sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
+        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def in_dir(self) -> str:
-        path = os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
+        sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
+        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
@@ -82,5 +86,3 @@ class State:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
-
-

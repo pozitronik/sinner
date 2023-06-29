@@ -44,9 +44,9 @@ def suggest_execution_providers() -> List[str]:
 
 def parse_args() -> Namespace:
     program = argparse.ArgumentParser()
-    program.add_argument('-s', '--source', help='select an source image', dest='source_path')
-    program.add_argument('-t', '--target', help='select an target image or frames', dest='target_path')
-    program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
+    program.add_argument('--source', help='select an source image', dest='source_path')
+    program.add_argument('--target', help='select an target image or frames', dest='target_path')
+    program.add_argument('--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'],
                          choices=list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'), nargs='+')
     program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, choices=list_class_descendants(resolve_relative_path('handlers/frames'), 'BaseFramesHandler'))
@@ -54,10 +54,11 @@ def parse_args() -> Namespace:
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
     program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
     program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true', default=False)
-    program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=suggest_max_memory())
+    program.add_argument('--max-memory', help='limit of RAM usage in GB', dest='max_memory', type=int, default=suggest_max_memory())
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('--in-memory', help='use in-memory processing', dest='in_memory', type=bool, default=False)
+    program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
     return program.parse_args()
 
 
@@ -75,6 +76,7 @@ class Parameters:
     execution_providers: List[str]
     execution_threads: int
     frame_handler: str
+    temp_dir: str | None
 
     def __init__(self, args: Namespace | None = None) -> None:
         args = parse_args() if args is None else args
@@ -92,6 +94,7 @@ class Parameters:
         self.execution_providers = decode_execution_providers(args.execution_provider)
         self.execution_threads = args.execution_threads
         self.frame_handler = self.set_frame_handler(args.frame_handler)
+        self.temp_dir = args.temp_dir
 
         if not self.validate():
             quit()

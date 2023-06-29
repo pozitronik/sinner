@@ -35,7 +35,7 @@ class Core:
 
     def __init__(self, params: Parameters):
         self.params = params
-        self.state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames)
+        self.state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames, temp_dir=params.temp_dir)
         self.frames_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=params.target_path)  # todo: create handler right where it needed
         self.state.frames_count = self.frames_handler.fc
 
