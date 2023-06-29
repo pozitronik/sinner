@@ -169,3 +169,7 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
 
 def get_app_dir() -> str:
     return os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__))
+
+
+def get_file_name(file_path: str) -> str:
+    return os.path.splitext(os.path.basename(file_path))[0]
