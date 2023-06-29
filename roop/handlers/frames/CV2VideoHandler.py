@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.typing import Frame
-from roop.utilities import write_image
+from roop.utilities import write_image, get_file_name
 
 
 class CV2VideoHandler(BaseFramesHandler):
@@ -52,7 +52,8 @@ class CV2VideoHandler(BaseFramesHandler):
                 progress.update()
                 i += 1
             capture.release()
-            return [(n + self.current_frame_index, s) for n, s in enumerate(glob.glob(os.path.join(glob.escape(path), '*.png')))]
+            all_files = [(int(get_file_name(filename)), filename) for filename in glob.glob(os.path.join(glob.escape(path), '*.png'))]
+            return [t for t in all_files if t[0] >= self.current_frame_index]
 
     def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         capture = self.open()
