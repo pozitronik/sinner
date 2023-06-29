@@ -48,11 +48,11 @@ class CV2VideoHandler(BaseFramesHandler):
                 ret, frame = capture.read()
                 if not ret:
                     break
-                write_image(frame, os.path.join(path, str(i+1).zfill(filename_length) + ".png"))
+                write_image(frame, os.path.join(path, str(i + 1).zfill(filename_length) + ".png"))
                 progress.update()
                 i += 1
             capture.release()
-            return super().get_frames_paths(path)
+            return [(n + self.current_frame_index, s) for n, s in enumerate(glob.glob(os.path.join(glob.escape(path), '*.png')))]
 
     def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         capture = self.open()
