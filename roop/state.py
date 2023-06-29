@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from roop.typing import Frame
-from roop.utilities import write_image
+from roop.utilities import write_image, get_app_dir
 
 TEMP_DIRECTORY = 'temp'
 OUT_DIR = 'out'
@@ -41,7 +41,7 @@ class State:
     @property
     def out_dir(self) -> str:
         sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
-        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, *sub_path)
+        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
@@ -49,7 +49,7 @@ class State:
     @property
     def in_dir(self) -> str:
         sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
-        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), TEMP_DIRECTORY, *sub_path)
+        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path

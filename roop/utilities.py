@@ -165,3 +165,7 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
         if descendant and descendant.__base__.__name__ == class_name:  # issubclass will not work here
             result.append(module_name)
     return result
+
+
+def get_app_dir() -> str:
+    return os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__))
