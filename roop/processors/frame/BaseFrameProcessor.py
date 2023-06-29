@@ -69,28 +69,27 @@ class BaseFrameProcessor(ABC):
     def process_frame(self, temp_frame: Frame) -> Frame:
         pass
 
-    def process_frames(self, frames: Iterable[tuple[Frame, int]], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
-        for frame in frames:
-            try:
-                self.state.save_temp_frame(self.process_frame(frame[0]), frame[1])
-            except Exception as exception:
-                print(exception)
-                pass
-            if progress is not None:
-                progress.update()
+    def process_frames(self, frame: tuple[Frame, int], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
+        try:
+            self.state.save_temp_frame(self.process_frame(frame[0]), frame[1])
+        except Exception as exception:
+            print(exception)
+            pass
+        if progress is not None:
+            progress.update()
 
-    def multi_process_frame(self, frames_provider: Iterable[tuple[Frame, int]], process_frames: Callable[[Iterable[tuple[Frame, int]], None | tqdm], None], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, frames_provider: Iterable[tuple[Frame, int]], process_frames: Callable[[tuple[Frame, int], None | tqdm], None], progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
         current_mem_usage = get_mem_usage('vms', 'g')
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures = []
             for frame in frames_provider:
-                future = executor.submit(process_frames, [frame], progress)
+                future = executor.submit(process_frames, frame, progress)
                 futures.append(future)
                 progress.set_postfix({
                     'memory_usage': self.get_mem_usage(),
                     'futures': len(futures)
                 })
-                if get_mem_usage('vms', 'g') >= current_mem_usage + 1:
+                if get_mem_usage('vms', 'g') >= current_mem_usage + 4:
                     for future in as_completed(futures):
                         future.result()
                         futures.remove(future)
