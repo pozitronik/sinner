@@ -15,8 +15,8 @@ class ImageHandler(BaseFramesHandler):
     def detect_fc(self) -> int:
         return 1
 
-    def get_frames_paths(self, path: str) -> List[str]:
-        return [self._target_path]
+    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
+        return [(1, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         return frame_number, read_image(self._target_path)
