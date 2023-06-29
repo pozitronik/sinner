@@ -44,21 +44,15 @@ class BaseFrameProcessor(ABC):
         if not self.validate():
             quit()
 
-    def statistics_get(self, param: str) -> int:
-        return self.statistics[param]
-
-    def statistics_set(self, param: str, value: int) -> None:
-        self.statistics[param] = value
-
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
         mem_vms = get_mem_usage('vms')
-        if self.statistics_get('mem_rss_max') < mem_rss:
-            self.statistics_set('mem_rss_max', mem_rss)
-        if self.statistics_get('mem_vms_max') < mem_vms:
-            self.statistics_set('mem_vms_max', mem_vms)
-        return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics_get('mem_rss_max')).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
-            self.statistics_get('mem_vms_max')).zfill(5) + 'MB]'
+        if self.statistics['mem_rss_max'] < mem_rss:
+            self.statistics['mem_rss_max'] = mem_rss
+        if self.statistics['mem_vms_max'] < mem_vms:
+            self.statistics['mem_vms_max'] = mem_vms
+        return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
+            self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
     def process(self, frames_handler: BaseFramesHandler, desc: str = 'Processing') -> None:
         self.state.processor_name = self.__class__.__name__
