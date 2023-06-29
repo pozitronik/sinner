@@ -48,7 +48,7 @@ class CV2VideoHandler(BaseFramesHandler):
                 ret, frame = capture.read()
                 if not ret:
                     break
-                write_image(frame, os.path.join(path, str(i).zfill(filename_length) + ".png"))
+                write_image(frame, os.path.join(path, str(i+1).zfill(filename_length) + ".png"))
                 progress.update()
                 i += 1
             capture.release()

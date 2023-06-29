@@ -62,7 +62,7 @@ class BaseFrameProcessor(ABC):
 
     def process(self, frames_handler: BaseFramesHandler, desc: str = 'Processing') -> None:
         self.state.processor_name = self.__class__.__name__
-        frames_handler.current_frame_index = self.state.extracted_frames_count() + 1
+        frames_handler.current_frame_index = self.state.extracted_frames_count()
         frames_path_list = frames_handler.get_frames_paths(self.state.in_dir)
         if self.state.is_started():
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count()} frames processed, continue processing...')
