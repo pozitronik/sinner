@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import warnings
-from typing import Any
 
 import torch
 import os
@@ -45,7 +44,7 @@ class Core:
         for processor_name in self.params.frame_processors:
             current_provider = self.suggest_handler(self.frames_handler)
             current_processor = BaseFrameProcessor.create(processor_name, self.params, self.state)
-            current_processor.process(frames_provider=current_provider, desc=processor_name)
+            current_processor.process(frames_handler=current_provider, desc=processor_name)
             self.release_resources()
             self.state.reload()
 
