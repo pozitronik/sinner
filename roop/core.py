@@ -33,7 +33,7 @@ class Core:
     params: Parameters
     state: State
     frames_handler: BaseFramesHandler
-    frame_processors: list[BaseFrameProcessor]
+    frame_processors: list[str]
 
     def __init__(self, params: Parameters):
         self.params = params
