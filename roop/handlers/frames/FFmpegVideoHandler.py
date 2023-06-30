@@ -63,10 +63,10 @@ class FFmpegVideoHandler(BaseFramesHandler):
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
-    def extract_frame(self, frame_number: int) -> tuple[Frame, int]:
+    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select=gte(n,{frame_number}),setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
-        return cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), frame_number
+        return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         if fps is None:
