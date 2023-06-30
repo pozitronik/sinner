@@ -70,7 +70,6 @@ class BaseFrameProcessor(ABC):
         ) as progress:
             self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
 
-    # todo: make a @overload method
     @abstractmethod
     def process_frame(self, temp_frame: Frame | str) -> Frame:
         pass
