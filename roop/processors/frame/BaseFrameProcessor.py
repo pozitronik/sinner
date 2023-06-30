@@ -9,7 +9,7 @@ from tqdm import tqdm
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.parameters import Parameters
 from roop.state import State
-from roop.typing import Frame
+from roop.typing import Frame, FramesDataType, FrameDataType
 from roop.utilities import update_status, load_class, get_mem_usage
 
 
@@ -57,7 +57,7 @@ class BaseFrameProcessor(ABC):
         self.state.processor_name = self.__class__.__name__
         frames_handler.current_frame_index = self.state.processed_frames_count
         # todo: pass the method of frame extraction
-        frames_list: List[tuple[int, str]] | Iterable[tuple[int, Frame]] = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)
+        frames_list: FramesDataType = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)
         if self.state.is_started:
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...')
         with tqdm(
@@ -74,14 +74,14 @@ class BaseFrameProcessor(ABC):
     def process_frame(self, temp_frame: Frame | str) -> Frame:
         pass
 
-    def process_frames(self, frame: tuple[int, str] | tuple[int, Frame]) -> None:  # type: ignore[type-arg]
+    def process_frames(self, frame: FrameDataType) -> None:  # type: ignore[type-arg]
         try:
             self.state.save_temp_frame(self.process_frame(frame[1]), frame[0])
         except Exception as exception:
             print(exception)
             pass
 
-    def multi_process_frame(self, frames_list: List[tuple[int, str]] | Iterable[tuple[int, Frame]], process_frames: Callable[[tuple[int, str] | tuple[int, Frame]], None],
+    def multi_process_frame(self, frames_list: FramesDataType, process_frames: Callable[[tuple[int, str] | tuple[int, Frame]], None],
                             progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
