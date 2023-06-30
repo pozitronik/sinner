@@ -3,7 +3,7 @@ import shutil
 from typing import List
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import NumeratedFrame
+from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import read_image
 
 
@@ -15,7 +15,7 @@ class ImageHandler(BaseFramesHandler):
     def detect_fc(self) -> int:
         return 1
 
-    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
+    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         return [(1, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:

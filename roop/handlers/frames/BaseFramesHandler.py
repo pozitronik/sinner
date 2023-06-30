@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import List
 
-from roop.typing import NumeratedFrame
+from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import load_class
 
 
@@ -43,7 +43,7 @@ class BaseFramesHandler(ABC):
     def detect_fc(self) -> int:
         pass
 
-    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
+    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         """
         Return the list of path for frames in the target.
         Frames should be extracted to `path` if necessary

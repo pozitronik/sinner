@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import NumeratedFrame
+from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import read_image
 
 
@@ -18,7 +18,7 @@ class DirectoryHandler(BaseFramesHandler):
     def detect_fc(self) -> int:
         return len(self.get_frames_paths(self._target_path))
 
-    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
+    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         """
         Return the list of path for frames in the target.
         Frames should be extracted to `path` if necessary

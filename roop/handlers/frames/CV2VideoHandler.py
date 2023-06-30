@@ -7,7 +7,7 @@ from cv2 import VideoCapture
 from tqdm import tqdm
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import NumeratedFrame
+from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import write_image, get_file_name
 
 
@@ -31,7 +31,7 @@ class CV2VideoHandler(BaseFramesHandler):
         capture.release()
         return video_frame_total
 
-    def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
+    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         i = self.current_frame_index
         with tqdm(
                 total=self.fc,
