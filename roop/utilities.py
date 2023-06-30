@@ -48,6 +48,7 @@ def get_temp_directory_path(target_path: str) -> str:
     return os.path.join(target_directory_path, TEMP_DIRECTORY, target_name)
 
 
+# todo: in some cases source_path can be empty, i need to fix it when implement processors validations
 def normalize_output_path(source_path: str, target_path: str, output_path: str | None) -> str:
     if source_path and target_path:
         if output_path is None:
