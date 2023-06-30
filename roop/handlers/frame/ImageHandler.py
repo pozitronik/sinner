@@ -2,12 +2,12 @@ import os.path
 import shutil
 from typing import List
 
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import read_image
 
 
-class ImageHandler(BaseFramesHandler):
+class ImageHandler(BaseFrameHandler):
 
     def detect_fps(self) -> float:
         return 1

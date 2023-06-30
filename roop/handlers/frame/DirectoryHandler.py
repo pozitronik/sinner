@@ -2,12 +2,12 @@ import glob
 import os
 from typing import List
 
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import read_image
 
 
-class DirectoryHandler(BaseFramesHandler):
+class DirectoryHandler(BaseFrameHandler):
 
     def __init__(self, target_path: str):
         super().__init__(target_path)
@@ -20,7 +20,7 @@ class DirectoryHandler(BaseFramesHandler):
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         """
-        Return the list of path for frames in the target.
+        Return the list of path for frame in the target.
         Frames should be extracted to `path` if necessary
         """
         return [(i, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(self._target_path), '*.png')))]

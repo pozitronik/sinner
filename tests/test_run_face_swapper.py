@@ -3,7 +3,7 @@ import shutil
 from argparse import Namespace
 
 from roop.core import Core
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.parameters import Parameters
 from roop.utilities import limit_resources, resolve_relative_path, is_video
 
@@ -55,7 +55,7 @@ def test_image_to_video_ffmpeg():
     swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
+    test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -91,7 +91,7 @@ def test_image_to_video_ffmpeg_continue():
     swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
+    test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -120,7 +120,7 @@ def test_image_to_video_cv2():
     swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
+    test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -155,7 +155,7 @@ def test_image_to_video_cv2_continue():
     swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
+    test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30
 
@@ -207,6 +207,6 @@ def test_image_to_video_ffmpeg_multi_provider():
     swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
+    test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30

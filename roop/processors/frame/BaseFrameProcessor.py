@@ -6,7 +6,7 @@ from typing import List, Callable, Any, Iterable
 
 from tqdm import tqdm
 
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.parameters import Parameters
 from roop.state import State
 from roop.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
@@ -54,7 +54,7 @@ class BaseFrameProcessor(ABC):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFramesHandler, in_memory: bool = False, desc: str = 'Processing') -> None:
+    def process(self, frames_handler: BaseFrameHandler, in_memory: bool = False, desc: str = 'Processing') -> None:
         self.extract_frame_method = frames_handler.extract_frame
         self.state.processor_name = self.__class__.__name__
         frames_handler.current_frame_index = self.state.processed_frames_count

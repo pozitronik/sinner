@@ -6,17 +6,17 @@ import cv2
 from cv2 import VideoCapture
 from tqdm import tqdm
 
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.typing import NumeratedFrame, NumeratedFramePath
 from roop.utilities import write_image, get_file_name
 
 
-class CV2VideoHandler(BaseFramesHandler):
+class CV2VideoHandler(BaseFrameHandler):
 
     def open(self) -> VideoCapture:
         cap = cv2.VideoCapture(self._target_path)
         if not cap.isOpened():
-            raise Exception("Error opening frames file")
+            raise Exception("Error opening frame file")
         return cap
 
     def detect_fps(self) -> float:
@@ -35,7 +35,7 @@ class CV2VideoHandler(BaseFramesHandler):
         i = self.current_frame_index
         with tqdm(
                 total=self.fc,
-                desc='Extracting frames',
+                desc='Extracting frame',
                 unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]',
@@ -73,7 +73,7 @@ class CV2VideoHandler(BaseFramesHandler):
             frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
             first_frame = cv2.imread(frame_files[0])
             height, width, channels = first_frame.shape
-            fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the frames codec
+            fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the frame codec
             video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
             for frame_path in frame_files:
                 frame = cv2.imread(frame_path)

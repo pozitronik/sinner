@@ -7,11 +7,11 @@ from typing import List
 import cv2
 from numpy import uint8, frombuffer
 
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.typing import NumeratedFrame, NumeratedFramePath
 
 
-class FFmpegVideoHandler(BaseFramesHandler):
+class FFmpegVideoHandler(BaseFrameHandler):
 
     @staticmethod
     def run(args: List[str]) -> bool:
@@ -32,7 +32,7 @@ class FFmpegVideoHandler(BaseFramesHandler):
 
     def __init__(self, target_path: str):
         if not self.available():
-            raise Exception('ffmpeg is not installed. Install it or use --frames-handler=cv2')
+            raise Exception('ffmpeg is not installed. Install it or use --frame-handler=cv2')
 
         super().__init__(target_path)
 
@@ -52,7 +52,7 @@ class FFmpegVideoHandler(BaseFramesHandler):
             command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
             output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
             if 'N/A' == output:
-                return 1  # non-frames files, still processable
+                return 1  # non-frame files, still processable
             return int(output)
         except Exception as exception:
             print(exception)

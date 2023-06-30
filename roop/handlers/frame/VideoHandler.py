@@ -1,5 +1,5 @@
-from roop.handlers.frames.CV2VideoHandler import CV2VideoHandler
-from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
+from roop.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from roop.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
 
 
 class VideoHandler(CV2VideoHandler):

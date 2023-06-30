@@ -3,7 +3,7 @@ import shutil
 from argparse import Namespace
 
 from roop.core import Core
-from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
+from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from roop.parameters import Parameters
 from roop.utilities import resolve_relative_path, limit_resources, is_video
 
@@ -53,6 +53,6 @@ def test_chain():
     frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/target.mp4/source.jpg', __file__))])
     assert frames_count == 62
     assert is_video(result_mp4)
-    test_video_handler = BaseFramesHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
+    test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
     assert test_video_handler.fc == 62
     assert test_video_handler.fps == 30

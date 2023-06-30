@@ -18,7 +18,7 @@ class State:
     processor_name: str = ''
     temp_dir: str | None
 
-    preserve_source_frames: bool = True  # keeps extracted source frames for future usage
+    preserve_source_frames: bool = True  # keeps extracted source frame for future usage
 
     _zfill_length: int | None
 
@@ -56,7 +56,7 @@ class State:
     def save_temp_frame(self, frame: Frame, index: int) -> None:
         write_image(frame, self.get_frame_processed_name(index))
 
-    #  Checks if some frames already processed
+    #  Checks if some frame already processed
     @property
     def is_started(self) -> bool:
         return self.frames_count > self.processed_frames_count > 0
@@ -66,17 +66,17 @@ class State:
     def is_finished(self) -> bool:
         return self.frames_count == self.processed_frames_count
 
-    #  Returns count of already processed frames for this target (0, if none).
+    #  Returns count of already processed frame for this target (0, if none).
     @property
     def processed_frames_count(self) -> int:
         return len([os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
-    #  Returns count of already extracted frames for this target (0, if none).
+    #  Returns count of already extracted frame for this target (0, if none).
     @property
     def extracted_frames_count(self) -> int:
         return len([os.path.join(self.in_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
-    #  Returns count of still unprocessed frames for this target (0, if none).
+    #  Returns count of still unprocessed frame for this target (0, if none).
     @property
     def unprocessed_frames_count(self) -> int:
         return self.frames_count - self.processed_frames_count

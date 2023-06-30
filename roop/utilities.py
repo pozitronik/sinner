@@ -70,7 +70,7 @@ def is_image(image_path: str | None) -> bool:
 def is_video(video_path: str) -> bool:
     if video_path and os.path.isfile(video_path):
         mimetype, _ = mimetypes.guess_type(video_path)
-        return bool(mimetype and (mimetype.startswith('frames/') or mimetype.startswith('video/')))
+        return bool(mimetype and (mimetype.startswith('frame/') or mimetype.startswith('video/')))
     return False
 
 

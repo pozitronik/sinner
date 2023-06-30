@@ -7,7 +7,7 @@ from typing import List
 
 import onnxruntime
 
-from roop.handlers.frames.FFmpegVideoHandler import FFmpegVideoHandler
+from roop.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
 from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path, update_status
 
 
@@ -45,14 +45,14 @@ def suggest_execution_providers() -> List[str]:
 def parse_args() -> Namespace:
     program = argparse.ArgumentParser()
     program.add_argument('--source', help='select an source image', dest='source_path')
-    program.add_argument('--target', help='select an target image or frames', dest='target_path')
+    program.add_argument('--target', help='select an target image or frame', dest='target_path')
     program.add_argument('--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'],
                          choices=list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'), nargs='+')
-    program.add_argument('--frame-handler', help='frames engine', dest='frame_handler', default=None, choices=list_class_descendants(resolve_relative_path('handlers/frames'), 'BaseFramesHandler'))
-    program.add_argument('--fps', help='set output frames fps', dest='fps', default=None)
+    program.add_argument('--frame-handler', help='frame engine', dest='frame_handler', default=None, choices=list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'))
+    program.add_argument('--fps', help='set output frame fps', dest='fps', default=None)
     program.add_argument('--keep-audio', help='keep original audio', dest='keep_audio', action='store_true', default=True)
-    program.add_argument('--keep-frames', help='keep temporary frames', dest='keep_frames', action='store_true', default=False)
+    program.add_argument('--keep-frame', help='keep temporary frame', dest='keep_frames', action='store_true', default=False)
     program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true', default=False)
     program.add_argument('--max-memory', help='limit of RAM usage in GB', dest='max_memory', type=int, default=suggest_max_memory())
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
