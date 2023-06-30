@@ -8,5 +8,5 @@ FaceSwapperType = INSwapper
 Face = Face
 Frame = numpy.ndarray[Any, Any]
 NumeratedFrame = tuple[int, Frame]
-FramesDataType = List[tuple[int, str]] | Iterable[NumeratedFrame]
-FrameDataType = tuple[int, str] | NumeratedFrame
+FramesDataType = List[tuple[int, str]] | Iterable[int]
+FrameDataType = tuple[int, str] | int

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.parameters import Parameters
 from roop.state import State
-from roop.typing import Frame, FramesDataType, FrameDataType
+from roop.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
 from roop.utilities import update_status, load_class, get_mem_usage
 
 
@@ -18,6 +18,7 @@ class BaseFrameProcessor(ABC):
     execution_providers: List[str]
     execution_threads: int
     max_memory: int
+    extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0}
 
     @staticmethod
@@ -54,9 +55,9 @@ class BaseFrameProcessor(ABC):
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
     def process(self, frames_handler: BaseFramesHandler, in_memory: bool = False, desc: str = 'Processing') -> None:
+        self.extract_frame_method = frames_handler.extract_frame
         self.state.processor_name = self.__class__.__name__
         frames_handler.current_frame_index = self.state.processed_frames_count
-        # todo: pass the method of frame extraction
         frames_list: FramesDataType = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)
         if self.state.is_started:
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...')
@@ -76,6 +77,8 @@ class BaseFrameProcessor(ABC):
 
     def process_frames(self, frame: FrameDataType) -> None:  # type: ignore[type-arg]
         try:
+            if isinstance(frame, int):
+                frame = self.extract_frame_method(frame)
             self.state.save_temp_frame(self.process_frame(frame[1]), frame[0])
         except Exception as exception:
             print(exception)

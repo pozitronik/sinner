@@ -67,9 +67,9 @@ class BaseFramesHandler(ABC):
     def __iter__(self) -> 'BaseFramesHandler':
         return self
 
-    def __next__(self) -> tuple[int, Frame]:
+    def __next__(self) -> int:
         if self.current_frame_index == self.fc:
             raise StopIteration
-        index, frame = self.extract_frame(self.current_frame_index)
+        index = self.current_frame_index
         self.current_frame_index += 1
-        return index, frame
+        return index
