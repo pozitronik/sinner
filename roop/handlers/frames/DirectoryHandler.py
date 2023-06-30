@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import Frame
+from roop.typing import Frame, NumeratedFrame
 from roop.utilities import read_image
 
 
@@ -25,7 +25,7 @@ class DirectoryHandler(BaseFramesHandler):
         """
         return [(i, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(self._target_path), '*.png')))]
 
-    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+    def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number][1])
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:

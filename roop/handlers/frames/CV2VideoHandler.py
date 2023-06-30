@@ -7,7 +7,7 @@ from cv2 import VideoCapture
 from tqdm import tqdm
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import Frame
+from roop.typing import Frame, NumeratedFrame
 from roop.utilities import write_image, get_file_name
 
 
@@ -55,7 +55,7 @@ class CV2VideoHandler(BaseFramesHandler):
             all_files = [(int(get_file_name(filename)), filename) for filename in glob.glob(os.path.join(glob.escape(path), '*.png'))]
             return [t for t in all_files if t[0] >= self.current_frame_index]
 
-    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+    def extract_frame(self, frame_number: int) -> NumeratedFrame:
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         ret, frame = capture.read()

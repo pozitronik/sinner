@@ -8,7 +8,7 @@ import cv2
 from numpy import uint8, frombuffer
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import Frame
+from roop.typing import Frame, NumeratedFrame
 
 
 class FFmpegVideoHandler(BaseFramesHandler):
@@ -63,7 +63,7 @@ class FFmpegVideoHandler(BaseFramesHandler):
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
-    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+    def extract_frame(self, frame_number: int) -> NumeratedFrame:
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select=gte(n,{frame_number}),setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
         return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)

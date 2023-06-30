@@ -3,7 +3,7 @@ import shutil
 from typing import List
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import Frame
+from roop.typing import Frame, NumeratedFrame
 from roop.utilities import read_image
 
 
@@ -18,7 +18,7 @@ class ImageHandler(BaseFramesHandler):
     def get_frames_paths(self, path: str) -> List[tuple[int, str]]:
         return [(1, self._target_path)]
 
-    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+    def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self._target_path)
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:

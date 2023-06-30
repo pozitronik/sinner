@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import List
 
-from roop.typing import Frame
+from roop.typing import Frame, NumeratedFrame
 from roop.utilities import load_class
 
 
@@ -51,7 +51,7 @@ class BaseFramesHandler(ABC):
         return [(i, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(path), '*.png')))]
 
     @abstractmethod
-    def extract_frame(self, frame_number: int) -> tuple[int, Frame]:
+    def extract_frame(self, frame_number: int) -> NumeratedFrame:
         """
         Return the certain frame from the target
         """
