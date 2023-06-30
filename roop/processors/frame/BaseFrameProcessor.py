@@ -69,6 +69,7 @@ class BaseFrameProcessor(ABC):
         ) as progress:
             self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
 
+    # todo: make a @overload method
     @abstractmethod
     def process_frame(self, temp_frame: Frame | str) -> Frame:
         pass
@@ -81,7 +82,7 @@ class BaseFrameProcessor(ABC):
             pass
 
     def multi_process_frame(self, frames_list: List[tuple[int, str]] | Iterable[tuple[int, Frame]], process_frames: Callable[[tuple[int, str] | tuple[int, Frame]], None],
-                            progress: None | tqdm = None) -> None:  # type: ignore[type-arg]
+                            progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future) -> None:
             futures.remove(future_)
             progress.update()
