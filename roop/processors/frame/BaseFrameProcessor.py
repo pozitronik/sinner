@@ -10,7 +10,7 @@ from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
 from roop.parameters import Parameters
 from roop.state import State
 from roop.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from roop.utilities import update_status, load_class, get_mem_usage
+from roop.utilities import update_status, load_class, get_mem_usage, read_image
 
 
 class BaseFrameProcessor(ABC):
@@ -71,14 +71,17 @@ class BaseFrameProcessor(ABC):
             self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
 
     @abstractmethod
-    def process_frame(self, temp_frame: Frame | str) -> Frame:
+    def process_frame(self, temp_frame: Frame) -> Frame:
         pass
 
-    def process_frames(self, frame: FrameDataType) -> None:  # type: ignore[type-arg]
+    def process_frames(self, frame_data: FrameDataType) -> None:  # type: ignore[type-arg]
         try:
-            if isinstance(frame, int):
-                frame = self.extract_frame_method(frame)
-            self.state.save_temp_frame(self.process_frame(frame[1]), frame[0])
+            if isinstance(frame_data, int):
+                frame_num, frame = self.extract_frame_method(frame_data)
+            else:
+                frame = read_image(frame_data[1])
+                frame_num = frame_data[0]
+            self.state.save_temp_frame(self.process_frame(frame), frame_num)
         except Exception as exception:
             print(exception)
             pass

@@ -28,9 +28,7 @@ class FaceSwapper(BaseFrameProcessor):
     def swap_face(self, target_face: Face, temp_frame: Frame) -> Frame:
         return self._face_swapper.get(temp_frame, target_face, self.source_face)
 
-    def process_frame(self, temp_frame: Frame | str) -> Frame:
-        if isinstance(temp_frame, str):
-            temp_frame = read_image(temp_frame)
+    def process_frame(self, temp_frame: Frame) -> Frame:
         if self.many_faces:
             many_faces = self._face_analyser.get_many_faces(temp_frame)
             if many_faces:
