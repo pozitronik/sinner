@@ -83,7 +83,7 @@ class BaseFrameProcessor(ABC):
 
     def multi_process_frame(self, frames_list: List[tuple[int, str]] | Iterable[tuple[int, Frame]], process_frames: Callable[[tuple[int, str] | tuple[int, Frame]], None],
                             progress: tqdm) -> None:  # type: ignore[type-arg]
-        def process_done(future_: Future) -> None:
+        def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.update()
             progress.set_postfix({
@@ -92,9 +92,9 @@ class BaseFrameProcessor(ABC):
             })
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
-            futures: list[Future] = []
+            futures: list[Future[None]] = []
             for frame in frames_list:
-                future: Future = executor.submit(process_frames, frame)
+                future: Future[None] = executor.submit(process_frames, frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
                 progress.set_postfix({
