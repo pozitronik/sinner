@@ -81,8 +81,7 @@ class BaseFrameProcessor(ABC):
             print(exception)
             pass
 
-    def multi_process_frame(self, frames_list: FramesDataType, process_frames: Callable[[tuple[int, str] | tuple[int, Frame]], None],
-                            progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, frames_list: FramesDataType, process_frames: Callable[[FrameDataType], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.update()
