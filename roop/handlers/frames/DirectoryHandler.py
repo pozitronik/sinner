@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import Frame, NumeratedFrame
+from roop.typing import NumeratedFrame
 from roop.utilities import read_image
 
 

@@ -7,7 +7,7 @@ from cv2 import VideoCapture
 from tqdm import tqdm
 
 from roop.handlers.frames.BaseFramesHandler import BaseFramesHandler
-from roop.typing import Frame, NumeratedFrame
+from roop.typing import NumeratedFrame
 from roop.utilities import write_image, get_file_name
 
 
