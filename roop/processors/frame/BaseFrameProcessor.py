@@ -1,8 +1,7 @@
 import inspect
 import os.path
 from abc import ABC, abstractmethod
-from asyncio import Future
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable
 
 from tqdm import tqdm
@@ -92,7 +91,7 @@ class BaseFrameProcessor(ABC):
             })
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
-            futures = []
+            futures: list[Future] = []
             for frame in frames_list:
                 future: Future = executor.submit(process_frames, frame)
                 future.add_done_callback(process_done)
@@ -103,8 +102,8 @@ class BaseFrameProcessor(ABC):
                 })
                 if get_mem_usage('vms', 'g') >= self.max_memory:
                     futures[:1][0].result()
-            for future in as_completed(futures):
-                future.result()
+            for completed_future in as_completed(futures):
+                completed_future.result()
 
     @staticmethod
     def validate() -> bool:
