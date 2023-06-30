@@ -70,6 +70,5 @@ class BaseFramesHandler(ABC):
     def __next__(self) -> int:
         if self.current_frame_index == self.fc:
             raise StopIteration
-        index = self.current_frame_index
         self.current_frame_index += 1
-        return index
+        return self.current_frame_index
