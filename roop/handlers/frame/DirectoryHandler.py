@@ -26,7 +26,7 @@ class DirectoryHandler(BaseFrameHandler):
         return [(i + 1, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(self._target_path), '*.png')))]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
-        return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number][1])
+        return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
         try:

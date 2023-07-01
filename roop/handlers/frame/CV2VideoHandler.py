@@ -58,7 +58,7 @@ class CV2VideoHandler(BaseFrameHandler):
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         capture = self.open()
-        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
         ret, frame = capture.read()
         capture.release()
         if not ret:
