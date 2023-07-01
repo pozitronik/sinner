@@ -58,7 +58,7 @@ class BaseFrameProcessor(ABC):
         self.extract_frame_method = frames_handler.extract_frame
         self.state.processor_name = self.__class__.__name__
         frames_handler.current_frame_index = self.state.processed_frames_count
-        frames_list: FramesDataType = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)
+        frames_list: FramesDataType = frames_handler if in_memory and isinstance(frames_handler, Iterable) else frames_handler.get_frames_paths(self.state.in_dir)  # todo: do not create for intermediate directory handler
         if self.state.is_started:
             update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...')
         with tqdm(
