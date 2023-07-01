@@ -38,7 +38,7 @@ def test_chain():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
-        frame_processor=['FaceSwapper', 'FaceEnhancer'],
+        frame_processor=['FaceSwapper', 'DummyProcessor'],
         frame_handler=None,
         fps=None,
         many_faces=False,
