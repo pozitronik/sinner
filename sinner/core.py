@@ -73,4 +73,4 @@ class Core:
             return ImageHandler(target_path)
         if is_video(target_path):
             return VideoHandler(target_path)
-        raise NotImplemented("The handler for current target type is not implemented")
+        raise NotImplementedError("The handler for current target type is not implemented")
