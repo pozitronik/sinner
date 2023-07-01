@@ -8,7 +8,7 @@ from typing import List
 import onnxruntime
 
 from roop.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
-from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path, update_status
+from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path, update_status, get_app_dir, TEMP_DIRECTORY
 
 
 def default_frame_processors() -> List[str]:
@@ -76,7 +76,7 @@ class Parameters:
     execution_providers: List[str]
     execution_threads: int
     frame_handler: str
-    temp_dir: str | None
+    temp_dir: str
 
     def __init__(self, args: Namespace | None = None) -> None:
         args = parse_args() if args is None else args
@@ -94,7 +94,7 @@ class Parameters:
         self.execution_providers = decode_execution_providers(args.execution_provider)
         self.execution_threads = args.execution_threads
         self.frame_handler = self.set_frame_handler(args.frame_handler)
-        self.temp_dir = args.temp_dir
+        self.temp_dir = self.suggest_temp_dir(args.temp_dir)
 
         if not self.validate():
             quit()
@@ -121,3 +121,6 @@ class Parameters:
             update_status('Select an image or video or images directory for target path.')
             return False
         return True
+
+    def suggest_temp_dir(self, temp_dir):
+        return temp_dir if temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)
