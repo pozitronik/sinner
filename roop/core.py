@@ -50,7 +50,8 @@ class Core:
             current_processor.process(frames_handler=current_handler, in_memory=self.params.in_memory, desc=processor_name)
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
-            temp_resources.append(state.in_dir)
+            if not self.params.in_memory:
+                temp_resources.append(state.in_dir)
             self.release_resources()
 
         final_handler = BaseFrameHandler.create(handler_name=self.params.frame_handler, target_path=self.params.target_path)
