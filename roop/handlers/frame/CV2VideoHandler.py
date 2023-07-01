@@ -42,7 +42,7 @@ class CV2VideoHandler(BaseFrameHandler):
                 initial=i
         ) as progress:
             capture = self.open()
-            capture.set(cv2.CAP_PROP_POS_FRAMES, i)
+            capture.set(cv2.CAP_PROP_POS_FRAMES, i + 1)
             filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
             while True:
                 ret, frame = capture.read()
@@ -53,7 +53,7 @@ class CV2VideoHandler(BaseFrameHandler):
                 i += 1
             capture.release()
             all_files = [(int(get_file_name(filename)), filename) for filename in glob.glob(os.path.join(glob.escape(path), '*.png'))]
-            return [t for t in all_files if t[0] >= self.current_frame_index]
+            return [t for t in all_files if t[0] > self.current_frame_index]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         capture = self.open()
