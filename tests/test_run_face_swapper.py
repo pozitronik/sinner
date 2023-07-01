@@ -1,6 +1,7 @@
 import os
 import shutil
 from argparse import Namespace
+from pathlib import Path
 
 from roop.core import Core
 from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -13,7 +14,7 @@ target_png: str = resolve_relative_path('data/targets/target.png', __file__)
 result_jpg: str = resolve_relative_path('data/results/result.jpg', __file__)
 result_mp4: str = resolve_relative_path('data/results/result.mp4', __file__)
 results_dir: str = resolve_relative_path('data/results/', __file__)
-tmp_dir: str = resolve_relative_path('data/targets/temp', __file__)
+tmp_dir: str = resolve_relative_path('data/temp', __file__)
 state_frames_dir: str = resolve_relative_path('data/frames', __file__)
 
 
@@ -38,6 +39,8 @@ def test_image_to_video_ffmpeg():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
+        in_memory=False,
+        temp_dir=tmp_dir,
         frame_processor=['FaceSwapper'],
         frame_handler='FFmpegVideoHandler',
         fps=None,
@@ -50,9 +53,9 @@ def test_image_to_video_ffmpeg():
     core = Core(params=params)
     core.run()
 
-    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
     assert extracted_frames_count == 62
-    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
@@ -68,6 +71,8 @@ def test_image_to_video_ffmpeg_continue():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
+        in_memory=False,
+        temp_dir=tmp_dir,
         frame_processor=['FaceSwapper'],
         frame_handler='FFmpegVideoHandler',
         fps=None,
@@ -79,16 +84,19 @@ def test_image_to_video_ffmpeg_continue():
 
     limit_resources(params.max_memory)
     core = Core(params=params)
-    assert [] == os.listdir(core.state.out_dir)  # check if out directory is empty
+
+    out_dir = resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__)
+
+    assert os.path.exists(out_dir) is False  # check if out directory is empty
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
-        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(core.state.out_dir, filename))
-    assert 30 == len(os.listdir(core.state.out_dir))
-    assert 30 == core.state.processed_frames_count()
+        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(out_dir, filename))
+    assert 30 == len(os.listdir(out_dir))
     core.run()
 
-    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
-    assert extracted_frames_count == 62
-    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 32
+    swapped_frames_count = len([file for file in os.listdir(out_dir)])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
@@ -103,6 +111,8 @@ def test_image_to_video_cv2():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
+        in_memory=False,
+        temp_dir=tmp_dir,
         frame_processor=['FaceSwapper'],
         frame_handler='CV2VideoHandler',
         fps=None,
@@ -115,9 +125,9 @@ def test_image_to_video_cv2():
     core = Core(params=params)
     core.run()
 
-    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
     assert extracted_frames_count == 62
-    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
@@ -132,6 +142,8 @@ def test_image_to_video_cv2_continue():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
+        in_memory=False,
+        temp_dir=tmp_dir,
         frame_processor=['FaceSwapper'],
         frame_handler='CV2VideoHandler',
         fps=None,
@@ -143,16 +155,19 @@ def test_image_to_video_cv2_continue():
 
     limit_resources(params.max_memory)
     core = Core(params=params)
-    assert [] == os.listdir(core.state.out_dir)  # check if out directory is empty
-    for filename in [f'{"%02d" % i}.png' for i in range(1, 31)]:  # copy files from 0001.png to 0030.png to out dir
-        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(core.state.out_dir, filename))
-    assert 30 == len(os.listdir(core.state.out_dir))
-    assert 30 == core.state.processed_frames_count()
+
+    out_dir = resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__)
+
+    assert os.path.exists(out_dir) is False  # check if out directory is empty
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    for filename in [f'{"%02d" % i}.png' for i in range(1, 32)]:  # copy files from 0001.png to 0030.png to out dir
+        shutil.copy(os.path.join(state_frames_dir, filename), os.path.join(out_dir, filename))
+    assert 31 == len(os.listdir(out_dir))
     core.run()
 
-    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
-    assert extracted_frames_count == 62
-    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    assert extracted_frames_count == 31
+    swapped_frames_count = len([file for file in os.listdir(out_dir)])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
@@ -168,6 +183,8 @@ def test_image_to_image():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
+        in_memory=False,
+        temp_dir=tmp_dir,
         frame_processor=['FaceSwapper'],
         frame_handler=None,  # will be auto suggested
         fps=None,
@@ -190,6 +207,8 @@ def test_image_to_video_ffmpeg_multi_provider():
         execution_threads=4,
         keep_audio=True,
         keep_frames=True,
+        in_memory=False,
+        temp_dir=tmp_dir,
         frame_processor=['FaceSwapper'],
         frame_handler='FFmpegVideoHandler',
         fps=None,
@@ -202,9 +221,9 @@ def test_image_to_video_ffmpeg_multi_provider():
     core = Core(params=params)
     core.run()
 
-    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
+    extracted_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/IN', __file__))])
     assert extracted_frames_count == 62
-    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/targets/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
+    swapped_frames_count = len([file for file in os.listdir(resolve_relative_path('data/temp/FaceSwapper/target.mp4/source.jpg/OUT', __file__))])
     assert swapped_frames_count == 62
     assert is_video(result_mp4)
     test_video_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=result_mp4)
