@@ -11,3 +11,4 @@ onnxruntime==1.15.0
 tensorflow==2.12.0
 protobuf==4.23.2
 tqdm==4.65.0
+pytest
