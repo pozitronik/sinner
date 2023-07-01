@@ -2,7 +2,7 @@ import threading
 from typing import List
 from insightface.app import FaceAnalysis
 
-from roop.typing import Frame, Face
+from sinner.typing import Frame, Face
 
 
 class FaceAnalyser:

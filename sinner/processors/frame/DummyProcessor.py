@@ -1,5 +1,5 @@
-from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from roop.typing import Frame
+from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
+from sinner.typing import Frame
 
 
 class DummyProcessor(BaseFrameProcessor):

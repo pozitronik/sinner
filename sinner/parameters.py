@@ -7,8 +7,8 @@ from typing import List
 
 import onnxruntime
 
-from roop.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
-from roop.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path, update_status, get_app_dir, TEMP_DIRECTORY
+from sinner.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
+from sinner.utilities import normalize_output_path, is_image, is_video, list_class_descendants, resolve_relative_path, update_status, get_app_dir, TEMP_DIRECTORY
 
 
 def default_frame_processors() -> List[str]:

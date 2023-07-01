@@ -2,10 +2,10 @@ import os
 import shutil
 from argparse import Namespace
 
-from roop.core import Core
-from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from roop.parameters import Parameters
-from roop.utilities import resolve_relative_path, limit_resources, is_video
+from sinner.core import Core
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.parameters import Parameters
+from sinner.utilities import resolve_relative_path, limit_resources, is_video
 
 source_jpg: str = resolve_relative_path('data/sources/source.jpg', __file__)
 target_mp4: str = resolve_relative_path('data/targets/target.mp4', __file__)

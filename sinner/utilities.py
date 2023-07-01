@@ -14,7 +14,7 @@ import tensorflow
 from numpy import uint8, fromfile
 from tqdm import tqdm
 
-from roop.typing import Frame
+from sinner.typing import Frame
 
 TEMP_DIRECTORY = 'temp'
 

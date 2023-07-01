@@ -5,14 +5,14 @@ from typing import List
 import torch
 import os
 import sys
-from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from roop.handlers.frame.DirectoryHandler import DirectoryHandler
-from roop.handlers.frame.ImageHandler import ImageHandler
-from roop.handlers.frame.VideoHandler import VideoHandler
-from roop.parameters import Parameters
-from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from roop.state import State
-from roop.utilities import is_image, is_video, delete_subdirectories
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
+from sinner.handlers.frame.ImageHandler import ImageHandler
+from sinner.handlers.frame.VideoHandler import VideoHandler
+from sinner.parameters import Parameters
+from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
+from sinner.state import State
+from sinner.utilities import is_image, is_video, delete_subdirectories
 
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):

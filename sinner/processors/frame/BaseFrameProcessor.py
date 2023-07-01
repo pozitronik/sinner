@@ -6,11 +6,11 @@ from typing import List, Callable, Any, Iterable
 
 from tqdm import tqdm
 
-from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from roop.parameters import Parameters
-from roop.state import State
-from roop.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from roop.utilities import update_status, load_class, get_mem_usage, read_image
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.parameters import Parameters
+from sinner.state import State
+from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
+from sinner.utilities import update_status, load_class, get_mem_usage, read_image
 
 
 class BaseFrameProcessor(ABC):

@@ -7,8 +7,8 @@ from typing import List
 import cv2
 from numpy import uint8, frombuffer
 
-from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from roop.typing import NumeratedFrame, NumeratedFramePath
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.typing import NumeratedFrame, NumeratedFramePath
 
 
 class FFmpegVideoHandler(BaseFrameHandler):

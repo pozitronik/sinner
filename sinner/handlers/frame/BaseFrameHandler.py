@@ -3,8 +3,8 @@ import os
 from abc import ABC, abstractmethod
 from typing import List
 
-from roop.typing import NumeratedFrame, NumeratedFramePath
-from roop.utilities import load_class
+from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.utilities import load_class
 
 
 class BaseFrameHandler(ABC):

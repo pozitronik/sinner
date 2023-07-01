@@ -2,9 +2,9 @@ import glob
 import os
 from typing import List
 
-from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from roop.typing import NumeratedFrame, NumeratedFramePath
-from roop.utilities import read_image
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.utilities import read_image
 
 
 class DirectoryHandler(BaseFrameHandler):

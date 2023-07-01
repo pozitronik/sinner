@@ -2,11 +2,11 @@ from typing import List
 
 import insightface
 
-from roop.face_analyser import FaceAnalyser
-from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from roop.state import State
-from roop.typing import Face, Frame, FaceSwapperType
-from roop.utilities import resolve_relative_path, conditional_download, read_image
+from sinner.face_analyser import FaceAnalyser
+from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
+from sinner.state import State
+from sinner.typing import Face, Frame, FaceSwapperType
+from sinner.utilities import resolve_relative_path, conditional_download, read_image
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -18,7 +18,7 @@ class FaceSwapper(BaseFrameProcessor):
 
     def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, many_faces: bool, source_path: str, state: State):
         download_directory_path = resolve_relative_path('../models')
-        conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
+        conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/sinner/resolve/main/inswapper_128.onnx'])
         super().__init__(execution_providers=execution_providers, execution_threads=execution_threads, max_memory=max_memory, state=state)
         self._face_analyser = FaceAnalyser(self.execution_providers)
         self.many_faces = many_faces

@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from roop.typing import Frame
-from roop.utilities import write_image, get_app_dir
+from sinner.typing import Frame
+from sinner.utilities import write_image
 
 OUT_DIR = 'OUT'
 IN_DIR = 'IN'

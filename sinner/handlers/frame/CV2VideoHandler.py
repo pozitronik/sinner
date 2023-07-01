@@ -6,9 +6,9 @@ import cv2
 from cv2 import VideoCapture
 from tqdm import tqdm
 
-from roop.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from roop.typing import NumeratedFrame, NumeratedFramePath
-from roop.utilities import write_image, get_file_name
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.utilities import write_image, get_file_name
 
 
 class CV2VideoHandler(BaseFrameHandler):
