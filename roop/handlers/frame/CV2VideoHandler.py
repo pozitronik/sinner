@@ -32,6 +32,7 @@ class CV2VideoHandler(BaseFrameHandler):
         return video_frame_total
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
+        fc = self.detect_fc()
         i = self.current_frame_index
         with tqdm(
                 total=self.fc,
@@ -42,9 +43,9 @@ class CV2VideoHandler(BaseFrameHandler):
                 initial=i
         ) as progress:
             capture = self.open()
-            capture.set(cv2.CAP_PROP_POS_FRAMES, i + 1)
-            filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
-            while True:
+            capture.set(cv2.CAP_PROP_POS_FRAMES, i)
+            filename_length = len(str(fc))  # a way to determine frame names length
+            while True or i <= fc:
                 ret, frame = capture.read()
                 if not ret:
                     break
