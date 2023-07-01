@@ -27,9 +27,13 @@ class State:
         self.temp_dir = temp_dir
 
     @property
+    def base_temp_dir(self) -> str:
+        return self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)
+
+    @property
     def out_dir(self) -> str:
         sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
-        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY, *sub_path)
+        path = os.path.join(self.base_temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(self.base_temp_dir, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
@@ -37,7 +41,7 @@ class State:
     @property
     def in_dir(self) -> str:
         sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
-        path = os.path.join(self.temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY, *sub_path)
+        path = os.path.join(self.base_temp_dir, *sub_path) if self.temp_dir is not None else os.path.join(self.base_temp_dir, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
