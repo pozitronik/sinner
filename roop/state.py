@@ -4,8 +4,8 @@ from pathlib import Path
 from roop.typing import Frame
 from roop.utilities import write_image, get_app_dir
 
-OUT_DIR = 'out'
-IN_DIR = 'in'
+OUT_DIR = 'OUT'
+IN_DIR = 'IN'
 
 
 class State:
