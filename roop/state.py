@@ -17,24 +17,14 @@ class State:
     processor_name: str = ''
     temp_dir: str | None
 
-    preserve_source_frames: bool = True  # keeps extracted source frame for future usage
-
     _zfill_length: int | None
 
-    def __init__(self, source_path: str, target_path: str, frames_count: int, keep_frames: bool = False, temp_dir: str | None = None):
+    def __init__(self, source_path: str, target_path: str, frames_count: int, temp_dir: str | None = None):
         self.source_path = source_path
         self.target_path = target_path
-        self.keep_frames = keep_frames
         self.frames_count = frames_count
         self._zfill_length = None
         self.temp_dir = temp_dir
-
-    def reload(self) -> None:
-        self.target_path = self.out_dir
-
-    def finish(self) -> None:
-        if self.keep_frames is False:
-            shutil.rmtree(self.out_dir)
 
     @property
     def out_dir(self) -> str:
