@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-
 import warnings
+from typing import List
 
 import torch
 import os
@@ -12,7 +12,7 @@ from roop.handlers.frame.VideoHandler import VideoHandler
 from roop.parameters import Parameters
 from roop.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from roop.state import State
-from roop.utilities import is_image, is_video
+from roop.utilities import is_image, is_video, delete_subdirectories
 
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):
@@ -30,37 +30,46 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core:
     params: Parameters
-    state: State
     frames_handler: BaseFrameHandler
 
     def __init__(self, params: Parameters):
         self.params = params
-        self.state = State(source_path=params.source_path, target_path=params.target_path, output_path=params.target_path, keep_frames=params.keep_frames, temp_dir=params.temp_dir)
-        self.frames_handler = BaseFrameHandler.create(handler_name=params.frame_handler, target_path=params.target_path)  # todo: create handler right where it needed
-        self.state.frames_count = self.frames_handler.fc
 
     def run(self) -> None:
+        current_target_path = self.params.target_path
+        temp_resources: List[str] = []  # list of temporary created resources
         for processor_name in self.params.frame_processors:
-            current_handler = self.suggest_handler(self.frames_handler)
-            current_processor = BaseFrameProcessor.create(processor_name, self.params, self.state)
+            current_handler = self.suggest_handler(current_target_path)
+            state = State(
+                source_path=self.params.source_path,
+                target_path=current_target_path,
+                frames_count=current_handler.fc,
+                temp_dir=self.params.temp_dir
+            )
+            current_processor = BaseFrameProcessor.create(processor_name, self.params, state)
             current_processor.process(frames_handler=current_handler, in_memory=self.params.in_memory, desc=processor_name)
+            current_target_path = state.out_dir
+            temp_resources.append(state.out_dir)
+            temp_resources.append(state.in_dir)
             self.release_resources()
-            self.state.reload()  # todo reload only for next processor
 
-        if self.frames_handler.result(from_dir=self.state.target_path, filename=self.params.output_path, fps=self.params.fps, audio_target=self.params.target_path if self.params.keep_audio else None) is True:
-            self.state.finish()
+        final_handler = BaseFrameHandler.create(handler_name=self.params.frame_handler, target_path=self.params.target_path)
+        if final_handler.result(from_dir=current_target_path, filename=self.params.output_path, fps=self.params.fps, audio_target=self.params.target_path if self.params.keep_audio else None) is True:
+            if self.params.keep_frames is False:
+                delete_subdirectories(self.params.temp_dir, temp_resources)
         else:
-            raise Exception("Something went wrong while resulting frame")
+            raise Exception("Something went wrong while resulting frames")
 
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.params.execution_providers:
             torch.cuda.empty_cache()
 
-    def suggest_handler(self, default_handler: BaseFrameHandler) -> BaseFrameHandler:
-        if os.path.isdir(self.state.target_path):
-            return DirectoryHandler(self.state.target_path)
-        if is_image(self.state.target_path):
-            return ImageHandler(self.state.target_path)
-        if is_video(self.state.target_path):
-            return VideoHandler(self.state.target_path)
-        return default_handler
+    @staticmethod
+    def suggest_handler(target_path: str) -> BaseFrameHandler:
+        if os.path.isdir(target_path):
+            return DirectoryHandler(target_path)
+        if is_image(target_path):
+            return ImageHandler(target_path)
+        if is_video(target_path):
+            return VideoHandler(target_path)
+        raise NotImplemented("The handler for current target type is not implemented")
