@@ -2,9 +2,9 @@
 import signal
 import sys
 
-from roop.core import Core
-from roop.parameters import Parameters
-from roop.utilities import limit_resources
+from sinner.core import Core
+from sinner.parameters import Parameters
+from sinner.utilities import limit_resources
 
 if __name__ == '__main__':
     if sys.version_info < (3, 10):
