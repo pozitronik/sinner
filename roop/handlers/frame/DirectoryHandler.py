@@ -23,7 +23,7 @@ class DirectoryHandler(BaseFrameHandler):
         Return the list of path for frame in the target.
         Frames should be extracted to `path` if necessary
         """
-        return [(i, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(self._target_path), '*.png')))]
+        return [(i + 1, s) for i, s in enumerate(glob.glob(os.path.join(glob.escape(self._target_path), '*.png')))]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number][1])
