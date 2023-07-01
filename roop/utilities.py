@@ -3,6 +3,7 @@ import importlib.util
 import mimetypes
 import os
 import platform
+import shutil
 import sys
 import urllib
 from typing import List, Literal
@@ -15,7 +16,6 @@ from tqdm import tqdm
 
 from roop.typing import Frame
 
-TEMP_FILE = 'temp.mp4'
 TEMP_DIRECTORY = 'temp'
 
 
@@ -174,3 +174,13 @@ def get_app_dir() -> str:
 
 def get_file_name(file_path: str) -> str:
     return os.path.splitext(os.path.basename(file_path))[0]
+
+
+def delete_subdirectories(root_dir: str, subdirectories: List[str]):
+    for subdirectory in subdirectories:
+        shutil.rmtree(subdirectory)
+    for root, dirs, files in os.walk(root_dir, topdown=False):
+        for directory in dirs:
+            dir_path = os.path.join(root, directory)
+            if not os.listdir(dir_path):
+                os.rmdir(dir_path)
