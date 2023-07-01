@@ -14,7 +14,6 @@ class State:
     frames_count: int
     source_path: str
     target_path: str
-    output_path: str
     processor_name: str = ''
     temp_dir: str | None
 
@@ -22,11 +21,11 @@ class State:
 
     _zfill_length: int | None
 
-    def __init__(self, source_path: str, target_path: str, output_path: str, keep_frames: bool = False, temp_dir: str | None = None):
+    def __init__(self, source_path: str, target_path: str, frames_count: int, keep_frames: bool = False, temp_dir: str | None = None):
         self.source_path = source_path
         self.target_path = target_path
-        self.output_path = output_path
         self.keep_frames = keep_frames
+        self.frames_count = frames_count
         self._zfill_length = None
         self.temp_dir = temp_dir
 
@@ -54,7 +53,8 @@ class State:
         return path
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
-        write_image(frame, self.get_frame_processed_name(index))
+        if not write_image(frame, self.get_frame_processed_name(index)):
+            raise Exception(f"Error saving frame: {self.get_frame_processed_name(index)}")
 
     #  Checks if some frame already processed
     @property
