@@ -122,5 +122,5 @@ class Parameters:
             return False
         return True
 
-    def suggest_temp_dir(self, temp_dir):
+    def suggest_temp_dir(self, temp_dir: str | None) -> str:
         return temp_dir if temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)

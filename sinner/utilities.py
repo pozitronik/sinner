@@ -57,7 +57,7 @@ def normalize_output_path(source_path: str, target_path: str, output_path: str |
         target_name, target_extension = os.path.splitext(os.path.basename(target_path))
         if os.path.isdir(output_path):
             return os.path.join(output_path, source_name + '-' + target_name + target_extension)
-    return output_path
+    return output_path  # type: ignore[return-value]
 
 
 def is_image(image_path: str | None) -> bool:
@@ -176,7 +176,7 @@ def get_file_name(file_path: str) -> str:
     return os.path.splitext(os.path.basename(file_path))[0]
 
 
-def delete_subdirectories(root_dir: str, subdirectories: List[str]):
+def delete_subdirectories(root_dir: str, subdirectories: List[str]) -> None:
     for subdirectory in subdirectories:
         shutil.rmtree(subdirectory)
     for root, dirs, files in os.walk(root_dir, topdown=False):
