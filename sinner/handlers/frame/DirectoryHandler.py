@@ -28,7 +28,7 @@ class DirectoryHandler(BaseFrameHandler):
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
 
-    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
+    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         try:
             return True
         except Exception:

@@ -68,7 +68,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
         return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
 
-    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
+    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
         filename_length = len(str(self.detect_fc()))  # a way to determine frame names length

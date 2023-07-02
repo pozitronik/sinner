@@ -21,7 +21,7 @@ class ImageHandler(BaseFrameHandler):
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self._target_path)
 
-    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
+    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         try:
             shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
             return True

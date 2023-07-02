@@ -65,7 +65,7 @@ class CV2VideoHandler(BaseFrameHandler):
             raise Exception(f"Error reading frame {frame_number}")
         return frame_number, frame
 
-    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
+    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         if fps is None:
             fps = self.fps
         if audio_target is not None:

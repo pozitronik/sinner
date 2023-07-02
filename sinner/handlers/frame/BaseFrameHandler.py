@@ -58,7 +58,7 @@ class BaseFrameHandler(ABC):
         pass
 
     @abstractmethod
-    def result(self, from_dir: str, filename: str, fps: None | float, audio_target: str | None = None) -> bool:
+    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         """
         Creates a result file from processed frame, return success of operation
         """
