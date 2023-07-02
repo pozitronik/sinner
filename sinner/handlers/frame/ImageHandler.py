@@ -4,10 +4,15 @@ from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import read_image
+from sinner.utilities import read_image, is_image
 
 
 class ImageHandler(BaseFrameHandler):
+
+    def __init__(self, target_path: str):
+        if not os.path.exists(target_path) or not os.path.isfile(target_path) and not is_image(target_path):
+            raise Exception(f"{target_path} should point to a image file")
+        super().__init__(target_path)
 
     def detect_fps(self) -> float:
         return 1
