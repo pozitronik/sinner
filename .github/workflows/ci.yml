@@ -28,5 +28,5 @@ jobs:
         with:
           python-version: 3.11
       - run: pip install -r requirements-ci.txt
-      - run: pytest
+      - run: pytest -m "not skip"
 

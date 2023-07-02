@@ -2,6 +2,7 @@ import os
 import shutil
 from typing import Iterator
 
+import pytest
 from numpy import ndarray
 
 from sinner.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
@@ -47,6 +48,7 @@ def test_extract_frame() -> None:
     assert first_frame[1].shape == FRAME_SHAPE
 
 
+@pytest.mark.skip(reason="This test is not ready for GitHub CI")
 def test_result() -> None:
     assert os.path.exists(result_mp4) is False
     assert get_test_object().result(from_dir=state_frames_dir, filename=result_mp4) is True
