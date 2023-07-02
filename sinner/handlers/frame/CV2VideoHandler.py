@@ -14,7 +14,8 @@ from sinner.utilities import write_image, get_file_name
 
 class CV2VideoHandler(BaseFrameHandler):
 
-    def available(self) -> bool:
+    @staticmethod
+    def available() -> bool:
         return "FFMPEG" in cv2.getBuildInformation()
 
     def open(self) -> VideoCapture:
