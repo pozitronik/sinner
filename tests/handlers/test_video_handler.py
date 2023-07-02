@@ -62,17 +62,17 @@ def test_result() -> None:
 
 
 def tests_iterator() -> None:
-    cv2 = get_test_object()
-    assert isinstance(cv2, Iterator)
+    test_object = get_test_object()
+    assert isinstance(test_object, Iterator)
     frame_counter = 0
-    for frame_index in cv2:
+    for frame_index in test_object:
         assert (int, frame_index)
         frame_counter += 1
     assert frame_counter == TARGET_FC
 
-    cv2.current_frame_index = 90
+    test_object.current_frame_index = 90
     frame_counter = 0
-    for frame_index in cv2:
+    for frame_index in test_object:
         assert (int, frame_index)
         frame_counter += 1
     assert frame_counter == 8
