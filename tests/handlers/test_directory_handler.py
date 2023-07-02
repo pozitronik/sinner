@@ -56,7 +56,7 @@ def test_extract_frame() -> None:
 
 def test_result() -> None:
     assert os.path.exists(result_mp4) is False
-    assert get_test_object().result(from_dir=state_frames_dir, filename=result_mp4) is False
+    assert get_test_object().result(from_dir=state_frames_dir, filename=result_mp4) is True
 
 
 def tests_iterator() -> None:
