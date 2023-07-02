@@ -1,5 +1,6 @@
 import glob
 import os.path
+from pathlib import Path
 from typing import List
 
 import cv2
@@ -45,6 +46,7 @@ class CV2VideoHandler(BaseFrameHandler):
             capture = self.open()
             capture.set(cv2.CAP_PROP_POS_FRAMES, i)
             filename_length = len(str(fc))  # a way to determine frame names length
+            Path(path).mkdir(parents=True, exist_ok=True)
             while True or i <= fc:
                 ret, frame = capture.read()
                 if not ret:
