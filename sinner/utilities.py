@@ -181,7 +181,7 @@ def get_app_dir() -> str:
 
 
 def get_file_name(file_path: str) -> str:
-    return get_file_name(file_path)
+    return os.path.splitext(os.path.basename(file_path))[0]
 
 
 def delete_subdirectories(root_dir: str, subdirectories: List[str]) -> None:
