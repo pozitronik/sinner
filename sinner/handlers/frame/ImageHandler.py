@@ -1,5 +1,6 @@
 import os.path
 import shutil
+from pathlib import Path
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -28,6 +29,7 @@ class ImageHandler(BaseFrameHandler):
 
     def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         try:
+            Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             # fixme: there can by othere files in the from_dir
             shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
             return True
