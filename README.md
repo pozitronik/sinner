@@ -68,13 +68,13 @@ Here is the list of all possible command-line parameters.
 
 ## Built-in frame processors
 
-There are modules, named frame processors, and each processor can do its own type of magic. You need to choose what frame processor (or processors)
-you want to use, and give them some sources to work on. Here is the list of built-in frame processors: 
-- `FaceSwapper`: does face swapping deepfake magic. Substitute a face from the `source` to a face (or faces) in the `target`. The processor is based on [insightface project example](https://github.com/deepinsight/insightface/blob/master/examples/in_swapper/inswapper_main.py) code.
+There are modules named frame processors, and each processor can perform its own type of magic. You need to choose which frame processor (or processors)
+you want to use, and provide them with some sources to work on. Here is the list of built-in frame processors: 
+- `FaceSwapper`: performs face-swapping deepfake magic. It substitutes a face from the `source` to a face (or faces) in the `target`. The processor is based on the [insightface project example](https://github.com/deepinsight/insightface/blob/master/examples/in_swapper/inswapper_main.py) code.
 ![FaceSwapper demo](/demos/swapper-demo.gif)
-- `FaceEnhancer`: does face restoration and enhancing quality magic on the `target`. The processor is based on libraries of [ARC Lab GFPGAN project](https://github.com/TencentARC/GFPGAN).
+- `FaceEnhancer`: performs face restoration and enhances the quality magic of the `target`. The processor is based on the libraries of the [ARC Lab GFPGAN project](https://github.com/TencentARC/GFPGAN).
 ![FaceEnhancer demo](/demos/enhancer-demo.jpg)
-- `DummyProcessor`: does literally nothing, it is just a test tool.
+- `DummyProcessor`: literally does nothing, it is just a test tool.
 
 ## Command line usage examples
 
