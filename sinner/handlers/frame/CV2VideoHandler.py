@@ -55,8 +55,8 @@ class CV2VideoHandler(BaseFrameHandler):
                 progress.update()
                 i += 1
             capture.release()
-            all_files = [(int(get_file_name(filename)), filename) for filename in glob.glob(os.path.join(glob.escape(path), '*.png'))]
-            return sorted([t for t in all_files if t[0] > self.current_frame_index], key=lambda x: x[1])
+            all_files = [(int(get_file_name(filename)), filename) for filename in sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))]
+            return [t for t in all_files if t[0] > self.current_frame_index]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         capture = self.open()
