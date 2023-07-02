@@ -1,5 +1,7 @@
 # sinner: sinner is non exactly roop
 
+Deepfakes and more.
+
 # What is it?
 
 This is the rework of the [s0md3v/roop](https://github.com/s0md3v/roop/) that I'm working on for entertainment and educational purposes. It doesn't aim to be popular; it's just a fork made the way I want it to be.
