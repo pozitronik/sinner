@@ -6,15 +6,8 @@ import pytest
 from numpy import ndarray
 
 from sinner.handlers.frame.ImageHandler import ImageHandler
-from sinner.utilities import resolve_relative_path, is_image
-from tests.constants import TARGET_FC, IMAGE_SHAPE
-
-target_png: str = resolve_relative_path('../data/targets/target.png', __file__)
-target_mp4: str = resolve_relative_path('../data/targets/target.mp4', __file__)
-tmp_dir: str = resolve_relative_path('../data/temp', __file__)
-state_frames_dir: str = resolve_relative_path('../data/frames', __file__)
-result_mp4: str = os.path.join(tmp_dir, 'result.mp4')
-result_png: str = os.path.join(tmp_dir, 'result.png')
+from sinner.utilities import is_image
+from tests.constants import IMAGE_SHAPE, tmp_dir, target_mp4, state_frames_dir, target_png, result_png
 
 
 def setup():
@@ -77,4 +70,3 @@ def tests_iterator() -> None:
         assert (int, frame_index)
         frame_counter += 1
     assert frame_counter == 1
-

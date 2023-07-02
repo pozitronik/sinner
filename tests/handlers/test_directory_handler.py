@@ -6,13 +6,7 @@ from numpy import ndarray
 from sympy.testing import pytest
 
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
-from sinner.utilities import resolve_relative_path
-from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE
-
-target_mp4: str = resolve_relative_path('../data/targets/target.mp4', __file__)
-tmp_dir: str = resolve_relative_path('../data/temp', __file__)
-state_frames_dir: str = resolve_relative_path('../data/frames', __file__)
-result_mp4: str = os.path.join(tmp_dir, 'result.mp4')
+from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4
 
 
 def setup():
