@@ -1,5 +1,6 @@
 import glob
 import importlib.util
+import inspect
 import mimetypes
 import os
 import platform
@@ -86,7 +87,7 @@ def conditional_download(download_directory_path: str, urls: List[str], desc: st
                 urllib.request.urlretrieve(url, download_file_path, reporthook=lambda count, block_size, total_size: progress.update(block_size))  # type: ignore[attr-defined]
 
 
-def resolve_relative_path(path: str, from_file: str = __file__) -> str:
+def resolve_relative_path(path: str, from_file: str = inspect.currentframe().f_back.f_code.co_filename) -> str:
     return os.path.abspath(os.path.join(os.path.dirname(from_file), path))
 
 
