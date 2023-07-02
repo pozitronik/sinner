@@ -60,6 +60,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
+        Path(path).mkdir(parents=True, exist_ok=True)
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
