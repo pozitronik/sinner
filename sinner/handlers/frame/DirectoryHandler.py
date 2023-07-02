@@ -31,8 +31,4 @@ class DirectoryHandler(BaseFrameHandler):
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
-        try:
-            return True
-        except Exception:
-            pass
-            return False
+        return False  # Handler can't product any result
