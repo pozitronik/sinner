@@ -34,6 +34,10 @@ def test_open() -> None:
         CV2VideoHandler(target_path='Wrong file')
 
 
+def test_available() -> None:
+    assert get_test_object().available() is True
+
+
 def test_detect_fps() -> None:
     assert TARGET_FPS == get_test_object().detect_fps()
 
