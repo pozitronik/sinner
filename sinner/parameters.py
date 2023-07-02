@@ -57,7 +57,7 @@ def parse_args() -> Namespace:
     program.add_argument('--max-memory', help='limit of RAM usage in GB', dest='max_memory', type=int, default=suggest_max_memory())
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
-    program.add_argument('--in-memory', help='use in-memory processing', dest='in_memory', default=False, action='store_true')
+    program.add_argument('--in-memory', help='use in-memory processing', dest='in_memory', default=True, action='store_true')
     program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
     return program.parse_args()
 
