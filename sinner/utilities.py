@@ -44,7 +44,7 @@ def update_status(message: str, caller: str = 'GLOBAL') -> None:
 
 
 def get_temp_directory_path(target_path: str) -> str:
-    target_name, _ = os.path.splitext(os.path.basename(target_path))
+    target_name = get_file_name(target_path)
     target_directory_path = os.path.dirname(target_path)
     return os.path.join(target_directory_path, TEMP_DIRECTORY, target_name)
 
@@ -54,7 +54,7 @@ def normalize_output_path(source_path: str, target_path: str, output_path: str |
     if source_path and target_path:
         if output_path is None:
             output_path = os.path.dirname(target_path)
-        source_name, _ = os.path.splitext(os.path.basename(source_path))
+        source_name = get_file_name(source_path)
         target_name, target_extension = os.path.splitext(os.path.basename(target_path))
         if os.path.isdir(output_path):
             return os.path.join(output_path, source_name + '-' + target_name + target_extension)
@@ -167,7 +167,7 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
     result: List[str] = []
     files_list = glob.glob(os.path.join(path, '*.py'))
     for file in files_list:
-        module_name = os.path.splitext(os.path.basename(file))[0]
+        module_name = get_file_name(file)
         if module_name == '__init__':
             continue
         descendant = load_class(os.path.dirname(file), module_name)
@@ -181,7 +181,7 @@ def get_app_dir() -> str:
 
 
 def get_file_name(file_path: str) -> str:
-    return os.path.splitext(os.path.basename(file_path))[0]
+    return get_file_name(file_path)
 
 
 def delete_subdirectories(root_dir: str, subdirectories: List[str]) -> None:

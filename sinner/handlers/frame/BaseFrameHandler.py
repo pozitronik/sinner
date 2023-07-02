@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import load_class
+from sinner.utilities import load_class, get_file_name
 
 
 class BaseFrameHandler(ABC):
@@ -45,7 +45,7 @@ class BaseFrameHandler(ABC):
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-        return [(int(os.path.splitext(os.path.basename(file_path))[0]), file_path) for file_path in frames_path]
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path]
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
