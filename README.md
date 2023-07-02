@@ -5,16 +5,16 @@
 This is the rework of the [s0md3v/roop](https://github.com/s0md3v/roop/) that I'm working on for entertainment and educational purposes. It doesn't aim to be popular; it's just a fork made the way I want it to be.
 The tasks that I aim to accomplish here are:
 
-- :white_check_mark: Rewriting the code using OOP
-- :white_check_mark: Provide a clear and easy API to make processing modules
-- :white_check_mark: Support to different input and output data types, implemented over frame handlers
-- :white_check_mark: Adding strict typing and static analysis on top of it
-- :white_check_mark: In-memory processing without temporary frames
-- :white_check_mark: Ability to continue processing after a stop
-- :white_check_mark: Continuous processing chain
-- :soon: Providing code coverage with tests
-- :white_square_button: Do better swapping on rotated faces
-- :white_square_button: Do face selection
+- :white_check_mark: Rewriting the code using object-oriented programming (OOP).
+- :white_check_mark: Providing a clear and user-friendly API for creating processing modules.
+- :white_check_mark: Supporting different input and output data types through frame handlers.
+- :white_check_mark: Implementing strict typing and static analysis for improved code quality.
+- :white_check_mark: Enabling in-memory processing without the need for temporary frames.
+- :white_check_mark: Allowing the ability to resume processing after a stop.
+- :white_check_mark: Establishing a continuous processing chain.
+- :soon: Providing code coverage through comprehensive tests.
+- :white_square_button: Improving swapping on rotated faces.
+- :white_square_button: Implementing face selection functionality.
 
 ## How do I install it?
 
