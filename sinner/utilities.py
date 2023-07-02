@@ -176,8 +176,8 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
     return result
 
 
-def get_app_dir() -> str:
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def get_app_dir(sub_path: str = '') -> str:
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), sub_path)
 
 
 def get_file_name(file_path: str) -> str:
