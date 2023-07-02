@@ -44,8 +44,8 @@ def suggest_execution_providers() -> List[str]:
 
 def parse_args() -> Namespace:
     program = argparse.ArgumentParser()
-    program.add_argument('--source', help='select an source image', dest='source_path')
-    program.add_argument('--target', help='select an target image or frame', dest='target_path')
+    program.add_argument('--source', help='select an source', dest='source_path')
+    program.add_argument('--target', help='select an target', dest='target_path')
     program.add_argument('--output', help='select output file or directory', dest='output_path')
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'],
                          choices=list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'), nargs='+')
