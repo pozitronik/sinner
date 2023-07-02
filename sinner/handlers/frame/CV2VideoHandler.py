@@ -89,7 +89,7 @@ class CV2VideoHandler(BaseFrameHandler):
             return False
 
     @staticmethod
-    def suggest_codec():
+    def suggest_codec() -> int:
         codecs_strings = ["H264", "X264", "DIVX", "XVID", "MJPG", "WMV1", "WMV2", "FMP4", "mp4v", "avc1", "I420", "IYUV", "mpg1", ]
         for codec in codecs_strings:
             fourcc = cv2.VideoWriter_fourcc(*codec)
