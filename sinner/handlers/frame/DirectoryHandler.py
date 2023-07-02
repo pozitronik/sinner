@@ -10,6 +10,8 @@ from sinner.utilities import read_image
 class DirectoryHandler(BaseFrameHandler):
 
     def __init__(self, target_path: str):
+        if not os.path.exists(target_path) or not os.path.isdir(target_path):
+            raise Exception(f"{target_path} should point to a directory with png images")
         super().__init__(target_path)
 
     def detect_fps(self) -> float:
