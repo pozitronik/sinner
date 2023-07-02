@@ -78,7 +78,7 @@ class CV2VideoHandler(BaseFrameHandler):
             frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
             first_frame = cv2.imread(frame_files[0])
             height, width, channels = first_frame.shape
-            fourcc = cv2.VideoWriter_fourcc(*'H264')  # Specify the frame codec
+            fourcc = self.suggest_codec()
             video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
             for frame_path in frame_files:
                 frame = cv2.imread(frame_path)
@@ -87,3 +87,12 @@ class CV2VideoHandler(BaseFrameHandler):
             return True
         except Exception:
             return False
+
+    @staticmethod
+    def suggest_codec():
+        codecs_strings = ["H264", "X264", "DIVX", "XVID", "MJPG", "WMV1", "WMV2", "FMP4", "mp4v", "avc1", "I420", "IYUV", "mpg1", ]
+        for codec in codecs_strings:
+            fourcc = cv2.VideoWriter_fourcc(*codec)
+            if 0 != fourcc:
+                return fourcc
+        raise NotImplementedError('No supported codecs found')
