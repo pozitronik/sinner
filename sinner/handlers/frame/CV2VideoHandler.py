@@ -73,6 +73,7 @@ class CV2VideoHandler(BaseFrameHandler):
         if audio_target is not None:
             print('Sound is not supported in CV2VideoHandler')
         try:
+            Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
             first_frame = cv2.imread(frame_files[0])
             height, width, channels = first_frame.shape
