@@ -10,7 +10,7 @@ from sinner.utilities import read_image, is_image
 class ImageHandler(BaseFrameHandler):
 
     def __init__(self, target_path: str):
-        if not os.path.exists(target_path) or not os.path.isfile(target_path) and not is_image(target_path):
+        if not os.path.exists(target_path) or not os.path.isfile(target_path) or not is_image(target_path):
             raise Exception(f"{target_path} should point to a image file")
         super().__init__(target_path)
 
@@ -28,6 +28,7 @@ class ImageHandler(BaseFrameHandler):
 
     def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
         try:
+            # fixme: there can by othere files in the from_dir
             shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
             return True
         except Exception:
