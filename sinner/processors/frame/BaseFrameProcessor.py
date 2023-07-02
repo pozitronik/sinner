@@ -19,7 +19,7 @@ class BaseFrameProcessor(ABC):
     execution_threads: int
     max_memory: int
     extract_frame_method: Callable[[int], NumeratedFrame]
-    statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0}
+    statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limit_reached': 0}
 
     @staticmethod
     def create(processor_name: str, parameters: Parameters, state: State) -> 'BaseFrameProcessor':  # processors factory
@@ -51,8 +51,11 @@ class BaseFrameProcessor(ABC):
             self.statistics['mem_rss_max'] = mem_rss
         if self.statistics['mem_vms_max'] < mem_vms:
             self.statistics['mem_vms_max'] = mem_vms
-        return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
+        stat_string = '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
+        if self.statistics['limit_reached'] > 0:
+            stat_string += f"MEM LIMIT REACHED: {self.statistics['limit_reached']}"
+        return stat_string
 
     def process(self, frames_handler: BaseFrameHandler, in_memory: bool = False, desc: str = 'Processing') -> None:
         self.extract_frame_method = frames_handler.extract_frame
@@ -107,6 +110,7 @@ class BaseFrameProcessor(ABC):
                 })
                 if get_mem_usage('vms', 'g') >= self.max_memory:
                     futures[:1][0].result()
+                    self.statistics['limit_reached'] += 1
             for completed_future in as_completed(futures):
                 completed_future.result()
 
