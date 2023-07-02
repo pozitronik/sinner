@@ -49,22 +49,22 @@ Here is the list of all possible command-line parameters.
   --temp-dir TEMP_DIR   temp directory
 ```
 * `--source`: the image file containing a face, which will be used for deepfake magic.
-* `--target`: an image, a video file or a directory with png images for processing.
+* `--target`: an image, a video file, or a directory with PNG images for processing.
 * `--output`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
-* `--frame-processor`: the frame processor module or modules, that you want to apply to your files. See the [built-in frame processors](/Built-in frame processors) section for the list of build-in modules and their possibilities.
-* `--frame-handler`: a module to handle the `target`. In the most cases you should omit that parameter (sinner will figure it out itself).
-* `--fps`: the parameter to set the frames per second (FPS) in the resulting video. If not provided, the resulting video FPS will have the same FPS as the `target` video (or 30, if an image directory has used as the `target`).
-* `--keep-audio`: defaults to `true`. Keeps original audio in the resulting video.
+* `--frame-processor`: the frame processor module or modules that you want to apply to your files. See the [built-in frame processors](/Built-in frame processors) section for the list of built-in modules and their possibilities.
+* `--frame-handler`: a module to handle the `target`. In the most cases, you should omit that parameter (sinner will figure it out itself).
+* `--fps`: the parameter to set the frames per second (FPS) in the resulting video. If not provided, the resulting video's FPS will be the same as the `target`'s video (or 30, if an image directory is used as the `target`).
+* `--keep-audio`: defaults to `true`. Keeps the original audio in the resulting video.
 * `--keep-frames`: defaults to `false`. Keeps processed frames in the `temp-dir` after finishing.
-* `--many-faces`: defaults to `false`. If set to true, every frame processor in the processing chain will apply its magic to every face on every frame of the `target`. If set to `false`, just one face (just a first found, no heavy logic here) will be processed.
-* `--max-memory`: defaults to `4` for Mac and `16` for any other platforms. Maximum amount of gigs of RAM, that will be allowed for sinner use.
-**Note 1**: AI processing usually requires a significant amount of RAM. While processed, you will see the memory usage statistics, and the MEM LIMIT REACHED statistics indicates about lack of RAM.
-**Note 2**: This parameter does not affect amount of used video RAM if GPU-accelerated `execution-provider` is used.
-* `--execution-provider`: defaults to `cpu`. This parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth to try.
-* `--execution-threads`: defaults to `1`. Configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how much computing cores it have, and what amount of memory it can use. Let say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. Other case: a GPU with thousands of CUDA cores, which probably will be much faster in total, but one thread also will require a lot of those cores to work with. For that case I recommend to do some experiments, or wait while benchmark mode will be implemented to sinner.
-* `--in-memory`: defaults to `true`. If set to true, all frames from the `target` will be extracted to memory by processor module request, without intermediate frames extraction. If set to false, all `target` frames will be extracted as a sequence of png files before processing (an 'old roop' way).
-**Note**: this option does not affect memory usage, but it can have a slight influence to processing speed.
-* `--temp-dir`: defaults to `temp` subdirectory in the application directory. A way to provide directory, where processed (and, in case of `--in-memory=false`, extracted too) frames will be saved.
+* `--many-faces`: defaults to `false`. If set to true, every frame processor in the processing chain will apply its magic to every face on every frame of the `target`. If set to `false`, only one face (the first one found, no heavy logic here) will be processed.
+* `--max-memory`: defaults to `4` for Mac and `16` for any other platforms. The maximum amount of gigabytes of RAM that will be allowed for sinner use.
+**Note 1**: AI processing usually requires a significant amount of RAM. While processing, you will see the memory usage statistics, and the `MEM LIMIT REACHED` statistics indicate a lack of RAM.
+**Note 2**: This parameter does not affect the amount of used video RAM if a GPU-accelerated `execution-provider` is used.
+* `--execution-provider`: defaults to `cpu`. This parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth trying.
+* `--execution-threads`: defaults to `1`. Configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or waiting until the benchmark mode is implemented in sinner.
+* `--in-memory`: defaults to `true`. If set to true, all frames from the `target` will be extracted to memory by the processor module's request, without intermediate frames extraction. If set to false, all `target` frames will be extracted as a sequence of PNG files before processing (an 'old roop' way).
+**Note**: this option does not affect memory usage, but it can slightly influence to processing speed.
+* `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 
 ## Built-in frame processors
 
