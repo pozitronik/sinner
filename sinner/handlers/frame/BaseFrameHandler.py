@@ -44,7 +44,8 @@ class BaseFrameHandler(ABC):
         pass
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        return [(i + 1, s) for i, s in sorted(enumerate(glob.glob(os.path.join(glob.escape(path), '*.png'))))]
+        frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
+        return [(int(os.path.splitext(os.path.basename(file_path))[0]), file_path) for file_path in frames_path]
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
