@@ -67,6 +67,6 @@ def tests_iterator() -> None:
     assert isinstance(test_object, Iterator)
     frame_counter = 0
     for frame_index in test_object:
-        assert (int, frame_index)
+        assert isinstance(int, frame_index)
         frame_counter += 1
     assert frame_counter == 1

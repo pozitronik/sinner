@@ -61,13 +61,13 @@ def tests_iterator() -> None:
     assert isinstance(cv2, Iterator)
     frame_counter = 0
     for frame_index in cv2:
-        assert (int, frame_index)
+        assert isinstance(frame_index, int)
         frame_counter += 1
     assert frame_counter == TARGET_FC
 
     cv2.current_frame_index = 90
     frame_counter = 0
     for frame_index in cv2:
-        assert (int, frame_index)
+        assert isinstance(frame_index, int)
         frame_counter += 1
     assert frame_counter == 8
