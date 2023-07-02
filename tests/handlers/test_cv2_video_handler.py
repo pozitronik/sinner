@@ -51,7 +51,7 @@ def test_get_frames_paths() -> None:
     assert (TARGET_FC, resolve_relative_path('../data/temp/98.png')) == last_item
 
 
-def test_xtract_frame() -> None:
+def test_extract_frame() -> None:
     first_frame = get_test_object().extract_frame(1)
     assert 1 == first_frame[0]
     assert isinstance(first_frame[1], ndarray)
