@@ -25,7 +25,7 @@ In short, you need to install python 3.9 or a later version, VC runtimes, and de
 
 ## How do I use it?
 
-Go to application folder and run `python run.py` with desired set of command-line parameters (or just pick one of the [example](#command-line-usage-exam) and make changes to suit your need).
+Go to application folder and run `python run.py` with desired set of command-line parameters (or just pick one of the [example](#command-line-usage-examples) and make changes to suit your need).
 
 Here is the list of all possible command-line parameters. 
 ```
