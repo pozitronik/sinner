@@ -3,9 +3,9 @@ import multiprocessing
 from sinner.face_analyser import FaceAnalyser
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.state import State
-from sinner.typing import Frame, FaceSwapperType
+from sinner.typing import Frame, FaceSwapperType, Face
 from sinner.utilities import TEMP_DIRECTORY, resolve_relative_path, read_image
-from tests.constants import source_jpg, target_png
+from tests.constants import source_jpg, target_png, IMAGE_SHAPE
 
 
 def get_test_state() -> State:
@@ -28,6 +28,14 @@ def test_init():
     assert (test_object._face_swapper, FaceSwapperType)
 
 
+def test_face_analysis(): # todo: move to face_analyser_test
+    face = get_test_object().source_face
+    assert (face, Face)
+    assert face.age == 31
+    assert face.sex == 'F'
+
+
 def test_process_frame():
     processed_frame = get_test_object().process_frame(read_image(target_png))
     assert (processed_frame, Frame)
+    assert processed_frame.shape == IMAGE_SHAPE
