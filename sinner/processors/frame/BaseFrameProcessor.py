@@ -57,7 +57,7 @@ class BaseFrameProcessor(ABC):
             stat_string += f"MEM LIMIT REACHED: {self.statistics['limit_reached']}"
         return stat_string
 
-    def process(self, frames_handler: BaseFrameHandler, in_memory: bool = False, desc: str = 'Processing') -> None:
+    def process(self, frames_handler: BaseFrameHandler, in_memory: bool = True, desc: str = 'Processing') -> None:
         self.extract_frame_method = frames_handler.extract_frame
         self.state.processor_name = self.__class__.__name__
         frames_handler.current_frame_index = self.state.processed_frames_count
