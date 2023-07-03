@@ -19,7 +19,7 @@ class BaseFrameProcessor(ABC):
     execution_threads: int
     max_memory: int
     extract_frame_method: Callable[[int], NumeratedFrame]
-    statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limit_reached': 0}
+    statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
 
     @staticmethod
     def create(processor_name: str, parameters: Parameters, state: State) -> 'BaseFrameProcessor':  # processors factory
@@ -86,15 +86,20 @@ class BaseFrameProcessor(ABC):
             print(exception)
             pass
 
+    def get_postfix(self, futures_length: int) -> dict:
+        postfix = {
+            'memory_usage': self.get_mem_usage(),
+            'futures': futures_length,
+        }
+        if self.statistics['limits_reaches'] > 0:
+            postfix['limit_reaches'] = self.statistics['limits_reaches']
+        return postfix
+
     def multi_process_frame(self, frames_list: FramesDataType, process_frames: Callable[[FrameDataType], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
+            progress.set_postfix(self.get_postfix(len(futures)))
             progress.update()
-            progress.set_postfix({
-                'memory_usage': self.get_mem_usage(),
-                'limit_reached': self.statistics['limit_reached'] if self.statistics['limit_reached'] > 0 else None,
-                'futures': len(futures),
-            })
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
@@ -102,14 +107,10 @@ class BaseFrameProcessor(ABC):
                 future: Future[None] = executor.submit(process_frames, frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
-                progress.set_postfix({
-                    'memory_usage': self.get_mem_usage(),
-                    'limit_reached': self.statistics['limit_reached'] if self.statistics['limit_reached'] > 0 else None,
-                    'futures': len(futures)
-                })
+                progress.set_postfix(self.get_postfix(len(futures)))
                 if get_mem_usage('vms', 'g') >= self.max_memory:
                     futures[:1][0].result()
-                    self.statistics['limit_reached'] += 1
+                    self.statistics['limits_reaches'] += 1
             for completed_future in as_completed(futures):
                 completed_future.result()
 
