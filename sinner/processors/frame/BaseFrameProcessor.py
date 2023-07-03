@@ -104,6 +104,7 @@ class BaseFrameProcessor(ABC):
                 futures.append(future)
                 progress.set_postfix({
                     'memory_usage': self.get_mem_usage(),
+                    'limit_reached': self.statistics['limit_reached'] if self.statistics['limit_reached'] > 0 else None,
                     'futures': len(futures)
                 })
                 if get_mem_usage('vms', 'g') >= self.max_memory:
