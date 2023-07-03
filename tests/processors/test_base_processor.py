@@ -1,18 +1,24 @@
 import multiprocessing
 
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.state import State
 from sinner.typing import Frame
-from sinner.utilities import TEMP_DIRECTORY, resolve_relative_path, read_image
-from tests.constants import source_jpg, target_png, IMAGE_SHAPE
+from sinner.utilities import read_image
+from tests.constants import source_jpg, target_png, IMAGE_SHAPE, target_mp4, tmp_dir
+
+
+def get_test_handler() -> BaseFrameHandler:
+    return VideoHandler(target_path=target_mp4)
 
 
 def get_test_state() -> State:
     return State(
         source_path=source_jpg,
-        target_path=target_png,
-        frames_count=1,
-        temp_dir=resolve_relative_path(TEMP_DIRECTORY)
+        target_path=target_mp4,
+        frames_count=98,
+        temp_dir=tmp_dir
     )
 
 
@@ -36,11 +42,12 @@ def test_process_frame():
 
 
 def test_process():
-    pass
+    get_test_object().process(frames_handler=get_test_handler())
 
 
 def test_process_frames():
-    pass
+    get_test_object().process_frames(get_test_handler())  # in memory
+    get_test_object().process_frames(get_test_handler().get_frames_paths(get_test_state().in_dir))  # via frames
 
 
 def test_multi_process_frame():
