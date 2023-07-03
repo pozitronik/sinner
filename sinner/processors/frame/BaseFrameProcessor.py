@@ -54,7 +54,7 @@ class BaseFrameProcessor(ABC):
         stat_string = '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
         if self.statistics['limit_reached'] > 0:
-            stat_string += f"MEM LIMIT REACHED: {self.statistics['limit_reached']}"
+            stat_string += f" MEM LIMIT REACHED: {self.statistics['limit_reached']}"
         return stat_string
 
     def process(self, frames_handler: BaseFrameHandler, in_memory: bool = True, desc: str = 'Processing') -> None:
