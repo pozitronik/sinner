@@ -51,11 +51,8 @@ class BaseFrameProcessor(ABC):
             self.statistics['mem_rss_max'] = mem_rss
         if self.statistics['mem_vms_max'] < mem_vms:
             self.statistics['mem_vms_max'] = mem_vms
-        stat_string = '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
+        return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
-        if self.statistics['limit_reached'] > 0:
-            stat_string += f" MEM LIMIT REACHED: {self.statistics['limit_reached']}"
-        return stat_string
 
     def process(self, frames_handler: BaseFrameHandler, in_memory: bool = True, desc: str = 'Processing') -> None:
         self.extract_frame_method = frames_handler.extract_frame
@@ -95,7 +92,8 @@ class BaseFrameProcessor(ABC):
             progress.update()
             progress.set_postfix({
                 'memory_usage': self.get_mem_usage(),
-                'futures': len(futures)
+                'limit_reached': self.statistics['limit_reached'] if self.statistics['limit_reached'] > 0 else None,
+                'futures': len(futures),
             })
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
