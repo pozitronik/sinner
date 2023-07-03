@@ -4,8 +4,8 @@ from sinner.face_analyser import FaceAnalyser
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.state import State
 from sinner.typing import Frame, FaceSwapperType, Face
-from sinner.utilities import TEMP_DIRECTORY, resolve_relative_path, read_image
-from tests.constants import source_jpg, target_png, IMAGE_SHAPE
+from sinner.utilities import read_image
+from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir
 
 
 def get_test_state() -> State:
@@ -13,7 +13,7 @@ def get_test_state() -> State:
         source_path=source_jpg,
         target_path=target_png,
         frames_count=1,
-        temp_dir=resolve_relative_path(TEMP_DIRECTORY)
+        temp_dir=tmp_dir
     )
 
 
