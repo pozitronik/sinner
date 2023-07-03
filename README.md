@@ -89,7 +89,7 @@ python run.py --source="d:\pictures\cool_photo.jpg" --target="d:\videos\not_a_po
 ```
 Swap all faces on the `d:\videos\not_a_porn.mp4` video file to the face from `d:\pictures\cool_photo.jpg` and enhance all faces quality, both processing will be made using the `cuda` provider, and result will be saved to the `d:\results\result.mp4`.
 ```cmd
-python run.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_dir" --output="d:\pictures\pngs_dir\enhanced" --frame-processor=FaceEnhancer --many-faces --max-memory=24 --execution-provider=cuda --execution-treads=8
+python run.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_dir" --output="d:\pictures\pngs_dir\enhanced" --frame-processor=FaceEnhancer --many-faces --max-memory=24 --execution-provider=cuda --execution-threads=8
 ```
 Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory using the `cuda` provider and 8 simultaneous execution threads, with limit of 24 Gb RAM, and save every enhanced image to the `d:\pictures\pngs_dir\enhanced` directory.<br/>
 **Note 1**: only PNG images are supported at the moment.<br/>
