@@ -1,5 +1,6 @@
 import glob
 import os
+import shutil
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -27,4 +28,5 @@ class DirectoryHandler(BaseFrameHandler):
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
+        shutil.copytree(from_dir, filename, dirs_exist_ok=True)
         return True  # Handler can't product any result
