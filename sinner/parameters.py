@@ -54,6 +54,7 @@ def parse_args() -> Namespace:
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('--in-memory', help='use in-memory processing', dest='in_memory', default=True, action='store_true')
+    program.add_argument('--preview', help='show preview window', dest='preview', default=True, action='store_true')
     program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
     return program.parse_args()
 
@@ -73,6 +74,7 @@ class Parameters:
     execution_threads: int
     frame_handler: str
     temp_dir: str
+    preview: bool
 
     def __init__(self, args: Namespace | None = None) -> None:
         args = parse_args() if args is None else args
@@ -90,6 +92,7 @@ class Parameters:
         self.execution_threads = args.execution_threads
         self.frame_handler = self.set_frame_handler(args.frame_handler)
         self.temp_dir = self.suggest_temp_dir(args.temp_dir)
+        self.preview = args.preview
 
         if not self.validate():
             quit()

@@ -2,6 +2,7 @@
 import signal
 import sys
 
+from sinner.Preview import Preview
 from sinner.core import Core
 from sinner.parameters import Parameters
 from sinner.utilities import limit_resources
@@ -14,4 +15,8 @@ if __name__ == '__main__':
     params = Parameters()
     limit_resources(params.max_memory)
     core = Core(params=params)
-    core.run()
+    if params.preview:
+        preview = Preview(core)
+        preview.show()
+    else:
+        core.run()

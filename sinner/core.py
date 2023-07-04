@@ -12,6 +12,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.parameters import Parameters
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.state import State
+from sinner.typing import Frame
 from sinner.utilities import is_image, is_video, delete_subdirectories
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -74,3 +75,17 @@ class Core:
         if is_video(target_path):
             return VideoHandler(target_path)
         raise NotImplementedError("The handler for current target type is not implemented")
+
+    def get_frame(self, frame_number: int = 0) -> Frame:
+        extractor_handler = self.suggest_handler(self.params.target_path)
+        frame = extractor_handler.extract_frame(frame_number)
+        state = State(
+            source_path=self.params.source_path,
+            target_path=self.params.target_path,
+            frames_count=1,
+            temp_dir=self.params.temp_dir
+        )
+        for processor_name in self.params.frame_processors:
+            current_processor = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.params, state=state)
+            frame = current_processor.process_frame(frame)
+        return frame
