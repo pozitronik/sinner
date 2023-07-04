@@ -17,6 +17,7 @@ if __name__ == '__main__':
     core = Core(params=params)
     if params.preview:
         preview = Preview(core)
-        preview.show()
+        window = preview.show()
+        window.mainloop()
     else:
         core.run()

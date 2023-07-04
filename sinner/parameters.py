@@ -54,7 +54,7 @@ def parse_args() -> Namespace:
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('--in-memory', help='use in-memory processing', dest='in_memory', default=True, action='store_true')
-    program.add_argument('--preview', help='show preview window', dest='preview', default=True, action='store_true')
+    program.add_argument('--preview', help='show preview window', dest='preview', default=False, action='store_true')
     program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
     return program.parse_args()
 

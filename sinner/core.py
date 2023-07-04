@@ -78,7 +78,7 @@ class Core:
 
     def get_frame(self, frame_number: int = 0) -> Frame:
         extractor_handler = self.suggest_handler(self.params.target_path)
-        frame = extractor_handler.extract_frame(frame_number)
+        _, frame = extractor_handler.extract_frame(frame_number)
         state = State(
             source_path=self.params.source_path,
             target_path=self.params.target_path,
