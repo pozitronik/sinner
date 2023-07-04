@@ -31,10 +31,11 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core:
     params: Parameters
-    frames_handler: BaseFrameHandler
+    preview_processors: dict[str, BaseFrameProcessor]  # cached processors for preview
 
     def __init__(self, params: Parameters):
         self.params = params
+        self.preview_processors = {}
 
     def run(self) -> None:
         current_target_path = self.params.target_path
@@ -87,18 +88,21 @@ class Core:
                 temp_dir=self.params.temp_dir
             )
             for processor_name in self.params.frame_processors:
-                current_processor = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.params, state=state)
-                frame = current_processor.process_frame(frame)
+                if processor_name not in self.preview_processors:
+                    self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.params, state=state)
+                frame = self.preview_processors[processor_name].process_frame(frame)
         return frame
 
     def change_source(self, data: str | None) -> bool:
         if data != '':
             self.params.source_path = data
+            self.preview_processors.clear()
             return True
         return False
 
     def change_target(self, data: str) -> bool:
         if data != '':
             self.params.target_path = data
+            self.preview_processors.clear()
             return True
         return False
