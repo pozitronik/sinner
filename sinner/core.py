@@ -76,16 +76,17 @@ class Core:
             return VideoHandler(target_path)
         raise NotImplementedError("The handler for current target type is not implemented")
 
-    def get_frame(self, frame_number: int = 0) -> Frame:
+    def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame:
         extractor_handler = self.suggest_handler(self.params.target_path)
         _, frame = extractor_handler.extract_frame(frame_number)
-        state = State(
-            source_path=self.params.source_path,
-            target_path=self.params.target_path,
-            frames_count=1,
-            temp_dir=self.params.temp_dir
-        )
-        for processor_name in self.params.frame_processors:
-            current_processor = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.params, state=state)
-            frame = current_processor.process_frame(frame)
+        if processed: #  return processed frame
+            state = State(
+                source_path=self.params.source_path,
+                target_path=self.params.target_path,
+                frames_count=1,
+                temp_dir=self.params.temp_dir
+            )
+            for processor_name in self.params.frame_processors:
+                current_processor = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.params, state=state)
+                frame = current_processor.process_frame(frame)
         return frame

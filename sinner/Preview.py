@@ -27,8 +27,10 @@ class Preview:
 
         self.preview_label = ctk.CTkLabel(root, text='')
         self.preview_label.pack(fill='both', expand=True)
+
         # self.preview_label.bind('<Configure>', lambda event: self.resize_image(event, self.preview_label))
         preview_slider = ctk.CTkSlider(root, to=0, command=lambda frame_value: self.update_preview(self.preview_label, frame_value))
+        self.preview_label.bind("<Double-Button-1>", lambda event: self.update_preview(self.preview_label, int(preview_slider.get()), True))
 
         if is_image(self.core.params.target_path):
             preview_slider.pack_forget()
@@ -36,9 +38,9 @@ class Preview:
             video_frame_total = BaseFrameHandler.create(handler_name=self.core.params.frame_handler, target_path=self.core.params.target_path).fc
             preview_slider.configure(to=video_frame_total)
             preview_slider.pack(fill='x')
-            preview_slider.set(0)
+            preview_slider.set(video_frame_total / 2)
 
-        self.update_preview(self.preview_label)
+        self.update_preview(self.preview_label, int(preview_slider.get()))
         return root
 
     @staticmethod
@@ -46,13 +48,10 @@ class Preview:
         image = Image.fromarray(frame)
         return ImageTk.PhotoImage(image)
 
-    def update_preview(self, preview_label: CTkLabel, frame_number: int = 0) -> None:
-        frame = self.core.get_frame(frame_number)
+    def update_preview(self, preview_label: CTkLabel, frame_number: int = 0, processed: bool = False) -> None:
+        frame = self.core.get_frame(frame_number, processed)
         pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-        label_width = preview_label.winfo_width()
-        label_height = preview_label.winfo_height()
-        pil_image = pil_image.resize((label_width, label_height), Resampling.LANCZOS)
         image = ImageTk.PhotoImage(pil_image)
         preview_label.configure(image=image)
         preview_label.image = image
