@@ -51,13 +51,13 @@ class Preview:
             self.preview_slider.set(video_frame_total / 2)
 
     def change_source(self, frame_number: int = 0) -> None:
-        self.core.change_source(ctk.filedialog.askopenfilename(title='Select a source'))
-        self.update_preview(self.preview_label, frame_number, True)
+        if self.core.change_source(ctk.filedialog.askopenfilename(title='Select a source')):
+            self.update_preview(self.preview_label, frame_number, True)
 
     def change_target(self, frame_number: int = 0) -> None:
-        self.core.change_target(ctk.filedialog.askopenfilename(title='Select a target'))
-        self.update_preview(self.preview_label, frame_number, True)
-        self.init_slider()
+        if self.core.change_target(ctk.filedialog.askopenfilename(title='Select a target')):
+            self.update_preview(self.preview_label, frame_number, True)
+            self.init_slider()
 
     @staticmethod
     def render_image_preview(frame: Frame) -> ImageTk.PhotoImage:

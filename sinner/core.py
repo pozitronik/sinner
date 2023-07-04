@@ -91,10 +91,14 @@ class Core:
                 frame = current_processor.process_frame(frame)
         return frame
 
-    def change_source(self, data: str | None) -> None:
+    def change_source(self, data: str | None) -> bool:
         if data != '':
             self.params.source_path = data
+            return True
+        return False
 
-    def change_target(self, data: str) -> None:
+    def change_target(self, data: str) -> bool:
         if data != '':
             self.params.target_path = data
+            return True
+        return False
