@@ -86,7 +86,7 @@ class BaseFrameProcessor(ABC):
             print(exception)
             pass
 
-    def get_postfix(self, futures_length: int) -> dict:
+    def get_postfix(self, futures_length: int) -> dict[str, Any]:
         postfix = {
             'memory_usage': self.get_mem_usage(),
             'futures': futures_length,
