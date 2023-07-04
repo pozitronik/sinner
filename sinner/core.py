@@ -79,7 +79,7 @@ class Core:
     def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame:
         extractor_handler = self.suggest_handler(self.params.target_path)
         _, frame = extractor_handler.extract_frame(frame_number)
-        if processed: #  return processed frame
+        if processed:  # return processed frame
             state = State(
                 source_path=self.params.source_path,
                 target_path=self.params.target_path,
@@ -90,3 +90,11 @@ class Core:
                 current_processor = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.params, state=state)
                 frame = current_processor.process_frame(frame)
         return frame
+
+    def change_source(self, data: str | None) -> None:
+        if data != '':
+            self.params.source_path = data
+
+    def change_target(self, data: str) -> None:
+        if data != '':
+            self.params.target_path = data

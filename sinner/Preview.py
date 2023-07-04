@@ -25,12 +25,15 @@ class Preview:
         root.configure()
         root.resizable(width=True, height=True)
 
-        self.preview_label = ctk.CTkLabel(root, text='')
-        self.preview_label.pack(fill='both', expand=True)
+        self.preview_label = CTkLabel(root, text='')
+        self.preview_label.drop_target = True
 
         # self.preview_label.bind('<Configure>', lambda event: self.resize_image(event, self.preview_label))
         preview_slider = ctk.CTkSlider(root, to=0, command=lambda frame_value: self.update_preview(self.preview_label, frame_value))
         self.preview_label.bind("<Double-Button-1>", lambda event: self.update_preview(self.preview_label, int(preview_slider.get()), True))
+        self.preview_label.bind("<Button-2>", lambda event: self.change_source(int(preview_slider.get())))
+        self.preview_label.bind("<Button-3>", lambda event: self.change_target(int(preview_slider.get())))
+        self.preview_label.pack(fill='both', expand=True)
 
         if is_image(self.core.params.target_path):
             preview_slider.pack_forget()
@@ -42,6 +45,14 @@ class Preview:
 
         self.update_preview(self.preview_label, int(preview_slider.get()))
         return root
+
+    def change_source(self, frame_number: int = 0) -> None:
+        self.core.change_source(ctk.filedialog.askopenfilename(title='Select a source'))
+        self.update_preview(self.preview_label, frame_number, True)
+
+    def change_target(self, frame_number: int = 0) -> None:
+        self.core.change_target(ctk.filedialog.askopenfilename(title='Select a target'))
+        self.update_preview(self.preview_label, frame_number, True)
 
     @staticmethod
     def render_image_preview(frame: Frame) -> ImageTk.PhotoImage:
