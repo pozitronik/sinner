@@ -1,3 +1,4 @@
+import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, W, EW, E, NE, NW
 
 import cv2
@@ -56,7 +57,10 @@ class Preview:
 
         current_position_label = Label(frame, textvariable=self.current_position)
         current_position_label.pack(anchor=NE, side=LEFT)
-
+        preview_button = Button(frame, text="preview", compound=LEFT, command=lambda: self.update_preview(self.preview_label, int(self.preview_slider.get()), True))
+        preview_button.pack(anchor=NE, side=LEFT)
+        run_button = Button(frame, text="run", compound=LEFT, command=lambda: self.run_processing())
+        run_button.pack(anchor=NE, side=LEFT)
         frame.pack(fill='x')
 
     def init_open_source_control(self) -> None:
@@ -128,3 +132,9 @@ class Preview:
         # Update the label's image
         label.configure(image=resized_photo_image)
         label.image = resized_photo_image
+
+    def run_processing(self):
+        thread = threading.Thread(target=self.core.run)
+        thread.start()
+
+
