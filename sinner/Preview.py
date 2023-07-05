@@ -17,8 +17,10 @@ class Preview:
     root: CTk
     preview_label: CTkLabel
     preview_slider: CTkSlider
+    run_thread: threading.Thread | None
 
     def __init__(self, core: Core):
+        self.run_thread = None
         self.core = core
         self.root = CTk()
         self.root.title('Preview')
@@ -108,11 +110,11 @@ class Preview:
         self.current_position.set(f'{int(frame_number)}/{self.preview_slider.cget("to")}')
 
     @staticmethod
-    def destroy():
+    def destroy() -> None:
         quit()
 
     @staticmethod
-    def resize_image(event, label: CTkLabel):
+    def resize_image(event, label: CTkLabel) -> None:
         # Get the new size of the label
         pil_image = ImageTk.getimage(label.image)
 
@@ -133,8 +135,14 @@ class Preview:
         label.configure(image=resized_photo_image)
         label.image = resized_photo_image
 
-    def run_processing(self):
-        thread = threading.Thread(target=self.core.run)
-        thread.start()
+    def run_processing(self) -> None:
+        completion_event = threading.Event()
+        result_variable = StringVar()
+        if self.run_thread is None:
+            self.run_thread = threading.Thread(target=self.core.run, args=(completion_event, result_variable))
+            self.run_thread.start()
+        else:
+            self.core.stop()
+            self.run_thread.join()
 
 

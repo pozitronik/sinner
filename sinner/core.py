@@ -32,15 +32,19 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 class Core:
     params: Parameters
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for preview
+    _stop_flag: bool = False
 
     def __init__(self, params: Parameters):
         self.params = params
         self.preview_processors = {}
 
     def run(self) -> None:
+        self._stop_flag = False
         current_target_path = self.params.target_path
         temp_resources: List[str] = []  # list of temporary created resources
         for processor_name in self.params.frame_processors:
+            if self._stop_flag:  # todo: create a shared variable to stop processing
+                continue
             current_handler = self.suggest_handler(current_target_path)
             state = State(
                 source_path=self.params.source_path,
@@ -106,3 +110,6 @@ class Core:
             self.preview_processors.clear()
             return True
         return False
+
+    def stop(self):
+        self._stop_flag = True
