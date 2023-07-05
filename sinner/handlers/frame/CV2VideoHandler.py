@@ -30,7 +30,7 @@ class CV2VideoHandler(BaseFrameHandler):
         capture.release()
         return fps
 
-    def detect_fc(self) -> int:
+    def detect_fc(self) -> int:  # this value can be inaccurate
         capture = self.open()
         video_frame_total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         capture.release()
