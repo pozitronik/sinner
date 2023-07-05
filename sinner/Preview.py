@@ -56,6 +56,8 @@ class Preview:
         current_position_label.pack(anchor=NE, side=LEFT)
         preview_button = Button(frame, text="preview", compound=LEFT, command=lambda: self.update_preview(self.preview_label, int(self.preview_slider.get()), True))
         preview_button.pack(anchor=NE, side=LEFT)
+        save_button = Button(frame, text="save", compound=LEFT, command=lambda: self.save_frame(self.preview_label))
+        save_button.pack(anchor=NE, side=LEFT)
         # run_button = Button(frame, text="run", compound=LEFT, command=lambda: self.run_processing())
         # run_button.pack(anchor=NE, side=LEFT)
         frame.pack(fill=X)
@@ -133,3 +135,11 @@ class Preview:
         self.progress_bar = Progressbar(frame, mode='indeterminate', value=value, maximum=maximum)
         self.progress_bar.pack(pady=10, fill=X)
         frame.pack(fill=X)
+
+    @staticmethod
+    def save_frame(preview_label: CTkLabel):
+        save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
+        if save_file != ' ':
+            tk_image: ImageTk.PhotoImage = preview_label.cget('image')
+            pil_image = ImageTk.getimage(tk_image)
+            pil_image.save(save_file)
