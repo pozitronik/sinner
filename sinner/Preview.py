@@ -5,7 +5,6 @@ from tkinter.ttk import Progressbar
 import cv2
 
 from PIL import Image, ImageTk
-from PIL.Image import Resampling
 from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner.core import Core
@@ -16,6 +15,8 @@ from sinner.utilities import is_image, is_video
 class Preview:
     core: Core
     root: CTk
+    source_path_entry: Entry
+    target_path_entry: Entry
     preview_label: CTkLabel
     preview_slider: CTkSlider
     progress_bar: Progressbar
@@ -74,9 +75,9 @@ class Preview:
 
     def init_open_source_control(self) -> None:
         frame = Frame(self.root, borderwidth=2)
-        path_entry = Entry(frame)
-        path_entry.insert(END, self.core.params.source_path)
-        path_entry.pack(side=LEFT, expand=True, fill=BOTH)
+        self.source_path_entry = Entry(frame)
+        self.source_path_entry.insert(END, self.core.params.source_path)
+        self.source_path_entry.pack(side=LEFT, expand=True, fill=BOTH)
 
         open_button = Button(frame, text="Browse for source", width=20, command=lambda: self.change_source(int(self.preview_slider.get())))
         open_button.pack(side=RIGHT)
@@ -85,9 +86,9 @@ class Preview:
     def init_open_target_control(self) -> None:
         frame = Frame(self.root, borderwidth=2)
 
-        path_entry = Entry(frame)
-        path_entry.insert(END, self.core.params.target_path)
-        path_entry.pack(side=LEFT, expand=True, fill=BOTH)
+        self.target_path_entry = Entry(frame)
+        self.target_path_entry.insert(END, self.core.params.target_path)
+        self.target_path_entry.pack(side=LEFT, expand=True, fill=BOTH)
 
         open_button = Button(frame, text="Browse for target", width=20, command=lambda: self.change_target())
         open_button.pack(side=LEFT)
@@ -96,10 +97,14 @@ class Preview:
     def change_source(self, frame_number: int = 0) -> None:
         if self.core.change_source(filedialog.askopenfilename(title='Select a source')):
             self.update_preview(self.preview_label, frame_number, True)
+            self.source_path_entry.delete(0, END)
+            self.source_path_entry.insert(END, self.core.params.source_path)
 
     def change_target(self) -> None:
         if self.core.change_target(filedialog.askopenfilename(title='Select a target')):
             self.update_preview(self.preview_label, self.update_slider(), True)
+            self.target_path_entry.delete(0, END)
+            self.target_path_entry.insert(END, self.core.params.target_path)
 
     @staticmethod
     def render_image_preview(frame: Frame) -> ImageTk.PhotoImage:
