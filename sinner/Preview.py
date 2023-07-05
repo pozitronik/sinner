@@ -44,19 +44,13 @@ class Preview:
 
         self.preview_label.bind("<Double-Button-1>", lambda event: self.update_preview(self.preview_label, int(self.preview_slider.get()), True))
         self.preview_label.bind("<Button-2>", lambda event: self.change_source(int(self.preview_slider.get())))
-        self.preview_label.bind("<Button-3>", lambda event: self.change_target(int(self.preview_slider.get())))
+        self.preview_label.bind("<Button-3>", lambda event: self.change_target())
         self.preview_label.pack(fill='both', expand=True)
 
     def init_slider(self) -> None:
         frame = Frame(self.root, borderwidth=2)
         self.preview_slider = CTkSlider(frame, to=0, command=lambda frame_value: self.update_preview(self.preview_label, frame_value))
-        if is_image(self.core.params.target_path):
-            self.preview_slider.pack_forget()
-        if is_video(self.core.params.target_path):
-            video_frame_total = BaseFrameHandler.create(handler_name=self.core.params.frame_handler, target_path=self.core.params.target_path).fc
-            self.preview_slider.configure(to=video_frame_total)
-            self.preview_slider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-            self.preview_slider.set(video_frame_total / 2)
+        self.update_slider()
 
         current_position_label = Label(frame, textvariable=self.current_position)
         current_position_label.pack(anchor=NE, side=LEFT)
@@ -65,6 +59,16 @@ class Preview:
         # run_button = Button(frame, text="run", compound=LEFT, command=lambda: self.run_processing())
         # run_button.pack(anchor=NE, side=LEFT)
         frame.pack(fill=X)
+
+    def update_slider(self) -> int:
+        if is_image(self.core.params.target_path):
+            self.preview_slider.pack_forget()
+        if is_video(self.core.params.target_path):
+            video_frame_total = BaseFrameHandler.create(handler_name=self.core.params.frame_handler, target_path=self.core.params.target_path).fc
+            self.preview_slider.configure(to=video_frame_total)
+            self.preview_slider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
+            self.preview_slider.set(video_frame_total / 2)
+        return int(self.preview_slider.get())
 
     def init_open_source_control(self) -> None:
         frame = Frame(self.root, borderwidth=2)
@@ -83,7 +87,7 @@ class Preview:
         path_entry.insert(END, self.core.params.target_path)
         path_entry.pack(side=LEFT, expand=True, fill=BOTH)
 
-        open_button = Button(frame, text="Browse for target", width=20, command=lambda: self.change_target(int(self.preview_slider.get())))
+        open_button = Button(frame, text="Browse for target", width=20, command=lambda: self.change_target())
         open_button.pack(side=LEFT)
         frame.pack(fill=X)
 
@@ -91,10 +95,9 @@ class Preview:
         if self.core.change_source(filedialog.askopenfilename(title='Select a source')):
             self.update_preview(self.preview_label, frame_number, True)
 
-    def change_target(self, frame_number: int = 0) -> None:
+    def change_target(self) -> None:
         if self.core.change_target(filedialog.askopenfilename(title='Select a target')):
-            self.update_preview(self.preview_label, frame_number, True)
-            self.init_slider()
+            self.update_preview(self.preview_label, self.update_slider(), True)
 
     @staticmethod
     def render_image_preview(frame: Frame) -> ImageTk.PhotoImage:
@@ -116,7 +119,7 @@ class Preview:
 
     def run_processing(self) -> None:
         if self.run_thread is None:
-            self.run_thread = threading.Thread(target=self.core.run, args=(self.update_progress, ))
+            self.run_thread = threading.Thread(target=self.core.run, args=(self.update_progress,))
             self.run_thread.start()
         else:
             self.core.stop()
