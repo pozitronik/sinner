@@ -1,5 +1,6 @@
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, W, EW, E, NE, NW
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X
+from tkinter.ttk import Progressbar
 
 import cv2
 
@@ -17,6 +18,7 @@ class Preview:
     root: CTk
     preview_label: CTkLabel
     preview_slider: CTkSlider
+    progress_bar: Progressbar
     run_thread: threading.Thread | None
 
     def __init__(self, core: Core):
@@ -31,6 +33,7 @@ class Preview:
     def show(self) -> CTk:
         self.init_preview()
         self.init_slider()
+        # self.init_progressbar(maximum=int(self.preview_slider.cget('to')))
         self.init_open_source_control()
         self.init_open_target_control()
         self.update_preview(self.preview_label, int(self.preview_slider.get()))
@@ -38,8 +41,6 @@ class Preview:
 
     def init_preview(self) -> None:
         self.preview_label = CTkLabel(self.root, text='')
-
-        # self.preview_label.bind('<Configure>', lambda event: self.resize_image(event, self.preview_label))
 
         self.preview_label.bind("<Double-Button-1>", lambda event: self.update_preview(self.preview_label, int(self.preview_slider.get()), True))
         self.preview_label.bind("<Button-2>", lambda event: self.change_source(int(self.preview_slider.get())))
@@ -61,9 +62,9 @@ class Preview:
         current_position_label.pack(anchor=NE, side=LEFT)
         preview_button = Button(frame, text="preview", compound=LEFT, command=lambda: self.update_preview(self.preview_label, int(self.preview_slider.get()), True))
         preview_button.pack(anchor=NE, side=LEFT)
-        run_button = Button(frame, text="run", compound=LEFT, command=lambda: self.run_processing())
-        run_button.pack(anchor=NE, side=LEFT)
-        frame.pack(fill='x')
+        # run_button = Button(frame, text="run", compound=LEFT, command=lambda: self.run_processing())
+        # run_button.pack(anchor=NE, side=LEFT)
+        frame.pack(fill=X)
 
     def init_open_source_control(self) -> None:
         frame = Frame(self.root, borderwidth=2)
@@ -73,7 +74,7 @@ class Preview:
 
         open_button = Button(frame, text="Browse for source", width=20, command=lambda: self.change_source(int(self.preview_slider.get())))
         open_button.pack(side=RIGHT)
-        frame.pack(fill='x')
+        frame.pack(fill=X)
 
     def init_open_target_control(self) -> None:
         frame = Frame(self.root, borderwidth=2)
@@ -84,7 +85,7 @@ class Preview:
 
         open_button = Button(frame, text="Browse for target", width=20, command=lambda: self.change_target(int(self.preview_slider.get())))
         open_button.pack(side=LEFT)
-        frame.pack(fill='x')
+        frame.pack(fill=X)
 
     def change_source(self, frame_number: int = 0) -> None:
         if self.core.change_source(filedialog.askopenfilename(title='Select a source')):
@@ -113,36 +114,19 @@ class Preview:
     def destroy() -> None:
         quit()
 
-    @staticmethod
-    def resize_image(event, label: CTkLabel) -> None:
-        # Get the new size of the label
-        pil_image = ImageTk.getimage(label.image)
-
-        original_width, original_height = pil_image.size
-        target_width, target_height = (event.width, event.height)
-
-        if original_width / original_height > target_width / target_height:
-            new_width = target_width
-            new_height = int(original_height * (target_width / original_width))
-        else:
-            new_height = target_height
-            new_width = int(original_width * (target_height / original_height))
-
-        # Resize the image to fit the label
-        resized_image = pil_image.resize((new_width, new_height), Resampling.LANCZOS)
-        resized_photo_image = ImageTk.PhotoImage(resized_image)
-        # Update the label's image
-        label.configure(image=resized_photo_image)
-        label.image = resized_photo_image
-
     def run_processing(self) -> None:
-        completion_event = threading.Event()
-        result_variable = StringVar()
         if self.run_thread is None:
-            self.run_thread = threading.Thread(target=self.core.run, args=(completion_event, result_variable))
+            self.run_thread = threading.Thread(target=self.core.run, args=(self.update_progress, ))
             self.run_thread.start()
         else:
             self.core.stop()
             self.run_thread.join()
 
+    def update_progress(self, value: int) -> None:
+        self.progress_bar['value'] = value
 
+    def init_progressbar(self, value: int = 0, maximum: int = 0) -> None:
+        frame = Frame(self.root, borderwidth=2)
+        self.progress_bar = Progressbar(frame, mode='indeterminate', value=value, maximum=maximum)
+        self.progress_bar.pack(pady=10, fill=X)
+        frame.pack(fill=X)

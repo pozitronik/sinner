@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import warnings
-from typing import List
+from typing import List, Callable
 
 import torch
 import os
@@ -38,7 +38,7 @@ class Core:
         self.params = params
         self.preview_processors = {}
 
-    def run(self) -> None:
+    def run(self, set_progress: Callable[[int], None] | None = None) -> None:
         self._stop_flag = False
         current_target_path = self.params.target_path
         temp_resources: List[str] = []  # list of temporary created resources
@@ -53,7 +53,7 @@ class Core:
                 temp_dir=self.params.temp_dir
             )
             current_processor = BaseFrameProcessor.create(processor_name, self.params, state)
-            current_processor.process(frames_handler=current_handler, in_memory=self.params.in_memory, desc=processor_name)
+            current_processor.process(frames_handler=current_handler, in_memory=self.params.in_memory, desc=processor_name, set_progress=set_progress)
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
             if not self.params.in_memory:
@@ -97,7 +97,7 @@ class Core:
                 frame = self.preview_processors[processor_name].process_frame(frame)
         return frame
 
-    def change_source(self, data: str | None) -> bool:
+    def change_source(self, data: str) -> bool:
         if data != '':
             self.params.source_path = data
             self.preview_processors.clear()
@@ -111,5 +111,5 @@ class Core:
             return True
         return False
 
-    def stop(self):
+    def stop(self) -> None:
         self._stop_flag = True
