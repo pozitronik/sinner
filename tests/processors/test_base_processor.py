@@ -57,7 +57,7 @@ def get_test_namespace() -> Namespace:
         keep_audio=False,
         keep_frames=False,
         many_faces=False,
-        in_memory=True,
+        extract_frames=False,
         frame_handler=None,
         temp_dir=tmp_dir
     )

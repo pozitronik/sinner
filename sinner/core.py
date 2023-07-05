@@ -53,10 +53,10 @@ class Core:
                 temp_dir=self.params.temp_dir
             )
             current_processor = BaseFrameProcessor.create(processor_name, self.params, state)
-            current_processor.process(frames_handler=current_handler, in_memory=self.params.in_memory, desc=processor_name, set_progress=set_progress)
+            current_processor.process(frames_handler=current_handler, in_memory=self.params.in_memory, desc=processor_name, extract_frames=self.params.extract_frames, set_progress=set_progress)
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
-            if not self.params.in_memory:
+            if not self.params.extract_frames:
                 temp_resources.append(state.in_dir)
             self.release_resources()
 

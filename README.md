@@ -48,7 +48,7 @@ Here is the list of all possible command-line parameters.
                         execution provider
   --execution-threads EXECUTION_THREADS
                         number of execution threads
-  --in-memory           use in-memory processing
+  --extract-frames      extract video frames before processing
   --temp-dir TEMP_DIR   temp directory
 ```
 * `--source`: the image file containing a face, which will be used for deepfake magic.
@@ -65,8 +65,7 @@ Here is the list of all possible command-line parameters.
 **Note 2**: This parameter does not affect the amount of used video RAM if a GPU-accelerated `execution-provider` is used.
 * `--execution-provider`: defaults to `cpu`. This parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth trying.
 * `--execution-threads`: defaults to `1`. Configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or waiting until the benchmark mode is implemented in sinner.
-* `--in-memory`: defaults to `true`. If set to true, all frames from the `target` will be extracted to memory by the processor module's request, without intermediate frames extraction. If set to false, all `target` frames will be extracted as a sequence of PNG files before processing (an 'old roop' way).
-**Note**: this option does not affect memory usage, but it can slightly influence to processing speed.
+* `--extract-frames`: defaults to `false`. If set to true, all frames from the `target` will be extracted to a temporary folder as a sequence of PNG files right before processing. If set to false, every frame will be extracted to a memory only by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 
 ## Built-in frame processors
