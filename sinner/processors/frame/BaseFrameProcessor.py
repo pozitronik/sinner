@@ -18,7 +18,7 @@ class BaseFrameProcessor(ABC):
     execution_providers: List[str]
     execution_threads: int
     max_memory: int
-    extract_frame_method: Callable[[int], NumeratedFrame]  # todo: it is no need to pass callable, it just need to iterate over frames
+    extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None
 
