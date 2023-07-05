@@ -49,7 +49,7 @@ class Preview:
 
     def init_slider(self) -> None:
         frame = Frame(self.root, borderwidth=2)
-        self.preview_slider = CTkSlider(frame, to=0, command=lambda frame_value: self.update_preview(self.preview_label, frame_value))
+        self.preview_slider = CTkSlider(frame, to=0, command=lambda frame_value: self.update_preview(self.preview_label, int(frame_value)))
         self.update_slider()
 
         current_position_label = Label(frame, textvariable=self.current_position)
@@ -108,11 +108,12 @@ class Preview:
 
     def update_preview(self, preview_label: CTkLabel, frame_number: int = 0, processed: bool = False) -> None:
         frame = self.core.get_frame(frame_number, processed)
-        pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        if frame is not None:
+            pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
-        image = ImageTk.PhotoImage(pil_image)
-        preview_label.configure(image=image)
-        preview_label.image = image
+            image = ImageTk.PhotoImage(pil_image)
+            preview_label.configure(image=image)
+            preview_label.image = image
         self.current_position.set(f'{int(frame_number)}/{self.preview_slider.cget("to")}')
 
     @staticmethod
