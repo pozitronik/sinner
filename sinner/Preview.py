@@ -85,12 +85,15 @@ class Preview:
 
     def update_slider(self) -> int:
         if is_image(self.core.params.target_path):
+            self.NavigateSlider.configure(to=1)
+            self.NavigateSlider.set(1)
             self.NavigateSlider.pack_forget()
         if is_video(self.core.params.target_path):
             video_frame_total = BaseFrameHandler.create(handler_name=self.core.params.frame_handler, target_path=self.core.params.target_path).fc
             self.NavigateSlider.configure(to=video_frame_total)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.set(video_frame_total / 2)
+        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')  # todo
         return int(self.NavigateSlider.get())
 
     def change_source(self, frame_number: int = 0) -> None:
@@ -119,7 +122,6 @@ class Preview:
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
-        self.current_position.set(f'{int(frame_number)}/{self.NavigateSlider.cget("to")}')
 
     @staticmethod
     def destroy() -> None:
