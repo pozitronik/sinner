@@ -1,3 +1,4 @@
+import os.path
 import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X
 from tkinter.ttk import Progressbar
@@ -95,13 +96,14 @@ class Preview:
         frame.pack(fill=X)
 
     def change_source(self, frame_number: int = 0) -> None:
-        if self.core.change_source(filedialog.askopenfilename(title='Select a source')):
+        if self.core.change_source(filedialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.params.source_path))):
             self.update_preview(self.preview_label, frame_number, True)
             self.source_path_entry.delete(0, END)
             self.source_path_entry.insert(END, self.core.params.source_path)
 
     def change_target(self) -> None:
-        if self.core.change_target(filedialog.askopenfilename(title='Select a target')):
+
+        if self.core.change_target(filedialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.params.target_path))):
             self.update_preview(self.preview_label, self.update_slider(), True)
             self.target_path_entry.delete(0, END)
             self.target_path_entry.insert(END, self.core.params.target_path)
