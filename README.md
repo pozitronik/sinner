@@ -51,6 +51,7 @@ Here is the list of all possible command-line parameters.
   --extract-frames      extract video frames before processing
   --temp-dir TEMP_DIR   temp directory
   --benchmark           run a benchmark on a selected frame processor
+  --gui                 start in GUI mode
 ```
 * `--source`: the image file containing a face, which will be used for deepfake magic.
 * `--target`: an image, a video file, or a directory with PNG images for processing.
@@ -69,6 +70,7 @@ Here is the list of all possible command-line parameters.
 * `--extract-frames`: defaults to `false`. If set to true, all frames from the `target` will be extracted to a temporary folder as a sequence of PNG files right before processing. If set to false, every frame will be extracted to a memory only by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 * `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
+* `--gui`: starts in GUI mode (experimental).
 
 ## Built-in frame processors
 
@@ -108,7 +110,7 @@ sinner uses the same ML libraries to perform its magic, but handles them in its 
 :exclamation: Nope. I don't care if you will do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife, it is the responsibility of the user to decide how they want to use it.
 
 :question: Is there a graphic interface?<br/>
-:exclamation:Currently, Sinner does not have a GUI, but there are plans to implement one in the future.
+:exclamation:Yes, but it still in development. You can start the program with `--gui` parameter to enable GUI.
 
 :question: Can I use several execution providers simultaneously?<br/>
 :exclamation: You can try. Seriously, you can set `--execution-provider cuda cpu`, and look, what will happen. May be it will work faster, may be it won't work at all. It is a large space for experiments.
