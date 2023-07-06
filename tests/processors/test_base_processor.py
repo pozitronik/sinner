@@ -60,7 +60,8 @@ def get_test_namespace() -> Namespace:
         extract_frames=False,
         frame_handler=None,
         temp_dir=tmp_dir,
-        benchmark=None
+        benchmark=None,
+        preview=None
     )
 
 
