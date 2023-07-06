@@ -1,12 +1,13 @@
 import os
 import shutil
 import time
-from typing import List
+from typing import List, Any
 from colorama import Fore, Style
 
 import onnxruntime
 import psutil
 import torch
+
 from sinner.core import Core
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.state import State
@@ -27,7 +28,7 @@ class BenchmarkParameters:
 
 
 class Benchmark:
-    results: List[dict[str, str, int, int]] = []
+    results: List[dict[str, Any]] = []
     params: BenchmarkParameters
     delta: int = 1000000000  # ns, if the run time between runs more that the delta, stop running
 
@@ -61,7 +62,7 @@ class Benchmark:
                 threads += 1
         self.print_results()
 
-    def store_result(self, processor: str, execution_provider: str, threads: int, execution_time: int):
+    def store_result(self, processor: str, execution_provider: str, threads: int, execution_time: int) -> None:
         self.results.append({'processor': processor, 'provider': execution_provider, 'threads': threads, 'time': execution_time})
 
     def benchmark(self) -> int:
@@ -74,7 +75,7 @@ class Benchmark:
             temp_dir=self.params.temp_dir
         )
         processor_name = self.params.frame_processors[0]
-        current_processor = BaseFrameProcessor.create(processor_name, self.params, state)
+        current_processor = BaseFrameProcessor.create(processor_name, self.params, state)  # type: ignore[arg-type]  #fixme will be fixed on parameters refactoring
         start_time = time.time_ns()
         current_processor.process(frames_handler=current_handler, extract_frames=self.params.extract_frames, desc=processor_name)
         end_time = time.time_ns()

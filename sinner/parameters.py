@@ -60,9 +60,9 @@ def parse_args() -> Namespace:
 
 
 class Parameters:
-    source_path: str | None
-    target_path: str | None
-    output_path: str | None
+    source_path: str
+    target_path: str
+    output_path: str
     frame_processors: List[str]
     fps: float  # None for auto
     keep_audio: bool = True
