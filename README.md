@@ -50,6 +50,7 @@ Here is the list of all possible command-line parameters.
                         number of execution threads
   --extract-frames      extract video frames before processing
   --temp-dir TEMP_DIR   temp directory
+  --benchmark           run a benchmark on a selected frame processor
 ```
 * `--source`: the image file containing a face, which will be used for deepfake magic.
 * `--target`: an image, a video file, or a directory with PNG images for processing.
@@ -67,6 +68,7 @@ Here is the list of all possible command-line parameters.
 * `--execution-threads`: defaults to `1`. Configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or waiting until the benchmark mode is implemented in sinner.
 * `--extract-frames`: defaults to `false`. If set to true, all frames from the `target` will be extracted to a temporary folder as a sequence of PNG files right before processing. If set to false, every frame will be extracted to a memory only by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
+* `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
 
 ## Built-in frame processors
 
