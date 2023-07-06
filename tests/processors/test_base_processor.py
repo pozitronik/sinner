@@ -59,7 +59,8 @@ def get_test_namespace() -> Namespace:
         many_faces=False,
         extract_frames=False,
         frame_handler=None,
-        temp_dir=tmp_dir
+        temp_dir=tmp_dir,
+        benchmark=None
     )
 
 

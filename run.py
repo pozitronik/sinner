@@ -2,6 +2,7 @@
 import signal
 import sys
 
+from sinner.Benchmark import Benchmark
 from sinner.core import Core
 from sinner.parameters import Parameters
 from sinner.utilities import limit_resources
@@ -12,6 +13,9 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
 
     params = Parameters()
-    limit_resources(params.max_memory)
-    core = Core(params=params)
-    core.run()
+    if params.benchmark is not None:
+        Benchmark(params.benchmark, params.execution_providers, params.source_path, params.target_path)
+    else:
+        limit_resources(params.max_memory)
+        core = Core(params=params)
+        core.run()
