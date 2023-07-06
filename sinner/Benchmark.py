@@ -29,12 +29,16 @@ class BenchmarkParameters:
 class Benchmark:
     results: List[dict[str, str, int, int]] = []
     params: BenchmarkParameters
-    delta: int = 0 # 1000000000  # ns, if the run time between runs more that the delta, stop running
+    delta: int = 1000000000  # ns, if the run time between runs more that the delta, stop running
 
-    def __init__(self, processor: str, execution_providers: list[str] | None = None):
+    def __init__(self, processor: str, execution_providers: list[str] | None = None, source_path: str | None = None, target_path: str | None = None):
         self.params = BenchmarkParameters()
         if execution_providers is None:
             execution_providers = onnxruntime.get_available_providers()
+        if source_path is not None:
+            self.params.source_path = source_path
+        if target_path is not None:
+            self.params.target_path = target_path
         limit_resources(self.params.max_memory)
 
         for execution_provider in execution_providers:

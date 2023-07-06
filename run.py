@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     params = Parameters()
     if params.benchmark is not None:
-        Benchmark(params.benchmark, params.execution_providers)
+        Benchmark(params.benchmark, params.execution_providers, params.source_path, params.target_path)
     else:
         limit_resources(params.max_memory)
         core = Core(params=params)
