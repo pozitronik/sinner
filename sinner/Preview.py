@@ -1,7 +1,6 @@
 import os.path
 import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
-from tkinter.filedialog import FileDialog
 from tkinter.ttk import Progressbar
 
 import cv2
@@ -26,11 +25,11 @@ class Preview:
     SaveButton: Button = Button(NavigateSliderFrame, text="save", compound=LEFT)
     SourcePathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     SourcePathEntry: Entry = Entry(SourcePathFrame)
-    SelectSourceDialog: filedialog = filedialog
+    SelectSourceDialog = filedialog
     ChangeSourceButton: Button = Button(SourcePathFrame, text="Browse for source", width=20)
     TargetPathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     TargetPathEntry: Entry = Entry(TargetPathFrame)
-    SelectTargetDialog: filedialog = filedialog
+    SelectTargetDialog = filedialog
     ChangeTargetButton: Button = Button(TargetPathFrame, text="Browse for target", width=20)
     ProgressBarFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     ProgressBar: Progressbar = Progressbar(ProgressBarFrame, mode='indeterminate')
@@ -140,7 +139,7 @@ class Preview:
         self.ProgressBar['value'] = value
 
     @staticmethod
-    def save_frame(preview_label: CTkLabel):
+    def save_frame(preview_label: CTkLabel) -> None:
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
             ImageTk.getimage(preview_label.cget('image')).save(save_file)
