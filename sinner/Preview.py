@@ -1,6 +1,6 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, BitmapImage
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
 from tkinter.ttk import Progressbar
 
 import cv2
