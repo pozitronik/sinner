@@ -61,7 +61,7 @@ def get_test_namespace() -> Namespace:
         frame_handler=None,
         temp_dir=tmp_dir,
         benchmark=None,
-        preview=None
+        gui=None
     )
 
 
