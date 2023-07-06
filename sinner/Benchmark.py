@@ -2,6 +2,7 @@ import os
 import shutil
 import time
 from typing import List
+from colorama import Fore, Style
 
 import onnxruntime
 import psutil
@@ -27,17 +28,18 @@ class BenchmarkParameters:
 
 class Benchmark:
     results: List[dict[str, str, int, int]] = []
-    last_execution_time: int = 0
     params: BenchmarkParameters
+    delta: int = 0 # 1000000000  # ns, if the run time between runs more that the delta, stop running
 
     def __init__(self, processor: str, execution_providers: list[str] | None = None):
         self.params = BenchmarkParameters()
         if execution_providers is None:
             execution_providers = onnxruntime.get_available_providers()
         limit_resources(self.params.max_memory)
-        delta = 3000000000
+
         for execution_provider in execution_providers:
             threads = 1
+            last_execution_time = 0
             while True:
                 print(f'Benchmarking {processor} with {execution_provider} on {threads} thread(s)')
                 shutil.rmtree(self.params.temp_dir, ignore_errors=True)
@@ -49,9 +51,9 @@ class Benchmark:
 
                 self.store_result(processor, execution_provider, threads, execution_time)
                 print(f"Result for {processor} with {execution_provider} on {threads} thread(s) = {execution_time} ns (~{execution_time / 1000000000} sec -> {98 / (execution_time / 1000000000)} FPS)")
-                if self.last_execution_time != 0 and execution_time > self.last_execution_time + delta:
+                if last_execution_time != 0 and execution_time > last_execution_time + self.delta:
                     break
-                self.last_execution_time = execution_time
+                last_execution_time = execution_time
                 threads += 1
         self.print_results()
 
@@ -76,11 +78,29 @@ class Benchmark:
         return end_time - start_time
 
     def print_results(self) -> None:
+        style_set = [Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN]
         self.results = sorted(self.results, key=lambda x: (x['processor'], x['provider'], x['threads']))
+        provider = ''
+        style_index = -1
+        fastest_run = min(self.results, key=lambda x: x['time'])['time']  # fastest
+        slowest_run = max(self.results, key=lambda x: x['time'])['time']  # slowest
         for stats in self.results:
             seconds = int(int(stats['time']) / 1000000000)
             fps = round(98 / seconds, 2)
-            print(f"Result for {stats['processor']} with {stats['provider']} on {stats['threads']} thread(s) = {stats['time']} ns (~{seconds} sec -> {fps} FPS)")
+            p_style = style_set[0]
+            if provider != stats['provider']:
+                provider = stats['provider']
+                style_index += 1
+                p_style = style_set[style_index]
+            r_time = stats['time']
+            if r_time == slowest_run:
+                r_time = f'{Fore.RED}{r_time}{Style.RESET_ALL}'
+            elif r_time == fastest_run:
+                r_time = f'{Fore.GREEN}{r_time}{Style.RESET_ALL}'
+            else:
+                r_time = f'{Fore.BLUE}{r_time}{Style.RESET_ALL}'
+            print(f"Result for {Fore.YELLOW}{stats['processor']}{Style.RESET_ALL} with {p_style}{provider}{Style.RESET_ALL} on {Fore.YELLOW}{stats['threads']}{Style.RESET_ALL} thread(s) ="
+                  f" {r_time} ns (~{seconds} sec -> {fps} FPS)")
 
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.params.execution_providers:
