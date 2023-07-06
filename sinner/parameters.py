@@ -54,6 +54,7 @@ def parse_args() -> Namespace:
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('--extract-frames', help='extract video frames before processing', dest='extract_frames', default=False)
+    program.add_argument('--gui', help='start in GUI mode', dest='gui', default=False, action='store_true')
     program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
     program.add_argument('--benchmark', help='run a benchmark on a selected frame processor', dest='benchmark', default=None)
     return program.parse_args()
@@ -74,6 +75,7 @@ class Parameters:
     execution_threads: int
     frame_handler: str
     temp_dir: str
+    gui: bool
     benchmark: str
 
     def __init__(self, args: Namespace | None = None) -> None:
@@ -93,6 +95,7 @@ class Parameters:
         self.execution_threads = args.execution_threads
         self.frame_handler = self.set_frame_handler(args.frame_handler)
         self.temp_dir = self.suggest_temp_dir(args.temp_dir)
+        self.gui = args.gui
 
         if not self.validate():
             quit()

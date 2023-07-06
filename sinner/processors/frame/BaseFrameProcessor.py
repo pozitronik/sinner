@@ -20,6 +20,7 @@ class BaseFrameProcessor(ABC):
     max_memory: int
     extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
+    progress_callback: Callable[[int], None] | None = None
 
     @staticmethod
     def create(processor_name: str, parameters: Parameters, state: State) -> 'BaseFrameProcessor':  # processors factory
@@ -54,9 +55,10 @@ class BaseFrameProcessor(ABC):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFrameHandler, extract_frames: bool = False, desc: str = 'Processing') -> None:
+    def process(self, frames_handler: BaseFrameHandler, extract_frames: bool = False, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.extract_frame_method = frames_handler.extract_frame
         self.state.processor_name = self.__class__.__name__
+        self.progress_callback = set_progress
         frames_handler.current_frame_index = self.state.processed_frames_count
         # todo: do not create on intermediate directory handler
         frames_list: FramesDataType = frames_handler.get_frames_paths(self.state.in_dir) if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
@@ -67,7 +69,7 @@ class BaseFrameProcessor(ABC):
                 desc=desc, unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                initial=self.state.processed_frames_count
+                initial=self.state.processed_frames_count,
         ) as progress:
             self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
 
@@ -101,6 +103,8 @@ class BaseFrameProcessor(ABC):
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
             progress.update()
+            if self.progress_callback is not None:
+                self.progress_callback(progress.n)
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
