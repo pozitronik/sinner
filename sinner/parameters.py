@@ -40,9 +40,9 @@ def suggest_execution_providers() -> List[str]:
 
 def parse_args() -> Namespace:
     program = argparse.ArgumentParser()
-    program.add_argument('--source', help='select an source', dest='source_path')
-    program.add_argument('--target', help='select an target', dest='target_path')
-    program.add_argument('--output', help='select output file or directory', dest='output_path')
+    program.add_argument('--source', help='select an source', dest='source_path', default=None)
+    program.add_argument('--target', help='select an target', dest='target_path', default=None)
+    program.add_argument('--output', help='select output file or directory', dest='output_path', default=None)
     program.add_argument('--frame-processor', help='pipeline of frame processors', dest='frame_processor', default=['FaceSwapper'],
                          choices=list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'), nargs='+')
     program.add_argument('--frame-handler', help='frame engine', dest='frame_handler', default=None, choices=list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'))
@@ -56,6 +56,7 @@ def parse_args() -> Namespace:
     program.add_argument('--extract-frames', help='extract video frames before processing', dest='extract_frames', default=False)
     program.add_argument('--preview', help='show preview window', dest='preview', default=False, action='store_true')
     program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
+    program.add_argument('--benchmark', help='run a benchmark on a selected frame processor', dest='benchmark', default=None)
     return program.parse_args()
 
 
@@ -75,9 +76,11 @@ class Parameters:
     frame_handler: str
     temp_dir: str
     preview: bool
+    benchmark: str
 
     def __init__(self, args: Namespace | None = None) -> None:
         args = parse_args() if args is None else args
+        self.benchmark = args.benchmark
         self.source_path = args.source_path
         self.target_path = args.target_path
         self.output_path = normalize_output_path(self.source_path, self.target_path, args.output_path)
@@ -98,6 +101,8 @@ class Parameters:
             quit()
 
     def set_frame_handler(self, preferred_handler: str | None = None) -> str:
+        if self.benchmark:
+            return ''  # todo
         if os.path.isdir(self.target_path):
             return 'DirectoryHandler'
         if is_image(self.target_path):
@@ -112,6 +117,8 @@ class Parameters:
         return preferred_handler  # type: ignore[return-value]
 
     def validate(self) -> bool:  # todo: it'll validate also for used processors
+        if self.benchmark:
+            return True
         if not is_image(self.source_path):
             update_status('Select an image for source path.')
             return False
@@ -121,4 +128,6 @@ class Parameters:
         return True
 
     def suggest_temp_dir(self, temp_dir: str | None) -> str:
+        if self.benchmark:
+            return ''
         return temp_dir if temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)

@@ -2,6 +2,7 @@
 import signal
 import sys
 
+from sinner.Benchmark import Benchmark
 from sinner.Preview import Preview
 from sinner.core import Core
 from sinner.parameters import Parameters
@@ -19,5 +20,7 @@ if __name__ == '__main__':
         preview = Preview(core)
         window = preview.show()
         window.mainloop()
+    elif params.benchmark is not None:
+        Benchmark(params.benchmark, params.execution_providers, params.source_path, params.target_path)
     else:
         core.run()
