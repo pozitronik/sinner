@@ -1,6 +1,7 @@
 import os.path
 import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X
+from tkinter.filedialog import FileDialog
 from tkinter.ttk import Progressbar
 
 import cv2
@@ -16,61 +17,69 @@ from sinner.utilities import is_image, is_video
 
 class Preview:
     #  window controls
-    PreviewWindow: CTk
-    SourcePathEntry: Entry
-    TargetPathEntry: Entry
-    PreviewFrameLabel: CTkLabel
-    NavigateSliderFrame: Frame
-    NavigateSlider: CTkSlider
-    ProgressBar: Progressbar
-    SourcePathFrame: Frame
-    TargetPathFrame: Frame
-    ProgressBarFrame: Frame
+    PreviewWindow: CTk = CTk()
+    PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
+    NavigateSliderFrame: Frame = Frame(PreviewWindow, borderwidth=2)
+    NavigateSlider: CTkSlider = CTkSlider(NavigateSliderFrame, to=0)
+    NavigatePositionLabel: Label = Label(NavigateSliderFrame)
+    PreviewButton: Button = Button(NavigateSliderFrame, text="preview", compound=LEFT)
+    SaveButton: Button = Button(NavigateSliderFrame, text="save", compound=LEFT)
+    SourcePathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
+    SourcePathEntry: Entry = Entry(SourcePathFrame, state="readonly")
+    SelectSourceDialog: filedialog = filedialog
+    ChangeSourceButton: Button = Button(SourcePathFrame, text="Browse for source", width=20)
+    TargetPathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
+    TargetPathEntry: Entry = Entry(TargetPathFrame, state="readonly")
+    SelectTargetDialog: filedialog = filedialog
+    ChangeTargetButton: Button = Button(TargetPathFrame, text="Browse for target", width=20)
+    ProgressBarFrame: Frame = Frame(PreviewWindow, borderwidth=2)
+    ProgressBar: Progressbar = Progressbar(ProgressBarFrame, mode='indeterminate')
 
     # class attributes
     core: Core
     run_thread: threading.Thread | None
+    current_position: StringVar = StringVar()
 
     def __init__(self, core: Core):
         self.run_thread = None
         self.core = core
-        self.PreviewWindow = CTk()
         self.PreviewWindow.title('Preview')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
         self.PreviewWindow.resizable(width=True, height=True)
-        self.current_position = StringVar()
-
-    def show(self) -> CTk:
-        self.init_preview()
-        self.init_slider()
-        # self.init_progressbar(maximum=int(self.NavigateSlider.cget('to')))
-        self.init_open_source_control()
-        self.init_open_target_control()
-        self.update_preview(self.PreviewFrameLabel, int(self.NavigateSlider.get()))
-        return self.PreviewWindow
-
-    def init_preview(self) -> None:
-        self.PreviewFrameLabel = CTkLabel(self.PreviewWindow, text='')
-
-        self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(self.PreviewFrameLabel, int(self.NavigateSlider.get()), True))
+        # init preview
+        self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
         self.PreviewFrameLabel.bind("<Button-3>", lambda event: self.change_target())
         self.PreviewFrameLabel.pack(fill='both', expand=True)
-
-    def init_slider(self) -> None:
-        self.NavigateSliderFrame = Frame(self.PreviewWindow, borderwidth=2)
-        self.NavigateSlider = CTkSlider(self.NavigateSliderFrame, to=0, command=lambda frame_value: self.update_preview(self.PreviewFrameLabel, int(frame_value)))
+        # init slider
+        self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
         self.update_slider()
-
-        current_position_label = Label(self.NavigateSliderFrame, textvariable=self.current_position)
-        current_position_label.pack(anchor=NE, side=LEFT)
-        preview_button = Button(self.NavigateSliderFrame, text="preview", compound=LEFT, command=lambda: self.update_preview(self.PreviewFrameLabel, int(self.NavigateSlider.get()), True))
-        preview_button.pack(anchor=NE, side=LEFT)
-        save_button = Button(self.NavigateSliderFrame, text="save", compound=LEFT, command=lambda: self.save_frame(self.PreviewFrameLabel))
-        save_button.pack(anchor=NE, side=LEFT)
-        # run_button = Button(self.NavigateSliderFrame, text="run", compound=LEFT, command=lambda: self.run_processing())
-        # run_button.pack(anchor=NE, side=LEFT)
+        self.NavigatePositionLabel.configure(textvariable=self.current_position)
+        self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
+        self.PreviewButton.configure(command=lambda: self.update_preview(int(self.NavigateSlider.get()), True))
+        self.PreviewButton.pack(anchor=NE, side=LEFT)
+        self.SaveButton.configure(command=lambda: self.save_frame(self.PreviewFrameLabel))
+        self.SaveButton.pack(anchor=NE, side=LEFT)
         self.NavigateSliderFrame.pack(fill=X)
+        # init source selection control set
+        self.SourcePathEntry.insert(END, self.core.params.source_path)
+        self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
+        self.ChangeSourceButton.configure(command=lambda: self.change_source(int(self.NavigateSlider.get())))
+        self.ChangeSourceButton.pack(side=RIGHT)
+        self.SourcePathFrame.pack(fill=X)
+        # init target selection control set
+        self.TargetPathEntry.insert(END, self.core.params.target_path)
+        self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
+        self.ChangeTargetButton.configure(command=lambda: self.change_target())
+        self.ChangeTargetButton.pack(side=LEFT)
+        self.TargetPathFrame.pack(fill=X)
+        # init progress bar
+        self.ProgressBar.pack(pady=10, fill=X)
+        # self.ProgressBarFrame.pack(fill=X) # hide for now
+
+    def show(self) -> CTk:
+        self.update_preview(int(self.NavigateSlider.get()))
+        return self.PreviewWindow
 
     def update_slider(self) -> int:
         if is_image(self.core.params.target_path):
@@ -82,37 +91,15 @@ class Preview:
             self.NavigateSlider.set(video_frame_total / 2)
         return int(self.NavigateSlider.get())
 
-    def init_open_source_control(self) -> None:
-        self.SourcePathFrame = Frame(self.PreviewWindow, borderwidth=2)
-        self.SourcePathEntry = Entry(self.SourcePathFrame)
-        self.SourcePathEntry.insert(END, self.core.params.source_path)
-        self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
-
-        open_button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.change_source(int(self.NavigateSlider.get())))
-        open_button.pack(side=RIGHT)
-        self.SourcePathFrame.pack(fill=X)
-
-    def init_open_target_control(self) -> None:
-        self.TargetPathFrame = Frame(self.PreviewWindow, borderwidth=2)
-
-        self.TargetPathEntry = Entry(self.TargetPathFrame)
-        self.TargetPathEntry.insert(END, self.core.params.target_path)
-        self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
-
-        open_button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
-        open_button.pack(side=LEFT)
-        self.TargetPathFrame.pack(fill=X)
-
     def change_source(self, frame_number: int = 0) -> None:
-        if self.core.change_source(filedialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.params.source_path))):
-            self.update_preview(self.PreviewFrameLabel, frame_number, True)
+        if self.core.change_source(self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.params.source_path))):
+            self.update_preview(frame_number, True)
             self.SourcePathEntry.delete(0, END)
             self.SourcePathEntry.insert(END, self.core.params.source_path)
 
     def change_target(self) -> None:
-
-        if self.core.change_target(filedialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.params.target_path))):
-            self.update_preview(self.PreviewFrameLabel, self.update_slider(), True)
+        if self.core.change_target(self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.params.target_path))):
+            self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.delete(0, END)
             self.TargetPathEntry.insert(END, self.core.params.target_path)
 
@@ -120,14 +107,12 @@ class Preview:
     def render_image_preview(frame: Frame) -> PhotoImage:
         return PhotoImage(Image.fromarray(frame))
 
-    def update_preview(self, preview_label: CTkLabel, frame_number: int = 0, processed: bool = False) -> None:
+    def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
         frame = self.core.get_frame(frame_number, processed)
         if frame is not None:
-            pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-
-            image = PhotoImage(pil_image)
-            preview_label.configure(image=image)
-            preview_label.image = image
+            image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
+            self.PreviewFrameLabel.configure(image=image)
+            self.PreviewFrameLabel.image = image
         self.current_position.set(f'{int(frame_number)}/{self.NavigateSlider.cget("to")}')
 
     @staticmethod
@@ -136,6 +121,7 @@ class Preview:
 
     def run_processing(self) -> None:
         if self.run_thread is None:
+            self.ProgressBar.configure(value=0, maximum=int(self.NavigateSlider.cget('to')))
             self.run_thread = threading.Thread(target=self.core.run, args=(self.update_progress,))
             self.run_thread.start()
         else:
@@ -145,16 +131,10 @@ class Preview:
     def update_progress(self, value: int) -> None:
         self.ProgressBar['value'] = value
 
-    def init_progressbar(self, value: int = 0, maximum: int = 0) -> None:
-        self.ProgressBarFrame = Frame(self.PreviewWindow, borderwidth=2)
-        self.ProgressBar = Progressbar(self.ProgressBarFrame, mode='indeterminate', value=value, maximum=maximum)
-        self.ProgressBar.pack(pady=10, fill=X)
-        self.ProgressBarFrame.pack(fill=X)
-
     @staticmethod
     def save_frame(preview_label: CTkLabel):
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
-            tk_image: ImageTk.PhotoImage = preview_label.cget('image')
+            tk_image: PhotoImage = preview_label.cget('image')
             pil_image = ImageTk.getimage(tk_image)
             pil_image.save(save_file)
