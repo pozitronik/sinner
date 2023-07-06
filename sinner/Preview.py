@@ -143,6 +143,4 @@ class Preview:
     def save_frame(preview_label: CTkLabel):
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
-            tk_image: PhotoImage = preview_label.cget('image')
-            pil_image = ImageTk.getimage(tk_image)
-            pil_image.save(save_file)
+            ImageTk.getimage(preview_label.cget('image')).save(save_file)
