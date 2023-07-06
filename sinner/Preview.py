@@ -1,6 +1,6 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
 from tkinter.filedialog import FileDialog
 from tkinter.ttk import Progressbar
 
@@ -25,11 +25,11 @@ class Preview:
     PreviewButton: Button = Button(NavigateSliderFrame, text="preview", compound=LEFT)
     SaveButton: Button = Button(NavigateSliderFrame, text="save", compound=LEFT)
     SourcePathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    SourcePathEntry: Entry = Entry(SourcePathFrame, state="readonly")
+    SourcePathEntry: Entry = Entry(SourcePathFrame)
     SelectSourceDialog: filedialog = filedialog
     ChangeSourceButton: Button = Button(SourcePathFrame, text="Browse for source", width=20)
     TargetPathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    TargetPathEntry: Entry = Entry(TargetPathFrame, state="readonly")
+    TargetPathEntry: Entry = Entry(TargetPathFrame)
     SelectTargetDialog: filedialog = filedialog
     ChangeTargetButton: Button = Button(TargetPathFrame, text="Browse for target", width=20)
     ProgressBarFrame: Frame = Frame(PreviewWindow, borderwidth=2)
@@ -63,12 +63,14 @@ class Preview:
         self.NavigateSliderFrame.pack(fill=X)
         # init source selection control set
         self.SourcePathEntry.insert(END, self.core.params.source_path)
+        self.SourcePathEntry.configure(state=DISABLED)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.configure(command=lambda: self.change_source(int(self.NavigateSlider.get())))
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X)
         # init target selection control set
         self.TargetPathEntry.insert(END, self.core.params.target_path)
+        self.TargetPathEntry.configure(state=DISABLED)
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.configure(command=lambda: self.change_target())
         self.ChangeTargetButton.pack(side=LEFT)
@@ -94,14 +96,18 @@ class Preview:
     def change_source(self, frame_number: int = 0) -> None:
         if self.core.change_source(self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.params.source_path))):
             self.update_preview(frame_number, True)
+            self.SourcePathEntry.configure(state=NORMAL)
             self.SourcePathEntry.delete(0, END)
             self.SourcePathEntry.insert(END, self.core.params.source_path)
+            self.SourcePathEntry.configure(state=DISABLED)
 
     def change_target(self) -> None:
         if self.core.change_target(self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.params.target_path))):
             self.update_preview(self.update_slider(), True)
+            self.TargetPathEntry.configure(state=NORMAL)
             self.TargetPathEntry.delete(0, END)
             self.TargetPathEntry.insert(END, self.core.params.target_path)
+            self.TargetPathEntry.configure(state=DISABLED)
 
     @staticmethod
     def render_image_preview(frame: Frame) -> PhotoImage:
