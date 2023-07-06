@@ -74,22 +74,3 @@ class Core:
         if is_video(target_path):
             return VideoHandler(target_path)
         raise NotImplementedError("The handler for current target type is not implemented")
-
-    def benchmark(self):
-        current_target_path = self.params.target_path
-        temp_resources: List[str] = []  # list of temporary created resources
-        for processor_name in self.params.frame_processors:
-            current_handler = self.suggest_handler(current_target_path)
-            state = State(
-                source_path=self.params.source_path,
-                target_path=current_target_path,
-                frames_count=current_handler.fc,
-                temp_dir=self.params.temp_dir
-            )
-            current_processor = BaseFrameProcessor.create(processor_name, self.params, state)
-            current_processor.process(frames_handler=current_handler, extract_frames=self.params.extract_frames, desc=processor_name)
-            current_target_path = state.out_dir
-            temp_resources.append(state.out_dir)
-            if not self.params.extract_frames:
-                temp_resources.append(state.in_dir)
-            self.release_resources()
