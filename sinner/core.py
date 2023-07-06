@@ -31,7 +31,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core:
     params: Parameters
-    preview_processors: dict[str, BaseFrameProcessor]  # cached processors for preview
+    preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
     _stop_flag: bool = False
 
     def __init__(self, params: Parameters):

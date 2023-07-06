@@ -1,6 +1,6 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, BitmapImage
 from tkinter.ttk import Progressbar
 
 import cv2
@@ -21,7 +21,7 @@ class Preview:
     NavigateSliderFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     NavigateSlider: CTkSlider = CTkSlider(NavigateSliderFrame, to=0)
     NavigatePositionLabel: Label = Label(NavigateSliderFrame)
-    PreviewButton: Button = Button(NavigateSliderFrame, text="preview", compound=LEFT)
+    PreviewButton: Button = Button(NavigateSliderFrame, text="Preview", compound=LEFT)
     SaveButton: Button = Button(NavigateSliderFrame, text="save", compound=LEFT)
     SourcePathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     SourcePathEntry: Entry = Entry(SourcePathFrame)
@@ -42,10 +42,10 @@ class Preview:
     def __init__(self, core: Core):
         self.run_thread = None
         self.core = core
-        self.PreviewWindow.title('Preview')
+        self.PreviewWindow.title('😈sinner')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
         self.PreviewWindow.resizable(width=True, height=True)
-        # init preview
+        # init gui
         self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
         self.PreviewFrameLabel.bind("<Button-3>", lambda event: self.change_target())
