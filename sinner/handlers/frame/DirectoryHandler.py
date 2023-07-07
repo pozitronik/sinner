@@ -5,7 +5,7 @@ from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import read_image, is_image
+from sinner.utilities import read_image, is_image, get_file_name
 
 
 class DirectoryHandler(BaseFrameHandler):
@@ -19,10 +19,11 @@ class DirectoryHandler(BaseFrameHandler):
         return 1  # todo
 
     def detect_fc(self) -> int:
-        return len(self.get_frames_paths(self._target_path))
+        return len(glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        return super().get_frames_paths(path)
+        frames_path = sorted(glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_image(file_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
