@@ -3,9 +3,9 @@ import signal
 import sys
 
 from sinner.Benchmark import Benchmark
+from sinner.Parameters import Parameters
 from sinner.Preview import Preview
 from sinner.core import Core
-from sinner.parameters_old import Parameters
 from sinner.utilities import limit_resources
 
 if __name__ == '__main__':
@@ -13,7 +13,7 @@ if __name__ == '__main__':
         raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
     signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
 
-    params = Parameters()
+    params = Parameters().parameters
     limit_resources(params.max_memory)
     core = Core(params=params)
     if params.gui:

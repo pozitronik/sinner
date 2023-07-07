@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import warnings
+from argparse import Namespace
 from typing import List, Callable
 
 import torch
@@ -9,7 +10,6 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
-from sinner.parameters_old import Parameters
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.state import State
 from sinner.typing import Frame
@@ -30,11 +30,11 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
 class Core:
-    params: Parameters
+    params: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
     _stop_flag: bool = False
 
-    def __init__(self, params: Parameters):
+    def __init__(self, params: Namespace):
         self.params = params
         self.preview_processors = {}
 
@@ -42,7 +42,7 @@ class Core:
         self._stop_flag = False
         current_target_path = self.params.target_path
         temp_resources: List[str] = []  # list of temporary created resources
-        for processor_name in self.params.frame_processors:
+        for processor_name in self.params.frame_processor:
             if self._stop_flag:  # todo: create a shared variable to stop processing
                 continue
             current_handler = self.suggest_handler(current_target_path)

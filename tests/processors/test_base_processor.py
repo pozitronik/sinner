@@ -8,7 +8,6 @@ import pytest
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
-from sinner.parameters_old import Parameters
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.state import State
@@ -66,7 +65,7 @@ def get_test_namespace() -> Namespace:
 
 
 def test_create_factory():
-    parameters: Parameters = Parameters(get_test_namespace())
+    parameters: Namespace = get_test_namespace()
     dummy_processor = BaseFrameProcessor.create('DummyProcessor', parameters=parameters, state=get_test_state())
     assert isinstance(dummy_processor, BaseFrameProcessor)
     assert dummy_processor.state.frames_count == 98

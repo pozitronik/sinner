@@ -1,13 +1,13 @@
 import inspect
 import os.path
 from abc import ABC, abstractmethod
+from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable
 
 from tqdm import tqdm
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.parameters_old import Parameters
 from sinner.state import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
 from sinner.utilities import update_status, load_class, get_mem_usage, read_image
@@ -23,7 +23,7 @@ class BaseFrameProcessor(ABC):
     progress_callback: Callable[[int], None] | None = None
 
     @staticmethod
-    def create(processor_name: str, parameters: Parameters, state: State) -> 'BaseFrameProcessor':  # processors factory
+    def create(processor_name: str, parameters: Namespace, state: State) -> 'BaseFrameProcessor':  # processors factory
         handler_class = load_class(os.path.dirname(__file__), processor_name)
 
         if handler_class and issubclass(handler_class, BaseFrameProcessor):

@@ -43,24 +43,6 @@ def update_status(message: str, caller: str = 'GLOBAL') -> None:
     print(f'[{caller}] {message}')
 
 
-def get_temp_directory_path(target_path: str) -> str:
-    target_name = get_file_name(target_path)
-    target_directory_path = os.path.dirname(target_path)
-    return os.path.join(target_directory_path, TEMP_DIRECTORY, target_name)
-
-
-# todo: in some cases source_path can be empty, i need to fix it when implement processors validations
-def normalize_output_path(source_path: str, target_path: str, output_path: str | None) -> str:
-    if source_path and target_path:
-        if output_path is None:
-            output_path = os.path.dirname(target_path)
-        source_name = get_file_name(source_path)
-        target_name, target_extension = os.path.splitext(os.path.basename(target_path))
-        if os.path.isdir(output_path):
-            return os.path.join(output_path, source_name + '-' + target_name + target_extension)
-    return output_path  # type: ignore[return-value]
-
-
 def is_image(image_path: str | None) -> bool:
     if image_path is not None and image_path and os.path.isfile(image_path):
         mimetype, _ = mimetypes.guess_type(image_path)
