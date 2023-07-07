@@ -22,7 +22,7 @@ class DirectoryHandler(BaseFrameHandler):
         return len(self.get_frames_paths(self._target_path))
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        return [(i + 1, s) for i, s in enumerate(sorted(glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))) if is_image(s)]
+        return super().get_frames_paths(path)
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
