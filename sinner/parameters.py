@@ -53,7 +53,7 @@ def parse_args() -> Namespace:
     program.add_argument('--max-memory', help='limit of RAM usage in GB', dest='max_memory', type=int, default=suggest_max_memory())
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
-    program.add_argument('--extract-frames', help='extract video frames before processing', dest='extract_frames', default=False)
+    program.add_argument('--extract-frames', help='extract video frames before processing', dest='extract_frames', default=False, action='store_true')
     program.add_argument('--gui', help='start in GUI mode', dest='gui', default=False, action='store_true')
     program.add_argument('--temp-dir', help='temp directory', dest='temp_dir', default=None)
     program.add_argument('--benchmark', help='run a benchmark on a selected frame processor', dest='benchmark', default=None)
