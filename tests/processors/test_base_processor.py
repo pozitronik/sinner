@@ -8,7 +8,7 @@ import pytest
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
-from sinner.parameters import Parameters
+from sinner.parameters_old import Parameters
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.state import State
