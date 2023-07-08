@@ -47,7 +47,6 @@ class BaseFrameProcessor(ABC, BaseValidatedClass):
         ]
 
     def __init__(self, execution_providers: List[str], parameters: Namespace, execution_threads: int, max_memory: int, state: State) -> None:
-        self.load(parameters)
         self.execution_providers = execution_providers
         self.execution_threads = execution_threads
         self.max_memory = max_memory
