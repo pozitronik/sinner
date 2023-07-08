@@ -5,11 +5,50 @@ from typing import List, Any, Dict
 Rule = Dict[str, str]
 Rules = List[Rule]
 
+'''
+Rule = {'parameter': 'parameter_name', 'validator_name': validator_parameters}
+validator_parameters can be a scalar value or a dict of a key-value pairs 
+'''
+
 
 class Validator(ABC):
+    arguments: Dict
+
+    def __init__(self, **kwargs):
+        self.arguments = kwargs
+
     @abstractmethod
-    def validate(self, value: Any) -> str | None:  # text error or None, if valid
+    def validate(self, validating_object: object, attribute: str) -> str | None:  # text error or None, if valid
         pass
+
+
+class RequiredValidator(Validator):
+    DEFAULT_MESSAGE = 'Attribute is required'
+
+    def validate(self, validating_object: object, attribute: str) -> str | None:
+        if self.arguments['value'] is True and getattr(validating_object, attribute) is None:
+            return self.DEFAULT_MESSAGE
+        return None
+
+
+class DefaultValidator(Validator):
+
+    def validate(self, validating_object: object, attribute: str) -> str | None:
+        setattr(validating_object, attribute, self.arguments['value'])
+        return None
+
+
+VALIDATORS = {
+    'default': DefaultValidator,
+    'required': RequiredValidator,
+    # 'choices': ChoicesValidator,
+    # 'in': ChoicesValidator,
+    # 'type': TypeValidator,
+    # 'action': ActionValidator,
+    # 'valid': CallableValidator,
+    # 'function': CallableValidator,
+    # 'lambda': CallableValidator
+}
 
 
 class BaseValidatedClass:
@@ -50,20 +89,38 @@ class BaseValidatedClass:
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
         errors: List[str] = []
         for rule in self.get_attribute_rules(attribute):
-            validator = self.get_rule_validator(rule)
-            error = validator.validate(self['attribute'])
-            if error is not None:
-                errors.append(error)
+            for validator in self.get_rule_validators(rule):
+                error = validator.validate(self, attribute)
+                if error is not None:
+                    errors.append(error)
         return errors
 
     # returns the list of attributes names, which listed in the `rules` configuration
     def validating_attributes(self) -> List[str]:
-        pass
+        values = list(set([d['parameter'] for d in self.rules()]))
+        values = [s.replace('-', '_') for s in values]  # parameters can contain '-', but attributes are not
+        return values
 
-    # return all rules configurations for attribute
-    def get_attribute_rules(self, attribute: str) -> Rules:
-        pass
+    # return all rules configurations for attribute combined to one rule
+    def get_attribute_rules(self, attribute: str) -> Rule:
+        ruleset = {}
+        for rule in self.rules():
+            if rule['parameter'].replace('-', '_') == attribute:
+                ruleset.update(rule)
+        return ruleset
 
-    # returns validator object for current rule
-    def get_rule_validator(self, rule: Rule) -> 'Validator':
-        pass
+    # returns validators objects for current rule
+    @staticmethod
+    def get_rule_validators(rule: Rule) -> List['Validator']:
+        validators: List['Validators'] = []
+        rule.pop('parameter')
+        for validator_name, validator_parameters in rule.items():
+            validator_class = VALIDATORS[validator_name]
+            if validator_class is not None:
+                if not isinstance(validator_parameters, dict):  # convert scalar values to **kwargs dict
+                    validator_parameters = {'value': validator_parameters}
+                validator_class = validator_class(validator_parameters)  # initialize validator class with parameters
+                validators.append(validator_class)
+            else:
+                print(f'Validator {validator_name} is not implemented')
+        return validators

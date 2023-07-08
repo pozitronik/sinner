@@ -26,6 +26,13 @@ class Parameters(BaseValidatedClass):
             {'parameter': 'temp-dir', 'type': str | None, 'default': None},
         ]
 
+    # def validate(self) -> bool:
+    #     if self.parameters.frame_processor not in list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'):
+    #         self.add_error('frame_processor')
+    #     if self.parameters.frame_handler not in list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'):
+    #         self.add_error('frame_handler')
+    #     return super().validate()
+
     def __init__(self):
         args, unknown_args = self.parser.parse_known_args()
         for argument in unknown_args:
@@ -64,13 +71,6 @@ class Parameters(BaseValidatedClass):
             key, value = argument[2:].split('=')
             value = value.split()
             return key, value
-
-    def validate(self) -> bool:
-        if self.parameters.frame_processor not in list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'):
-            self.add_error('frame_processor')
-        if self.parameters.frame_handler not in list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'):
-            self.add_error('frame_handler')
-        return super().validate()
 
     @staticmethod
     def suggest_max_memory() -> int:

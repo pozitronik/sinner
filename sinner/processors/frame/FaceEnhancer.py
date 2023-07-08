@@ -23,7 +23,7 @@ class FaceEnhancer(BaseFrameProcessor):
     def rules(self) -> Rules:
         return super().rules() + [
             {'parameter': 'target', 'required': True, 'valid': lambda: is_image(self.target) or is_video(self.target)},
-            {'parameter': 'output', 'default': self.suggest_output_path(), 'valid': os.path.isabs(self.output)},
+            {'parameter': 'output', 'default': self.suggest_output_path(), 'valid': lambda: os.path.isabs(self.output)},
             {'parameter': 'many-faces', 'default': False, 'action': True},
         ]
 
