@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 from argparse import Namespace
-from typing import List, Any, Dict
+from typing import List, Dict
+from colorama import Fore, Style
 
 Rule = Dict[str, str]
 Rules = List[Rule]
@@ -67,10 +68,10 @@ class BaseValidatedClass:
                 setattr(self.old_attributes, attribute, getattr(self, attribute))
                 setattr(self, attribute, value)  # the values should be loaded before validation
         if validate:
-            valid = self.validate()
-            if not valid:  # return values back
+            if not self.validate():  # return values back
                 for attribute, value in vars(self.old_attributes).items():
                     setattr(self, attribute, value)
+                return False
         return True
 
     def validate(self) -> bool:
@@ -84,15 +85,17 @@ class BaseValidatedClass:
 
     def write_errors(self):
         for error in self.errors:
-            print(f"Module {error['module']} has {error['attribute']}: {error['error']}")
+            print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
+        if not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
+            return [f'{__class__.__name__} has no attribute {attribute} defined']
+        rule = self.get_attribute_rules(attribute)
         errors: List[str] = []
-        for rule in self.get_attribute_rules(attribute):
-            for validator in self.get_rule_validators(rule):
-                error = validator.validate(self, attribute)
-                if error is not None:
-                    errors.append(error)
+        for validator in self.get_rule_validators(rule):
+            error = validator.validate(self, attribute)
+            if error is not None:
+                errors.append(error)
         return errors
 
     # returns the list of attributes names, which listed in the `rules` configuration
@@ -115,12 +118,12 @@ class BaseValidatedClass:
         validators: List['Validators'] = []
         rule.pop('parameter')
         for validator_name, validator_parameters in rule.items():
-            validator_class = VALIDATORS[validator_name]
-            if validator_class is not None:
+            if validator_name in VALIDATORS:
+                validator_class = VALIDATORS[validator_name]
                 if not isinstance(validator_parameters, dict):  # convert scalar values to **kwargs dict
                     validator_parameters = {'value': validator_parameters}
-                validator_class = validator_class(validator_parameters)  # initialize validator class with parameters
+                validator_class = validator_class(**validator_parameters)  # initialize validator class with parameters
                 validators.append(validator_class)
             else:
-                print(f'Validator {validator_name} is not implemented')
+                print(f'Validator `{validator_name}` is not implemented')
         return validators
