@@ -10,7 +10,7 @@ from sinner.utilities import list_class_descendants, resolve_relative_path, get_
 
 class Parameters(BaseValidatedClass):
     SIGNATURE: str = 'def register_arguments(args: List[str]) -> None'
-    parser: ArgumentParser = ArgumentParser(prog='😈sinner')
+    parser: ArgumentParser = ArgumentParser()
     parameters: Namespace
 
     def rules(self) -> Rules:
