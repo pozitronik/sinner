@@ -52,8 +52,8 @@ VALIDATORS = {
 
 
 class BaseValidatedClass:
-    errors: List[dict[str, str]]  # list of parameters validation errors, attribute: error
-    old_attributes: Namespace  # previous values (before loading)
+    errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error
+    old_attributes: Namespace = Namespace()  # previous values (before loading)
 
     @abstractmethod
     def rules(self) -> Rules:
