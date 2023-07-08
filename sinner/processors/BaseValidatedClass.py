@@ -2,8 +2,8 @@ from abc import abstractmethod, ABC
 from argparse import Namespace
 from typing import List, Any, Dict
 
-Rule: Dict[str, str]
-Rules: List[Rule]  # check on that
+Rule = Dict[str, str]
+Rules = List[Rule]
 
 
 class Validator(ABC):
