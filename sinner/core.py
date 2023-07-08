@@ -6,12 +6,13 @@ from typing import List, Callable
 import torch
 import os
 import sys
+
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.state import State
+from sinner.State import State
 from sinner.typing import Frame
 from sinner.utilities import is_image, is_video, delete_subdirectories
 

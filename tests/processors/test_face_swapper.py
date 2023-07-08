@@ -2,7 +2,7 @@ import multiprocessing
 
 from sinner.face_analyser import FaceAnalyser
 from sinner.processors.frame.FaceSwapper import FaceSwapper
-from sinner.state import State
+from sinner.State import State
 from sinner.typing import Frame, FaceSwapperType, Face
 from sinner.utilities import read_image
 from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir

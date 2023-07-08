@@ -1,19 +1,20 @@
 import inspect
 import os.path
 from abc import ABC, abstractmethod
-from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable
 
 from tqdm import tqdm
+from argparse import Namespace
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.state import State
+from sinner.processors.BaseValidatedClass import BaseValidatedClass, Rules
+from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import update_status, load_class, get_mem_usage, read_image
+from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers
 
 
-class BaseFrameProcessor(ABC):
+class BaseFrameProcessor(ABC, BaseValidatedClass):
     state: State
     execution_providers: List[str]
     execution_threads: int
@@ -37,13 +38,26 @@ class BaseFrameProcessor(ABC):
         else:
             raise ValueError(f"Invalid processor name: {processor_name}")
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State) -> None:
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'execution-provider', 'type': List[str], 'required': True},
+            {'parameter': 'execution-provider', 'default': ['cpu']},
+            {'parameter': 'execution-provider', 'choices': suggest_execution_providers()},
+            {'parameter': 'execution-threads', 'type': int, 'default': suggest_execution_threads()},
+        ]
+
+    def __init__(self, execution_providers: List[str], parameters: Namespace, execution_threads: int, max_memory: int, state: State) -> None:
+        self.load(parameters)
         self.execution_providers = execution_providers
         self.execution_threads = execution_threads
         self.max_memory = max_memory
         self.state = state
-        if not self.validate():
-            quit()
+        super().__init__()
+
+    def validate(self) -> bool:
+        if self.execution_providers not in suggest_execution_providers():
+            self.add_error('execution-provider')
+        return super().validate()
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
@@ -118,7 +132,3 @@ class BaseFrameProcessor(ABC):
                     self.statistics['limits_reaches'] += 1
             for completed_future in as_completed(futures):
                 completed_future.result()
-
-    @staticmethod
-    def validate() -> bool:
-        return True

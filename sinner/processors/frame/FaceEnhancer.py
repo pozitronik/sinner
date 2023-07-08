@@ -1,3 +1,4 @@
+import os
 import threading
 from typing import List
 
@@ -5,15 +6,34 @@ import gfpgan
 from gfpgan import GFPGANer  # type: ignore[attr-defined]
 
 from sinner.face_analyser import FaceAnalyser
+from sinner.processors.BaseValidatedClass import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.state import State
+from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import conditional_download, get_app_dir
+from sinner.utilities import conditional_download, get_app_dir, is_image, is_video
 
 
 class FaceEnhancer(BaseFrameProcessor):
+    target: str
+    output: str
+
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
+
+    def rules(self) -> Rules:
+        return super().rules() + [
+            {'parameter': 'target', 'required': True, 'valid': lambda: is_image(self.target) or is_video(self.target)},
+            {'parameter': 'output', 'default': self.suggest_output_path(), 'valid': os.path.isabs(self.output)},
+            {'parameter': 'many-faces', 'default': False, 'action': True},
+        ]
+
+    def suggest_output_path(self) -> str:
+        target_name, target_extension = os.path.splitext(os.path.basename(self.target))
+        if self.output is None:
+            return os.path.join(os.path.dirname(self.target), 'enhanced-' + target_name + target_extension)
+        if os.path.isdir(self.output):
+            return os.path.join(self.output, 'enhanced-' + target_name + target_extension)
+        return self.output
 
     def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State):
         download_directory_path = get_app_dir('models')
