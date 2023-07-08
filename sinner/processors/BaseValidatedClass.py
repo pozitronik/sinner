@@ -14,19 +14,24 @@ class Validator(ABC):
 
 class BaseValidatedClass:
     errors: List[dict[str, str]]  # list of parameters validation errors, attribute: error
+    old_attributes: Namespace  # previous values (before loading)
 
     @abstractmethod
     def rules(self) -> Rules:
         return []
 
     def load(self, attributes: Namespace, validate: bool = True) -> bool:
-        for attribute in attributes:
+        for key in vars(self.old_attributes):
+            delattr(self.old_attributes, key)
+        for attribute, value in vars(attributes).items():
             if hasattr(self, attribute):
-                self['attribute'] = attributes['attribute']
-            else:
-                return False
+                setattr(self.old_attributes, attribute, getattr(self, attribute))
+                setattr(self, attribute, value)  # the values should be loaded before validation
         if validate:
-            return self.validate()
+            valid = self.validate()
+            if not valid:  # return values back
+                for attribute, value in vars(self.old_attributes).items():
+                    setattr(self, attribute, value)
         return True
 
     def validate(self) -> bool:
