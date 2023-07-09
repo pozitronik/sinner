@@ -153,4 +153,8 @@ class BaseValidatedClass:
 
     def setattr(self, attribute, value):
         attribute_type = get_type_hints(self)[attribute]
-        setattr(self, attribute, attribute_type(value))
+        try:
+            typed_value = attribute_type(value)
+        except Exception:  # if attribute has no type, or defined as Any, just ignore type casting
+            typed_value = value
+        setattr(self, attribute, typed_value)
