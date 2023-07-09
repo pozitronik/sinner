@@ -1,4 +1,3 @@
-import ast
 from abc import abstractmethod, ABC
 from argparse import Namespace
 from typing import List, Dict, Any, get_type_hints
@@ -133,7 +132,7 @@ class BaseValidatedClass:
     # returns validators objects for current rule
     @staticmethod
     def get_rule_validators(rule: Rule) -> List['Validator']:
-        validators: List['Validators'] = []
+        validators: List['Validator'] = []
         for validator_name, validator_parameters in rule.items():
             if validator_name in VALIDATORS:
                 validator_class = VALIDATORS[validator_name]
