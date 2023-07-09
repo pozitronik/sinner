@@ -1,3 +1,4 @@
+import shlex
 from argparse import ArgumentParser, Namespace
 
 from sinner.Parameters import Parameters
@@ -5,8 +6,9 @@ from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValid
 
 
 def command_line_to_namespace(cmd_params: str) -> Namespace:
+    args_list = shlex.split(cmd_params, posix=False)
     parser = ArgumentParser()
-    args, unknown_args = parser.parse_known_args(cmd_params)
+    args, unknown_args = parser.parse_known_args(args_list)
     for argument in unknown_args:
         key, value = Parameters.parse_argument(argument)
         setattr(args, key, value)
@@ -39,18 +41,27 @@ def test_required_validator() -> None:
     test_object = TestRequiredValidation()
     assert test_object.required_parameter is None
     assert test_object.default_required_parameter is None
-    assert test_object.default_required_parameter is None
+    # assert test_object.required_default_parameter is None
 
     # nothing should be changed, if loading unsuccessful
     assert test_object.load(parameters) is False
     assert test_object.required_parameter is None
     assert test_object.default_required_parameter is None
-    assert test_object.default_required_parameter is None
+    assert test_object.required_default_parameter is None
     assert test_object.errors != []
 
     # ignore validation on load
-    assert test_object.load(parameters, validate=False) is True
+    assert test_object.load(attributes=parameters, validate=False) is True
 
     assert test_object.required_parameter is None
-    assert test_object.default_required_parameter == DEFAULT_VALUE
+    assert test_object.default_required_parameter is None
     assert test_object.required_default_parameter is None
+
+    parameters = command_line_to_namespace('--required-parameter=15')
+
+    # ignore validation on load
+    assert test_object.load(attributes=parameters) is True
+
+    assert test_object.required_parameter == 15
+    assert test_object.default_required_parameter == DEFAULT_VALUE
+    assert test_object.required_default_parameter == DEFAULT_VALUE
