@@ -40,6 +40,8 @@ class DefaultValidator(Validator):
         return None
 
 
+# defines the correspondence between validator string name and its class
+# also define the order validators applied
 VALIDATORS = {
     'default': DefaultValidator,
     'required': RequiredValidator,
@@ -75,8 +77,10 @@ class BaseValidatedClass:
             setattr(self, attribute, value)
 
     def load(self, attributes: Namespace, validate: bool = True) -> bool:
+        self.errors.clear()
         self.save_attributes()
         for attribute, value in vars(attributes).items():
+            attribute = attribute.replace('-', '_')
             if hasattr(self, attribute):
                 setattr(self, attribute, value)  # the values should be loaded before validation
         if validate:
@@ -120,6 +124,8 @@ class BaseValidatedClass:
         ruleset = {}
         for rule in self.rules():
             if rule['parameter'].replace('-', '_') == attribute:
+                rule.pop('parameter')
+                rule = self.streamline_rule_order(rule)
                 ruleset.update(rule)
         return ruleset
 
@@ -127,7 +133,6 @@ class BaseValidatedClass:
     @staticmethod
     def get_rule_validators(rule: Rule) -> List['Validator']:
         validators: List['Validators'] = []
-        rule.pop('parameter')
         for validator_name, validator_parameters in rule.items():
             if validator_name in VALIDATORS:
                 validator_class = VALIDATORS[validator_name]
@@ -138,3 +143,9 @@ class BaseValidatedClass:
             else:
                 print(f'Validator `{validator_name}` is not implemented')
         return validators
+
+    @staticmethod
+    def streamline_rule_order(rule: Rule) -> Rule:
+        ordered_keys = list(VALIDATORS.keys())
+        sorted_dict = {key: rule[key] for key in ordered_keys if key in rule}
+        return sorted_dict
