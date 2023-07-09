@@ -35,7 +35,8 @@ class RequiredValidator(Validator):
 class DefaultValidator(Validator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
-        setattr(validating_object, attribute, self.arguments['value'])
+        if getattr(validating_object, attribute) is None:
+            setattr(validating_object, attribute, self.arguments['value'])
         return None
 
 
