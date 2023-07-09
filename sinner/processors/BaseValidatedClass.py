@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from argparse import Namespace
-from typing import List, Dict
-from colorama import Fore, Style
+from typing import List, Dict, Any
+from colorama import Fore
 
 Rule = Dict[str, str]
 Rules = List[Rule]
@@ -61,17 +61,28 @@ class BaseValidatedClass:
     def rules(self) -> Rules:
         return []
 
-    def load(self, attributes: Namespace, validate: bool = True) -> bool:
+    def get_class_attributes(self) -> List[tuple[str, Any]]:
+        return [(attr, value) for attr, value in vars(self.__class__).items() if not attr.startswith('__') and not callable(value)]
+
+    # saves all attribute and its values to a namespace object
+    def save_attributes(self):
         for key in vars(self.old_attributes):
             delattr(self.old_attributes, key)
+        for attribute, value in self.get_class_attributes():
+            setattr(self.old_attributes, attribute, getattr(self, attribute))
+
+    def restore_attributes(self):
+        for attribute, value in vars(self.old_attributes).items():
+            setattr(self, attribute, value)
+
+    def load(self, attributes: Namespace, validate: bool = True) -> bool:
+        self.save_attributes()
         for attribute, value in vars(attributes).items():
             if hasattr(self, attribute):
-                setattr(self.old_attributes, attribute, getattr(self, attribute))
                 setattr(self, attribute, value)  # the values should be loaded before validation
         if validate:
             if not self.validate():  # return values back
-                for attribute, value in vars(self.old_attributes).items():
-                    setattr(self, attribute, value)
+                self.restore_attributes()
                 return False
         return True
 
