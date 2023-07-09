@@ -1,6 +1,7 @@
+import ast
 from abc import abstractmethod, ABC
 from argparse import Namespace
-from typing import List, Dict, Any
+from typing import List, Dict, Any, get_type_hints
 from colorama import Fore
 
 Rule = Dict[str, str]
@@ -82,7 +83,7 @@ class BaseValidatedClass:
         for attribute, value in vars(attributes).items():
             attribute = attribute.replace('-', '_')
             if hasattr(self, attribute):
-                setattr(self, attribute, value)  # the values should be loaded before validation
+                self.setattr(attribute, value)  # the values should be loaded before validation
         if validate:
             if not self.validate():  # return values back
                 self.restore_attributes()
@@ -149,3 +150,7 @@ class BaseValidatedClass:
         ordered_keys = list(VALIDATORS.keys())
         sorted_dict = {key: rule[key] for key in ordered_keys if key in rule}
         return sorted_dict
+
+    def setattr(self, attribute, value):
+        attribute_type = get_type_hints(self)[attribute]
+        setattr(self, attribute, attribute_type(value))
