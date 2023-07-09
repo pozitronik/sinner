@@ -66,8 +66,7 @@ class BaseValidatedClass:
 
     # saves all attribute and its values to a namespace object
     def save_attributes(self):
-        for key in vars(self.old_attributes):
-            delattr(self.old_attributes, key)
+        vars(self.old_attributes).clear()
         for attribute, value in self.get_class_attributes():
             setattr(self.old_attributes, attribute, getattr(self, attribute))
 
