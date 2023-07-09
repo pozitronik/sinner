@@ -1,3 +1,5 @@
+from typing import Any
+
 from sinner.processors.BaseValidatedClass import BaseValidatedClass, Rules
 
 DEFAULT_VALUE = 42
@@ -24,6 +26,15 @@ class TestRequiredValidation(BaseValidatedClass):
             {'parameter': 'required_parameter', 'required': True},  # Ok, if '--required_parameter' passed, else ValueRequired exception
             {'parameter': 'default_required_parameter', 'default': DEFAULT_VALUE, 'required': True},  # class.default_required_parameter = DEFAULT_VALUE, no error
             {'parameter': 'required_default_parameter', 'required': True, 'default': DEFAULT_VALUE},  # required validation made before default, so ValueRequired exception here (?)
+        ]
+
+
+class TestUntypedAttribute(BaseValidatedClass):
+    untyped_attribute: Any = None
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'untyped_attribute', 'required': True},
         ]
 
 

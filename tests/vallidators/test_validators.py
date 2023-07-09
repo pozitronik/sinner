@@ -2,7 +2,7 @@ import shlex
 from argparse import ArgumentParser, Namespace
 
 from sinner.Parameters import Parameters
-from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation
+from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute
 
 
 def command_line_to_namespace(cmd_params: str) -> Namespace:
@@ -57,11 +57,22 @@ def test_required_validator() -> None:
     assert test_object.default_required_parameter is None
     assert test_object.required_default_parameter is None
 
-    parameters = command_line_to_namespace('--required-parameter=15')
-
-    # ignore validation on load
+    parameters = command_line_to_namespace('--required-parameter=test')
     assert test_object.load(attributes=parameters) is True
-
-    assert test_object.required_parameter == 15
+    assert test_object.required_parameter == 'test'
     assert test_object.default_required_parameter == DEFAULT_VALUE
     assert test_object.required_default_parameter == DEFAULT_VALUE
+
+    #  trying to use integer value
+    parameters = command_line_to_namespace('--required-parameter=test --default_required_parameter=100')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.required_parameter == 'test'
+    assert test_object.default_required_parameter == 100
+    assert test_object.required_default_parameter == DEFAULT_VALUE
+
+
+def test_untyped_attribute() -> None:
+    test_object = TestUntypedAttribute()
+    parameters = command_line_to_namespace('--untyped-attribute=value')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.untyped_attribute == 'value'
