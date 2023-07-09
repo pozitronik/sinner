@@ -1,6 +1,6 @@
 from abc import abstractmethod, ABC
 from argparse import Namespace
-from typing import List, Dict, Any, get_type_hints
+from typing import List, Dict, Any, get_type_hints, Iterable
 from colorama import Fore
 
 Rule = Dict[str, str]
@@ -33,6 +33,25 @@ class RequiredValidator(Validator):
 
 
 class DefaultValidator(Validator):
+
+    def validate(self, validating_object: object, attribute: str) -> str | None:
+        if getattr(validating_object, attribute) is None:
+            setattr(validating_object, attribute, self.arguments['value'])
+        return None
+
+
+class ChoicesValidator(Validator):
+
+    def validate(self, validating_object: object, attribute: str) -> str | None:
+        attribute_value = getattr(validating_object, attribute)
+        validation_value = self.arguments['value']
+        if callable(validation_value):
+            validation_value = validation_value()
+            return None if attribute_value in self.arguments['value'] else f"Value {attribute_value} is not in {self.arguments['value']}"
+        if isinstance(self.arguments['value'], Iterable):
+            return None if attribute_value in self.arguments['value'] else f"Value {attribute_value} is not in {self.arguments['value']}"
+
+class CallableValidator(Validator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
         if getattr(validating_object, attribute) is None:
