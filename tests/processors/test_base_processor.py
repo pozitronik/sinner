@@ -2,7 +2,6 @@ import glob
 import multiprocessing
 import os.path
 import shutil
-from argparse import Namespace
 
 import pytest
 
@@ -41,7 +40,8 @@ def get_test_state() -> State:
 
 
 def get_test_object() -> DummyProcessor:
-    return DummyProcessor(execution_providers=['CPUExecutionProvider'], execution_threads=multiprocessing.cpu_count(), max_memory=12, state=get_test_state())
+    parameters = Parameters(f'--frame-processor=DummyProcessor --max-memory=12 --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path={source_jpg} --target-path={target_mp4} --output-path={tmp_dir}')
+    return DummyProcessor(parameters=parameters.parameters, state=get_test_state())
 
 
 def test_create_factory():
