@@ -1,4 +1,3 @@
-import inspect
 import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
@@ -16,9 +15,9 @@ from sinner.utilities import update_status, load_class, get_mem_usage, read_imag
 
 class BaseFrameProcessor(ABC, BaseValidatedClass):
     state: State
-    execution_providers: List[str]
-    execution_threads: int
-    max_memory: int
+    execution_provider: List[str] = None
+    execution_threads: int = None
+    max_memory: int = None
     extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None
@@ -28,35 +27,23 @@ class BaseFrameProcessor(ABC, BaseValidatedClass):
         handler_class = load_class(os.path.dirname(__file__), processor_name)
 
         if handler_class and issubclass(handler_class, BaseFrameProcessor):
-            class_parameters_list = inspect.signature(handler_class.__init__).parameters
-            params: dict[str, Any] = {}
-            for parameter_name in class_parameters_list.keys():
-                if hasattr(parameters, parameter_name):
-                    params[parameter_name] = getattr(parameters, parameter_name)
-            params['state'] = state
+            params: dict[str, Any] = {'state': state, 'parameters': parameters}
             return handler_class(**params)
         else:
             raise ValueError(f"Invalid processor name: {processor_name}")
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'execution-provider', 'type': List[str], 'required': True},
-            {'parameter': 'execution-provider', 'default': ['cpu']},
-            {'parameter': 'execution-provider', 'choices': suggest_execution_providers()},
-            {'parameter': 'execution-threads', 'type': int, 'default': suggest_execution_threads()},
+            {'parameter': 'execution-provider', 'required': True, 'default': ['cpu'], 'choices': suggest_execution_providers()},
+            {'parameter': 'execution-threads', 'type': int, 'default': suggest_execution_threads()}
         ]
 
-    def __init__(self, execution_providers: List[str], parameters: Namespace, execution_threads: int, max_memory: int, state: State) -> None:
-        self.execution_providers = execution_providers
-        self.execution_threads = execution_threads
-        self.max_memory = max_memory
+    def __init__(self, parameters: Namespace, state: State) -> None:
+        if not self.load(parameters):
+            self.write_errors()
+            quit()
         self.state = state
         super().__init__()
-
-    def validate(self) -> bool:
-        if self.execution_providers not in suggest_execution_providers():
-            self.add_error('execution-provider')
-        return super().validate()
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
