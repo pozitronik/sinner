@@ -10,19 +10,24 @@ from sinner.utilities import list_class_descendants, resolve_relative_path, get_
 
 
 class Parameters(BaseValidatedClass):
+    frame_processor: List[str] = None
+    frame_handler: str = None
+    max_memory: int = None
+    gui: bool = False
+    benchmark: bool = True
+    temp_dir: str | None = None
+
     parser: ArgumentParser = ArgumentParser()
     parameters: Namespace
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'frame-processor', 'type': List[str], 'required': True},
-            {'parameter': 'frame-processor', 'default': ['FaceSwapper']},
-            {'parameter': 'frame-processor', 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
-            {'parameter': 'frame-handler', 'type': str, 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
-            {'parameter': 'max-memory', 'type': int, 'default': self.suggest_max_memory()},
-            {'parameter': 'gui', 'type': bool, 'default': False, 'action': True},
-            {'parameter': 'benchmark', 'type': bool, 'default': False, 'action': True},
-            {'parameter': 'temp-dir', 'type': str | None, 'default': None},
+            {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
+            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler').append(None)},
+            {'parameter': 'max-memory', 'default': self.suggest_max_memory()},
+            {'parameter': 'gui', 'default': False},
+            {'parameter': 'benchmark', 'default': False},
+            {'parameter': 'temp-dir', 'default': None}
         ]
 
     def __init__(self, command_line: str | None = None):

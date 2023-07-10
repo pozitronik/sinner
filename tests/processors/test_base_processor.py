@@ -6,6 +6,7 @@ from argparse import Namespace
 
 import pytest
 
+from sinner.Parameters import Parameters
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -43,30 +44,9 @@ def get_test_object() -> DummyProcessor:
     return DummyProcessor(execution_providers=['CPUExecutionProvider'], execution_threads=multiprocessing.cpu_count(), max_memory=12, state=get_test_state())
 
 
-def get_test_namespace() -> Namespace:
-    return Namespace(
-        frame_processor=['DummyProcessor'],
-        execution_provider=['CPUExecutionProvider'],
-        execution_threads=multiprocessing.cpu_count(),
-        max_memory=12,
-        source_path=source_jpg,
-        target_path=target_mp4,
-        output_path=tmp_dir,
-        fps=None,
-        keep_audio=False,
-        keep_frames=False,
-        many_faces=False,
-        extract_frames=False,
-        frame_handler=None,
-        temp_dir=tmp_dir,
-        benchmark=None,
-        gui=None
-    )
-
-
 def test_create_factory():
-    parameters: Namespace = get_test_namespace()
-    dummy_processor = BaseFrameProcessor.create('DummyProcessor', parameters=parameters, state=get_test_state())
+    parameters = Parameters(f'--frame-processor=DummyProcessor --execution-provider=CPUExecutionProvider --execution-threads={multiprocessing.cpu_count()} --source-path={source_jpg} --target-path={target_mp4} --output-path={tmp_dir}')
+    dummy_processor = BaseFrameProcessor.create('DummyProcessor', parameters=parameters.parameters, state=get_test_state())
     assert isinstance(dummy_processor, BaseFrameProcessor)
     assert dummy_processor.state.frames_count == 98
     assert dummy_processor.max_memory == 12
