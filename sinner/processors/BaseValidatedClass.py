@@ -174,10 +174,13 @@ class BaseValidatedClass:
         sorted_dict = {key: rule[key] for key in ordered_keys if key in rule}
         return sorted_dict
 
-    def setattr(self, attribute, value):
+    def setattr(self, attribute: str, value: Any) -> None:
         attribute_type = get_type_hints(self)[attribute]
         try:
-            typed_value = attribute_type(value)
+            if isinstance(value, str) and attribute_type.__origin__.__name__ == 'list':
+                typed_value = [value]  # need to avoid split string to chars
+            else:
+                typed_value = attribute_type(value)
         except Exception:  # if attribute has no type, or defined as Any, just ignore type casting
             typed_value = value
         setattr(self, attribute, typed_value)
