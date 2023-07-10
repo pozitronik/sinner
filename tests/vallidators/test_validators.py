@@ -3,7 +3,7 @@ import shlex
 from argparse import ArgumentParser, Namespace
 
 from sinner.Parameters import Parameters
-from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute
+from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute
 
 
 def command_line_to_namespace(cmd_params: str) -> Namespace:
@@ -29,8 +29,9 @@ def command_line_to_namespace(cmd_params: str) -> Namespace:
 
     args, unknown_args = parser.parse_known_args(args_list)
     for argument in unknown_args:
-        key, value = Parameters.parse_argument(argument)
-        setattr(args, key, value)
+        parsed_argument = Parameters.parse_argument(argument)
+        if parsed_argument is not None:
+            setattr(args, *parsed_argument)
     return args
 
 
@@ -140,3 +141,23 @@ def test_lambda_validator() -> None:
     parameters: Namespace = command_line_to_namespace('--lambda_attribute=15')
     assert test_object.load(attributes=parameters) is False
     assert test_object.lambda_attribute == 42
+
+
+def test_list_parameter() -> None:
+    test_object = TestListAttribute()
+    assert test_object.list_attribute is None
+    parameters: Namespace = command_line_to_namespace('')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.list_attribute == ['Dolor', 'sit', 'amet']
+
+    parameters: Namespace = command_line_to_namespace('--list_attribute Ipsum lorem')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.list_attribute == ['Ipsum', 'lorem']
+
+    parameters: Namespace = command_line_to_namespace('--list_attribute=42')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.list_attribute == ['42']
+
+    parameters: Namespace = command_line_to_namespace('--list_attribute --other-attribute')  # parameter without values does nothing
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.list_attribute == ['42']

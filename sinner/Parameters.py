@@ -27,10 +27,11 @@ class Parameters(BaseValidatedClass):
         ]
 
     def __init__(self):
-        args, unknown_args = self.parser.parse_known_args()
+        args, unknown_args = self.parser.parse_known_args()  # todo: move command_line_to_namespace() code here to teach it work with the lists
         for argument in unknown_args:
-            key, value = self.parse_argument(argument)
-            setattr(args, key, value)
+            parsed_argument = Parameters.parse_argument(argument)
+            if parsed_argument is not None:
+                setattr(args, *parsed_argument)
         self.parameters = args
         if not self.load(self.parameters):
             self.write_errors()
@@ -58,6 +59,8 @@ class Parameters(BaseValidatedClass):
         if '=' in argument:  # '--key=value'
             key, value = argument[2:].split('=')
             return key, value
+        elif ' ' not in argument:  # --key
+            return None
         else:  # '--key value1 value2'
             key, value = argument[2:].split('=')
             value = value.split()
