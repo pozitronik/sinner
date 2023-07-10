@@ -1,7 +1,7 @@
-import glob
 import os
 import platform
 import shlex
+import sys
 from argparse import ArgumentParser, Namespace
 from typing import List
 
@@ -10,7 +10,6 @@ from sinner.utilities import list_class_descendants, resolve_relative_path, get_
 
 
 class Parameters(BaseValidatedClass):
-    SIGNATURE: str = 'def register_arguments(args: List[str]) -> None'
     parser: ArgumentParser = ArgumentParser()
     parameters: Namespace
 
@@ -24,36 +23,43 @@ class Parameters(BaseValidatedClass):
             {'parameter': 'gui', 'type': bool, 'default': False, 'action': True},
             {'parameter': 'benchmark', 'type': bool, 'default': False, 'action': True},
             {'parameter': 'temp-dir', 'type': str | None, 'default': None},
-            {'parameter': 'temp-dir', 'type': str | None, 'default': None},
         ]
 
     def __init__(self, command_line: str | None = None):
-        if isinstance(command_line, str):
-            command_line = shlex.split(command_line)
-        args, unknown_args = self.parser.parse_known_args(command_line)  # todo: move command_line_to_namespace() code here to teach it work with the lists
-        for argument in unknown_args:
-            parsed_argument = Parameters.parse_argument(argument)
-            if parsed_argument is not None:
-                setattr(args, *parsed_argument)
-        self.parameters = args
+        self.parameters = self.command_line_to_namespace(command_line)
         if not self.load(self.parameters):
             self.write_errors()
             quit()
 
-    def list_modules(self) -> List[str]:
-        module_files = glob.glob('*.py', recursive=True)
-        modules = []
-        for file in module_files:
-            if self.acceptable_for_loading(file):
-                modules.append(file)
-        return modules
+    @staticmethod
+    def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
+        processed_parameters: Namespace = Namespace()
+        if cmd_params is None:
+            args_list = sys.argv[1:]
+        else:
+            args_list = shlex.split(cmd_params)
+        result = []
+        current_sublist = []
+        for item in args_list:
+            if item.startswith('--'):
+                if current_sublist:
+                    result.append(current_sublist)
+                    current_sublist = []
+                current_sublist.append(item)
+            else:
+                current_sublist.append(item)
+        if current_sublist:
+            result.append(current_sublist)
 
-    def acceptable_for_loading(self, file_path: str):
-        with open(file_path, 'r') as file:
-            for line in file:
-                if self.SIGNATURE in line:
-                    return True
-        return False
+        for parameter in result:
+            if len(parameter) > 2:
+                setattr(processed_parameters, parameter[0].lstrip('-'), parameter[1:])
+            elif len(parameter) == 1 and '=' not in parameter[0]:
+                setattr(processed_parameters, parameter[0].lstrip('-'), True)
+            else:
+                key, value = parameter[0].split('=')
+                setattr(processed_parameters, key.lstrip('-'), value)
+        return processed_parameters
 
     @staticmethod
     def parse_argument(argument: str) -> tuple[str, str] | tuple[str, list[str]] | None:  # key and list of values
