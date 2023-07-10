@@ -1,6 +1,7 @@
 import glob
 import os
 import platform
+import shlex
 from argparse import ArgumentParser, Namespace
 from typing import List
 
@@ -26,8 +27,10 @@ class Parameters(BaseValidatedClass):
             {'parameter': 'temp-dir', 'type': str | None, 'default': None},
         ]
 
-    def __init__(self):
-        args, unknown_args = self.parser.parse_known_args()  # todo: move command_line_to_namespace() code here to teach it work with the lists
+    def __init__(self, command_line: str | None = None):
+        if isinstance(command_line, str):
+            command_line = shlex.split(command_line)
+        args, unknown_args = self.parser.parse_known_args(command_line)  # todo: move command_line_to_namespace() code here to teach it work with the lists
         for argument in unknown_args:
             parsed_argument = Parameters.parse_argument(argument)
             if parsed_argument is not None:
