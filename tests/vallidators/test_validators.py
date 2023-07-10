@@ -127,6 +127,6 @@ def test_list_parameter() -> None:
     assert test_object.load(attributes=parameters) is True
     assert test_object.list_attribute == ['42']
 
-    parameters: Namespace = Parameters.command_line_to_namespace('--list_attribute --other-attribute')  # parameter without values does nothing
+    parameters: Namespace = Parameters.command_line_to_namespace('--list_attribute --other-attribute')  # parameter without values validates to True
     assert test_object.load(attributes=parameters) is True
-    assert test_object.list_attribute == ['42']
+    assert test_object.list_attribute == [True]
