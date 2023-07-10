@@ -1,4 +1,5 @@
-from typing import Any
+from abc import ABC
+from typing import Any, List
 
 from sinner.processors.BaseValidatedClass import BaseValidatedClass, Rules
 
@@ -66,3 +67,21 @@ class TestLambdaValueAttribute(BaseValidatedClass):
 
     def valid(self, attribute: str) -> bool:
         return 41 < getattr(self, attribute) < 43
+
+
+class TestListAttribute(BaseValidatedClass, ABC):
+    list_attribute: list[str] = None
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'list_attribute', 'default': ['Dolor', 'sit', 'amet']},
+        ]
+
+
+# experimental
+class TestInitAttribute(BaseValidatedClass):
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'non_existent_parameter', 'type': List[str], 'default': ['Dolor', 'sit', 'amet']},  # defines a class variable with type and assign a value to it
+        ]
