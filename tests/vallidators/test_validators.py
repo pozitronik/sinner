@@ -2,7 +2,7 @@ import shlex
 from argparse import ArgumentParser, Namespace
 
 from sinner.Parameters import Parameters
-from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute
+from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute
 
 
 def command_line_to_namespace(cmd_params: str) -> Namespace:
@@ -73,6 +73,51 @@ def test_required_validator() -> None:
 
 def test_untyped_attribute() -> None:
     test_object = TestUntypedAttribute()
-    parameters = command_line_to_namespace('--untyped-attribute=value')
+    parameters: Namespace = command_line_to_namespace('--untyped-attribute=value')
     assert test_object.load(attributes=parameters) is True
     assert test_object.untyped_attribute == 'value'
+
+
+def test_equal_value_validator() -> None:
+    test_object = TestEqualValueAttribute()
+    assert test_object.int_attribute is None
+    parameters: Namespace = command_line_to_namespace('--int_attribute=10')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.int_attribute == 10
+
+    parameters: Namespace = command_line_to_namespace('--int_attribute=42')
+    assert test_object.load(attributes=parameters) is False
+    assert test_object.int_attribute == 10
+    assert test_object.errors == [{'attribute': 'int_attribute', 'error': 'Value 42 is not equal to 10', 'module': '😈sinner'}]
+
+
+def test_in_value_validator() -> None:
+    test_object = TestInValueAttribute()
+    assert test_object.in_list_attribute is None
+    parameters: Namespace = command_line_to_namespace('--in_list_attribute=7')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.in_list_attribute == 7
+
+    parameters: Namespace = command_line_to_namespace('--in_list_attribute=42')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.in_list_attribute == 42
+
+    parameters: Namespace = command_line_to_namespace('--in_list_attribute=15')
+    assert test_object.load(attributes=parameters) is False
+    assert test_object.in_list_attribute == 42
+
+
+def test_lambda_validator() -> None:
+    test_object = TestLambdaValueAttribute()
+    assert test_object.lambda_attribute is None
+    parameters: Namespace = command_line_to_namespace('--lambda_attribute=7')
+    assert test_object.load(attributes=parameters) is False
+    assert test_object.lambda_attribute is None
+
+    parameters: Namespace = command_line_to_namespace('--lambda_attribute=42')
+    assert test_object.load(attributes=parameters) is True
+    assert test_object.lambda_attribute == 42
+
+    parameters: Namespace = command_line_to_namespace('--lambda_attribute=15')
+    assert test_object.load(attributes=parameters) is False
+    assert test_object.lambda_attribute == 42

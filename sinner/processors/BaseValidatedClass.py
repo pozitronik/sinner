@@ -40,23 +40,16 @@ class DefaultValidator(Validator):
         return None
 
 
-class ChoicesValidator(Validator):
+class ValueValidator(Validator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
         attribute_value = getattr(validating_object, attribute)
         validation_value = self.arguments['value']
         if callable(validation_value):
-            validation_value = validation_value()
-            return None if attribute_value in self.arguments['value'] else f"Value {attribute_value} is not in {self.arguments['value']}"
+            return None if validation_value(attribute) else f"Value {attribute_value} is not in validation"
         if isinstance(self.arguments['value'], Iterable):
-            return None if attribute_value in self.arguments['value'] else f"Value {attribute_value} is not in {self.arguments['value']}"
-
-class CallableValidator(Validator):
-
-    def validate(self, validating_object: object, attribute: str) -> str | None:
-        if getattr(validating_object, attribute) is None:
-            setattr(validating_object, attribute, self.arguments['value'])
-        return None
+            return None if attribute_value in validation_value else f"Value {attribute_value} is not in {validation_value}"
+        return None if attribute_value == validation_value else f"Value {attribute_value} is not equal to {validation_value}"
 
 
 # defines the correspondence between validator string name and its class
@@ -64,13 +57,13 @@ class CallableValidator(Validator):
 VALIDATORS = {
     'default': DefaultValidator,
     'required': RequiredValidator,
-    # 'choices': ChoicesValidator,
-    # 'in': ChoicesValidator,
-    # 'type': TypeValidator,
-    # 'action': ActionValidator,
-    # 'valid': CallableValidator,
-    # 'function': CallableValidator,
-    # 'lambda': CallableValidator
+    'value': ValueValidator,
+    'valid': ValueValidator,
+    'choices': ValueValidator,
+    'in': ValueValidator,
+    'action': ValueValidator,
+    'function': ValueValidator,
+    'lambda': ValueValidator
 }
 
 
