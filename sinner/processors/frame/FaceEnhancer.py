@@ -1,5 +1,6 @@
 import os
 import threading
+from argparse import Namespace
 from typing import List
 
 import gfpgan
@@ -14,33 +15,32 @@ from sinner.utilities import conditional_download, get_app_dir, is_image, is_vid
 
 
 class FaceEnhancer(BaseFrameProcessor):
-    target: str
-    output: str
+    target_path: str = None
+    output_path: str = None
 
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
 
     def rules(self) -> Rules:
         return super().rules() + [
-            {'parameter': 'target', 'required': True, 'valid': lambda: is_image(self.target) or is_video(self.target)},
-            {'parameter': 'output', 'default': self.suggest_output_path(), 'valid': lambda: os.path.isabs(self.output)},
-            {'parameter': 'many-faces', 'default': False, 'action': True},
+            {'parameter': 'target_path', 'required': True, 'valid': lambda: is_image(self.target_path) or is_video(self.target_path)},
+            {'parameter': 'output_path', 'default': self.suggest_output_path(), 'valid': lambda: os.path.isabs(self.output_path)},
         ]
 
     def suggest_output_path(self) -> str:
-        target_name, target_extension = os.path.splitext(os.path.basename(self.target))
-        if self.output is None:
-            return os.path.join(os.path.dirname(self.target), 'enhanced-' + target_name + target_extension)
-        if os.path.isdir(self.output):
-            return os.path.join(self.output, 'enhanced-' + target_name + target_extension)
-        return self.output
+        target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
+        if self.output_path is None:
+            return os.path.join(os.path.dirname(self.target_path), 'enhanced-' + target_name + target_extension)
+        if os.path.isdir(self.output_path):
+            return os.path.join(self.output_path, 'enhanced-' + target_name + target_extension)
+        return self.output_path
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State):
+    def __init__(self, parameters: Namespace, state: State):
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
-        super().__init__(execution_providers=execution_providers, execution_threads=execution_threads, max_memory=max_memory, state=state)
+        super().__init__(parameters=parameters, state=state)
         self._face_enhancer = self.get_face_enhancer()
-        self._face_analyser = FaceAnalyser(self.execution_providers)
+        self._face_analyser = FaceAnalyser(self.execution_provider)
 
     def get_face_enhancer(self) -> GFPGANer:
         with self.thread_lock:
