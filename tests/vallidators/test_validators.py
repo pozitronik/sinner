@@ -1,3 +1,4 @@
+import argparse
 import shlex
 from argparse import ArgumentParser, Namespace
 
@@ -6,8 +7,26 @@ from tests.vallidators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValid
 
 
 def command_line_to_namespace(cmd_params: str) -> Namespace:
-    args_list = shlex.split(cmd_params, posix=False)
+    args_list = shlex.split(cmd_params)
+    result = []
+    sublist = []
+
+    for item in args_list:
+        if item.startswith('--'):
+            if sublist:
+                result.append(sublist)
+                sublist = []
+            sublist.append(item)
+        else:
+            sublist.append(item)
+    if sublist:
+        result.append(sublist)
+
     parser = ArgumentParser()
+    for parameter in result:
+        if len(parameter) > 2:
+            parser.add_argument(parameter[0], nargs=argparse.REMAINDER)  # mark parameter as a list
+
     args, unknown_args = parser.parse_known_args(args_list)
     for argument in unknown_args:
         key, value = Parameters.parse_argument(argument)
