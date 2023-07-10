@@ -52,9 +52,21 @@ class ValueValidator(Validator):
         return None if attribute_value == validation_value else f"Value {attribute_value} is not equal to {validation_value}"
 
 
+# defines a typed class variable, even it not defined in the class declaration
+# experimental
+class InitValidator(Validator):
+
+    def validate(self, validating_object: object, attribute: str) -> str | None:
+        if getattr(validating_object, attribute) is None:
+            setattr(validating_object.__class__, attribute, self.arguments['value'])
+        return None
+
+
 # defines the correspondence between validator string name and its class
 # also define the order validators applied
 VALIDATORS = {
+    # 'init': InitValidator,
+    # 'type': InitValidator,
     'default': DefaultValidator,
     'required': RequiredValidator,
     'value': ValueValidator,
@@ -63,7 +75,7 @@ VALIDATORS = {
     'in': ValueValidator,
     'action': ValueValidator,
     'function': ValueValidator,
-    'lambda': ValueValidator
+    'lambda': ValueValidator,
 }
 
 
