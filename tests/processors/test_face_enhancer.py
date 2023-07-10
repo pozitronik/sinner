@@ -1,6 +1,7 @@
 import multiprocessing
 
 from gfpgan import GFPGANer  # type: ignore[attr-defined]
+from sinner.Parameters import Parameters
 
 from sinner.face_analyser import FaceAnalyser
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
@@ -20,7 +21,8 @@ def get_test_state() -> State:
 
 
 def get_test_object() -> FaceEnhancer:
-    return FaceEnhancer(execution_providers=['CPUExecutionProvider'], execution_threads=multiprocessing.cpu_count(), max_memory=12, state=get_test_state())
+    parameters = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path={source_jpg} --target-path={target_png} --output-path={tmp_dir}')
+    return FaceEnhancer(parameters=parameters.parameters, state=get_test_state())
 
 
 def test_init():
