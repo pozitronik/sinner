@@ -128,7 +128,7 @@ class BaseValidatedClass:
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
         if not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
-            return [f'{__class__.__name__} has no attribute {attribute} defined']
+            return [f'{self.__class__.__name__} has no attribute {attribute} defined']
         rule = self.get_attribute_rules(attribute)
         errors: List[str] = []
         for validator in self.get_rule_validators(rule):
