@@ -68,7 +68,9 @@ class AttributeLoader:
         return True
 
     def validate(self) -> bool:
-        for attribute in self.validating_attributes():
+        validating_attributes = self.validating_attributes()
+        self.init_declared_attributes(validating_attributes)
+        for attribute in validating_attributes:
             for error in self.validate_attribute(attribute):
                 self.add_error(attribute=attribute, error=error, module=self.__class__.__name__)
         return [] == self.errors
@@ -143,3 +145,8 @@ class AttributeLoader:
         except Exception:  # if attribute has no type, or defined as Any, just ignore type casting
             typed_value = value
         setattr(self, attribute, typed_value)
+
+    def init_declared_attributes(self, attribute_list: List[str]) -> None:
+        for attribute in attribute_list:
+            if hasattr(self, attribute) is False and declared_attr_type(self, attribute) is not None:  # attribute is type declared
+                setattr(self, attribute, None)
