@@ -23,7 +23,7 @@ class FaceSwapper(BaseFrameProcessor):
 
     def rules(self) -> Rules:
         return super().rules() + [
-            {'parameter': 'source_path', 'type': str, 'required': True, 'valid': is_image(self.source_path)},
+            {'parameter': 'source_path', 'required': True, 'valid': is_image(self.source_path)},
             {'parameter': 'target_path', 'required': True, 'valid': is_image(self.target_path) or is_video(self.target_path) or os.path.isdir(self.target_path)},
             {'parameter': 'output_path', 'default': self.suggest_output_path(), 'valid': os.path.isabs(self.output_path)},
             {'parameter': 'many-faces', 'default': False, 'action': True},
