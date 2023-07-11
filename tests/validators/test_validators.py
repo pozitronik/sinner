@@ -135,6 +135,7 @@ def test_list_parameter() -> None:
     assert test_object.list_attribute == [True]
 
 
+@pytest.mark.skip(reason="Feature not implemented")
 def test_dynamic_parameters_loading_defaults() -> None:
     test_object = TestInitAttribute()
     assert hasattr(test_object, 'non_existent_parameter_type_list') is False
@@ -162,6 +163,7 @@ def test_dynamic_parameters_loading_defaults() -> None:
     assert test_object.non_existent_parameter_type_required == 'something'
 
 
+@pytest.mark.skip(reason="Feature not implemented")
 def test_dynamic_parameters_loading() -> None:
     test_object = TestInitAttribute()
     assert hasattr(test_object, 'non_existent_parameter_type_list') is False

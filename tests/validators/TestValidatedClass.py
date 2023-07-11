@@ -91,7 +91,7 @@ class TestInitAttribute(AttributeLoader):
 
 class TestInitAttributeTyped(AttributeLoader):
     non_existent_parameter_type_list: List[str]
-    non_existent_parameter_type_auto: List[str]
+    non_existent_parameter_type_auto: Any
     non_existent_parameter_type_int: int
     non_existent_parameter_type_required: Any
 
