@@ -1,3 +1,4 @@
+import inspect
 from abc import abstractmethod, ABC
 from argparse import Namespace
 from typing import List, Dict, Any, get_type_hints, Iterable
@@ -61,7 +62,14 @@ class ValueValidator(Validator):
         validation_value = self.arguments['value']
         if callable(validation_value):
             try:
-                return None if validation_value(attribute) else f"Value {attribute_value} is not valid"
+                callable_parameters_count = len(inspect.signature(validation_value).parameters)
+                if 0 == callable_parameters_count:
+                    value = validation_value()
+                elif 1 == callable_parameters_count:
+                    value = validation_value(attribute)
+                else:
+                    raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validating_object, self)
+                return None if value else f"Value {attribute_value} is not valid"
             except Exception:
                 raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validating_object, self)
 
