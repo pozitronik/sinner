@@ -15,9 +15,9 @@ from sinner.utilities import update_status, load_class, get_mem_usage, read_imag
 
 class BaseFrameProcessor(ABC, AttributeLoader):
     state: State
-    execution_provider: List[str] = None
-    execution_threads: int = None
-    max_memory: int = None
+    execution_provider: List[str]
+    execution_threads: int
+    max_memory: int
     extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None

@@ -14,8 +14,8 @@ from sinner.utilities import conditional_download, get_app_dir, is_image, is_vid
 
 
 class FaceEnhancer(BaseFrameProcessor):
-    target_path: str = None
-    output_path: str = None
+    target_path: str
+    output_path: str
 
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()

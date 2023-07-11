@@ -7,7 +7,7 @@ import platform
 import shutil
 import sys
 import urllib
-from typing import List, Literal
+from typing import List, Literal, Any, get_type_hints
 
 import cv2
 import onnxruntime
@@ -192,3 +192,11 @@ def decode_execution_providers(execution_providers: List[str]) -> List[str]:
 
 def suggest_execution_providers() -> List[str]:
     return encode_execution_providers(onnxruntime.get_available_providers())
+
+
+# returns the declared type of class attribute or None, if attribute isn't declared
+def declared_attr_type(obj: object, attribute: str) -> Any:
+    declared_typed_variables = get_type_hints(obj.__class__)
+    if attribute in declared_typed_variables:
+        return declared_typed_variables[attribute]
+    return None

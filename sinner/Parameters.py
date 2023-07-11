@@ -10,11 +10,11 @@ from sinner.utilities import list_class_descendants, resolve_relative_path, get_
 
 
 class Parameters(AttributeLoader):
-    frame_processor: List[str] = None
-    frame_handler: str = None
-    max_memory: int = None
-    gui: bool = False
-    benchmark: bool = True
+    frame_processor: List[str]
+    frame_handler: str
+    max_memory: int
+    gui: bool
+    benchmark: bool
     temp_dir: str | None = None
 
     parser: ArgumentParser = ArgumentParser()

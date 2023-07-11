@@ -2,6 +2,7 @@ from argparse import Namespace
 from typing import List, Dict, Any, get_type_hints, Type
 from colorama import Fore
 
+from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
 from sinner.validators.LoaderException import LoaderException
@@ -58,7 +59,7 @@ class AttributeLoader:
         self.save_attributes()
         for attribute, value in vars(attributes).items():
             attribute = attribute.replace('-', '_')
-            if attribute in get_type_hints(self.__class__):
+            if declared_attr_type(self, attribute) is not None:
                 self.setattr(attribute, value)  # the values should be loaded before validation
         if validate:
             if not self.validate():  # return values back
@@ -80,8 +81,8 @@ class AttributeLoader:
             print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
-        if not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
-            raise LoaderException('No attribute defined', self, attribute)
+        if not declared_attr_type(self, attribute):  # doesn't allow to use dynamic attributes
+            raise LoaderException(f'Property {attribute} is not declared in a class', self, attribute)
         rule = self.get_attribute_rules(attribute)
         errors: List[str] = []
         for validator in self.get_rule_validators(rule):
@@ -127,11 +128,9 @@ class AttributeLoader:
         return sorted_dict
 
     def setattr(self, attribute: str, value: Any) -> None:
-        declared_typed_variables = get_type_hints(self.__class__)
-        if attribute in declared_typed_variables:
-            attribute_type = get_type_hints(self.__class__)[attribute]
-        else:
-            raise LoaderException(f'Property {attribute} is not initialized', self, attribute)
+        attribute_type = declared_attr_type(self, attribute)
+        if attribute_type is None:
+            raise LoaderException(f'Property {attribute} is not declared in a class', self, attribute)
         try:
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
             if attribute_type_name == 'list':

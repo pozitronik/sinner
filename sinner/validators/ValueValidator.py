@@ -1,6 +1,7 @@
 import inspect
 from typing import Dict, Any, Iterable
 
+from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.ValidatorException import ValidatorException
 
@@ -14,8 +15,8 @@ class ValueValidator(BaseValidator):
         }
         self.arguments.update(kwargs)
 
-    def validate(self, validating_object: object, attribute: str) -> str | None:
-        attribute_value = getattr(validating_object, attribute)
+    def validate(self, validated_object: object, attribute: str) -> str | None:
+        attribute_value = self.get_validated_attribute_value(validated_object, attribute)
         validation_value = self.arguments['value']
         if attribute_value is None and self.arguments['required'] is False:
             return None
@@ -29,10 +30,10 @@ class ValueValidator(BaseValidator):
                 elif 1 == callable_parameters_count:
                     value = validation_value(attribute)
                 else:
-                    raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validating_object, self)
+                    raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validated_object, self)
                 return None if value else f"Value {attribute_value} is not valid"
             except Exception:
-                raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validating_object, self)
+                raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validated_object, self)
 
         if isinstance(validation_value, Iterable):
             if isinstance(attribute_value, Iterable):
