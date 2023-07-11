@@ -84,6 +84,21 @@ class TestInitAttribute(AttributeLoader):
         return [
             {'parameter': 'non_existent_parameter_type_list', 'type': List[str], 'default': ['Lorem', 'ipsum']},  # defines a class variable with type and assign a value to it
             {'parameter': 'non_existent_parameter_type_auto', 'default': ['Dolor', 'sit', 'amet']},  # defines a class variable with type and assign a value to it
-            {'parameter': 'non_existent_parameter_type_int', 'default': 1, 'required': True},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_int', 'type': int, 'default': 1, 'required': True},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_required', 'required': True},  # defines a class variable with type and assign a value to it
+        ]
+
+
+class TestInitAttributeTyped(AttributeLoader):
+    non_existent_parameter_type_list: List[str]
+    non_existent_parameter_type_auto: List[str]
+    non_existent_parameter_type_int: int
+    non_existent_parameter_type_required: Any
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'non_existent_parameter_type_list', 'type': List[str], 'default': ['Lorem', 'ipsum']},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_auto', 'default': ['Dolor', 'sit', 'amet']},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_int', 'type': int, 'default': 1, 'required': True},  # defines a class variable with type and assign a value to it
             {'parameter': 'non_existent_parameter_type_required', 'required': True},  # defines a class variable with type and assign a value to it
         ]

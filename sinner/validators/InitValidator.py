@@ -1,5 +1,5 @@
 # defines a typed class variable, even it not defined in the class declaration
-# experimental
+# also casts the variable type to the specified type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.ValidatorException import ValidatorException
 
@@ -7,6 +7,8 @@ from sinner.validators.ValidatorException import ValidatorException
 class InitValidator(BaseValidator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
+        attribute_type_name = None
+        new_value = None
         try:
             attribute_type = self.arguments['value']
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
