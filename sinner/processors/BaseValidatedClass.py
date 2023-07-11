@@ -4,7 +4,7 @@ from argparse import Namespace
 from typing import List, Dict, Any, get_type_hints, Iterable
 from colorama import Fore, Style, Back
 
-Rule = Dict[str, str]
+Rule = Dict[str, Any]
 Rules = List[Rule]
 
 '''
