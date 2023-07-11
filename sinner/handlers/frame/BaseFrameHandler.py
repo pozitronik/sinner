@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import List
 
-from sinner.processors.BaseValidatedClass import BaseValidatedClass
+from sinner.validators.BaseValidatedClass import BaseValidatedClass
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 

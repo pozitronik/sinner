@@ -6,7 +6,7 @@ import gfpgan
 from gfpgan import GFPGANer  # type: ignore[attr-defined]
 
 from sinner.face_analyser import FaceAnalyser
-from sinner.processors.BaseValidatedClass import Rules
+from sinner.validators.BaseValidatedClass import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame

@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Any, List
 
-from sinner.processors.BaseValidatedClass import BaseValidatedClass, Rules
+from sinner.validators.BaseValidatedClass import BaseValidatedClass, Rules
 
 DEFAULT_VALUE = 42
 

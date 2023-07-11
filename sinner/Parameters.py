@@ -5,7 +5,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from typing import List
 
-from sinner.processors.BaseValidatedClass import BaseValidatedClass, Rules
+from sinner.validators.BaseValidatedClass import BaseValidatedClass, Rules
 from sinner.utilities import list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
 
 
