@@ -12,4 +12,4 @@ class LoaderException(Exception):
         self.attribute = attribute
 
     def __str__(self) -> str:
-        return f"{Fore.BLACK}{Back.RED}{self.validated_object.__class__.__name__}{Back.RESET}{Fore.RESET}: {self.message}@{Style.BRIGHT}{self.attribute}{Style.RESET_ALL}"
+        return f"{Fore.BLACK}{Back.RED}{self.validated_object.__class__.__name__}{Back.RESET}{Fore.RESET}: {self.message} ({Style.BRIGHT}{self.attribute}{Style.RESET_ALL})"

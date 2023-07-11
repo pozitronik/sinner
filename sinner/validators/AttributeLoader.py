@@ -134,7 +134,7 @@ class AttributeLoader:
             setattr(self, attribute, value)
             return
         else:
-            raise LoaderException('Property is not initialized', self, attribute)
+            raise LoaderException(f'Property {attribute} is not initialized', self, attribute)
         try:
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
             if attribute_type_name == 'list':
