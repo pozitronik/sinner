@@ -1,6 +1,6 @@
 # testing different run configurations
 from sinner.Parameters import Parameters
-from sinner.core import Core
+from sinner.Core import Core
 from sinner.utilities import limit_resources
 
 

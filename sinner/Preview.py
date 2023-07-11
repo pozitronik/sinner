@@ -9,7 +9,7 @@ from PIL import Image, ImageTk
 from PIL.ImageTk import PhotoImage
 from customtkinter import CTkLabel, CTk, CTkSlider
 
-from sinner.core import Core
+from sinner.Core import Core
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.utilities import is_image, is_video
 

@@ -5,7 +5,7 @@ import sys
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
 from sinner.Preview import Preview
-from sinner.core import Core
+from sinner.Core import Core
 from sinner.utilities import limit_resources
 
 if __name__ == '__main__':
