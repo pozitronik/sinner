@@ -77,8 +77,7 @@ class Parameters(AttributeLoader):
             return None
         else:  # '--key value1 value2'
             key, value = argument[2:].split('=')
-            value = value.split()
-            return key, value
+            return key, value.split()
 
     @staticmethod
     def suggest_max_memory() -> int:
