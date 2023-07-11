@@ -57,7 +57,7 @@ class ValidatorException(Exception):
 
 
 class ValueValidator(Validator):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]):
         super().__init__(**kwargs)  # useless call, but whatever
         self.arguments: Dict[str, Any] = {
             # assuming parameter necessary will be checked with RequiredValidator, this parameter can be always skipped
@@ -105,7 +105,7 @@ class InitValidator(Validator):
 
 # defines the correspondence between validator string name and its class
 # also define the order validators applied
-VALIDATORS = {
+VALIDATORS: dict[str, type] = {
     # 'init': InitValidator,
     # 'type': InitValidator,
     'default': DefaultValidator,
