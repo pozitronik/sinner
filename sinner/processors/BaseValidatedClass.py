@@ -147,7 +147,7 @@ class BaseValidatedClass:
     def validate(self) -> bool:
         for attribute in self.validating_attributes():
             for error in self.validate_attribute(attribute):
-                self.add_error(attribute=attribute, error=error)
+                self.add_error(attribute=attribute, error=error, module=self.__class__.__name__)
         return [] == self.errors
 
     def add_error(self, attribute: str, error: str = 'invalid value', module: str = '😈sinner') -> None:
@@ -155,7 +155,7 @@ class BaseValidatedClass:
 
     def write_errors(self):
         for error in self.errors:
-            print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
+            print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
         if not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
