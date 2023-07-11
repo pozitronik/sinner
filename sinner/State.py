@@ -1,14 +1,16 @@
 import os
+from argparse import Namespace
 from pathlib import Path
 
 from sinner.typing import Frame
 from sinner.utilities import write_image
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 OUT_DIR = 'OUT'
 IN_DIR = 'IN'
 
 
-class State:
+class State(AttributeLoader):
     frames_count: int
     source_path: str
     target_path: str
@@ -17,12 +19,20 @@ class State:
 
     _zfill_length: int | None
 
-    def __init__(self, source_path: str, target_path: str, frames_count: int, temp_dir: str):
-        self.source_path = source_path
-        self.target_path = target_path
+    def rules(self) -> Rules:
+        return super().rules() + [
+            {'parameter': 'source_path'},
+            {'parameter': 'target_path', 'required': True},
+            {'parameter': 'output_path'},
+            {'parameter': 'temp_dir', 'required': True},
+        ]
+
+    def __init__(self, parameters: Namespace, frames_count: int):
+        if not self.load(parameters):
+            self.write_errors()
+            quit()
         self.frames_count = frames_count
         self._zfill_length = None
-        self.temp_dir = temp_dir
 
     @property
     def out_dir(self) -> str:

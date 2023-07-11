@@ -61,14 +61,14 @@ class Preview:
         self.SaveButton.pack(anchor=NE, side=LEFT)
         self.NavigateSliderFrame.pack(fill=X)
         # init source selection control set
-        self.SourcePathEntry.insert(END, self.core.params.source_path)
+        self.SourcePathEntry.insert(END, self.core.parameters.source_path)
         self.SourcePathEntry.configure(state=DISABLED)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.configure(command=lambda: self.change_source(int(self.NavigateSlider.get())))
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X)
         # init target selection control set
-        self.TargetPathEntry.insert(END, self.core.params.target_path)
+        self.TargetPathEntry.insert(END, self.core.parameters.target_path)
         self.TargetPathEntry.configure(state=DISABLED)
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.configure(command=lambda: self.change_target())
@@ -83,12 +83,12 @@ class Preview:
         return self.PreviewWindow
 
     def update_slider(self) -> int:
-        if is_image(self.core.params.target_path):
+        if is_image(self.core.parameters.target_path):
             self.NavigateSlider.configure(to=1)
             self.NavigateSlider.set(1)
             self.NavigateSlider.pack_forget()
-        if is_video(self.core.params.target_path):
-            video_frame_total = BaseFrameHandler.create(handler_name=self.core.params.frame_handler, target_path=self.core.params.target_path).fc
+        if is_video(self.core.parameters.target_path):
+            video_frame_total = BaseFrameHandler.create(handler_name=self.core.parameters.frame_handler, target_path=self.core.parameters.target_path).fc
             self.NavigateSlider.configure(to=video_frame_total)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.set(video_frame_total / 2)
@@ -96,19 +96,19 @@ class Preview:
         return int(self.NavigateSlider.get())
 
     def change_source(self, frame_number: int = 0) -> None:
-        if self.core.change_source(self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.params.source_path))):
+        if self.core.change_source(self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.parameters.source_path))):
             self.update_preview(frame_number, True)
             self.SourcePathEntry.configure(state=NORMAL)
             self.SourcePathEntry.delete(0, END)
-            self.SourcePathEntry.insert(END, self.core.params.source_path)
+            self.SourcePathEntry.insert(END, self.core.parameters.source_path)
             self.SourcePathEntry.configure(state=DISABLED)
 
     def change_target(self) -> None:
-        if self.core.change_target(self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.params.target_path))):
+        if self.core.change_target(self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.parameters.target_path))):
             self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.configure(state=NORMAL)
             self.TargetPathEntry.delete(0, END)
-            self.TargetPathEntry.insert(END, self.core.params.target_path)
+            self.TargetPathEntry.insert(END, self.core.parameters.target_path)
             self.TargetPathEntry.configure(state=DISABLED)
 
     @staticmethod

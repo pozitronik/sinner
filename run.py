@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     params = Parameters()
     limit_resources(params.max_memory)
-    core = Core(params=params.parameters)
+    core = Core(parameters=params.parameters)
     if params.gui:
         preview = Preview(core)
         window = preview.show()
