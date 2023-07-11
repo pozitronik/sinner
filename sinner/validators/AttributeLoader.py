@@ -5,6 +5,7 @@ from colorama import Fore
 from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
+from sinner.validators.HelpValidator import HelpValidator
 from sinner.validators.LoaderException import LoaderException
 from sinner.validators.RequiredValidator import RequiredValidator
 from sinner.validators.ValueValidator import ValueValidator
@@ -31,11 +32,12 @@ VALIDATORS: dict[str, Type[BaseValidator]] = {
     'action': ValueValidator,
     'function': ValueValidator,
     'lambda': ValueValidator,
+    'help': HelpValidator
 }
 
 
 class AttributeLoader:
-    errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error
+    errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error, help: help message
     old_attributes: Namespace = Namespace()  # previous values (before loading)
 
     def rules(self) -> Rules:
@@ -76,11 +78,14 @@ class AttributeLoader:
         return [] == self.errors
 
     def add_error(self, attribute: str, error: str = 'invalid value', module: str = '😈sinner') -> None:
-        self.errors.append({'attribute': attribute, 'error': error, 'module': module})
+        self.errors.append({'attribute': attribute, 'error': error, 'module': module, 'help': self.get_attribute_help(attribute)})
 
     def write_errors(self) -> None:
         for error in self.errors:
-            print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
+            if error['help'] is not None:
+                print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} says: {Fore.RED}{error['error']}{Fore.RESET}: {Fore.YELLOW}{error['attribute']}{Fore.RESET}. {error['help']}")
+            else:
+                print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
         if not declared_attr_type(self, attribute):  # doesn't allow to use dynamic attributes
@@ -150,3 +155,7 @@ class AttributeLoader:
         for attribute in attribute_list:
             if hasattr(self, attribute) is False and declared_attr_type(self, attribute) is not None:  # attribute is type declared
                 setattr(self, attribute, None)
+
+    def get_attribute_help(self, attribute: str) -> str | None:
+        attribute_help = self.get_attribute_rules(attribute)
+        return attribute_help['help'] if 'help' in attribute_help else None

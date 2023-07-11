@@ -40,7 +40,7 @@ class Core(AttributeLoader):
 
     def rules(self) -> Rules:
         return super().rules() + [
-            {'parameter': 'target-path', 'required': True},
+            {'parameter': 'target-path', 'required': True, 'help': 'Select output file or directory'},
         ]
 
     def __init__(self, parameters: Namespace):
