@@ -47,8 +47,11 @@ class ValueValidator(Validator):
         validation_value = self.arguments['value']
         if callable(validation_value):
             return None if validation_value(attribute) else f"Value {attribute_value} is not in validation"
-        if isinstance(self.arguments['value'], Iterable):
-            return None if attribute_value in validation_value else f"Value {attribute_value} is not in {validation_value}"
+        if isinstance(validation_value, Iterable):
+            if isinstance(attribute_value, Iterable):
+                return None if all(item in validation_value for item in attribute_value) else f"Value {attribute_value} is not in {validation_value}"
+            else:
+                return None if attribute_value in validation_value else f"Value {attribute_value} is not in {validation_value}"
         return None if attribute_value == validation_value else f"Value {attribute_value} is not equal to {validation_value}"
 
 
