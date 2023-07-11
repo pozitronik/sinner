@@ -21,7 +21,7 @@ def get_test_state() -> State:
 
 
 def get_test_object() -> FaceEnhancer:
-    parameters = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path={source_jpg} --target-path={target_png} --output-path={tmp_dir}')
+    parameters = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path="{source_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"')
     return FaceEnhancer(parameters=parameters.parameters, state=get_test_state())
 
 

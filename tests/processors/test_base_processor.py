@@ -40,12 +40,12 @@ def get_test_state() -> State:
 
 
 def get_test_object() -> DummyProcessor:
-    parameters = Parameters(f'--frame-processor=DummyProcessor --max-memory=12 --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path={source_jpg} --target-path={target_mp4} --output-path={tmp_dir}')
+    parameters = Parameters(f'--frame-processor=DummyProcessor --max-memory=12 --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"')
     return DummyProcessor(parameters=parameters.parameters, state=get_test_state())
 
 
 def test_create_factory():
-    parameters = Parameters(f'--frame-processor=DummyProcessor --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path={source_jpg} --target-path={target_mp4} --output-path={tmp_dir}')
+    parameters = Parameters(f'--frame-processor=DummyProcessor --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"')
     dummy_processor = BaseFrameProcessor.create('DummyProcessor', parameters=parameters.parameters, state=get_test_state())
     assert isinstance(dummy_processor, BaseFrameProcessor)
     assert dummy_processor.state.frames_count == 98
