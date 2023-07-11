@@ -16,7 +16,7 @@ validator_parameters can be a scalar value or a dict of a key-value pairs
 class Validator(ABC):
     arguments: Dict[str, Any]  # shouldn't be initialized with list to prevent sharing value between classes
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Dict[str, Any]):
         self.arguments: Dict[str, Any] = {}
         self.arguments.update(kwargs)
 
@@ -52,7 +52,7 @@ class ValidatorException(Exception):
         self.validated_object = validated_object
         self.validator_object = validator_object
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{Fore.BLACK}{Back.RED}{self.validator_object.__class__.__name__}{Back.RESET}{Fore.RESET}: {self.message}@{Style.BRIGHT}{self.validated_object.__class__.__name__}{Style.RESET_ALL}"
 
 
@@ -162,7 +162,7 @@ class BaseValidatedClass:
     def add_error(self, attribute: str, error: str = 'invalid value', module: str = '😈sinner') -> None:
         self.errors.append({'attribute': attribute, 'error': error, 'module': module})
 
-    def write_errors(self):
+    def write_errors(self) -> None:
         for error in self.errors:
             print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
@@ -195,8 +195,8 @@ class BaseValidatedClass:
 
     # returns validators objects for current rule
     @staticmethod
-    def get_rule_validators(rule: Rule) -> List['Validator']:
-        validators: List['Validator'] = []
+    def get_rule_validators(rule: Rule) -> List[Validator]:
+        validators: List[Validator] = []
         for validator_name, validator_parameters in rule.items():
             if validator_name in VALIDATORS:
                 validator_class = VALIDATORS[validator_name]
