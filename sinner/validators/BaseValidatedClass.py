@@ -13,7 +13,7 @@ validator_parameters can be a scalar value or a dict of a key-value pairs
 '''
 
 
-class Validator(ABC):
+class BaseValidator(ABC):
     arguments: Dict[str, Any]  # shouldn't be initialized with list to prevent sharing value between classes
 
     def __init__(self, **kwargs: Dict[str, Any]):
@@ -25,7 +25,7 @@ class Validator(ABC):
         pass
 
 
-class RequiredValidator(Validator):
+class RequiredValidator(BaseValidator):
     DEFAULT_MESSAGE = 'Attribute is required'
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
@@ -34,7 +34,7 @@ class RequiredValidator(Validator):
         return None
 
 
-class DefaultValidator(Validator):
+class DefaultValidator(BaseValidator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
         if getattr(validating_object, attribute) is None:
@@ -45,9 +45,9 @@ class DefaultValidator(Validator):
 class ValidatorException(Exception):
     message: str
     validated_object: object
-    validator_object: Validator
+    validator_object: BaseValidator
 
-    def __init__(self, message: str, validated_object: object, validator_object: Validator):
+    def __init__(self, message: str, validated_object: object, validator_object: BaseValidator):
         self.message = message
         self.validated_object = validated_object
         self.validator_object = validator_object
@@ -56,7 +56,7 @@ class ValidatorException(Exception):
         return f"{Fore.BLACK}{Back.RED}{self.validator_object.__class__.__name__}{Back.RESET}{Fore.RESET}: {self.message}@{Style.BRIGHT}{self.validated_object.__class__.__name__}{Style.RESET_ALL}"
 
 
-class ValueValidator(Validator):
+class ValueValidator(BaseValidator):
     def __init__(self, **kwargs: Dict[str, Any]):
         super().__init__(**kwargs)  # useless call, but whatever
         self.arguments: Dict[str, Any] = {
@@ -95,7 +95,7 @@ class ValueValidator(Validator):
 
 # defines a typed class variable, even it not defined in the class declaration
 # experimental
-class InitValidator(Validator):
+class InitValidator(BaseValidator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
         if getattr(validating_object, attribute) is None:
@@ -105,7 +105,7 @@ class InitValidator(Validator):
 
 # defines the correspondence between validator string name and its class
 # also define the order validators applied
-VALIDATORS: dict[str, Type[Validator]] = {
+VALIDATORS: dict[str, Type[BaseValidator]] = {
     # 'init': InitValidator,
     # 'type': InitValidator,
     'default': DefaultValidator,
@@ -195,11 +195,11 @@ class BaseValidatedClass:
 
     # returns validators objects for current rule
     @staticmethod
-    def get_rule_validators(rule: Rule) -> List[Validator]:
-        validators: List[Validator] = []
+    def get_rule_validators(rule: Rule) -> List[BaseValidator]:
+        validators: List[BaseValidator] = []
         for validator_name, validator_parameters in rule.items():
             if validator_name in VALIDATORS:
-                validator_class: Type[Validator] = VALIDATORS[validator_name]
+                validator_class: Type[BaseValidator] = VALIDATORS[validator_name]
                 if not isinstance(validator_parameters, dict):  # convert scalar values to **kwargs dict
                     validator_parameters = {'value': validator_parameters}
                 validators.append(validator_class(**validator_parameters)) # initialize validator class with parameters
