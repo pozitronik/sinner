@@ -7,6 +7,7 @@ from typing import List
 
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.utilities import list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
+from sinner.validators.LoaderException import LoadingException
 
 
 class Parameters(AttributeLoader):
@@ -33,8 +34,7 @@ class Parameters(AttributeLoader):
     def __init__(self, command_line: str | None = None):
         self.parameters = self.command_line_to_namespace(command_line)
         if not self.load(self.parameters):
-            self.write_errors()
-            quit()
+            raise LoadingException(self.errors)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:

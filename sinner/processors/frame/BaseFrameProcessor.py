@@ -11,6 +11,7 @@ from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
 from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers
+from sinner.validators.LoaderException import LoadingException
 
 
 class BaseFrameProcessor(ABC, AttributeLoader):
@@ -40,8 +41,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
 
     def __init__(self, parameters: Namespace, state: State) -> None:
         if not self.load(parameters):
-            self.write_errors()
-            quit()
+            raise LoadingException(self.errors)
         self.state = state
         super().__init__()
 

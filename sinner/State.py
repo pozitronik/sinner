@@ -5,6 +5,7 @@ from pathlib import Path
 from sinner.typing import Frame
 from sinner.utilities import write_image
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.LoaderException import LoadingException
 
 OUT_DIR = 'OUT'
 IN_DIR = 'IN'
@@ -29,8 +30,7 @@ class State(AttributeLoader):
 
     def __init__(self, parameters: Namespace, frames_count: int):
         if not self.load(parameters):
-            self.write_errors()
-            quit()
+            raise LoadingException(self.errors)
         self.frames_count = frames_count
         self._zfill_length = None
 
