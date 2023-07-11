@@ -23,7 +23,7 @@ class Parameters(BaseValidatedClass):
     def rules(self) -> Rules:
         return [
             {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
-            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler').append(None)},
+            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
             {'parameter': 'max-memory', 'default': self.suggest_max_memory()},
             {'parameter': 'gui', 'default': False},
             {'parameter': 'benchmark', 'default': False},

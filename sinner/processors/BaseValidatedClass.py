@@ -14,10 +14,10 @@ validator_parameters can be a scalar value or a dict of a key-value pairs
 
 
 class Validator(ABC):
-    arguments: Dict
+    arguments: Dict = {}
 
     def __init__(self, **kwargs):
-        self.arguments = kwargs
+        self.arguments.update(kwargs)
 
     @abstractmethod
     def validate(self, validating_object: object, attribute: str) -> str | None:  # text error or None, if valid
@@ -56,10 +56,16 @@ class ValidatorException(Exception):
 
 
 class ValueValidator(Validator):
+    arguments: Dict = {
+        # assuming parameter necessary will be checked with RequiredValidator, this parameter can be always skipped
+        'required': False
+    }
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
         attribute_value = getattr(validating_object, attribute)
         validation_value = self.arguments['value']
+        if attribute_value is None and self.arguments['required'] is False:
+            return None
         if isinstance(validation_value, bool):
             return None if validation_value else f"Value {attribute_value} is not valid"
         if callable(validation_value):
