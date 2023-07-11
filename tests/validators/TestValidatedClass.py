@@ -78,10 +78,12 @@ class TestListAttribute(AttributeLoader, ABC):
         ]
 
 
-# experimental
 class TestInitAttribute(AttributeLoader):
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'non_existent_parameter', 'type': List[str], 'default': ['Dolor', 'sit', 'amet']},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_list', 'type': List[str], 'default': ['Lorem', 'ipsum']},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_auto', 'default': ['Dolor', 'sit', 'amet']},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_int', 'default': 1, 'required': True},  # defines a class variable with type and assign a value to it
+            {'parameter': 'non_existent_parameter_type_required', 'required': True},  # defines a class variable with type and assign a value to it
         ]

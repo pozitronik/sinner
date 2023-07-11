@@ -1,6 +1,9 @@
 from argparse import Namespace
 
+import pytest
+
 from sinner.Parameters import Parameters
+from sinner.validators.LoaderException import LoaderException
 from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute
 
 
@@ -130,3 +133,30 @@ def test_list_parameter() -> None:
     parameters: Namespace = Parameters.command_line_to_namespace('--list_attribute --other-attribute')  # parameter without values validates to True
     assert test_object.load(attributes=parameters) is True
     assert test_object.list_attribute == [True]
+
+
+def test_dynamic_parameters_loading() -> None:
+    test_object = TestInitAttribute()
+    assert hasattr(test_object, 'non_existent_parameter_type_list') is False
+    assert hasattr(test_object, 'non_existent_parameter_type_auto') is False
+    assert hasattr(test_object, 'non_existent_parameter_type_int') is False
+    assert hasattr(test_object, 'non_existent_parameter_type_required') is False
+
+    parameters: Namespace = Parameters.command_line_to_namespace('--non_existent_parameter_type_required=something')
+    with pytest.raises(LoaderException):
+        assert test_object.load(parameters) is False
+    # Nothing changed
+    assert hasattr(test_object, 'non_existent_parameter_type_list') is False
+    assert hasattr(test_object, 'non_existent_parameter_type_auto') is False
+    assert hasattr(test_object, 'non_existent_parameter_type_int') is False
+    assert hasattr(test_object, 'non_existent_parameter_type_required') is False
+
+    assert test_object.load(attributes=parameters, allow_dynamic_attributes=True) is True
+    assert hasattr(test_object, 'non_existent_parameter_type_list') is True
+    assert test_object.non_existent_parameter_type_list == ['Lorem', 'ipsum']
+    assert hasattr(test_object, 'non_existent_parameter_type_auto') is True
+    assert test_object.non_existent_parameter_type_auto == ['Dolor', 'sit', 'amet']
+    assert hasattr(test_object, 'non_existent_parameter_type_int') is True
+    assert test_object.non_existent_parameter_type_int == 1
+    assert hasattr(test_object, 'non_existent_parameter_type_required') is True
+    assert test_object.non_existent_parameter_type_required == 'something'

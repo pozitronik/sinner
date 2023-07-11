@@ -35,7 +35,6 @@ VALIDATORS: dict[str, Type[BaseValidator]] = {
 
 
 class AttributeLoader:
-    allow_dynamic_attributes: bool = True  # if True, validated attribute will be created in runtime, else LoaderException will be thrown. Use a InitValidator to dynamically create properties with desired types
     errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error
     old_attributes: Namespace = Namespace()  # previous values (before loading)
 
@@ -55,21 +54,23 @@ class AttributeLoader:
         for attribute, value in vars(self.old_attributes).items():
             setattr(self, attribute, value)
 
-    def load(self, attributes: Namespace, validate: bool = True) -> bool:
+    def load(self, attributes: Namespace, validate: bool = True, allow_dynamic_attributes: bool = False) -> bool:
         self.errors.clear()
         self.save_attributes()
         for attribute, value in vars(attributes).items():
             attribute = attribute.replace('-', '_')
-            if hasattr(self, attribute):
-                self.setattr(attribute, value)  # the values should be loaded before validation
+            self.setattr(attribute, value, allow_dynamic_attributes)  # the values should be loaded before validation
         if validate:
-            if not self.validate():  # return values back
+            if not self.validate(allow_dynamic_attributes):  # return values back
                 self.restore_attributes()
                 return False
         return True
 
-    def validate(self) -> bool:
+    def validate(self, allow_dynamic_attributes: bool = False ) -> bool:
         for attribute in self.validating_attributes():
+            if allow_dynamic_attributes and not hasattr(self, attribute):
+                setattr(self, attribute, None)
+
             for error in self.validate_attribute(attribute):
                 self.add_error(attribute=attribute, error=error, module=self.__class__.__name__)
         return [] == self.errors
@@ -82,9 +83,6 @@ class AttributeLoader:
             print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
-        if self.allow_dynamic_attributes is False and not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
-            raise LoaderException(self, attribute)
-
         rule = self.get_attribute_rules(attribute)
         errors: List[str] = []
         for validator in self.get_rule_validators(rule):
@@ -129,8 +127,14 @@ class AttributeLoader:
         sorted_dict = {key: rule[key] for key in ordered_keys if key in rule}
         return sorted_dict
 
-    def setattr(self, attribute: str, value: Any) -> None:
-        attribute_type = get_type_hints(self.__class__)[attribute]
+    def setattr(self, attribute: str, value: Any, do_init: bool = False) -> None:
+        if hasattr(self, attribute):
+            attribute_type = get_type_hints(self.__class__)[attribute]
+        elif do_init:
+            attribute_type = type(value)  # retrieve type from value
+            setattr(self, attribute, value)
+        else:
+            raise LoaderException('Property is not initialized', self, attribute)
         try:
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
             if attribute_type_name == 'list':
