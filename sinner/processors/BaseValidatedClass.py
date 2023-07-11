@@ -60,6 +60,8 @@ class ValueValidator(Validator):
     def validate(self, validating_object: object, attribute: str) -> str | None:
         attribute_value = getattr(validating_object, attribute)
         validation_value = self.arguments['value']
+        if isinstance(validation_value, bool):
+            return None if validation_value else f"Value {attribute_value} is not valid"
         if callable(validation_value):
             try:
                 callable_parameters_count = len(inspect.signature(validation_value).parameters)
