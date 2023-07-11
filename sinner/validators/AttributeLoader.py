@@ -131,8 +131,8 @@ class AttributeLoader:
         if hasattr(self, attribute):
             attribute_type = get_type_hints(self.__class__)[attribute]
         elif do_init:
-            attribute_type = type(value)  # retrieve type from value
             setattr(self, attribute, value)
+            return
         else:
             raise LoaderException('Property is not initialized', self, attribute)
         try:
