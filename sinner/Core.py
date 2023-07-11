@@ -16,6 +16,7 @@ from sinner.State import State
 from sinner.typing import Frame
 from sinner.utilities import is_image, is_video, delete_subdirectories
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.LoaderException import LoadingException
 
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):
@@ -46,8 +47,7 @@ class Core(AttributeLoader):
     def __init__(self, parameters: Namespace):
         self.parameters = parameters
         if not self.load(self.parameters):
-            self.write_errors()
-            quit()
+            raise LoadingException(self.errors)
         self.preview_processors = {}
 
     def run(self, set_progress: Callable[[int], None] | None = None) -> None:
