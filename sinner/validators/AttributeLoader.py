@@ -1,5 +1,5 @@
 from argparse import Namespace
-from typing import List, Dict, Any, get_type_hints, Type
+from typing import List, Dict, Any, Type
 from colorama import Fore
 
 from sinner.utilities import declared_attr_type

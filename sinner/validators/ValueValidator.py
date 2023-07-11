@@ -1,7 +1,6 @@
 import inspect
 from typing import Dict, Any, Iterable
 
-from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.ValidatorException import ValidatorException
 
