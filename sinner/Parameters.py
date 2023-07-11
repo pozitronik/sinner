@@ -44,7 +44,7 @@ class Parameters(AttributeLoader):
         else:
             args_list = shlex.split(cmd_params)
         result = []
-        current_sublist = []
+        current_sublist: List[str] = []
         for item in args_list:
             if item.startswith('--'):
                 if current_sublist:
