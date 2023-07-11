@@ -1,7 +1,5 @@
 from colorama import Fore, Back, Style
 
-from sinner.validators.BaseValidator import BaseValidator
-
 
 class LoaderException(Exception):
     message: str
