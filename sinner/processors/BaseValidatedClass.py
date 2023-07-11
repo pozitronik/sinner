@@ -14,10 +14,10 @@ validator_parameters can be a scalar value or a dict of a key-value pairs
 
 
 class Validator(ABC):
-    arguments: Dict  # shouldn't be initialized with list to prevent sharing value between classes
+    arguments: Dict[str, Any]  # shouldn't be initialized with list to prevent sharing value between classes
 
     def __init__(self, **kwargs):
-        self.arguments: Dict = {}
+        self.arguments: Dict[str, Any] = {}
         self.arguments.update(kwargs)
 
     @abstractmethod
@@ -59,7 +59,7 @@ class ValidatorException(Exception):
 class ValueValidator(Validator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)  # useless call, but whatever
-        self.arguments: Dict = {
+        self.arguments: Dict[str, Any] = {
             # assuming parameter necessary will be checked with RequiredValidator, this parameter can be always skipped
             'required': False
         }
@@ -131,12 +131,12 @@ class BaseValidatedClass:
         return [(attr, value) for attr, value in vars(self.__class__).items() if not attr.startswith('__') and not callable(value)]
 
     # saves all attribute and its values to a namespace object
-    def save_attributes(self):
+    def save_attributes(self) -> None:
         vars(self.old_attributes).clear()
         for attribute, value in self.get_class_attributes():
             setattr(self.old_attributes, attribute, getattr(self, attribute))
 
-    def restore_attributes(self):
+    def restore_attributes(self) -> None:
         for attribute, value in vars(self.old_attributes).items():
             setattr(self, attribute, value)
 
