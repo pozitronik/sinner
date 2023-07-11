@@ -178,9 +178,10 @@ class BaseValidatedClass:
         return sorted_dict
 
     def setattr(self, attribute: str, value: Any) -> None:
-        attribute_type = get_type_hints(self)[attribute]
+        attribute_type = get_type_hints(self.__class__)[attribute]
         try:
-            if attribute_type.__name__ == 'list':
+            attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
+            if attribute_type_name == 'list':
                 if isinstance(value, list):
                     typed_value = value
                 else:
