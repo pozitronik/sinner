@@ -191,7 +191,7 @@ def test_dynamic_parameters_loading_typed() -> None:
     assert hasattr(test_object, 'non_existent_parameter_type_required') is False
 
     parameters: Namespace = Parameters.command_line_to_namespace('--non_existent_parameter_type_required first second --non_existent_parameter_type_list=some_value --non_existent_parameter_type_auto=42 --non_existent_parameter_type_int=3')
-    assert test_object.load(attributes=parameters, allow_dynamic_attributes=True) is True
+    assert test_object.load(attributes=parameters) is True
     assert hasattr(test_object, 'non_existent_parameter_type_list') is True
     assert test_object.non_existent_parameter_type_list == ['some_value']
     assert hasattr(test_object, 'non_existent_parameter_type_auto') is True

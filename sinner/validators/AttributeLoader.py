@@ -54,7 +54,7 @@ class AttributeLoader:
         for attribute, value in vars(self.old_attributes).items():
             setattr(self, attribute, value)
 
-    def load(self, attributes: Namespace, validate: bool = True, allow_dynamic_attributes: bool = False) -> bool:
+    def load(self, attributes: Namespace, validate: bool = True) -> bool:
         self.errors.clear()
         self.save_attributes()
         for attribute, value in vars(attributes).items():
@@ -62,7 +62,7 @@ class AttributeLoader:
             if attribute in get_type_hints(self.__class__):
                 self.setattr(attribute, value)  # the values should be loaded before validation
         if validate:
-            if not self.validate(allow_dynamic_attributes):  # return values back
+            if not self.validate():  # return values back
                 self.restore_attributes()
                 return False
         return True
