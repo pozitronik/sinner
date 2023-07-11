@@ -4,7 +4,6 @@ from colorama import Fore
 
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
-from sinner.validators.InitValidator import InitValidator
 from sinner.validators.LoaderException import LoaderException
 from sinner.validators.RequiredValidator import RequiredValidator
 from sinner.validators.ValueValidator import ValueValidator
