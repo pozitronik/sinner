@@ -1,7 +1,6 @@
 import os
 import threading
 from argparse import Namespace
-from typing import List
 
 import gfpgan
 from gfpgan import GFPGANer  # type: ignore[attr-defined]
