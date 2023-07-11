@@ -19,7 +19,10 @@ class InitValidator(BaseValidator):
                 else:
                     new_value = [current_value]
             else:
-                new_value = attribute_type(current_value)
+                if current_value is None:
+                    new_value = None
+                else:
+                    new_value = attribute_type(current_value)
             setattr(validating_object, attribute, new_value)
             return None
         except Exception:
