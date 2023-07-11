@@ -13,9 +13,9 @@ if __name__ == '__main__':
         raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
     signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
 
-    params = Parameters().parameters
+    params = Parameters()
     limit_resources(params.max_memory)
-    core = Core(params=params)
+    core = Core(params=params.parameters)
     if params.gui:
         preview = Preview(core)
         window = preview.show()
