@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 from argparse import Namespace
 from typing import List, Dict, Any, get_type_hints, Iterable
-from colorama import Fore
+from colorama import Fore, Style, Back
 
 Rule = Dict[str, str]
 Rules = List[Rule]
@@ -40,13 +40,31 @@ class DefaultValidator(Validator):
         return None
 
 
+class ValidatorException(Exception):
+    message: str
+    validated_object: object
+    validator_object: Validator
+
+    def __init__(self, message: str, validated_object: object, validator_object: Validator):
+        self.message = message
+        self.validated_object = validated_object
+        self.validator_object = validator_object
+
+    def __str__(self):
+        return f"{Fore.BLACK}{Back.RED}{self.validator_object.__class__.__name__}{Back.RESET}{Fore.RESET}: {self.message}@{Style.BRIGHT}{self.validated_object.__class__.__name__}{Style.RESET_ALL}"
+
+
 class ValueValidator(Validator):
 
     def validate(self, validating_object: object, attribute: str) -> str | None:
         attribute_value = getattr(validating_object, attribute)
         validation_value = self.arguments['value']
         if callable(validation_value):
-            return None if validation_value(attribute) else f"Value {attribute_value} is not in validation"
+            try:
+                return None if validation_value(attribute) else f"Value {attribute_value} is not valid"
+            except Exception:
+                raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validating_object, self)
+
         if isinstance(validation_value, Iterable):
             if isinstance(attribute_value, Iterable):
                 return None if all(item in validation_value for item in attribute_value) else f"Value {attribute_value} is not in {validation_value}"
