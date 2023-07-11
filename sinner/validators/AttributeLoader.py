@@ -4,6 +4,8 @@ from colorama import Fore
 
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
+from sinner.validators.InitValidator import InitValidator
+from sinner.validators.LoaderException import LoaderException
 from sinner.validators.RequiredValidator import RequiredValidator
 from sinner.validators.ValueValidator import ValueValidator
 
@@ -18,8 +20,8 @@ validator_parameters can be a scalar value or a dict of a key-value pairs
 # defines the correspondence between validator string name and its class
 # also define the order validators applied
 VALIDATORS: dict[str, Type[BaseValidator]] = {
-    # 'init': InitValidator,
-    # 'type': InitValidator,
+    'init': InitValidator,
+    'type': InitValidator,
     'default': DefaultValidator,
     'required': RequiredValidator,
     'value': ValueValidator,
@@ -33,6 +35,7 @@ VALIDATORS: dict[str, Type[BaseValidator]] = {
 
 
 class AttributeLoader:
+    allow_dynamic_attributes: bool = True  # if True, validated attribute will be created in runtime, else LoaderException will be thrown. Use a InitValidator to dynamically create properties with desired types
     errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error
     old_attributes: Namespace = Namespace()  # previous values (before loading)
 
@@ -79,8 +82,9 @@ class AttributeLoader:
             print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
-        if not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
-            return [f'{self.__class__.__name__} has no attribute {attribute} defined']
+        if self.allow_dynamic_attributes is False and not hasattr(self, attribute):  # doesn't allow to use dynamic attributes
+            raise LoaderException(self, attribute)
+
         rule = self.get_attribute_rules(attribute)
         errors: List[str] = []
         for validator in self.get_rule_validators(rule):
