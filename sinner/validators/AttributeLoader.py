@@ -1,6 +1,6 @@
 from argparse import Namespace
 from typing import List, Dict, Any, Type
-from colorama import Fore
+from colorama import Fore, Style
 
 from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
@@ -82,10 +82,9 @@ class AttributeLoader:
 
     def write_errors(self) -> None:
         for error in self.errors:
+            print(f"Parameter {Fore.YELLOW}--{error['attribute']}{Fore.RESET} {Fore.RED}{error['error']}{Fore.RESET} in module {Fore.CYAN}{error['module']}{Fore.RESET}")
             if error['help'] is not None:
-                print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} says: {Fore.RED}{error['error']}{Fore.RESET}: {Fore.YELLOW}{error['attribute']}{Fore.RESET}. {error['help']}")
-            else:
-                print(f"Module {Fore.CYAN}{error['module']}{Fore.RESET} has validation error on {Fore.YELLOW}{error['attribute']}{Fore.RESET}: {Fore.RED}{error['error']}{Fore.RESET}")
+                print(f"{Style.BRIGHT}{Fore.YELLOW}--{error['attribute']}{Fore.RESET}={error['help']}{Style.RESET_ALL}")
 
     def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
         if not declared_attr_type(self, attribute):  # doesn't allow to use dynamic attributes
