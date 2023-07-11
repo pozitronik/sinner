@@ -1,7 +1,7 @@
 import inspect
 from abc import abstractmethod, ABC
 from argparse import Namespace
-from typing import List, Dict, Any, get_type_hints, Iterable
+from typing import List, Dict, Any, get_type_hints, Iterable, Type
 from colorama import Fore, Style, Back
 
 Rule = Dict[str, Any]
@@ -105,7 +105,7 @@ class InitValidator(Validator):
 
 # defines the correspondence between validator string name and its class
 # also define the order validators applied
-VALIDATORS: dict[str, type] = {
+VALIDATORS: dict[str, Type[Validator]] = {
     # 'init': InitValidator,
     # 'type': InitValidator,
     'default': DefaultValidator,
@@ -199,11 +199,10 @@ class BaseValidatedClass:
         validators: List[Validator] = []
         for validator_name, validator_parameters in rule.items():
             if validator_name in VALIDATORS:
-                validator_class = VALIDATORS[validator_name]
+                validator_class: Type[Validator] = VALIDATORS[validator_name]
                 if not isinstance(validator_parameters, dict):  # convert scalar values to **kwargs dict
                     validator_parameters = {'value': validator_parameters}
-                validator_class = validator_class(**validator_parameters)  # initialize validator class with parameters
-                validators.append(validator_class)
+                validators.append(validator_class(**validator_parameters)) # initialize validator class with parameters
             else:
                 print(f'Validator `{validator_name}` is not implemented')
         return validators
