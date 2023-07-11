@@ -4,7 +4,7 @@ from argparse import Namespace
 import insightface
 
 from sinner.face_analyser import FaceAnalyser
-from sinner.validators.BaseValidatedClass import Rules
+from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Face, Frame, FaceSwapperType

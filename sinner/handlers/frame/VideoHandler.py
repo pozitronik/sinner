@@ -1,6 +1,6 @@
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
-from sinner.validators.BaseValidatedClass import Rules
+from sinner.validators.AttributeLoader import Rules
 
 
 class VideoHandler(CV2VideoHandler):

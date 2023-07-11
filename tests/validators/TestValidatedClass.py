@@ -1,12 +1,12 @@
 from abc import ABC
 from typing import Any, List
 
-from sinner.validators.BaseValidatedClass import BaseValidatedClass, Rules
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 DEFAULT_VALUE = 42
 
 
-class TestDefaultValidation(BaseValidatedClass):
+class TestDefaultValidation(AttributeLoader):
     default_parameter: int = None
     parameter_name: int = None
 
@@ -17,7 +17,7 @@ class TestDefaultValidation(BaseValidatedClass):
         ]
 
 
-class TestRequiredValidation(BaseValidatedClass):
+class TestRequiredValidation(AttributeLoader):
     required_parameter: str = None
     default_required_parameter: int = None
     required_default_parameter: int = None
@@ -30,7 +30,7 @@ class TestRequiredValidation(BaseValidatedClass):
         ]
 
 
-class TestUntypedAttribute(BaseValidatedClass):
+class TestUntypedAttribute(AttributeLoader):
     untyped_attribute: Any = None
 
     def rules(self) -> Rules:
@@ -39,7 +39,7 @@ class TestUntypedAttribute(BaseValidatedClass):
         ]
 
 
-class TestEqualValueAttribute(BaseValidatedClass):
+class TestEqualValueAttribute(AttributeLoader):
     int_attribute: int = None
 
     def rules(self) -> Rules:
@@ -48,7 +48,7 @@ class TestEqualValueAttribute(BaseValidatedClass):
         ]
 
 
-class TestInValueAttribute(BaseValidatedClass):
+class TestInValueAttribute(AttributeLoader):
     in_list_attribute: int = None
 
     def rules(self) -> Rules:
@@ -57,7 +57,7 @@ class TestInValueAttribute(BaseValidatedClass):
         ]
 
 
-class TestLambdaValueAttribute(BaseValidatedClass):
+class TestLambdaValueAttribute(AttributeLoader):
     lambda_attribute: int = None
 
     def rules(self) -> Rules:
@@ -69,7 +69,7 @@ class TestLambdaValueAttribute(BaseValidatedClass):
         return 41 < getattr(self, attribute) < 43
 
 
-class TestListAttribute(BaseValidatedClass, ABC):
+class TestListAttribute(AttributeLoader, ABC):
     list_attribute: list[str] = None
 
     def rules(self) -> Rules:
@@ -79,7 +79,7 @@ class TestListAttribute(BaseValidatedClass, ABC):
 
 
 # experimental
-class TestInitAttribute(BaseValidatedClass):
+class TestInitAttribute(AttributeLoader):
 
     def rules(self) -> Rules:
         return [

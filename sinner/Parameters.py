@@ -5,11 +5,11 @@ import sys
 from argparse import ArgumentParser, Namespace
 from typing import List
 
-from sinner.validators.BaseValidatedClass import BaseValidatedClass, Rules
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.utilities import list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
 
 
-class Parameters(BaseValidatedClass):
+class Parameters(AttributeLoader):
     frame_processor: List[str] = None
     frame_handler: str = None
     max_memory: int = None

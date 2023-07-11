@@ -7,14 +7,13 @@ from tqdm import tqdm
 from argparse import Namespace
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.validators.BaseValidatedClass import BaseValidatedClass, Rules
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
 from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers
 
 
-# todo: rename to Loadable
-class BaseFrameProcessor(ABC, BaseValidatedClass):
+class BaseFrameProcessor(ABC, AttributeLoader):
     state: State
     execution_provider: List[str] = None
     execution_threads: int = None

@@ -3,12 +3,12 @@ import os
 from abc import ABC, abstractmethod
 from typing import List
 
-from sinner.validators.BaseValidatedClass import BaseValidatedClass
+from sinner.validators.AttributeLoader import AttributeLoader
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 
 
-class BaseFrameHandler(ABC, BaseValidatedClass):
+class BaseFrameHandler(ABC, AttributeLoader):
     fps: float
     fc: int
     _target_path: str

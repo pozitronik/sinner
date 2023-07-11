@@ -32,7 +32,7 @@ VALIDATORS: dict[str, Type[BaseValidator]] = {
 }
 
 
-class BaseValidatedClass:
+class AttributeLoader:
     errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error
     old_attributes: Namespace = Namespace()  # previous values (before loading)
 
