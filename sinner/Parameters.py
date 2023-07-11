@@ -14,7 +14,7 @@ class Parameters(AttributeLoader):
     frame_handler: str
     max_memory: int
     gui: bool
-    benchmark: bool
+    benchmark: str | None = None
     temp_dir: str | None = None
 
     parser: ArgumentParser = ArgumentParser()
@@ -26,7 +26,7 @@ class Parameters(AttributeLoader):
             {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
             {'parameter': 'max-memory', 'default': self.suggest_max_memory()},
             {'parameter': 'gui', 'default': False},
-            {'parameter': 'benchmark', 'default': False},
+            {'parameter': 'benchmark', 'default': None, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
             {'parameter': 'temp-dir', 'default': None}
         ]
 
