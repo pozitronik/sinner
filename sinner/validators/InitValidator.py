@@ -12,7 +12,10 @@ class InitValidator(BaseValidator):
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
             current_value = getattr(validating_object, attribute, None)
             if attribute_type_name == 'list':
-                new_value = list(current_value)
+                if isinstance(current_value, list):
+                    new_value = current_value
+                else:
+                    new_value = [current_value]
             else:
                 new_value = attribute_type(current_value)
             setattr(validating_object, attribute, new_value)
