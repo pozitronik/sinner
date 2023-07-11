@@ -16,10 +16,10 @@ class VideoHandler(CV2VideoHandler):
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'with-fps', 'type': float, 'required': False},
-            {'parameter': 'keep-audio', 'type': bool, 'required': False, 'action': True},
-            {'parameter': 'keep-frames', 'type': bool, 'required': False, 'action': True},
-            {'parameter': 'extract-frames', 'type': bool, 'required': False, 'action': True},
+            {'parameter': 'with-fps', 'required': False},
+            {'parameter': 'keep-audio', 'required': False},
+            {'parameter': 'keep-frames', 'required': False},
+            {'parameter': 'extract-frames', 'required': False},
         ]
 
     def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
