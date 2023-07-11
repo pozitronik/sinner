@@ -1,8 +1,11 @@
-import inspect
-from abc import abstractmethod, ABC
 from argparse import Namespace
-from typing import List, Dict, Any, get_type_hints, Iterable, Type
-from colorama import Fore, Style, Back
+from typing import List, Dict, Any, get_type_hints, Type
+from colorama import Fore
+
+from sinner.validators.BaseValidator import BaseValidator
+from sinner.validators.DefaultValidator import DefaultValidator
+from sinner.validators.RequiredValidator import RequiredValidator
+from sinner.validators.ValueValidator import ValueValidator
 
 Rule = Dict[str, Any]
 Rules = List[Rule]
@@ -11,97 +14,6 @@ Rules = List[Rule]
 Rule = {'parameter': 'parameter_name', 'validator_name': validator_parameters}
 validator_parameters can be a scalar value or a dict of a key-value pairs 
 '''
-
-
-class BaseValidator(ABC):
-    arguments: Dict[str, Any]  # shouldn't be initialized with list to prevent sharing value between classes
-
-    def __init__(self, **kwargs: Dict[str, Any]):
-        self.arguments: Dict[str, Any] = {}
-        self.arguments.update(kwargs)
-
-    @abstractmethod
-    def validate(self, validating_object: object, attribute: str) -> str | None:  # text error or None, if valid
-        pass
-
-
-class RequiredValidator(BaseValidator):
-    DEFAULT_MESSAGE = 'Attribute is required'
-
-    def validate(self, validating_object: object, attribute: str) -> str | None:
-        if self.arguments['value'] is True and getattr(validating_object, attribute) is None:
-            return self.DEFAULT_MESSAGE
-        return None
-
-
-class DefaultValidator(BaseValidator):
-
-    def validate(self, validating_object: object, attribute: str) -> str | None:
-        if getattr(validating_object, attribute) is None:
-            setattr(validating_object, attribute, self.arguments['value'])
-        return None
-
-
-class ValidatorException(Exception):
-    message: str
-    validated_object: object
-    validator_object: BaseValidator
-
-    def __init__(self, message: str, validated_object: object, validator_object: BaseValidator):
-        self.message = message
-        self.validated_object = validated_object
-        self.validator_object = validator_object
-
-    def __str__(self) -> str:
-        return f"{Fore.BLACK}{Back.RED}{self.validator_object.__class__.__name__}{Back.RESET}{Fore.RESET}: {self.message}@{Style.BRIGHT}{self.validated_object.__class__.__name__}{Style.RESET_ALL}"
-
-
-class ValueValidator(BaseValidator):
-    def __init__(self, **kwargs: Dict[str, Any]):
-        super().__init__(**kwargs)  # useless call, but whatever
-        self.arguments: Dict[str, Any] = {
-            # assuming parameter necessary will be checked with RequiredValidator, this parameter can be always skipped
-            'required': False
-        }
-        self.arguments.update(kwargs)
-
-    def validate(self, validating_object: object, attribute: str) -> str | None:
-        attribute_value = getattr(validating_object, attribute)
-        validation_value = self.arguments['value']
-        if attribute_value is None and self.arguments['required'] is False:
-            return None
-        if isinstance(validation_value, bool):
-            return None if validation_value else f"Value {attribute_value} is not valid"
-        if callable(validation_value):
-            try:
-                callable_parameters_count = len(inspect.signature(validation_value).parameters)
-                if 0 == callable_parameters_count:
-                    value = validation_value()
-                elif 1 == callable_parameters_count:
-                    value = validation_value(attribute)
-                else:
-                    raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validating_object, self)
-                return None if value else f"Value {attribute_value} is not valid"
-            except Exception:
-                raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validating_object, self)
-
-        if isinstance(validation_value, Iterable):
-            if isinstance(attribute_value, Iterable):
-                return None if all(item in validation_value for item in attribute_value) else f"Value {attribute_value} is not in {validation_value}"
-            else:
-                return None if attribute_value in validation_value else f"Value {attribute_value} is not in {validation_value}"
-        return None if attribute_value == validation_value else f"Value {attribute_value} is not equal to {validation_value}"
-
-
-# defines a typed class variable, even it not defined in the class declaration
-# experimental
-class InitValidator(BaseValidator):
-
-    def validate(self, validating_object: object, attribute: str) -> str | None:
-        if getattr(validating_object, attribute) is None:
-            setattr(validating_object.__class__, attribute, self.arguments['value'])
-        return None
-
 
 # defines the correspondence between validator string name and its class
 # also define the order validators applied
@@ -202,7 +114,7 @@ class BaseValidatedClass:
                 validator_class: Type[BaseValidator] = VALIDATORS[validator_name]
                 if not isinstance(validator_parameters, dict):  # convert scalar values to **kwargs dict
                     validator_parameters = {'value': validator_parameters}
-                validators.append(validator_class(**validator_parameters)) # initialize validator class with parameters
+                validators.append(validator_class(**validator_parameters))  # initialize validator class with parameters
             else:
                 print(f'Validator `{validator_name}` is not implemented')
         return validators
