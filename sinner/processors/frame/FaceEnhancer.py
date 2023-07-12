@@ -21,7 +21,7 @@ class FaceEnhancer(BaseFrameProcessor):
     thread_lock = threading.Lock()
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        return [
             {'parameter': 'target_path', 'required': True, 'valid': lambda: is_image(self.target_path) or is_video(self.target_path)},
             {'parameter': 'output_path', 'default': self.suggest_output_path(), 'valid': lambda: os.path.isabs(self.output_path)},
         ]
