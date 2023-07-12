@@ -64,6 +64,7 @@ class Core(AttributeLoader):
             },
             {
                 'parameter': 'frame-handler',
+                'default': self.suggest_handler(self.target_path).__class__.__name__,
                 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'),
                 'help': 'Select the frame handler from available handlers'
             },
