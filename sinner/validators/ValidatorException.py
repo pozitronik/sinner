@@ -1,14 +1,12 @@
 from colorama import Fore, Back, Style
 
-from sinner.validators.BaseValidator import BaseValidator
-
 
 class ValidatorException(Exception):
     message: str
     validated_object: object
-    validator_object: BaseValidator
+    validator_object: object
 
-    def __init__(self, message: str, validated_object: object, validator_object: BaseValidator):
+    def __init__(self, message: str, validated_object: object, validator_object: object):
         self.message = message
         self.validated_object = validated_object
         self.validator_object = validator_object
