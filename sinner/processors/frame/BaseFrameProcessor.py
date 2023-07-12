@@ -23,6 +23,8 @@ class BaseFrameProcessor(ABC, AttributeLoader):
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None
 
+    parameters: Namespace
+
     @staticmethod
     def create(processor_name: str, parameters: Namespace, state: State) -> 'BaseFrameProcessor':  # processors factory
         handler_class = load_class(os.path.dirname(__file__), processor_name)
@@ -42,6 +44,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
     def __init__(self, parameters: Namespace, state: State) -> None:
         if not self.load(parameters):
             raise LoadingException(self.errors)
+        self.parameters = parameters
         self.state = state
         super().__init__()
 
@@ -113,7 +116,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
                 future.add_done_callback(process_done)
                 futures.append(future)
                 progress.set_postfix(self.get_postfix(len(futures)))
-                if get_mem_usage('vms', 'g') >= self.max_memory:
+                if get_mem_usage('vms', 'g') >= self.parameters.max_memory:
                     futures[:1][0].result()
                     self.statistics['limits_reaches'] += 1
             for completed_future in as_completed(futures):
