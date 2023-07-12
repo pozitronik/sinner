@@ -30,13 +30,13 @@ class ValueValidator(BaseValidator):
                     value = validation_value(attribute)
                 else:
                     raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validated_object, self)
-                return None if value else f"Value {attribute_value} is not valid"
+                return None if value else f"={attribute_value} is not valid"
             except Exception:
                 raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validated_object, self)
 
         if isinstance(validation_value, Iterable):
             if isinstance(attribute_value, Iterable):
-                return None if all(item in validation_value for item in attribute_value) else f"Value {attribute_value} is not in {validation_value}"
+                return None if all(item in validation_value for item in attribute_value) else f"={attribute_value} is not in {validation_value}"
             else:
-                return None if attribute_value in validation_value else f"Value {attribute_value} is not in {validation_value}"
-        return None if attribute_value == validation_value else f"Value {attribute_value} is not equal to {validation_value}"
+                return None if attribute_value in validation_value else f"={attribute_value} is not in {validation_value}"
+        return None if attribute_value == validation_value else f"{attribute_value} is not equal to {validation_value}"
