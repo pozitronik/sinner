@@ -99,7 +99,7 @@ class AttributeLoader:
 
     # returns the list of attributes names, which listed in the `rules` configuration
     def validating_attributes(self) -> List[str]:
-        values = list(set([d['parameter'] for d in self.rules()]))
+        values = list(dict.fromkeys(d['parameter'] for d in self.rules() if 'parameter' in d))
         values = [s.replace('-', '_') for s in values]  # parameters can contain '-', but attributes are not
         return values
 
