@@ -28,8 +28,10 @@ class ValueValidator(BaseValidator):
                     value = validation_value()
                 elif 1 == callable_parameters_count:
                     value = validation_value(attribute)
+                elif 2 == callable_parameters_count:
+                    value = validation_value(attribute, getattr(self, attribute, None))
                 else:
-                    raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validated_object, self)
+                    raise ValidatorException(f'More than 2 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validated_object, self)
                 return None if value else f"={attribute_value} is not valid"
             except Exception:
                 raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validated_object, self)
