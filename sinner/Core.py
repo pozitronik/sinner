@@ -59,13 +59,13 @@ class Core(AttributeLoader):
             },
             {
                 'parameter': 'frame-handler',
-                'default': self.suggest_handler(self.parameters, self.target_path).__class__.__name__,
+                'default': lambda: self.suggest_handler(self.parameters, self.target_path).__class__.__name__,
                 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'),
                 'help': 'Select the frame handler from available handlers'
             },
             {
                 'parameter': 'temp-dir',
-                'default': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY),
+                'default': lambda: self.suggest_temp_dir(),
                 'help': 'Select the directory for temporary files'
             },
             {
@@ -112,7 +112,9 @@ class Core(AttributeLoader):
                 raise Exception("Something went wrong while resulting frames")
 
     @staticmethod
-    def suggest_handler(parameters: Namespace, target_path: str) -> BaseFrameHandler:
+    def suggest_handler(parameters: Namespace, target_path: str | None) -> BaseFrameHandler:
+        if target_path is None:
+            raise Exception("The target path is not set")
         if os.path.isdir(target_path):
             return DirectoryHandler(parameters, target_path)
         if is_image(target_path):
@@ -120,6 +122,9 @@ class Core(AttributeLoader):
         if is_video(target_path):
             return VideoHandler(parameters, target_path)
         raise NotImplementedError("The handler for current target type is not implemented")
+
+    def suggest_temp_dir(self):
+        return self.temp_dir if getattr(self, 'temp_dir', None) is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)
 
     def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:
         extractor_handler = self.suggest_handler(self.target_path)
