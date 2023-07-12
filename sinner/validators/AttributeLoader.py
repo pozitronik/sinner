@@ -73,12 +73,14 @@ class AttributeLoader:
                 return False
         return True
 
-    def validate(self) -> bool:
+    def validate(self, stop_on_error: bool = True) -> bool:
         validating_attributes = self.validating_attributes()
         self.init_declared_attributes(validating_attributes)
         for attribute in validating_attributes:
             for error in self.validate_attribute(attribute):
                 self.add_error(attribute=attribute, error=error, module=self.__class__.__name__)
+                if stop_on_error:
+                    return False
         return [] == self.errors
 
     def add_error(self, attribute: str, error: str = 'invalid value', module: str = '😈sinner') -> None:
