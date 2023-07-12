@@ -1,6 +1,5 @@
 import os
 from argparse import Namespace
-from typing import Any
 
 import insightface
 
@@ -34,12 +33,14 @@ class FaceSwapper(BaseFrameProcessor):
                 'parameter': 'target_path',
                 'required': True,
                 'valid': lambda attribute_name, attribute_value: attribute_value is not None and (is_image(attribute_value) or is_video(attribute_value) or os.path.isdir(attribute_value)),
-                'help': 'Select the target file (image or video) or the directory'},
+                'help': 'Select the target file (image or video) or the directory'
+            },
             {
                 'parameter': 'output_path',
                 'default': lambda: self.suggest_output_path(),
                 'valid': lambda attribute_name, attribute_value: attribute_value is not None and os.path.isabs(attribute_value),
-                'help': 'Select an output file or a directory'},
+                'help': 'Select an output file or a directory'
+            },
             {
                 'parameter': 'many-faces',
                 'default': False,
