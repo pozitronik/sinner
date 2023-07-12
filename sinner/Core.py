@@ -36,18 +36,18 @@ class Core(AttributeLoader):
     target_path: str
     frame_processor: List[str]
     frame_handler: str
-    temp_dir: str | None = None
+    temp_dir: str
 
     parameters: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
     _stop_flag: bool = False
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        return [
             {'parameter': 'target-path', 'required': True, 'valid': lambda: is_image(self.target_path) or is_video(self.target_path), 'help': 'Select output file or directory'},
             {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
             {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
-            {'parameter': 'temp-dir', 'default': None, 'value': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY)}
+            {'parameter': 'temp-dir', 'default': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY)}
         ]
 
     def __init__(self, parameters: Namespace):
@@ -64,7 +64,7 @@ class Core(AttributeLoader):
             if self._stop_flag:  # todo: create a shared variable to stop processing
                 continue
             current_handler = self.suggest_handler(current_target_path)
-            state = State(parameters=self.parameters, frames_count=current_handler.fc)
+            state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=current_handler.fc)
             current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
             current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.parameters.extract_frames, set_progress=set_progress)
             current_target_path = state.out_dir

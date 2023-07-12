@@ -12,40 +12,41 @@ IN_DIR = 'IN'
 
 
 class State(AttributeLoader):
-    frames_count: int
     source_path: str
+    output_path: str
     target_path: str
-    processor_name: str = ''
-    temp_dir: str
 
+    frames_count: int
+    _processor_name: str = ''
+    _temp_dir: str
     _zfill_length: int | None
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        return [
             {'parameter': 'source_path'},
             {'parameter': 'target_path', 'required': True},
             {'parameter': 'output_path'},
-            {'parameter': 'temp_dir', 'required': True},
         ]
 
-    def __init__(self, parameters: Namespace, frames_count: int):
+    def __init__(self, parameters: Namespace, temp_dir: str, frames_count: int):
         if not self.load(parameters):
             raise LoadingException(self.errors)
+        self._temp_dir = temp_dir
         self.frames_count = frames_count
         self._zfill_length = None
 
     @property
     def out_dir(self) -> str:
-        sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
-        path = os.path.join(self.temp_dir, *sub_path)
+        sub_path = (self._processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
+        path = os.path.join(self._temp_dir, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
 
     @property
     def in_dir(self) -> str:
-        sub_path = (self.processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
-        path = os.path.join(self.temp_dir, *sub_path)
+        sub_path = (self._processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
+        path = os.path.join(self._temp_dir, *sub_path)
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
