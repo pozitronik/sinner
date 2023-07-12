@@ -42,6 +42,9 @@ class BaseFrameProcessor(ABC, AttributeLoader):
     def rules(self) -> Rules:
         return [
             {
+                'parameter': 'max-memory',  # key defined in Parameters
+            },
+            {
                 'parameter': 'execution-provider',
                 'required': True,
                 'default': ['cpu'],

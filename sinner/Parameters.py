@@ -19,14 +19,25 @@ class Parameters(AttributeLoader):
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'max-memory', 'default': self.suggest_max_memory()},
-            {'parameter': 'gui', 'default': False},
-            {'parameter': 'benchmark', 'default': None, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
+            {
+                'parameter': 'max-memory',
+                'default': self.suggest_max_memory()
+            },
+            {
+                'parameter': 'gui',
+                'default': False
+            },
+            {
+                'parameter': 'benchmark',
+                'default': None,
+                'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')
+            },
         ]
 
     def __init__(self, command_line: str | None = None):
         self.parameters = self.command_line_to_namespace(command_line)
         super().__init__(self.parameters)
+        self.parameters.max_memory = self.max_memory  # add initialized value to use it later
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
@@ -76,4 +87,3 @@ class Parameters(AttributeLoader):
         if platform.system().lower() == 'darwin':
             return 4
         return 16
-
