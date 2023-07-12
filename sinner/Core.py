@@ -44,10 +44,10 @@ class Core(AttributeLoader):
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'target-path', 'required': True, 'valid': lambda: is_image(self.target_path) or is_video(self.target_path), 'help': 'Select output file or directory'},
-            {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
-            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
-            {'parameter': 'temp-dir', 'default': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY)}
+            {'parameter': 'target-path', 'required': True, 'valid': lambda: is_image(self.target_path) or is_video(self.target_path), 'help': 'Select target file or directory'},
+            {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'), 'help': 'Select the frame processor from available processors'},
+            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'), 'help': 'Select the frame handler from available handlers'},
+            {'parameter': 'temp-dir', 'default': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY), 'help': 'Select the directory for temporary files'}
         ]
 
     def __init__(self, parameters: Namespace):

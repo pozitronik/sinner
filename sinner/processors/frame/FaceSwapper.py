@@ -22,11 +22,11 @@ class FaceSwapper(BaseFrameProcessor):
     _face_swapper: FaceSwapperType
 
     def rules(self) -> Rules:
-        return super().rules() + [
-            {'parameter': 'source_path', 'required': True, 'valid': is_image(self.source_path)},
-            {'parameter': 'target_path', 'required': True, 'valid': is_image(self.target_path) or is_video(self.target_path) or os.path.isdir(self.target_path)},
-            {'parameter': 'output_path', 'default': self.suggest_output_path(), 'valid': os.path.isabs(self.output_path)},
-            {'parameter': 'many-faces', 'default': False, 'action': True},
+        return [
+            {'parameter': 'source_path', 'required': True, 'valid': lambda attribute_name, attribute_value: is_image(attribute_value), 'help': 'Select a input image with the source face'},
+            {'parameter': 'target_path', 'required': True, 'valid': lambda attribute_name, attribute_value: attribute_value is not None and (is_image(attribute_value) or is_video(attribute_value) or os.path.isdir(attribute_value)), 'help': 'Select the target file (image or video) or the directory'},
+            {'parameter': 'output_path', 'default': lambda: self.suggest_output_path(), 'valid': lambda attribute_name, attribute_value: attribute_value is not None and os.path.isabs(attribute_value), 'help': 'Select an output file or a directory'},
+            {'parameter': 'many-faces', 'default': False, 'action': True, 'help': 'Enable every face processing in the target'},
         ]
 
     def suggest_output_path(self) -> str:
