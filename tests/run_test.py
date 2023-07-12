@@ -21,7 +21,7 @@ def setup():
         os.remove(source_target_mp4_result)
 
 
-def test_one_no_parameters() -> None:
+def test_no_parameters() -> None:
     params = Parameters()
     limit_resources(params.max_memory)
     with pytest.raises(LoadingException):
