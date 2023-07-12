@@ -16,7 +16,7 @@ def test_one() -> None:
 
 
 def test_two() -> None:
-    params = Parameters(f'--target_path={target_png}')
+    params = Parameters(f'--target_path="{target_png}"')
     limit_resources(params.max_memory)
     Core(parameters=params.parameters).run()
 
