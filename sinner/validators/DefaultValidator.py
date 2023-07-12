@@ -1,4 +1,5 @@
 import inspect
+import sys
 
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.ValidatorException import ValidatorException
@@ -18,8 +19,8 @@ class DefaultValidator(BaseValidator):
                         value = validation_value(attribute)
                     else:
                         raise ValidatorException(f'More than 1 attribute is not allowed for validating lambdas ({callable_parameters_count} are present) for {attribute} attribute', validated_object, self)
-                except Exception:
-                    raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validated_object, self)
+                except Exception as exception:
+                    raise ValidatorException(f'{type(exception).__name__} with message `{str(exception)}` when retrieve callable value for {attribute} attribute', validated_object, self)
             else:
                 value = validation_value
             setattr(validated_object, attribute, value)
