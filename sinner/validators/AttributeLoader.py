@@ -42,8 +42,9 @@ class AttributeLoader:
     def rules(self) -> Rules:
         return []
 
+    # returns all initialized class variables with values, except properties
     def get_class_attributes(self) -> List[tuple[str, Any]]:
-        return [(attr, value) for attr, value in vars(self.__class__).items() if not attr.startswith('__') and not callable(value)]
+        return [(attr, value) for attr, value in vars(self.__class__).items() if not attr.startswith('__') and not callable(value) and not isinstance(value, property)]
 
     # saves all attribute and its values to a namespace object
     def save_attributes(self) -> None:
