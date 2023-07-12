@@ -14,7 +14,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, delete_subdirectories
+from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.validators.LoaderException import LoadingException
 
@@ -34,6 +34,9 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core(AttributeLoader):
     target_path: str
+    frame_processor: List[str]
+    frame_handler: str
+    temp_dir: str | None = None
 
     parameters: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
@@ -41,7 +44,10 @@ class Core(AttributeLoader):
 
     def rules(self) -> Rules:
         return super().rules() + [
-            {'parameter': 'target-path', 'required': True, 'help': 'Select output file or directory'},
+            {'parameter': 'target-path', 'required': True, 'valid': lambda: is_image(self.target_path) or is_video(self.target_path), 'help': 'Select output file or directory'},
+            {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
+            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
+            {'parameter': 'temp-dir', 'default': None, 'value': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY)}
         ]
 
     def __init__(self, parameters: Namespace):
@@ -54,7 +60,7 @@ class Core(AttributeLoader):
         self._stop_flag = False
         current_target_path = self.target_path
         temp_resources: List[str] = []  # list of temporary created resources
-        for processor_name in self.parameters.frame_processor:
+        for processor_name in self.frame_processor:
             if self._stop_flag:  # todo: create a shared variable to stop processing
                 continue
             current_handler = self.suggest_handler(current_target_path)

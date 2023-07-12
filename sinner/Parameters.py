@@ -1,4 +1,3 @@
-import os
 import platform
 import shlex
 import sys
@@ -6,29 +5,23 @@ from argparse import ArgumentParser, Namespace
 from typing import List
 
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
-from sinner.utilities import list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
+from sinner.utilities import list_class_descendants, resolve_relative_path
 from sinner.validators.LoaderException import LoadingException
 
 
 class Parameters(AttributeLoader):
-    frame_processor: List[str]
-    frame_handler: str
-    max_memory: int
     gui: bool
     benchmark: str | None = None
-    temp_dir: str | None = None
+    max_memory: int
 
     parser: ArgumentParser = ArgumentParser()
     parameters: Namespace
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'frame-processor', 'default': ['FaceSwapper'], 'required': True, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
-            {'parameter': 'frame-handler', 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler')},
             {'parameter': 'max-memory', 'default': self.suggest_max_memory()},
             {'parameter': 'gui', 'default': False},
             {'parameter': 'benchmark', 'default': None, 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')},
-            {'parameter': 'temp-dir', 'default': None}
         ]
 
     def __init__(self, command_line: str | None = None):
@@ -85,7 +78,3 @@ class Parameters(AttributeLoader):
             return 4
         return 16
 
-    def suggest_temp_dir(self, temp_dir: str | None) -> str:
-        if self.parameters.benchmark:
-            return ''
-        return temp_dir if temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY)
