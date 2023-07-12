@@ -30,7 +30,7 @@ class LoadingException(Exception):
         validation_errors: List[str] = []
         attributes_help: List[str] = []
         for error in self.errors:
-            validation_errors.append(f"Parameter {Fore.YELLOW}--{error['attribute']}{Fore.RESET}{Fore.RED}{error['error']}{Fore.RESET} {Fore.WHITE}in module{Fore.RESET} {Fore.CYAN}{error['module']}{Fore.RESET}")
+            validation_errors.append(f"Parameter {Fore.YELLOW}--{error['attribute']}{Fore.RESET}{Fore.RED} {error['error']}{Fore.RESET} {Fore.WHITE}in module{Fore.RESET} {Fore.CYAN}{error['module']}{Fore.RESET}")
             if error['help'] is not None:
                 attributes_help.append(f"{Style.BRIGHT}{Fore.YELLOW}--{error['attribute']}{Fore.RESET}={error['help']}{Style.RESET_ALL}")
             else:
