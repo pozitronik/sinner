@@ -3,7 +3,6 @@ import warnings
 from argparse import Namespace
 from typing import List, Callable
 
-import torch
 import os
 import sys
 
@@ -34,10 +33,12 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core(AttributeLoader):
     target_path: str
+    output_path: str
     frame_processor: List[str]
     frame_handler: str
     temp_dir: str
     extract_frames: bool
+    keep_frames: bool
 
     parameters: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
@@ -48,8 +49,11 @@ class Core(AttributeLoader):
             {
                 'parameter': 'target-path',
                 'required': True,
-                'valid': lambda: is_image(self.target_path) or is_video(self.target_path),
-                'help': 'Select target file or directory'
+                'help': 'Select the target file or the directory'
+            },
+            {
+                'parameter': 'output-path',
+                'help': 'Select an output file or a directory'
             },
             {
                 'parameter': 'frame-processor',
@@ -65,13 +69,18 @@ class Core(AttributeLoader):
             },
             {
                 'parameter': 'temp-dir',
-                'default': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.parameters.target_path), get_app_dir(), TEMP_DIRECTORY),
+                'default': lambda: self.temp_dir if self.temp_dir is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY),
                 'help': 'Select the directory for temporary files'
             },
             {
                 'parameter': 'extract_frames',
                 'default': False,
                 'help': 'Extract video frames before processing'
+            },
+            {
+                'parameter': 'keep_frames',
+                'default': False,
+                'help': 'Keep temporary frames'
             }
         ]
 
@@ -94,20 +103,16 @@ class Core(AttributeLoader):
             current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
-            if not self.parameters.extract_frames:
+            if not self.extract_frames:
                 temp_resources.append(state.in_dir)
-            self.release_resources()
+            current_processor.release_resources()
 
-        final_handler = BaseFrameHandler.create(handler_name=self.parameters.frame_handler, target_path=self.parameters.target_path)
-        if final_handler.result(from_dir=current_target_path, filename=self.parameters.output_path, fps=self.parameters.fps, audio_target=self.parameters.target_path if self.parameters.keep_audio else None) is True:
-            if self.parameters.keep_frames is False:
-                delete_subdirectories(self.parameters.temp_dir, temp_resources)
+        final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, target_path=self.target_path)
+        if final_handler.result(from_dir=current_target_path, filename=self.output_path, fps=self.fps, audio_target=self.target_path if self.keep_audio else None) is True:
+            if self.keep_frames is False:
+                delete_subdirectories(self.temp_dir, temp_resources)
         else:
             raise Exception("Something went wrong while resulting frames")
-
-    def release_resources(self) -> None:
-        if 'CUDAExecutionProvider' in self.parameters.execution_providers:
-            torch.cuda.empty_cache()
 
     @staticmethod
     def suggest_handler(target_path: str) -> BaseFrameHandler:
@@ -120,14 +125,14 @@ class Core(AttributeLoader):
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:
-        extractor_handler = self.suggest_handler(self.parameters.target_path)
+        extractor_handler = self.suggest_handler(self.target_path)
         try:
             _, frame = extractor_handler.extract_frame(frame_number)
         except Exception:
             return None
         if processed:  # return processed frame
             state = State(parameters=self.parameters, frames_count=1)
-            for processor_name in self.parameters.frame_processors:
+            for processor_name in self.frame_processor:
                 if processor_name not in self.preview_processors:
                     self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters, state=state)
                 frame = self.preview_processors[processor_name].process_frame(frame)
@@ -135,14 +140,14 @@ class Core(AttributeLoader):
 
     def change_source(self, data: str) -> bool:
         if data != '':
-            self.parameters.source_path = data
+            self.source_path = data
             self.preview_processors.clear()
             return True
         return False
 
     def change_target(self, data: str) -> bool:
         if data != '':
-            self.parameters.target_path = data
+            self.target_path = data
             self.preview_processors.clear()
             return True
         return False

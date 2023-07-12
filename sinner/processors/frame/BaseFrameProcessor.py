@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable
 
+import torch
 from tqdm import tqdm
 from argparse import Namespace
 
@@ -121,3 +122,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
                     self.statistics['limits_reaches'] += 1
             for completed_future in as_completed(futures):
                 completed_future.result()
+
+    def release_resources(self) -> None:
+        if 'CUDAExecutionProvider' in self.execution_provider:
+            torch.cuda.empty_cache()
