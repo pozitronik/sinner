@@ -37,7 +37,7 @@ class ValueValidator(BaseValidator):
                 raise ValidatorException(f'Exception when retrieve callable value for {attribute} attribute', validated_object, self)
 
         if isinstance(validation_value, Iterable):
-            if isinstance(attribute_value, Iterable):
+            if isinstance(attribute_value, Iterable) and not isinstance(attribute_value, str):
                 return None if all(item in validation_value for item in attribute_value) else f"={attribute_value} is not in {validation_value}"
             else:
                 return None if attribute_value in validation_value else f"={attribute_value} is not in {validation_value}"
