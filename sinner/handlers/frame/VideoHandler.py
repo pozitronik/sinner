@@ -4,10 +4,7 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class VideoHandler(CV2VideoHandler):
-    with_fps: float
-    keep_audio: bool = False
-    keep_frames: bool = False
-    extract_frames: bool = False
+    keep_audio: bool
 
     fps: float
     fc: int
@@ -15,14 +12,15 @@ class VideoHandler(CV2VideoHandler):
     current_frame_index: int = 0
 
     def rules(self) -> Rules:
-        return [
-            {'parameter': 'with-fps', 'required': False},
-            {'parameter': 'keep-audio', 'required': False},
-            {'parameter': 'keep-frames', 'required': False},
-            {'parameter': 'extract-frames', 'required': False},
+        return super().rules() + [
+            {
+                'parameter': 'keep-audio',
+                'default': False,
+                'help': 'Keep original audio'
+            }
         ]
 
     def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
-        if audio_target is not None:
-            return FFmpegVideoHandler(self._target_path).result(from_dir, filename, fps, audio_target)
-        return super().result(from_dir, filename, fps, audio_target)
+        if audio_target is not None and self.keep_audio:
+            return FFmpegVideoHandler(self._target_path).result(from_dir, filename, audio_target)
+        return super().result(from_dir, filename, audio_target)

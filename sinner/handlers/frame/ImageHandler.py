@@ -1,5 +1,6 @@
 import os.path
 import shutil
+from argparse import Namespace
 from pathlib import Path
 from typing import List
 
@@ -10,10 +11,10 @@ from sinner.utilities import read_image, is_image
 
 class ImageHandler(BaseFrameHandler):
 
-    def __init__(self, target_path: str):
+    def __init__(self, parameters: Namespace, target_path: str):
         if not os.path.exists(target_path) or not os.path.isfile(target_path) or not is_image(target_path):
             raise Exception(f"{target_path} should point to a image file")
-        super().__init__(target_path)
+        super().__init__(parameters, target_path)
 
     def detect_fps(self) -> float:
         return 1
@@ -27,7 +28,7 @@ class ImageHandler(BaseFrameHandler):
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, read_image(self._target_path)
 
-    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
+    def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:
             Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             # fixme: there can by other files in the from_dir

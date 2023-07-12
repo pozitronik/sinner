@@ -9,9 +9,20 @@ from numpy import uint8, frombuffer
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.validators.AttributeLoader import Rules
 
 
 class FFmpegVideoHandler(BaseFrameHandler):
+    output_fps: float
+
+    def rules(self) -> Rules:
+        return super().rules() + [
+            {
+                'parameter': 'output-fps',
+                'default': self.fps,
+                'help': 'FPS of resulting video'
+            },
+        ]
 
     @staticmethod
     def run(args: List[str]) -> bool:
@@ -69,12 +80,10 @@ class FFmpegVideoHandler(BaseFrameHandler):
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
         return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
 
-    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
-        if fps is None:
-            fps = self.fps
+    def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
         Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
-        command = ['-r', str(fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
+        command = ['-r', str(self.output_fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
                    'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
         if audio_target:
             command.extend(['-i', audio_target, '-shortest'])
