@@ -5,7 +5,7 @@ from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
 from sinner.validators.HelpValidator import HelpValidator
-from sinner.validators.LoaderException import LoaderException
+from sinner.validators.LoaderException import LoaderException, LoadingException
 from sinner.validators.RequiredValidator import RequiredValidator
 from sinner.validators.ValueValidator import ValueValidator
 
@@ -41,6 +41,10 @@ class AttributeLoader:
 
     def rules(self) -> Rules:
         return []
+
+    def __init__(self, parameters: Namespace):
+        if not self.load(parameters):
+            raise LoadingException(self.errors)
 
     # returns all initialized class variables with values, except properties
     def get_class_attributes(self) -> List[tuple[str, Any]]:

@@ -26,8 +26,7 @@ class Parameters(AttributeLoader):
 
     def __init__(self, command_line: str | None = None):
         self.parameters = self.command_line_to_namespace(command_line)
-        if not self.load(self.parameters):
-            raise LoadingException(self.errors)
+        super().__init__(self.parameters)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:

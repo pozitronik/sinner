@@ -86,9 +86,8 @@ class Core(AttributeLoader):
         ]
 
     def __init__(self, parameters: Namespace):
+        super().__init__(parameters)
         self.parameters = parameters
-        if not self.load(self.parameters):
-            raise LoadingException(self.errors)
         self.preview_processors = {}
 
     def run(self, set_progress: Callable[[int], None] | None = None) -> None:

@@ -43,11 +43,9 @@ class BaseFrameProcessor(ABC, AttributeLoader):
         ]
 
     def __init__(self, parameters: Namespace, state: State) -> None:
-        if not self.load(parameters):
-            raise LoadingException(self.errors)
+        super().__init__(parameters)
         self.parameters = parameters
         self.state = state
-        super().__init__()
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
