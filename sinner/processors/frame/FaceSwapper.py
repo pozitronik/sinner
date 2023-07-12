@@ -13,8 +13,6 @@ from sinner.utilities import conditional_download, read_image, get_app_dir, is_i
 
 class FaceSwapper(BaseFrameProcessor):
     source_path: str
-    target_path: str
-    output_path: str
     many_faces: bool = False
 
     source_face: Face

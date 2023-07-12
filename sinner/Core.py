@@ -33,7 +33,6 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core(AttributeLoader):
     target_path: str
-    output_path: str
     frame_processor: List[str]
     frame_handler: str
     temp_dir: str
@@ -52,10 +51,6 @@ class Core(AttributeLoader):
                 'help': 'Select the target file or the directory'
             },
             {
-                'parameter': 'output-path',
-                'help': 'Select an output file or a directory'
-            },
-            {
                 'parameter': 'frame-processor',
                 'default': ['FaceSwapper'],
                 'required': True,
@@ -64,7 +59,7 @@ class Core(AttributeLoader):
             },
             {
                 'parameter': 'frame-handler',
-                'default': self.suggest_handler(self.target_path).__class__.__name__,
+                'default': self.suggest_handler(self.parameters, self.target_path).__class__.__name__,
                 'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'),
                 'help': 'Select the frame handler from available handlers'
             },
@@ -86,18 +81,19 @@ class Core(AttributeLoader):
         ]
 
     def __init__(self, parameters: Namespace):
-        super().__init__(parameters)
         self.parameters = parameters
         self.preview_processors = {}
+        super().__init__(parameters)
 
     def run(self, set_progress: Callable[[int], None] | None = None) -> None:
         self._stop_flag = False
         current_target_path = self.target_path
         temp_resources: List[str] = []  # list of temporary created resources
+        current_processor: BaseFrameProcessor | None = None
         for processor_name in self.frame_processor:
             if self._stop_flag:  # todo: create a shared variable to stop processing
                 continue
-            current_handler = self.suggest_handler(current_target_path)
+            current_handler = self.suggest_handler(self.parameters, current_target_path)
             state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=current_handler.fc)
             current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
             current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
@@ -107,21 +103,22 @@ class Core(AttributeLoader):
                 temp_resources.append(state.in_dir)
             current_processor.release_resources()
 
-        final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, target_path=self.target_path)
-        if final_handler.result(from_dir=current_target_path, filename=self.output_path, audio_target=self.target_path) is True:
-            if self.keep_frames is False:
-                delete_subdirectories(self.temp_dir, temp_resources)
-        else:
-            raise Exception("Something went wrong while resulting frames")
+        if current_processor is not None:
+            final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
+            if final_handler.result(from_dir=current_target_path, filename=current_processor.output_path, audio_target=self.target_path) is True:
+                if self.keep_frames is False:
+                    delete_subdirectories(self.temp_dir, temp_resources)
+            else:
+                raise Exception("Something went wrong while resulting frames")
 
     @staticmethod
-    def suggest_handler(target_path: str) -> BaseFrameHandler:
+    def suggest_handler(parameters: Namespace, target_path: str) -> BaseFrameHandler:
         if os.path.isdir(target_path):
-            return DirectoryHandler(target_path)
+            return DirectoryHandler(parameters, target_path)
         if is_image(target_path):
-            return ImageHandler(target_path)
+            return ImageHandler(parameters, target_path)
         if is_video(target_path):
-            return VideoHandler(target_path)
+            return VideoHandler(parameters, target_path)
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:

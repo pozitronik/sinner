@@ -14,9 +14,6 @@ from sinner.utilities import conditional_download, get_app_dir, is_image, is_vid
 
 
 class FaceEnhancer(BaseFrameProcessor):
-    target_path: str
-    output_path: str
-
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
 
@@ -25,11 +22,14 @@ class FaceEnhancer(BaseFrameProcessor):
             {
                 'parameter': 'target_path',
                 'required': True,
-                'valid': lambda: is_image(self.target_path) or is_video(self.target_path)},
+                'valid': lambda: is_image(self.target_path) or is_video(self.target_path),
+                'help': 'Select the target file (image or video) or the directory'
+            },
             {
                 'parameter': 'output_path',
                 'default': self.suggest_output_path(),
-                'valid': lambda: os.path.isabs(self.output_path)
+                'valid': lambda: os.path.isabs(self.output_path),
+                 'help': 'Select an output file or a directory'
             },
         ]
 

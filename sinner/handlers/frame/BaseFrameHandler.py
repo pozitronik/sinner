@@ -26,7 +26,7 @@ class BaseFrameHandler(ABC, AttributeLoader):
         if not handler_class:
             handler_class = load_class(os.path.dirname(__file__), handler_name)
         if handler_class and issubclass(handler_class, BaseFrameHandler):
-            return handler_class(parameters)
+            return handler_class(parameters, target_path)
         else:
             raise ValueError(f"Invalid handler name: {handler_name}")
 

@@ -11,15 +11,18 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers
-from sinner.validators.LoaderException import LoadingException
+from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, is_image, is_video
 
 
 class BaseFrameProcessor(ABC, AttributeLoader):
-    state: State
+    target_path: str
+    output_path: str
     execution_provider: List[str]
     execution_threads: int
+
     max_memory: int
+
+    state: State
     extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None
@@ -38,8 +41,17 @@ class BaseFrameProcessor(ABC, AttributeLoader):
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'execution-provider', 'required': True, 'default': ['cpu'], 'choices': suggest_execution_providers()},
-            {'parameter': 'execution-threads', 'type': int, 'default': suggest_execution_threads()}
+            {
+                'parameter': 'execution-provider',
+                'required': True,
+                'default': ['cpu'],
+                'choices': suggest_execution_providers()
+            },
+            {
+                'parameter': 'execution-threads',
+                'type': int,
+                'default': suggest_execution_threads()
+            }
         ]
 
     def __init__(self, parameters: Namespace, state: State) -> None:
@@ -124,3 +136,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.execution_provider:
             torch.cuda.empty_cache()
+
+    @abstractmethod
+    def suggest_output_path(self) -> str:
+        pass
