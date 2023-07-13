@@ -34,7 +34,7 @@ class Run(AttributeLoader):
             },
         ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         if sys.version_info < (3, 10):
             raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
         signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
@@ -44,7 +44,6 @@ class Run(AttributeLoader):
         limit_resources(self.max_memory)
 
     def run(self) -> None:
-
         if self.gui:
             core = Core(parameters=self.parameters)
             preview = Preview(core)
