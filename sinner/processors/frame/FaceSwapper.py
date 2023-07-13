@@ -60,9 +60,9 @@ class FaceSwapper(BaseFrameProcessor):
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
         super().__init__(parameters=parameters, state=state)
-        self._face_analyser = FaceAnalyser(self.execution_provider)
+        self._face_analyser = FaceAnalyser(self.execution_providers)
         self.source_face = self._face_analyser.get_one_face(read_image(self.source_path))
-        self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_provider)
+        self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
 
     def process_frame(self, temp_frame: Frame) -> Frame:
         if self.many_faces:

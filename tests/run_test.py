@@ -105,3 +105,13 @@ def test_dummy_mp4_extract_keep_frames() -> None:
     assert os.path.exists(result_mp4) is True
     assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', IN_DIR)) is True
     assert len(glob.glob(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', IN_DIR, '*.png'))) == TARGET_FC
+
+
+def test_set_execution_provider(capsys) -> None:
+    assert os.path.exists(result_png) is False
+    params = Parameters(f'--target-path="{target_png}" --source-path="{source_jpg}" --temp-dir="{tmp_dir}" --output-path="{result_png}" --execution-provider=cpu')
+    limit_resources(params.max_memory)
+    Core(parameters=params.parameters).run()
+    captured = capsys.readouterr()
+    assert "Error Unknown Provider Type" not in captured.out
+    assert os.path.exists(result_png) is True

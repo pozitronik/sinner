@@ -46,7 +46,7 @@ class FaceEnhancer(BaseFrameProcessor):
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
         super().__init__(parameters=parameters, state=state)
         self._face_enhancer = self.get_face_enhancer()
-        self._face_analyser = FaceAnalyser(self.execution_provider)
+        self._face_analyser = FaceAnalyser(self.execution_providers)
 
     def get_face_enhancer(self) -> GFPGANer:
         with self.thread_lock:

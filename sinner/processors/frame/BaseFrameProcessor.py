@@ -11,13 +11,13 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, is_image, is_video
+from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, is_image, is_video, decode_execution_providers
 
 
 class BaseFrameProcessor(ABC, AttributeLoader):
     target_path: str
     output_path: str
-    execution_provider: List[str]  # todo fix execution providers naming (convert from cpu to CPUExecutionProvider
+    execution_provider: List[str]
     execution_threads: int
 
     max_memory: int
@@ -137,9 +137,13 @@ class BaseFrameProcessor(ABC, AttributeLoader):
                 completed_future.result()
 
     def release_resources(self) -> None:
-        if 'CUDAExecutionProvider' in self.execution_provider:
+        if 'CUDAExecutionProvider' in self.execution_providers:
             torch.cuda.empty_cache()
 
     @abstractmethod
     def suggest_output_path(self) -> str:
         pass
+
+    @property
+    def execution_providers(self) -> List[str]:
+        return decode_execution_providers(self.execution_provider)
