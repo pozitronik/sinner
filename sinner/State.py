@@ -53,7 +53,7 @@ class State(AttributeLoader):
         for any situation
         :return: adapted state path
         """
-        sub_path = (self._processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), IN_DIR)
+        sub_path = (self._processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), dir_type)
         return os.path.join(self._temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
