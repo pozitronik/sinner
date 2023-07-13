@@ -40,6 +40,7 @@ class Run(AttributeLoader):
         signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
         self.parameters = Parameters().parameters
         super().__init__(parameters=self.parameters)
+        self.update_parameters(self.parameters)
         limit_resources(self.max_memory)
 
     def run(self) -> None:

@@ -11,7 +11,7 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, decode_execution_providers
+from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
 
 
 class BaseFrameProcessor(ABC, AttributeLoader):
@@ -42,7 +42,8 @@ class BaseFrameProcessor(ABC, AttributeLoader):
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'max-memory',  # key defined in Run
+                'parameter': 'max-memory',  # key defined in Run, but class can be called separately in tests
+                'default': suggest_max_memory()
             },
             {
                 'parameter': 'execution-provider',
