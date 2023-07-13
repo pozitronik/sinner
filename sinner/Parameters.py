@@ -64,8 +64,8 @@ class Parameters(AttributeLoader):
                 setattr(processed_parameters, parameter[0].lstrip('-'), parameter[1:])
             elif len(parameter) == 1 and '=' not in parameter[0]:
                 setattr(processed_parameters, parameter[0].lstrip('-'), True)
-            else:
-                key, value = parameter[0].split('=')
+            else:  # 2 args
+                key, value = parameter[0].split('=') if '=' in parameter[0] else parameter
                 setattr(processed_parameters, key.lstrip('-'), value)
         return processed_parameters
 
