@@ -69,7 +69,7 @@ class Benchmark(AttributeLoader):
             },
             {
                 'parameter': 'max-memory',
-                'default': int(psutil.virtual_memory().available / 1024**3)
+                'default': int(psutil.virtual_memory().available / 1024 ** 3)
             },
             {
                 'parameter': 'execution-provider',
