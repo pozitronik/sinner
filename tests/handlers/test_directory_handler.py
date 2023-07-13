@@ -1,12 +1,16 @@
 import os
 import shutil
+from argparse import Namespace
 from typing import Iterator
 
 from numpy import ndarray
 from sympy.testing import pytest
 
+from sinner.Parameters import Parameters
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4
+
+parameters: Namespace = Parameters().parameters
 
 
 def setup():
@@ -16,14 +20,14 @@ def setup():
 
 
 def get_test_object() -> DirectoryHandler:
-    return DirectoryHandler(target_path=state_frames_dir)
+    return DirectoryHandler(parameters=parameters, target_path=state_frames_dir)
 
 
 def test_init() -> None:
     with pytest.raises(Exception):
-        DirectoryHandler(target_path='not_existed_directory')
+        DirectoryHandler(parameters=parameters, target_path='not_existed_directory')
     with pytest.raises(Exception):
-        DirectoryHandler(target_path=target_mp4)
+        DirectoryHandler(parameters=parameters, target_path=target_mp4)
 
 
 def test_available() -> None:
