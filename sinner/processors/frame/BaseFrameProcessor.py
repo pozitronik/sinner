@@ -17,7 +17,7 @@ from sinner.utilities import update_status, load_class, get_mem_usage, read_imag
 class BaseFrameProcessor(ABC, AttributeLoader):
     target_path: str
     output_path: str
-    execution_provider: List[str]
+    execution_provider: List[str]  # todo fix execution providers naming (convert from cpu to CPUExecutionProvider
     execution_threads: int
 
     max_memory: int
