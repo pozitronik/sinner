@@ -188,6 +188,12 @@ def suggest_execution_threads() -> int:
     return 1
 
 
+def suggest_max_memory() -> int:
+    if platform.system().lower() == 'darwin':
+        return 4
+    return 16
+
+
 def encode_execution_providers(execution_providers: List[str]) -> List[str]:
     return [execution_provider.replace('ExecutionProvider', '').lower() for execution_provider in execution_providers]
 
