@@ -90,7 +90,7 @@ class Benchmark(AttributeLoader):
             },
         ]
 
-    def __init__(self, parameters: Namespace | None = None):
+    def __init__(self, parameters: Namespace):
         # processor: str, execution_providers: list[str] | None = None, source_path: str | None = None, target_path: str | None = None):
         super().__init__(parameters)
         self.parameters = parameters
