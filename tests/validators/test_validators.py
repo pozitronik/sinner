@@ -80,7 +80,7 @@ def test_equal_value_validator() -> None:
     parameters: Namespace = Parameters.command_line_to_namespace('--int_attribute=42')
     assert test_object.load(parameters=parameters) is False
     assert test_object.int_attribute == 10
-    assert test_object.errors == [{'attribute': 'int_attribute', 'error': 'Value 42 is not equal to 10', 'module': 'TestEqualValueAttribute'}]
+    assert test_object.errors == [{'attribute': 'int_attribute', 'error': '42 is not equal to 10', 'help': None, 'module': 'TestEqualValueAttribute'}]
 
 
 def test_in_value_validator() -> None:
