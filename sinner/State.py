@@ -22,9 +22,19 @@ class State(AttributeLoader):
 
     def rules(self) -> Rules:
         return [
-            {'parameter': 'source_path'},
-            {'parameter': 'target_path', 'required': True},
-            {'parameter': 'output_path'},
+            {
+                'parameter': {'source', 'source-path'},
+                'attribute': 'source_path'
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
+                'required': True
+            },
+            {
+                'parameter': {'output', 'output-path'},
+                'attribute': 'output_path'
+            },
         ]
 
     def __init__(self, parameters: Namespace, temp_dir: str, frames_count: int):
