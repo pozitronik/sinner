@@ -94,7 +94,7 @@ class Benchmark(AttributeLoader):
         # processor: str, execution_providers: list[str] | None = None, source_path: str | None = None, target_path: str | None = None):
         super().__init__(parameters)
         self.parameters = parameters
-        self.update_parameters(parameters, self)  # load validated values back to parameters
+        self.update_parameters(parameters)  # load validated values back to parameters
 
         if self.execution_provider is None:
             execution_providers = onnxruntime.get_available_providers()
