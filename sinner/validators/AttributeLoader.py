@@ -193,8 +193,7 @@ class AttributeLoader:
         return attribute_help['help'] if 'help' in attribute_help else None
 
     # get all initialized attributes, enlisted in cls.rules() and update parameters
-    @staticmethod
-    def update_parameters(parameters: Namespace, cls: 'AttributeLoader') -> None:
-        attributes = cls.validating_attributes()
+    def update_parameters(self, parameters: Namespace) -> None:
+        attributes = self.validating_attributes()
         for attribute in attributes:
-            setattr(parameters, attribute, getattr(cls, attribute, None))
+            setattr(parameters, attribute, getattr(self, attribute, None))
