@@ -45,7 +45,8 @@ class Core(AttributeLoader):
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'target-path',
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
                 'required': True,
                 'help': 'Select the target file or the directory'
             },
@@ -68,12 +69,12 @@ class Core(AttributeLoader):
                 'help': 'Select the directory for temporary files'
             },
             {
-                'parameter': 'extract_frames',
+                'parameter': 'extract-frames',
                 'default': False,
                 'help': 'Extract video frames before processing'
             },
             {
-                'parameter': 'keep_frames',
+                'parameter': 'keep-frames',
                 'default': False,
                 'help': 'Keep temporary frames'
             }
