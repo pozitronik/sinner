@@ -127,13 +127,13 @@ class Core(AttributeLoader):
         return self.temp_dir if getattr(self, 'temp_dir', None) is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)
 
     def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:
-        extractor_handler = self.suggest_handler(self.target_path)
+        extractor_handler = self.suggest_handler(self.parameters, self.target_path)
         try:
             _, frame = extractor_handler.extract_frame(frame_number)
         except Exception:
             return None
         if processed:  # return processed frame
-            state = State(parameters=self.parameters, frames_count=1)
+            state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=1)
             for processor_name in self.frame_processor:
                 if processor_name not in self.preview_processors:
                     self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters, state=state)
