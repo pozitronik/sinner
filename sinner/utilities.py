@@ -175,8 +175,8 @@ def get_file_name(file_path: str) -> str:
 
 
 def delete_subdirectories(root_dir: str, subdirectories: List[str]) -> None:
-    for subdirectory in subdirectories:
-        shutil.rmtree(subdirectory)
+    for subdirectory in list(set(subdirectories)):
+        shutil.rmtree(subdirectory, ignore_errors=True)
     for root, dirs, files in os.walk(root_dir, topdown=False):
         for directory in dirs:
             dir_path = os.path.join(root, directory)
