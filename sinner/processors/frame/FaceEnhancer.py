@@ -27,7 +27,7 @@ class FaceEnhancer(BaseFrameProcessor):
             },
             {
                 'parameter': 'output_path',
-                'default': self.suggest_output_path(),
+                'default': lambda: self.suggest_output_path(),
                 'valid': lambda: os.path.isabs(self.output_path),
                 'help': 'Select an output file or a directory'
             },
