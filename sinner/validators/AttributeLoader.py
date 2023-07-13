@@ -42,8 +42,8 @@ class AttributeLoader:
     def rules(self) -> Rules:
         return []
 
-    def __init__(self, parameters: Namespace):
-        if not self.load(parameters):
+    def __init__(self, parameters: Namespace | None = None):
+        if parameters is not None and not self.load(parameters):
             raise LoadingException(self.errors)
 
     # returns all initialized class variables with values, except properties
