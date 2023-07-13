@@ -60,10 +60,10 @@ class AttributeLoader:
         for attribute, value in vars(self.old_attributes).items():
             setattr(self, attribute, value)
 
-    def load(self, attributes: Namespace, validate: bool = True) -> bool:
+    def load(self, parameters: Namespace, validate: bool = True) -> bool:
         self.errors.clear()
         self.save_attributes()
-        for attribute, value in vars(attributes).items():
+        for attribute, value in vars(parameters).items():
             attribute = attribute.replace('-', '_')
             if declared_attr_type(self, attribute) is not None:
                 self.setattr(attribute, value)  # the values should be loaded before validation
