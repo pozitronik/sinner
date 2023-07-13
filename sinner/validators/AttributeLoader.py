@@ -122,7 +122,7 @@ class AttributeLoader:
                 values.append(rule['attribute'])
             elif 'parameter' in rule:
                 if isinstance(rule['parameter'], str):
-                    values.append(rule['attribute'].replace('-', '_'))
+                    values.append(rule['parameter'].replace('-', '_'))
                 elif isinstance(rule['parameter'], list):
                     values.append(rule['parameter'][0].replace('-', '_'))
             # else rule ignored
@@ -143,7 +143,7 @@ class AttributeLoader:
             return rule['attribute'] == attribute
         elif 'parameter' in rule:
             if isinstance(rule['parameter'], str):
-                return rule['attribute'].replace('-', '_') == attribute
+                return rule['parameter'].replace('-', '_') == attribute
             elif isinstance(rule['parameter'], list):
                 return rule['parameter'][0].replace('-', '_') == attribute
         return False
