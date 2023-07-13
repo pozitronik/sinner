@@ -188,9 +188,9 @@ class AttributeLoader:
             if hasattr(self, attribute) is False and declared_attr_type(self, attribute) is not None:  # attribute is type declared
                 setattr(self, attribute, None)
 
-    def get_attribute_help(self, attribute: str) -> str | None:
+    def get_attribute_help(self, attribute: str) -> str:
         attribute_help = self.get_attribute_rules(attribute)
-        return attribute_help['help'] if 'help' in attribute_help else None
+        return attribute_help['help'] if 'help' in attribute_help else ''
 
     # get all initialized attributes, enlisted in cls.rules() and update parameters
     def update_parameters(self, parameters: Namespace) -> None:
