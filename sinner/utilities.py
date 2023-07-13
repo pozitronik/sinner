@@ -159,7 +159,7 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
     return result
 
 
-def get_all_base_names(search_class: type):
+def get_all_base_names(search_class: type) -> List[str]:
     base_names = [base.__name__ for base in search_class.__bases__]
     for base in search_class.__bases__:
         base_names.extend(get_all_base_names(base))

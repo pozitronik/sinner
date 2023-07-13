@@ -52,7 +52,7 @@ class State(AttributeLoader):
         return self.make_path(self.state_path(IN_DIR))
 
     @staticmethod
-    def make_path(path) -> str:
+    def make_path(path: str) -> str:
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
