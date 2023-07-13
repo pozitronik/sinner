@@ -154,7 +154,7 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
         if module_name == '__init__':
             continue
         descendant = load_class(os.path.dirname(file), module_name)
-        if class_name in get_all_base_names(descendant):
+        if descendant is not None and class_name in get_all_base_names(descendant):
             result.append(module_name)
     return result
 
