@@ -63,15 +63,32 @@ class AttributeLoader:
     def load(self, parameters: Namespace, validate: bool = True) -> bool:
         self.errors.clear()
         self.save_attributes()
-        for attribute, value in vars(parameters).items():
-            attribute = attribute.replace('-', '_')
-            if declared_attr_type(self, attribute) is not None:
+        for key, value in vars(parameters).items():
+            attribute = self.find_rule_attribute(key)
+            if attribute is not None and declared_attr_type(self, attribute) is not None:
                 self.setattr(attribute, value)  # the values should be loaded before validation
         if validate:
             if not self.validate():  # return values back
                 self.restore_attributes()
                 return False
         return True
+
+    # by key name finds class parameter to load key value
+    def find_rule_attribute(self, key: str) -> str | None:
+        for rule in self.rules():
+            if 'parameter' in rule:
+                parameter = rule['parameter']
+                if isinstance(parameter, str):
+                    parameter = parameter.replace('-', '_')
+                    if parameter == key.replace('-', '_'):
+                        return rule['attribute'] if 'attribute' in rule else parameter
+                elif isinstance(parameter, list):
+                    if key in parameter or key.replace('-', '_') in parameter:
+                        return rule['attribute'] if 'attribute' in rule else parameter[0].replace('-', '_')
+            elif 'attribute' in rule:
+                if rule['attribute'] == key.replace('-', '_'):
+                    return rule['attribute']
+        return None
 
     def validate(self, stop_on_error: bool = True) -> bool:
         validating_attributes = self.validating_attributes()
