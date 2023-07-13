@@ -99,9 +99,9 @@ def test_swap_enhance_mp4_extract() -> None:
 
 def test_dummy_mp4_extract_keep_frames() -> None:
     assert os.path.exists(result_mp4) is False
-    params = Parameters(f'--frame-processor DummyProcessor --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{result_mp4}" --extract-frames --keep-frames --temp-dir="{tmp_dir}"')
+    params = Parameters(f'--frame-processor DummyProcessor --target-path="{target_mp4}" --output-path="{result_mp4}" --extract-frames --keep-frames --temp-dir="{tmp_dir}"')
     limit_resources(params.max_memory)
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', 'source.jpg', IN_DIR)) is True
-    assert len(glob.glob(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', 'source.jpg', IN_DIR, '*.png'))) == TARGET_FC
+    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', IN_DIR)) is True
+    assert len(glob.glob(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', IN_DIR, '*.png'))) == TARGET_FC
