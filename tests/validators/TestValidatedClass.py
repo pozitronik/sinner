@@ -102,3 +102,28 @@ class TestInitAttributeTyped(AttributeLoader):
             {'parameter': 'non_existent_parameter_type_int', 'type': int, 'default': 1, 'required': True},  # defines a class variable with type and assign a value to it
             {'parameter': 'non_existent_parameter_type_required', 'required': True},  # defines a class variable with type and assign a value to it
         ]
+
+
+class TestParameterAliases(AttributeLoader):
+    param_one: int
+    param_two: str
+    param_three: str
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': ['param-one', 'param1', 'p1'], 'attribute': 'param_one'},
+            {'parameter': ['param-two', 'param2', 'p2'], 'attribute': 'param_two'},
+            {'parameter': ['param-three', 'param3', 'p3']},
+        ]
+
+
+# rule only with attributes
+class TestParameterAttributes(AttributeLoader):
+    param_one: int
+    param_two: str
+
+    def rules(self) -> Rules:
+        return [
+            {'attribute': 'param_one'},
+            {'attribute': 'param_two'},
+        ]

@@ -1,4 +1,7 @@
+from argparse import Namespace
+
 from sinner.Parameters import Parameters
+from tests.validators.TestValidatedClass import TestParameterAliases, TestParameterAttributes
 
 
 def test_init() -> None:
@@ -8,3 +11,38 @@ def test_init() -> None:
     assert params.key3 == ['value3', 'value4']
     assert params.key4 is True
     assert params.key10 is True
+
+
+def test_parameters_aliases_loading() -> None:
+    test_object = TestParameterAliases()
+    assert hasattr(test_object, 'param_one') is False
+    assert hasattr(test_object, 'param_one') is False
+    assert hasattr(test_object, 'param_three') is False
+    parameters: Namespace = Parameters.command_line_to_namespace('--param-one=1 --param-two=sdf --param-three=cddd')
+    test_object.load(parameters)
+    assert test_object.param_one == 1
+    assert test_object.param_two == 'sdf'
+    assert test_object.param_three == 'cddd'
+
+    parameters: Namespace = Parameters.command_line_to_namespace('--param1=100 --param2=qwe --param3=xdf')
+    test_object.load(parameters)
+    assert test_object.param_one == 100
+    assert test_object.param_two == 'qwe'
+    assert test_object.param_three == 'xdf'
+
+    parameters: Namespace = Parameters.command_line_to_namespace('--p1=42 --p2=xxx --p3=pik')
+    test_object.load(parameters)
+    assert test_object.param_one == 42
+    assert test_object.param_two == 'xxx'
+    assert test_object.param_three == 'pik'
+
+
+def test_attributes_loading() -> None:
+    test_object = TestParameterAttributes()
+    assert hasattr(test_object, 'param_one') is False
+    assert hasattr(test_object, 'param_one') is False
+    parameters: Namespace = Parameters.command_line_to_namespace('--param-one=1 --param-two=sdf')
+    test_object.load(parameters)
+    assert test_object.param_one == 1
+    assert test_object.param_two == 'sdf'
+
