@@ -99,19 +99,37 @@ class AttributeLoader:
 
     # returns the list of attributes names, which listed in the `rules` configuration
     def validating_attributes(self) -> List[str]:
-        values = list(dict.fromkeys(d['parameter'] for d in self.rules() if 'parameter' in d))
-        values = [s.replace('-', '_') for s in values]  # parameters can contain '-', but attributes are not
+        values: List[str] = []
+        for rule in self.rules():
+            if 'attribute' in rule:
+                values.append(rule['attribute'])
+            elif 'parameter' in rule:
+                if isinstance(rule['parameter'], str):
+                    values.append(rule['attribute'].replace('-', '_'))
+                elif isinstance(rule['parameter'], list):
+                    values.append(rule['parameter'][0].replace('-', '_'))
+            # else rule ignored
         return values
 
     # return all rules configurations for attribute combined to one rule
     def get_attribute_rules(self, attribute: str) -> Rule:
         ruleset = {}
         for rule in self.rules():
-            if rule['parameter'].replace('-', '_') == attribute:
-                rule.pop('parameter')
+            if self.is_rule_attribute(rule, attribute):
                 rule = self.streamline_rule_order(rule)
                 ruleset.update(rule)
         return ruleset
+
+    @staticmethod
+    def is_rule_attribute(rule: Rule, attribute: str) -> bool:
+        if 'attribute' in rule:
+            return rule['attribute'] == attribute
+        elif 'parameter' in rule:
+            if isinstance(rule['parameter'], str):
+                return rule['attribute'].replace('-', '_') == attribute
+            elif isinstance(rule['parameter'], list):
+                return rule['parameter'][0].replace('-', '_') == attribute
+        return False
 
     # returns validators objects for current rule
     @staticmethod
