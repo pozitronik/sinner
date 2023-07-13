@@ -154,10 +154,16 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
         if module_name == '__init__':
             continue
         descendant = load_class(os.path.dirname(file), module_name)
-        # todo: recursive search down to descendant.__bases__ is required here to find if class_name in the inheritance tree
-        if descendant and descendant.__base__.__name__ == class_name:  # issubclass will not work here
+        if class_name in get_all_base_names(descendant):
             result.append(module_name)
     return result
+
+
+def get_all_base_names(search_class: type):
+    base_names = [base.__name__ for base in search_class.__bases__]
+    for base in search_class.__bases__:
+        base_names.extend(get_all_base_names(base))
+    return base_names
 
 
 def get_app_dir(sub_path: str = '') -> str:
