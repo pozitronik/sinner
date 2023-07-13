@@ -37,19 +37,26 @@ class State(AttributeLoader):
 
     @property
     def out_dir(self) -> str:
-        sub_path = (self._processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), OUT_DIR)
-        path = os.path.join(self._temp_dir, *sub_path)
+        return self.make_path(self.state_path(OUT_DIR))
+
+    @property
+    def in_dir(self) -> str:
+        return self.make_path(self.state_path(IN_DIR))
+
+    @staticmethod
+    def make_path(self, path) -> str:
         if not os.path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
 
-    @property
-    def in_dir(self) -> str:
-        sub_path = (self._processor_name, os.path.basename(self.target_path), os.path.basename(self.source_path), IN_DIR)
-        path = os.path.join(self._temp_dir, *sub_path)
-        if not os.path.exists(path):
-            Path(path).mkdir(parents=True, exist_ok=True)
-        return path
+    def state_path(self, dir_type: str) -> str:
+        """
+        Processors may not need the source or (in theory) the target. Method tries to configure a part of state path
+        for any situation
+        :return: adapted state path
+        """
+        sub_path = (self._processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), IN_DIR)
+        return os.path.join(self._temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
         if not write_image(frame, self.get_frame_processed_name(index)):
