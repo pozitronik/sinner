@@ -42,7 +42,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'max-memory',  # key defined in Parameters
+                'parameter': 'max-memory',  # key defined in Run
             },
             {
                 'parameter': 'execution-provider',
@@ -130,7 +130,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
                 future.add_done_callback(process_done)
                 futures.append(future)
                 progress.set_postfix(self.get_postfix(len(futures)))
-                if get_mem_usage('vms', 'g') >= self.parameters.max_memory:
+                if get_mem_usage('vms', 'g') >= self.max_memory:
                     futures[:1][0].result()
                     self.statistics['limits_reaches'] += 1
             for completed_future in as_completed(futures):
