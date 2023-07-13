@@ -37,7 +37,7 @@ class BaseFrameHandler(AttributeLoader, ABC):
         """
         return True
 
-    def __init__(self, parameters: Namespace, target_path: str):
+    def __init__(self, target_path: str, parameters: Namespace | None = None):  # todo: change parameters order to set parameters to default None
         self._target_path = target_path
         self.fps = self.detect_fps()
         self.fc = self.detect_fc()

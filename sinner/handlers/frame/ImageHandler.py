@@ -11,10 +11,10 @@ from sinner.utilities import read_image, is_image
 
 class ImageHandler(BaseFrameHandler):
 
-    def __init__(self, parameters: Namespace, target_path: str):
+    def __init__(self, target_path: str, parameters: Namespace | None = None):
         if not os.path.exists(target_path) or not os.path.isfile(target_path) or not is_image(target_path):
             raise Exception(f"{target_path} should point to a image file")
-        super().__init__(parameters, target_path)
+        super().__init__(target_path, parameters)
 
     def detect_fps(self) -> float:
         return 1
