@@ -8,7 +8,7 @@ from sinner.Parameters import Parameters
 from sinner.Core import Core
 from sinner.utilities import limit_resources
 from sinner.validators.LoaderException import LoadingException
-from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir
+from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png
 
 
 def setup():
@@ -57,3 +57,19 @@ def test_swap_frames_to_mp4() -> None:
     limit_resources(params.max_memory)
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
+
+
+def test_enhance_image() -> None:
+    assert os.path.exists(result_png) is False
+    params = Parameters(f'--frame-processor=FaceEnhancer --target-path="{target_png}" --output-path="{result_png}"')
+    limit_resources(params.max_memory)
+    Core(parameters=params.parameters).run()
+    assert os.path.exists(result_png) is True
+
+
+def test_swap_enhance_image() -> None:
+    assert os.path.exists(result_png) is False
+    params = Parameters(f'--frame-processor FaceSwapper FaceEnhancer --source-path="{source_jpg}" --target-path="{target_png}" --output-path="{result_png}"')
+    limit_resources(params.max_memory)
+    Core(parameters=params.parameters).run()
+    assert os.path.exists(result_png) is True
