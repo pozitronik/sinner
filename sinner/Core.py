@@ -115,11 +115,11 @@ class Core(AttributeLoader):
         if target_path is None:
             raise Exception("The target path is not set")
         if os.path.isdir(target_path):
-            return DirectoryHandler(parameters, target_path)
+            return DirectoryHandler(target_path, parameters)
         if is_image(target_path):
-            return ImageHandler(parameters, target_path)
+            return ImageHandler(target_path, parameters)
         if is_video(target_path):
-            return VideoHandler(parameters, target_path)
+            return VideoHandler(target_path, parameters)
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def suggest_temp_dir(self) -> str:
