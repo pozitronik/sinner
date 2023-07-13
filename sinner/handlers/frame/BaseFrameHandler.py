@@ -21,12 +21,12 @@ class BaseFrameHandler(AttributeLoader, ABC):
         ]
 
     @staticmethod
-    def create(handler_name: str, parameters: Namespace, target_path: str) -> 'BaseFrameHandler':  # handlers factory
+    def create(handler_name: str, target_path: str, parameters: Namespace | None = None) -> 'BaseFrameHandler':  # handlers factory
         handler_class = globals().get(handler_name)
         if not handler_class:
             handler_class = load_class(os.path.dirname(__file__), handler_name)
         if handler_class and issubclass(handler_class, BaseFrameHandler):
-            return handler_class(parameters, target_path)
+            return handler_class(target_path, parameters)
         else:
             raise ValueError(f"Invalid handler name: {handler_name}")
 
