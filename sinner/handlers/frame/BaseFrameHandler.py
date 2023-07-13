@@ -9,7 +9,7 @@ from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 
 
-class BaseFrameHandler(ABC, AttributeLoader):
+class BaseFrameHandler(AttributeLoader, ABC):
     fps: float
     fc: int
     current_frame_index: int = 0
