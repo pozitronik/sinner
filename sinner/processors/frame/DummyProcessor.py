@@ -10,12 +10,14 @@ class DummyProcessor(BaseFrameProcessor):
     def rules(self) -> Rules:
         return super().rules() + [
             {
-                'parameter': 'target_path',
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
                 'required': True,
                 'help': 'Select the target file (image or video) or the directory'
             },
             {
-                'parameter': 'output_path',
+                'parameter': {'output', 'output-path'},
+                'attribute': 'output_path',
                 'default': lambda: self.suggest_output_path(),
                 'help': 'Select an output file or a directory'
             },

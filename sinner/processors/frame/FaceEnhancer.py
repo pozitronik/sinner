@@ -20,13 +20,15 @@ class FaceEnhancer(BaseFrameProcessor):
     def rules(self) -> Rules:
         return super().rules() + [
             {
-                'parameter': 'target_path',
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
                 'required': True,
                 'valid': lambda: is_image(self.target_path) or is_video(self.target_path),
                 'help': 'Select the target file (image or video) or the directory'
             },
             {
-                'parameter': 'output_path',
+                'parameter': {'output', 'output-path'},
+                'attribute': 'output_path',
                 'default': lambda: self.suggest_output_path(),
                 'valid': lambda: os.path.isabs(self.output_path),
                 'help': 'Select an output file or a directory'
