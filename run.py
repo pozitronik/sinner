@@ -15,12 +15,12 @@ if __name__ == '__main__':
 
     params = Parameters()
     limit_resources(params.max_memory)
-    core = Core(parameters=params.parameters)
     if params.gui:
+        core = Core(parameters=params.parameters)
         preview = Preview(core)
         window = preview.show()
         window.mainloop()
-    elif params.benchmark is not None:
-        Benchmark(params.benchmark, params.execution_providers, params.source_path, params.target_path)
+    elif params.benchmark is True:
+        Benchmark(parameters=params.parameters)
     else:
-        core.run()
+        Core(parameters=params.parameters).run()

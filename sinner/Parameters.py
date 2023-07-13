@@ -5,12 +5,11 @@ from argparse import ArgumentParser, Namespace
 from typing import List
 
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
-from sinner.utilities import list_class_descendants, resolve_relative_path
 
 
 class Parameters(AttributeLoader):
     gui: bool
-    benchmark: str | None = None
+    benchmark: bool
     max_memory: int
 
     parser: ArgumentParser = ArgumentParser()
@@ -29,7 +28,6 @@ class Parameters(AttributeLoader):
             {
                 'parameter': 'benchmark',
                 'default': None,
-                'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor')
             },
         ]
 
