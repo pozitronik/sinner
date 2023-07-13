@@ -47,6 +47,7 @@ class Core(AttributeLoader):
             {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
+                'valid': lambda: os.path.exists(self.target_path),
                 'required': True,
                 'help': 'Select the target file or the directory'
             },
