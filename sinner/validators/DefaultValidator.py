@@ -1,5 +1,4 @@
 import inspect
-import sys
 
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.ValidatorException import ValidatorException

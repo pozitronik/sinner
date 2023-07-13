@@ -11,7 +11,7 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, is_image, is_video, decode_execution_providers
+from sinner.utilities import update_status, load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, decode_execution_providers
 
 
 class BaseFrameProcessor(ABC, AttributeLoader):
