@@ -6,7 +6,6 @@ from typing import List
 
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.utilities import list_class_descendants, resolve_relative_path
-from sinner.validators.LoaderException import LoadingException
 
 
 class Parameters(AttributeLoader):
