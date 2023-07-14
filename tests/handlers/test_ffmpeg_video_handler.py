@@ -38,7 +38,7 @@ def test_get_frames_paths() -> None:
     first_item = frames_paths[0]
     assert (1, resolve_relative_path('../data/temp/01.png')) == first_item
     last_item = frames_paths.pop()
-    assert (TARGET_FC, resolve_relative_path('../data/temp/98.png')) == last_item
+    assert (TARGET_FC, resolve_relative_path('../data/temp/10.png')) == last_item
 
 
 def test_extract_frame() -> None:
@@ -67,9 +67,9 @@ def tests_iterator() -> None:
         frame_counter += 1
     assert frame_counter == TARGET_FC
 
-    cv2.current_frame_index = 90
+    cv2.current_frame_index = 80
     frame_counter = 0
     for frame_index in cv2:
         assert isinstance(frame_index, int)
         frame_counter += 1
-    assert frame_counter == 8
+    assert frame_counter == 2
