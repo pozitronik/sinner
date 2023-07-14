@@ -67,7 +67,7 @@ def tests_iterator() -> None:
         frame_counter += 1
     assert frame_counter == TARGET_FC
 
-    cv2.current_frame_index = 80
+    cv2.current_frame_index = 8
     frame_counter = 0
     for frame_index in cv2:
         assert isinstance(frame_index, int)
