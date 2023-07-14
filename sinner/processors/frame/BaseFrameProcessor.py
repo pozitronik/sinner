@@ -62,7 +62,6 @@ class BaseFrameProcessor(ABC, AttributeLoader):
         super().__init__(parameters)
         self.parameters = parameters
         self.state = state
-        update_status(f'Run {self.__class__.__name__} with {self.validated_attributes}')
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()

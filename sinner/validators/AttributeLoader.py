@@ -197,3 +197,10 @@ class AttributeLoader:
         attributes = self.validating_attributes()
         for attribute in attributes:
             setattr(parameters, attribute, getattr(self, attribute, None))
+
+    @property
+    def validated_attributes(self) -> List[tuple[str, Any]]:
+        result: List[tuple[str, Any]] = []
+        for attribute in self.validating_attributes():
+            result.append((attribute, getattr(self, attribute)))
+        return result
