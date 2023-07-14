@@ -52,7 +52,6 @@ def test_swap_image() -> None:
     assert os.path.exists(source_target_png_result) is True
 
 
-@pytest.mark.skip(reason="This test is not ready for GitHub CI")
 def test_swap_mp4() -> None:
     assert os.path.exists(source_target_mp4_result) is False
     params = Parameters(f'--target-path="{target_mp4}" --source-path="{source_jpg}" --execution-treads={threads_count}')
@@ -85,8 +84,9 @@ def test_swap_enhance_image() -> None:
     assert os.path.exists(result_png) is True
 
 
-@pytest.mark.skip(reason="This test is not ready for GitHub CI")
 def test_swap_enhance_mp4() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("This test is not ready for GitHub CI")
     assert os.path.exists(result_mp4) is False
     params = Parameters(f'--frame-processor FaceSwapper FaceEnhancer --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{result_mp4}" --execution-treads={threads_count} --keep-frames --temp-dir="{tmp_dir}"')
     limit_resources(suggest_max_memory())
@@ -98,8 +98,9 @@ def test_swap_enhance_mp4() -> None:
     assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', IN_DIR, '10.png')) is False
 
 
-@pytest.mark.skip(reason="This test is not ready for GitHub CI")
 def test_swap_enhance_mp4_extract() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("This test is not ready for GitHub CI")
     assert os.path.exists(result_mp4) is False
     params = Parameters(f'--frame-processor FaceSwapper FaceEnhancer --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{result_mp4}" --extract-frames --execution-treads={threads_count}')
     limit_resources(suggest_max_memory())
@@ -107,8 +108,9 @@ def test_swap_enhance_mp4_extract() -> None:
     assert os.path.exists(result_mp4) is True
 
 
-@pytest.mark.skip(reason="This test is not ready for GitHub CI")
 def test_dummy_mp4_extract_keep_frames() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("This test is not ready for GitHub CI")
     assert os.path.exists(result_mp4) is False
     params = Parameters(f'--frame-processor DummyProcessor --target-path="{target_mp4}" --output-path="{result_mp4}" --extract-frames --keep-frames --temp-dir="{tmp_dir}"')
     limit_resources(suggest_max_memory())
