@@ -2,9 +2,12 @@ from enum import Enum
 
 
 class Mood(Enum):
-    GOOD = '😈'
-    BAD = '👿'
-    NEUTRAL = '😑'
+    GOOD = (0, '😈')
+    BAD = (1, '👿')
+    NEUTRAL = (2, '😑')
+
+    def __str__(self):
+        return self.value[1]
 
 
 class Status:
