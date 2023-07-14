@@ -92,7 +92,7 @@ class State(AttributeLoader):
     #  Checks if the process is finished
     @property
     def is_finished(self) -> bool:
-        return self.frames_count == self.processed_frames_count
+        return self.frames_count >= self.processed_frames_count
 
     #  Returns count of already processed frame for this target (0, if none).
     @property
