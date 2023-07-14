@@ -1,5 +1,6 @@
 import os
 import shutil
+from argparse import Namespace
 from typing import Iterator
 
 import pytest
@@ -17,7 +18,9 @@ def setup():
 
 
 def get_test_object() -> FFmpegVideoHandler:
-    return FFmpegVideoHandler(target_path=target_mp4)
+    result = FFmpegVideoHandler(target_path=target_mp4)
+    result.load(Namespace())
+    return result
 
 
 def test_available() -> None:
