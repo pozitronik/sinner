@@ -14,7 +14,7 @@ from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.State import State
 from sinner.typing import Frame
 from sinner.utilities import read_image
-from tests.constants import source_jpg, target_png, IMAGE_SHAPE, target_mp4, tmp_dir
+from tests.constants import source_jpg, target_png, IMAGE_SHAPE, target_mp4, tmp_dir, TARGET_FC
 
 parameters: Namespace = Parameters(f'--frame-processor=DummyProcessor --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"').parameters
 
@@ -36,21 +36,22 @@ def get_test_handler() -> BaseFrameHandler:
 def get_test_state() -> State:
     return State(
         parameters=parameters,
-        frames_count=98,
-        temp_dir=tmp_dir
+        frames_count=TARGET_FC,
+        temp_dir=tmp_dir,
+        processor_name='DummyProcessor',
+        target_path=target_mp4
     )
 
 
 def get_test_object() -> DummyProcessor:
-    return DummyProcessor(parameters=parameters, state=get_test_state())
+    return DummyProcessor(parameters=parameters)
 
 
 def test_create_factory():
-    dummy_processor = BaseFrameProcessor.create('DummyProcessor', parameters=parameters, state=get_test_state())
+    dummy_processor = BaseFrameProcessor.create('DummyProcessor', parameters=parameters)
     assert isinstance(dummy_processor, BaseFrameProcessor)
-    assert dummy_processor.state.frames_count == 98
     with pytest.raises(Exception):
-        BaseFrameProcessor.create('UnknownProcessor', parameters.parameters, state=get_test_state())
+        BaseFrameProcessor.create('UnknownProcessor', parameters.parameters)
 
 
 def test_init():
@@ -66,7 +67,7 @@ def test_process_frame():
 
 
 def test_process():
-    get_test_object().process(frames_handler=get_test_handler())
+    get_test_object().process(frames_handler=get_test_handler(), state=get_test_state())
     out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/OUT/', '*.png')
     processed_files = glob.glob(out_dir)
     assert (len(processed_files), 98)
@@ -77,9 +78,9 @@ def test_process_frames_in_mem():
     assert os.path.exists(out_dir) is False
     in_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/IN/')
     assert os.path.exists(in_dir) is False
-    get_test_object().process_frames(get_test_handler())  # in memory
+    get_test_object().process_frames(get_test_handler(), get_test_state())  # in memory
     processed_files = glob.glob(os.path.join(out_dir, '*.png'))
-    assert (len(processed_files), 98)
+    assert (len(processed_files),TARGET_FC)
     assert os.path.exists(in_dir) is False
 
 
@@ -89,6 +90,6 @@ def test_process_frames():
     in_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/IN/')
     assert os.path.exists(in_dir) is False
     test_state: State = get_test_state()
-    get_test_object().process_frames(get_test_handler().get_frames_paths(test_state.in_dir))  # via frames
-    assert (len(glob.glob(os.path.join(in_dir, '*.png'))), 98)
-    assert (len(glob.glob(os.path.join(out_dir, '*.png'))), 98)
+    get_test_object().process_frames(get_test_handler().get_frames_paths(test_state.in_dir), test_state)  # via frames
+    assert (len(glob.glob(os.path.join(in_dir, '*.png'))), TARGET_FC)
+    assert (len(glob.glob(os.path.join(out_dir, '*.png'))), TARGET_FC)

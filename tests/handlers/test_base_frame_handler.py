@@ -1,4 +1,3 @@
-import multiprocessing
 from argparse import Namespace
 
 import pytest

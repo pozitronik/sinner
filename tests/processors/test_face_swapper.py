@@ -4,7 +4,6 @@ from argparse import Namespace
 from sinner.Parameters import Parameters
 from sinner.face_analyser import FaceAnalyser
 from sinner.processors.frame.FaceSwapper import FaceSwapper
-from sinner.State import State
 from sinner.typing import Frame, FaceSwapperType, Face
 from sinner.utilities import read_image
 from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir
@@ -12,16 +11,8 @@ from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir
 parameters: Namespace = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path="{source_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"').parameters
 
 
-def get_test_state() -> State:
-    return State(
-        parameters=parameters,
-        frames_count=1,
-        temp_dir=tmp_dir
-    )
-
-
 def get_test_object() -> FaceSwapper:
-    return FaceSwapper(parameters=parameters, state=get_test_state())
+    return FaceSwapper(parameters=parameters)
 
 
 def test_init():
