@@ -106,7 +106,7 @@ class Preview(AttributeLoader):
             self.NavigateSlider.set(1)
             self.NavigateSlider.pack_forget()
         if is_video(self.target_path):
-            video_frame_total = BaseFrameHandler.create(handler_name=self.core.frame_handler, target_path=self.target_path, parameters=Namespace()).fc
+            video_frame_total = self.frame_handler.fc
             self.NavigateSlider.configure(to=video_frame_total)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.set(video_frame_total / 2)
@@ -130,7 +130,7 @@ class Preview(AttributeLoader):
         if path != '':
             self.target_path = path
             self.core.parameters.target = self.target_path
-            self.core.load(self.core.parameters)
+            # self.core.load(self.core.parameters) # no need
             self._extractor_handler = None
             self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.configure(state=NORMAL)
