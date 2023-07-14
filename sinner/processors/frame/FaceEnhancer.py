@@ -56,7 +56,7 @@ class FaceEnhancer(BaseFrameProcessor):
         if self._face_enhancer is None:
             with self.thread_lock:
                 model_path = get_app_dir('models/GFPGANv1.4.pth')
-                self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=1)
+                self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=1)  # type: ignore[attr-defined]
         return self._face_enhancer
 
     def __init__(self, parameters: Namespace):
