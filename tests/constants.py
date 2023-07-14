@@ -2,7 +2,7 @@ import os
 
 from sinner.utilities import resolve_relative_path
 
-TARGET_FC = 98
+TARGET_FC = 10
 TARGET_FPS = 25.0
 FRAME_SHAPE = (360, 640, 3)
 IMAGE_SHAPE = (1080, 861, 3)
