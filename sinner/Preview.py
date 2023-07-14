@@ -1,5 +1,6 @@
 import os.path
 import threading
+from argparse import Namespace
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
 from tkinter.ttk import Progressbar
 
@@ -88,7 +89,7 @@ class Preview:
             self.NavigateSlider.set(1)
             self.NavigateSlider.pack_forget()
         if is_video(self.core.target_path):
-            video_frame_total = BaseFrameHandler.create(handler_name=self.core.frame_handler, target_path=self.core.target_path).fc
+            video_frame_total = BaseFrameHandler.create(handler_name=self.core.frame_handler, target_path=self.core.target_path, parameters=Namespace()).fc
             self.NavigateSlider.configure(to=video_frame_total)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.set(video_frame_total / 2)
