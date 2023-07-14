@@ -6,7 +6,7 @@ from typing import List, Callable
 import os
 import sys
 
-from sinner.Status import Status
+from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
@@ -41,6 +41,7 @@ class Core(AttributeLoader, Status):
 
     parameters: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
+    preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
     _stop_flag: bool = False
 
     def rules(self) -> Rules:
@@ -132,34 +133,27 @@ class Core(AttributeLoader, Status):
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def suggest_temp_dir(self) -> str:
-        return self.temp_dir if getattr(self, 'temp_dir', None) is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)
+        return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
-    def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:
-        extractor_handler = self.suggest_handler(self.parameters, self.target_path)
+    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> Frame | None:
         try:
+            if extractor_handler is None:
+                extractor_handler = self.suggest_handler(self.parameters, self.target_path)
             _, frame = extractor_handler.extract_frame(frame_number)
-        except Exception:
+        except Exception as exception:
+            self.update_status(message=str(exception), mood=Mood.BAD)
             return None
         if processed:  # return processed frame
-            for processor_name in self.frame_processor:
-                if processor_name not in self.preview_processors:
-                    self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
-                frame = self.preview_processors[processor_name].process_frame(frame)
+            try:
+                for processor_name in self.frame_processor:
+                    if processor_name not in self.preview_processors:
+                        self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
+                    self.preview_processors[processor_name].load(self.parameters)
+                    frame = self.preview_processors[processor_name].process_frame(frame)
+            except Exception as exception:  # skip, if parameters is not enough for processors
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                pass
         return frame
-
-    def change_source(self, data: str) -> bool:
-        if data != '':
-            self.source_path = data
-            self.preview_processors.clear()
-            return True
-        return False
-
-    def change_target(self, data: str) -> bool:
-        if data != '':
-            self.target_path = data
-            self.preview_processors.clear()
-            return True
-        return False
 
     def stop(self) -> None:
         self._stop_flag = True

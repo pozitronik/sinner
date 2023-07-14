@@ -31,8 +31,8 @@ def get_test_object() -> FaceEnhancer:
 def test_init():
     test_object = get_test_object()
     assert (test_object, FaceEnhancer)
-    assert (test_object._face_analyser, FaceAnalyser)
-    assert (test_object._face_enhancer, GFPGANer)
+    assert (test_object.face_analyser, FaceAnalyser)
+    assert (test_object.face_enhancer, GFPGANer)
 
 
 def test_process_frame():

@@ -14,9 +14,9 @@ class FaceSwapper(BaseFrameProcessor):
     source_path: str
     many_faces: bool = False
 
-    source_face: Face
-    _face_analyser: FaceAnalyser
-    _face_swapper: FaceSwapperType
+    _source_face: Face | None = None
+    _face_analyser: FaceAnalyser | None = None
+    _face_swapper: FaceSwapperType | None = None
 
     def rules(self) -> Rules:
         return super().rules() + [
@@ -49,6 +49,10 @@ class FaceSwapper(BaseFrameProcessor):
             },
         ]
 
+    def load(self, parameters: Namespace, validate: bool = True) -> bool:
+        self._source_face = None
+        return super().load(parameters, validate)
+
     def suggest_output_path(self) -> str:
         source_name = get_file_name(self.source_path)
         target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
@@ -58,22 +62,37 @@ class FaceSwapper(BaseFrameProcessor):
             return os.path.join(self.output_path, source_name + '-' + target_name + target_extension)
         return self.output_path
 
+    @property
+    def source_face(self) -> Face | None:
+        if self._source_face is None:
+            self._source_face = self.face_analyser.get_one_face(read_image(self.source_path))
+        return self._source_face
+
+    @property
+    def face_analyser(self) -> FaceAnalyser:
+        if self._face_analyser is None:
+            self._face_analyser = FaceAnalyser(self.execution_providers)
+        return self._face_analyser
+
+    @property
+    def face_swapper(self) -> FaceSwapperType:
+        if self._face_swapper is None:
+            self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
+        return self._face_swapper
+
     def __init__(self, parameters: Namespace):
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
         super().__init__(parameters=parameters)
-        self._face_analyser = FaceAnalyser(self.execution_providers)
-        self.source_face = self._face_analyser.get_one_face(read_image(self.source_path))
-        self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
 
     def process_frame(self, temp_frame: Frame) -> Frame:
         if self.many_faces:
-            many_faces = self._face_analyser.get_many_faces(temp_frame)
+            many_faces = self.face_analyser.get_many_faces(temp_frame)
             if many_faces:
                 for target_face in many_faces:
-                    temp_frame = self._face_swapper.get(temp_frame, target_face, self.source_face)
+                    temp_frame = self.face_swapper.get(temp_frame, target_face, self.source_face)
         else:
-            target_face = self._face_analyser.get_one_face(temp_frame)
+            target_face = self.face_analyser.get_one_face(temp_frame)
             if target_face:
-                temp_frame = self._face_swapper.get(temp_frame, target_face, self.source_face)
+                temp_frame = self.face_swapper.get(temp_frame, target_face, self.source_face)
         return temp_frame
