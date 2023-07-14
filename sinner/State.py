@@ -19,6 +19,8 @@ class State(AttributeLoader):
     _processor_name: str = ''
     _temp_dir: str
     _zfill_length: int | None
+    _in_dir: str | None = None
+    _out_dir: str | None = None
 
     def rules(self) -> Rules:
         return [
@@ -45,11 +47,23 @@ class State(AttributeLoader):
 
     @property
     def out_dir(self) -> str:
-        return self.make_path(self.state_path(OUT_DIR))
+        if self._out_dir is None:
+            self._out_dir = self.make_path(self.state_path(OUT_DIR))
+        return self._out_dir
+
+    @out_dir.setter
+    def out_dir(self, value: str) -> None:
+        self._out_dir = value
 
     @property
     def in_dir(self) -> str:
-        return self.make_path(self.state_path(IN_DIR))
+        if self._in_dir is None:
+            self._in_dir = self.make_path(self.state_path(IN_DIR))
+        return self._in_dir
+
+    @in_dir.setter
+    def in_dir(self, value: str) -> None:
+        self._in_dir = value
 
     @staticmethod
     def make_path(path: str) -> str:
@@ -84,7 +98,7 @@ class State(AttributeLoader):
     @property
     def processed_frames_count(self) -> int:
         out_dir = self.out_dir
-        return len([os.path.join( out_dir, file) for file in os.listdir( out_dir) if file.endswith(".png")])
+        return len([os.path.join(out_dir, file) for file in os.listdir(out_dir) if file.endswith(".png")])
 
     #  Returns count of already extracted frame for this target (0, if none).
     @property
