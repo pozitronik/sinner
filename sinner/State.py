@@ -98,14 +98,12 @@ class State(AttributeLoader):
     #  Returns count of already processed frame for this target (0, if none).
     @property
     def processed_frames_count(self) -> int:
-        out_dir = self.out_dir
-        return len([os.path.join(out_dir, file) for file in os.listdir(out_dir) if file.endswith(".png")])
+        return len([os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
 
     #  Returns count of already extracted frame for this target (0, if none).
     @property
     def extracted_frames_count(self) -> int:
-        in_dir = self.in_dir
-        return len([os.path.join(in_dir, file) for file in os.listdir(in_dir) if file.endswith(".png")])
+        return len([os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir) if file.endswith(".png")])
 
     #  Returns count of still unprocessed frame for this target (0, if none).
     @property
