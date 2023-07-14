@@ -8,7 +8,7 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.Core import Core
-from sinner.State import IN_DIR
+from sinner.State import IN_DIR, OUT_DIR
 from sinner.utilities import limit_resources, suggest_max_memory
 from sinner.validators.LoaderException import LoadingException
 from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC
@@ -86,10 +86,14 @@ def test_swap_enhance_image() -> None:
 
 def test_swap_enhance_mp4() -> None:
     assert os.path.exists(result_mp4) is False
-    params = Parameters(f'--frame-processor FaceSwapper FaceEnhancer --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{result_mp4}" --execution-treads={threads_count}')
+    params = Parameters(f'--frame-processor FaceSwapper FaceEnhancer --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{result_mp4}" --execution-treads={threads_count} --keep-frames --temp-dir="{tmp_dir}"')
     limit_resources(suggest_max_memory())
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', OUT_DIR, '10.png')) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', OUT_DIR, '10.png')) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', IN_DIR)) is False  # those directories shouldn't create if frame extraction isn't requested
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', IN_DIR, '10.png')) is False
 
 
 def test_swap_enhance_mp4_extract() -> None:
