@@ -30,7 +30,7 @@ def setup():
 
 
 def get_test_handler() -> BaseFrameHandler:
-    return VideoHandler(parameters=Parameters().parameters, target_path=target_mp4)
+    return VideoHandler(parameters=parameters, target_path=target_mp4)
 
 
 def get_test_state() -> State:
