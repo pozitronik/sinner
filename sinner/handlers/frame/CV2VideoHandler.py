@@ -10,9 +10,20 @@ from tqdm import tqdm
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import write_image, get_file_name
+from sinner.validators.AttributeLoader import Rules
 
 
 class CV2VideoHandler(BaseFrameHandler):
+    output_fps: float
+
+    def rules(self) -> Rules:
+        return super().rules() + [
+            {
+                'parameter': 'output-fps',
+                'default': self.fps,
+                'help': 'FPS of resulting video'
+            },
+        ]
 
     @staticmethod
     def available() -> bool:
@@ -39,6 +50,7 @@ class CV2VideoHandler(BaseFrameHandler):
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         fc = self.detect_fc()
         i = self.current_frame_index
+        #  fixme: do not ignore, if frames already ignored over the frame index
         with tqdm(
                 total=self.fc,
                 desc='Extracting frame',
@@ -72,9 +84,7 @@ class CV2VideoHandler(BaseFrameHandler):
             raise Exception(f"Error reading frame {frame_number}")
         return frame_number, frame
 
-    def result(self, from_dir: str, filename: str, fps: None | float = None, audio_target: str | None = None) -> bool:
-        if fps is None:
-            fps = self.fps
+    def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         if audio_target is not None:
             print('Sound is not supported in CV2VideoHandler')
         try:
@@ -83,7 +93,7 @@ class CV2VideoHandler(BaseFrameHandler):
             first_frame = cv2.imread(frame_files[0])
             height, width, channels = first_frame.shape
             fourcc = self.suggest_codec()
-            video_writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
+            video_writer = cv2.VideoWriter(filename, fourcc, self.output_fps, (width, height))
             for frame_path in frame_files:
                 frame = cv2.imread(frame_path)
                 video_writer.write(frame)

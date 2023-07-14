@@ -1,49 +1,65 @@
-import inspect
 import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable
 
+import torch
 from tqdm import tqdm
+from argparse import Namespace
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.parameters import Parameters
-from sinner.state import State
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import update_status, load_class, get_mem_usage, read_image
+from sinner.utilities import load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
 
 
-class BaseFrameProcessor(ABC):
-    state: State
-    execution_providers: List[str]
+class BaseFrameProcessor(ABC, AttributeLoader):
+    target_path: str
+    output_path: str
+    execution_provider: List[str]
     execution_threads: int
+
     max_memory: int
+
     extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None
 
+    parameters: Namespace
+
     @staticmethod
-    def create(processor_name: str, parameters: Parameters, state: State) -> 'BaseFrameProcessor':  # processors factory
+    def create(processor_name: str, parameters: Namespace) -> 'BaseFrameProcessor':  # processors factory
         handler_class = load_class(os.path.dirname(__file__), processor_name)
 
         if handler_class and issubclass(handler_class, BaseFrameProcessor):
-            class_parameters_list = inspect.signature(handler_class.__init__).parameters
-            params: dict[str, Any] = {}
-            for parameter_name in class_parameters_list.keys():
-                if hasattr(parameters, parameter_name):
-                    params[parameter_name] = getattr(parameters, parameter_name)
-            params['state'] = state
+            params: dict[str, Any] = {'parameters': parameters}
             return handler_class(**params)
         else:
             raise ValueError(f"Invalid processor name: {processor_name}")
 
-    def __init__(self, execution_providers: List[str], execution_threads: int, max_memory: int, state: State) -> None:
-        self.execution_providers = execution_providers
-        self.execution_threads = execution_threads
-        self.max_memory = max_memory
-        self.state = state
-        if not self.validate():
-            quit()
+    def rules(self) -> Rules:
+        return [
+            {
+                'parameter': 'max-memory',  # key defined in Run, but class can be called separately in tests
+                'default': suggest_max_memory()
+            },
+            {
+                'parameter': 'execution-provider',
+                'required': True,
+                'default': ['cpu'],
+                'choices': suggest_execution_providers()
+            },
+            {
+                'parameter': 'execution-threads',
+                'type': int,
+                'default': suggest_execution_threads()
+            }
+        ]
+
+    def __init__(self, parameters: Namespace) -> None:
+        super().__init__(parameters)
+        self.parameters = parameters
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
@@ -51,40 +67,38 @@ class BaseFrameProcessor(ABC):
         if self.statistics['mem_rss_max'] < mem_rss:
             self.statistics['mem_rss_max'] = mem_rss
         if self.statistics['mem_vms_max'] < mem_vms:
+
             self.statistics['mem_vms_max'] = mem_vms
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFrameHandler, extract_frames: bool = False, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
+    def process(self, frames_handler: BaseFrameHandler, state: State, extract_frames: bool = False, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.extract_frame_method = frames_handler.extract_frame
-        self.state.processor_name = self.__class__.__name__
         self.progress_callback = set_progress
-        frames_handler.current_frame_index = self.state.processed_frames_count
+        frames_handler.current_frame_index = state.processed_frames_count
         # todo: do not create on intermediate directory handler
-        frames_list: FramesDataType = frames_handler.get_frames_paths(self.state.in_dir) if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
-        if self.state.is_started:
-            update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...')
+        frames_list: FramesDataType = frames_handler.get_frames_paths(state.in_dir)[state.processed_frames_count + 1:] if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
         with tqdm(
-                total=self.state.frames_count,
+                total=state.frames_count,
                 desc=desc, unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                initial=self.state.processed_frames_count,
+                initial=state.processed_frames_count,
         ) as progress:
-            self.multi_process_frame(frames_list=frames_list, process_frames=self.process_frames, progress=progress)
+            self.multi_process_frame(frames_list=frames_list, state=state, process_frames=self.process_frames, progress=progress)
 
     @abstractmethod
     def process_frame(self, temp_frame: Frame) -> Frame:
         pass
 
-    def process_frames(self, frame_data: FrameDataType) -> None:  # type: ignore[type-arg]
+    def process_frames(self, frame_data: FrameDataType, state: State) -> None:  # type: ignore[type-arg]
         try:
             if isinstance(frame_data, int):
                 frame_num, frame = self.extract_frame_method(frame_data)
             else:
                 frame = read_image(frame_data[1])
                 frame_num = frame_data[0]
-            self.state.save_temp_frame(self.process_frame(frame), frame_num)
+            state.save_temp_frame(self.process_frame(frame), frame_num)
         except Exception as exception:
             print(exception)
             pass
@@ -98,7 +112,7 @@ class BaseFrameProcessor(ABC):
             postfix['limit_reaches'] = self.statistics['limits_reaches']
         return postfix
 
-    def multi_process_frame(self, frames_list: FramesDataType, process_frames: Callable[[FrameDataType], None], progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, frames_list: FramesDataType, state: State, process_frames: Callable[[FrameDataType, State], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
@@ -109,7 +123,7 @@ class BaseFrameProcessor(ABC):
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
             for frame in frames_list:
-                future: Future[None] = executor.submit(process_frames, frame)
+                future: Future[None] = executor.submit(process_frames, frame, state)
                 future.add_done_callback(process_done)
                 futures.append(future)
                 progress.set_postfix(self.get_postfix(len(futures)))
@@ -119,6 +133,14 @@ class BaseFrameProcessor(ABC):
             for completed_future in as_completed(futures):
                 completed_future.result()
 
-    @staticmethod
-    def validate() -> bool:
-        return True
+    def release_resources(self) -> None:
+        if 'CUDAExecutionProvider' in self.execution_providers:
+            torch.cuda.empty_cache()
+
+    @abstractmethod
+    def suggest_output_path(self) -> str:
+        pass
+
+    @property
+    def execution_providers(self) -> List[str]:
+        return decode_execution_providers(self.execution_provider)

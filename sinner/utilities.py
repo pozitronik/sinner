@@ -7,9 +7,10 @@ import platform
 import shutil
 import sys
 import urllib
-from typing import List, Literal
+from typing import List, Literal, Any, get_type_hints
 
 import cv2
+import onnxruntime
 import psutil
 import tensorflow
 from numpy import uint8, fromfile
@@ -39,26 +40,8 @@ def limit_resources(max_memory: int) -> None:
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
 
 
-def update_status(message: str, caller: str = 'GLOBAL') -> None:
-    print(f'[{caller}] {message}')
-
-
-def get_temp_directory_path(target_path: str) -> str:
-    target_name = get_file_name(target_path)
-    target_directory_path = os.path.dirname(target_path)
-    return os.path.join(target_directory_path, TEMP_DIRECTORY, target_name)
-
-
-# todo: in some cases source_path can be empty, i need to fix it when implement processors validations
-def normalize_output_path(source_path: str, target_path: str, output_path: str | None) -> str:
-    if source_path and target_path:
-        if output_path is None:
-            output_path = os.path.dirname(target_path)
-        source_name = get_file_name(source_path)
-        target_name, target_extension = os.path.splitext(os.path.basename(target_path))
-        if os.path.isdir(output_path):
-            return os.path.join(output_path, source_name + '-' + target_name + target_extension)
-    return output_path  # type: ignore[return-value]
+def update_status(message: str, caller: str = 'sinner') -> None:
+    print(f'😈{caller}: {message}')
 
 
 def is_image(image_path: str | None) -> bool:
@@ -68,8 +51,8 @@ def is_image(image_path: str | None) -> bool:
     return False
 
 
-def is_video(video_path: str) -> bool:
-    if video_path and os.path.isfile(video_path):
+def is_video(video_path: str | None) -> bool:
+    if video_path is not None and os.path.isfile(video_path):
         mimetype, _ = mimetypes.guess_type(video_path)
         return bool(mimetype and (mimetype.startswith('frame/') or mimetype.startswith('video/')))
     return False
@@ -171,9 +154,16 @@ def list_class_descendants(path: str, class_name: str) -> List['str']:
         if module_name == '__init__':
             continue
         descendant = load_class(os.path.dirname(file), module_name)
-        if descendant and descendant.__base__.__name__ == class_name:  # issubclass will not work here
+        if descendant is not None and class_name in get_all_base_names(descendant):
             result.append(module_name)
     return result
+
+
+def get_all_base_names(search_class: type) -> List[str]:
+    base_names = [base.__name__ for base in search_class.__bases__]
+    for base in search_class.__bases__:
+        base_names.extend(get_all_base_names(base))
+    return base_names
 
 
 def get_app_dir(sub_path: str = '') -> str:
@@ -185,10 +175,41 @@ def get_file_name(file_path: str) -> str:
 
 
 def delete_subdirectories(root_dir: str, subdirectories: List[str]) -> None:
-    for subdirectory in subdirectories:
-        shutil.rmtree(subdirectory)
+    for subdirectory in list(set(subdirectories)):
+        shutil.rmtree(subdirectory, ignore_errors=True)
     for root, dirs, files in os.walk(root_dir, topdown=False):
         for directory in dirs:
             dir_path = os.path.join(root, directory)
             if not os.listdir(dir_path):
                 os.rmdir(dir_path)
+
+
+def suggest_execution_threads() -> int:
+    return 1
+
+
+def suggest_max_memory() -> int:
+    if platform.system().lower() == 'darwin':
+        return 4
+    return 16
+
+
+def encode_execution_providers(execution_providers: List[str]) -> List[str]:
+    return [execution_provider.replace('ExecutionProvider', '').lower() for execution_provider in execution_providers]
+
+
+def decode_execution_providers(execution_providers: List[str]) -> List[str]:
+    return [provider for provider, encoded_execution_provider in zip(onnxruntime.get_available_providers(), encode_execution_providers(onnxruntime.get_available_providers()))
+            if any(execution_provider in encoded_execution_provider for execution_provider in execution_providers)]
+
+
+def suggest_execution_providers() -> List[str]:
+    return encode_execution_providers(onnxruntime.get_available_providers())
+
+
+# returns the declared type of class attribute or None, if attribute isn't declared
+def declared_attr_type(obj: object, attribute: str) -> Any:
+    declared_typed_variables = get_type_hints(obj.__class__)
+    if attribute in declared_typed_variables:
+        return declared_typed_variables[attribute]
+    return None

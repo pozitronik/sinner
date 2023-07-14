@@ -1,24 +1,18 @@
 import multiprocessing
+from argparse import Namespace
 
+from sinner.Parameters import Parameters
 from sinner.face_analyser import FaceAnalyser
 from sinner.processors.frame.FaceSwapper import FaceSwapper
-from sinner.state import State
 from sinner.typing import Frame, FaceSwapperType, Face
 from sinner.utilities import read_image
 from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir
 
-
-def get_test_state() -> State:
-    return State(
-        source_path=source_jpg,
-        target_path=target_png,
-        frames_count=1,
-        temp_dir=tmp_dir
-    )
+parameters: Namespace = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path="{source_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"').parameters
 
 
 def get_test_object() -> FaceSwapper:
-    return FaceSwapper(execution_providers=['CPUExecutionProvider'], execution_threads=multiprocessing.cpu_count(), max_memory=12, many_faces=False, source_path=source_jpg, state=get_test_state())
+    return FaceSwapper(parameters=parameters)
 
 
 def test_init():
@@ -28,7 +22,7 @@ def test_init():
     assert (test_object._face_swapper, FaceSwapperType)
 
 
-def test_face_analysis(): # todo: move to face_analyser_test
+def test_face_analysis():  # todo: move to face_analyser_test
     face = get_test_object().source_face
     assert (face, Face)
     assert face.age == 31

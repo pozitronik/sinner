@@ -1,12 +1,16 @@
 import os
 import shutil
+from argparse import Namespace
 from typing import Iterator
 
 from numpy import ndarray
 from sympy.testing import pytest
 
+from sinner.Parameters import Parameters
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4
+
+parameters: Namespace = Parameters().parameters
 
 
 def setup():
@@ -16,14 +20,14 @@ def setup():
 
 
 def get_test_object() -> DirectoryHandler:
-    return DirectoryHandler(target_path=state_frames_dir)
+    return DirectoryHandler(parameters=parameters, target_path=state_frames_dir)
 
 
 def test_init() -> None:
     with pytest.raises(Exception):
-        DirectoryHandler(target_path='not_existed_directory')
+        DirectoryHandler(parameters=parameters, target_path='not_existed_directory')
     with pytest.raises(Exception):
-        DirectoryHandler(target_path=target_mp4)
+        DirectoryHandler(parameters=parameters, target_path=target_mp4)
 
 
 def test_available() -> None:
@@ -44,7 +48,7 @@ def test_get_frames_paths() -> None:
     first_item = frames_paths[0]
     assert (1, os.path.join(state_frames_dir, '01.png')) == first_item
     last_item = frames_paths.pop()
-    assert (TARGET_FC, os.path.join(state_frames_dir, '98.png')) == last_item
+    assert (TARGET_FC, os.path.join(state_frames_dir, '10.png')) == last_item
 
 
 def test_extract_frame() -> None:
@@ -68,9 +72,9 @@ def tests_iterator() -> None:
         frame_counter += 1
     assert frame_counter == TARGET_FC
 
-    test_object.current_frame_index = 90
+    test_object.current_frame_index = 8
     frame_counter = 0
     for frame_index in test_object:
         assert isinstance(frame_index, int)
         frame_counter += 1
-    assert frame_counter == 8
+    assert frame_counter == 2

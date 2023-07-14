@@ -1,6 +1,7 @@
 import os
 import shutil
 import time
+from argparse import Namespace
 from typing import List, Any
 from colorama import Fore, Style
 
@@ -8,54 +9,113 @@ import onnxruntime
 import psutil
 import torch
 
-from sinner.core import Core
+from sinner.Core import Core
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.state import State
-from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir
+from sinner.State import State
+from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
-class BenchmarkParameters:
-    source_path: str = resolve_relative_path('../tests/data/targets/target.png', __file__)
-    target_path: str = resolve_relative_path('../tests/data/frames', __file__)
-    output_path: str = os.path.join(get_app_dir(), 'temp/benchmark')
-    many_faces: bool = True
-    extract_frames: bool = False
-    max_memory: int = psutil.virtual_memory().available
+class Benchmark(AttributeLoader):
+    source_path: str
+    target_path: str
+    output_path: str
+    many_faces: bool
+    extract_frames: bool
+    max_memory: int
+    execution_provider: List[str]
+    frame_processor: str
+
     execution_threads: int
-    execution_providers: List[str]
     frame_processors: list[str]
-    temp_dir: str = os.path.join(get_app_dir(), 'temp/benchmark')
+    temp_dir: str
 
-
-class Benchmark:
     results: List[dict[str, Any]] = []
-    params: BenchmarkParameters
+    parameters: Namespace
     delta: int = 1000000000  # ns, if the run time between runs more that the delta, stop running
 
-    def __init__(self, processor: str, execution_providers: list[str] | None = None, source_path: str | None = None, target_path: str | None = None):
-        self.params = BenchmarkParameters()
-        if execution_providers is None:
+    def rules(self) -> Rules:
+        return [
+            {
+                'parameter': {'source', 'source-path'},
+                'attribute': 'source_path',
+                'default': resolve_relative_path('../tests/data/targets/target.png', __file__),
+                'required': True,
+                'help': 'Select a input image with the source face'
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
+                'required': True,
+                'default': resolve_relative_path('../tests/data/frames', __file__),
+                'help': 'Select the target file (image or video) or the directory'
+            },
+            {
+                'parameter': {'output', 'output-path'},
+                'attribute': 'output_path',
+                'default': os.path.join(get_app_dir(), 'temp/benchmark'),
+                'help': 'Select an output file or a directory'
+            },
+            {
+                'parameter': 'many-faces',
+                'default': True,
+                'help': 'Enable every face processing in the target'
+            },
+            {
+                'parameter': 'extract-frames',
+                'default': False,
+                'help': 'Extract video frames before processing'
+            },
+            {
+                'parameter': 'max-memory',
+                'default': int(psutil.virtual_memory().available / 1024 ** 3)
+            },
+            {
+                'parameter': 'execution-provider',
+                'required': True,
+                'default': ['cpu'],
+                'choices': suggest_execution_providers()
+            },
+            {
+                'parameter': 'temp-dir',
+                'default': os.path.join(get_app_dir(), 'temp/benchmark'),
+                'help': 'Select the directory for temporary files'
+            },
+            {
+                'parameter': 'frame-processor',
+                'default': 'FaceSwapper',
+                'required': True,
+                'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
+                'help': 'Select the frame processor from available processors'
+            },
+        ]
+
+    def __init__(self, parameters: Namespace):
+        # processor: str, execution_providers: list[str] | None = None, source_path: str | None = None, target_path: str | None = None):
+        super().__init__(parameters)
+        self.parameters = parameters
+        self.update_parameters(parameters)  # load validated values back to parameters
+
+        if self.execution_provider is None:
             execution_providers = onnxruntime.get_available_providers()
-        if source_path is not None:
-            self.params.source_path = source_path
-        if target_path is not None:
-            self.params.target_path = target_path
-        limit_resources(self.params.max_memory)
+        else:
+            execution_providers = decode_execution_providers(self.execution_provider)
+        limit_resources(self.max_memory)
 
         for execution_provider in execution_providers:
             threads = 1
             last_execution_time = 0
             while True:
-                print(f'Benchmarking {processor} with {execution_provider} on {threads} thread(s)')
-                shutil.rmtree(self.params.temp_dir, ignore_errors=True)
-                self.params.frame_processors = [processor]
-                self.params.execution_threads = threads
-                self.params.execution_providers = [execution_provider]
+                print(f'Benchmarking {self.frame_processor} with {execution_provider} on {threads} thread(s)')
+                shutil.rmtree(self.temp_dir, ignore_errors=True)
+                self.frame_processors = [self.frame_processor]
+                self.execution_threads = threads
+                self.execution_providers = [execution_provider]
 
                 execution_time = self.benchmark()
 
-                self.store_result(processor, execution_provider, threads, execution_time)
-                print(f"Result for {processor} with {execution_provider} on {threads} thread(s) = {execution_time} ns (~{execution_time / 1000000000} sec -> {98 / (execution_time / 1000000000)} FPS)")
+                self.store_result(self.frame_processor, execution_provider, threads, execution_time)
+                print(f"Result for {self.frame_processor} with {execution_provider} on {threads} thread(s) = {execution_time} ns (~{execution_time / 1000000000} sec -> {98 / (execution_time / 1000000000)} FPS)")
                 if last_execution_time != 0 and execution_time > last_execution_time + self.delta:
                     break
                 last_execution_time = execution_time
@@ -66,18 +126,19 @@ class Benchmark:
         self.results.append({'processor': processor, 'provider': execution_provider, 'threads': threads, 'time': execution_time})
 
     def benchmark(self) -> int:
-        current_target_path = self.params.target_path
-        current_handler = Core.suggest_handler(current_target_path)
+        current_target_path = self.target_path
+        current_handler = Core.suggest_handler(self.parameters, current_target_path)
+        processor_name = self.frame_processors[0]
         state = State(
-            source_path=self.params.source_path,
+            parameters=self.parameters,
             target_path=current_target_path,
             frames_count=current_handler.fc,
-            temp_dir=self.params.temp_dir
+            temp_dir=self.temp_dir,
+            processor_name=processor_name
         )
-        processor_name = self.params.frame_processors[0]
-        current_processor = BaseFrameProcessor.create(processor_name, self.params, state)  # type: ignore[arg-type]  #fixme will be fixed on parameters refactoring
+        current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
         start_time = time.time_ns()
-        current_processor.process(frames_handler=current_handler, extract_frames=self.params.extract_frames, desc=processor_name)
+        current_processor.process(frames_handler=current_handler, state=state, extract_frames=self.extract_frames, desc=processor_name)
         end_time = time.time_ns()
         self.release_resources()
         return end_time - start_time
@@ -108,5 +169,5 @@ class Benchmark:
                   f" {r_time} ns (~{seconds} sec -> {fps} FPS)")
 
     def release_resources(self) -> None:
-        if 'CUDAExecutionProvider' in self.params.execution_providers:
+        if 'CUDAExecutionProvider' in self.execution_providers:
             torch.cuda.empty_cache()

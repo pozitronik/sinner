@@ -1,5 +1,6 @@
 import os
 import shutil
+from argparse import Namespace
 from typing import Iterator
 
 import pytest
@@ -22,7 +23,7 @@ def setup():
 
 
 def get_test_object() -> VideoHandler:
-    return VideoHandler(target_path=target_mp4)
+    return VideoHandler(target_path=target_mp4, parameters=Namespace())
 
 
 def test_available() -> None:
@@ -43,7 +44,7 @@ def test_get_frames_paths() -> None:
     first_item = frames_paths[0]
     assert (1, resolve_relative_path('../data/temp/01.png')) == first_item
     last_item = frames_paths.pop()
-    assert (TARGET_FC, resolve_relative_path('../data/temp/98.png')) == last_item
+    assert (TARGET_FC, resolve_relative_path('../data/temp/10.png')) == last_item
 
 
 def test_extract_frame() -> None:
@@ -53,12 +54,13 @@ def test_extract_frame() -> None:
     assert first_frame[1].shape == FRAME_SHAPE
 
 
-@pytest.mark.skip(reason="This test is not ready for GitHub CI")
 def test_result() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("This test is not ready for GitHub CI")
     assert os.path.exists(result_mp4) is False
     assert get_test_object().result(from_dir=state_frames_dir, filename=result_mp4) is True
     assert os.path.exists(result_mp4)
-    target = VideoHandler(target_path=result_mp4)
+    target = VideoHandler(target_path=result_mp4, parameters=Namespace())
     assert target.fc == TARGET_FC
     assert target.fps == TARGET_FPS
 
@@ -72,9 +74,9 @@ def tests_iterator() -> None:
         frame_counter += 1
     assert frame_counter == TARGET_FC
 
-    test_object.current_frame_index = 90
+    test_object.current_frame_index = 8
     frame_counter = 0
     for frame_index in test_object:
         assert isinstance(frame_index, int)
         frame_counter += 1
-    assert frame_counter == 8
+    assert frame_counter == 2
