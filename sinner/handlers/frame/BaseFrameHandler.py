@@ -43,7 +43,7 @@ class BaseFrameHandler(AttributeLoader, Status, ABC):
         self.fps = self.detect_fps()
         self.fc = self.detect_fc()
         super().__init__(parameters)
-        self.update_status(f"Handle frames for {self._target_path} ({self.fc} frame(s)/{self.fps} FPS")
+        self.update_status(f"Handle frames for {self._target_path} ({self.fc} frame(s)/{self.fps} FPS)")
 
     @abstractmethod
     def detect_fps(self) -> float:
