@@ -73,7 +73,7 @@ class BaseFrameHandler(AttributeLoader, ABC):
         return self
 
     def __next__(self) -> int:
-        if self.current_frame_index == self.fc:
+        if self.current_frame_index >= self.fc:
             raise StopIteration
         self.current_frame_index += 1
         return self.current_frame_index
