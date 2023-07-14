@@ -1,5 +1,6 @@
 import os
 import shutil
+from argparse import Namespace
 from typing import Iterator
 
 import pytest
@@ -26,7 +27,7 @@ def test_init() -> None:
 
 
 def get_test_object() -> ImageHandler:
-    return ImageHandler(target_path=target_png)
+    return ImageHandler(target_path=target_png, parameters=Namespace())
 
 
 def test_available() -> None:

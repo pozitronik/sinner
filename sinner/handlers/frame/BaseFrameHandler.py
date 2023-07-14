@@ -21,7 +21,7 @@ class BaseFrameHandler(AttributeLoader, ABC):
         ]
 
     @staticmethod
-    def create(handler_name: str, target_path: str, parameters: Namespace | None = None) -> 'BaseFrameHandler':  # handlers factory
+    def create(handler_name: str, target_path: str, parameters: Namespace) -> 'BaseFrameHandler':  # handlers factory
         handler_class = globals().get(handler_name)
         if not handler_class:
             handler_class = load_class(os.path.dirname(__file__), handler_name)
@@ -37,7 +37,7 @@ class BaseFrameHandler(AttributeLoader, ABC):
         """
         return True
 
-    def __init__(self, target_path: str, parameters: Namespace | None = None):
+    def __init__(self, target_path: str, parameters: Namespace):
         self._target_path = target_path
         self.fps = self.detect_fps()
         self.fc = self.detect_fc()

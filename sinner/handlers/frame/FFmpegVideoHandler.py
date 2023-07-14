@@ -42,7 +42,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
     def available() -> bool:
         return shutil.which('ffmpeg') is not None
 
-    def __init__(self, target_path: str, parameters: Namespace | None = None):
+    def __init__(self, target_path: str, parameters: Namespace):
         if not self.available():
             raise Exception('ffmpeg is not installed. Install it or use --frame-handler=cv2')
 

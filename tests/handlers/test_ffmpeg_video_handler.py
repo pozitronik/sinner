@@ -18,9 +18,7 @@ def setup():
 
 
 def get_test_object() -> FFmpegVideoHandler:
-    result = FFmpegVideoHandler(target_path=target_mp4)
-    result.load(Namespace())
-    return result
+    return FFmpegVideoHandler(target_path=target_mp4, parameters=Namespace())
 
 
 def test_available() -> None:
@@ -57,7 +55,7 @@ def test_result() -> None:
     assert os.path.exists(result_mp4) is False
     assert get_test_object().result(from_dir=state_frames_dir, filename=result_mp4) is True
     assert os.path.exists(result_mp4)
-    target = FFmpegVideoHandler(target_path=result_mp4)
+    target = FFmpegVideoHandler(target_path=result_mp4, parameters=Namespace())
     assert target.fc == TARGET_FC
     assert target.fps == TARGET_FPS
 
