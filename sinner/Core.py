@@ -136,9 +136,9 @@ class Core(AttributeLoader, Status):
         return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
     def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> Frame | None:
-        if extractor_handler is None:
-            extractor_handler = self.suggest_handler(self.parameters, self.target_path)
         try:
+            if extractor_handler is None:
+                extractor_handler = self.suggest_handler(self.parameters, self.target_path)
             _, frame = extractor_handler.extract_frame(frame_number)
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
