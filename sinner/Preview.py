@@ -1,6 +1,5 @@
 import os.path
 import threading
-from argparse import Namespace
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
 from tkinter.ttk import Progressbar
 
@@ -12,7 +11,7 @@ from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner.Core import Core
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.utilities import is_image, is_video, list_class_descendants, resolve_relative_path
+from sinner.utilities import is_image, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
