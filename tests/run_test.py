@@ -93,9 +93,9 @@ def test_swap_enhance_mp4() -> None:
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
     assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', OUT_DIR, '10.png')) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', OUT_DIR, '10.png')) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer', OUT_DIR, 'source.jpg', OUT_DIR, '10.png')) is True
     assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', IN_DIR)) is False  # those directories shouldn't create if frame extraction isn't requested
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', IN_DIR, '10.png')) is False
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer', IN_DIR, 'source.jpg', IN_DIR, '10.png')) is False
 
 
 def test_swap_enhance_mp4_extract() -> None:
