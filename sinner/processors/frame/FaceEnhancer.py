@@ -16,6 +16,9 @@ class FaceEnhancer(BaseFrameProcessor):
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
 
+    _face_analyser: FaceAnalyser | None = None
+    _face_enhancer: GFPGANer | None = None
+
     def rules(self) -> Rules:
         return super().rules() + [
             {
@@ -42,24 +45,31 @@ class FaceEnhancer(BaseFrameProcessor):
             return os.path.join(self.output_path, 'enhanced-' + target_name + target_extension)
         return self.output_path
 
+    @property
+    def face_analyser(self) -> FaceAnalyser:
+        if self._face_analyser is None:
+            self._face_analyser = FaceAnalyser(self.execution_providers)
+        return self._face_analyser
+
+    @property
+    def face_enhancer(self) -> GFPGANer:
+        if self._face_enhancer is None:
+            with self.thread_lock:
+                model_path = get_app_dir('models/GFPGANv1.4.pth')
+                self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=1)
+        return self._face_enhancer
+
     def __init__(self, parameters: Namespace):
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
         super().__init__(parameters=parameters)
-        self._face_enhancer = self.get_face_enhancer()
-        self._face_analyser = FaceAnalyser(self.execution_providers)
-
-    def get_face_enhancer(self) -> GFPGANer:
-        with self.thread_lock:
-            model_path = get_app_dir('models/GFPGANv1.4.pth')
-            return gfpgan.GFPGANer(model_path=model_path, upscale=1)  # type: ignore[attr-defined]
 
     def enhance_face(self, temp_frame: Frame) -> Frame:
         with self.thread_semaphore:
-            _, _, temp_frame = self._face_enhancer.enhance(temp_frame)
+            _, _, temp_frame = self.face_enhancer.enhance(temp_frame)
         return temp_frame
 
     def process_frame(self, temp_frame: Frame) -> Frame:
-        if self._face_analyser.get_one_face(temp_frame):
+        if self.face_analyser.get_one_face(temp_frame):
             temp_frame = self.enhance_face(temp_frame)
         return temp_frame
