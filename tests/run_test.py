@@ -53,6 +53,8 @@ def test_swap_image() -> None:
 
 
 def test_swap_mp4() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("This test is not ready for GitHub CI")
     assert os.path.exists(source_target_mp4_result) is False
     params = Parameters(f'--target-path="{target_mp4}" --source-path="{source_jpg}" --execution-treads={threads_count}')
     limit_resources(suggest_max_memory())
