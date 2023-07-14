@@ -6,7 +6,7 @@ class Mood(Enum):
     BAD = (1, '👿')
     NEUTRAL = (2, '😑')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value[1]
 
 
