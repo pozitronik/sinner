@@ -8,7 +8,6 @@ from gfpgan import GFPGANer  # type: ignore[attr-defined]
 from sinner.face_analyser import FaceAnalyser
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.State import State
 from sinner.typing import Frame
 from sinner.utilities import conditional_download, get_app_dir, is_image, is_video
 
@@ -43,10 +42,10 @@ class FaceEnhancer(BaseFrameProcessor):
             return os.path.join(self.output_path, 'enhanced-' + target_name + target_extension)
         return self.output_path
 
-    def __init__(self, parameters: Namespace, state: State):
+    def __init__(self, parameters: Namespace):
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
-        super().__init__(parameters=parameters, state=state)
+        super().__init__(parameters=parameters)
         self._face_enhancer = self.get_face_enhancer()
         self._face_analyser = FaceAnalyser(self.execution_providers)
 

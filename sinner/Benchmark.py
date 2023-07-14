@@ -128,15 +128,17 @@ class Benchmark(AttributeLoader):
     def benchmark(self) -> int:
         current_target_path = self.target_path
         current_handler = Core.suggest_handler(self.parameters, current_target_path)
+        processor_name = self.frame_processors[0]
         state = State(
             parameters=self.parameters,
+            target_path=current_target_path,
             frames_count=current_handler.fc,
-            temp_dir=self.temp_dir
+            temp_dir=self.temp_dir,
+            processor_name=processor_name
         )
-        processor_name = self.frame_processors[0]
-        current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
+        current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
         start_time = time.time_ns()
-        current_processor.process(frames_handler=current_handler, extract_frames=self.extract_frames, desc=processor_name)
+        current_processor.process(frames_handler=current_handler, state=state, extract_frames=self.extract_frames, desc=processor_name)
         end_time = time.time_ns()
         self.release_resources()
         return end_time - start_time

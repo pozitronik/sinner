@@ -101,8 +101,8 @@ class Core(AttributeLoader):
             else:
                 if state.is_started:
                     update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing...', state.processor_name)
-                current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
-                current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
+                current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
+                current_processor.process(frames_handler=current_handler, state=state, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
                 current_processor.release_resources()
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
@@ -139,10 +139,9 @@ class Core(AttributeLoader):
         except Exception:
             return None
         if processed:  # return processed frame
-            state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=1)
             for processor_name in self.frame_processor:
                 if processor_name not in self.preview_processors:
-                    self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters, state=state)
+                    self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
                 frame = self.preview_processors[processor_name].process_frame(frame)
         return frame
 
