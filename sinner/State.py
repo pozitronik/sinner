@@ -12,7 +12,6 @@ IN_DIR = 'IN'
 
 class State(AttributeLoader):
     source_path: str
-    output_path: str
     target_path: str
 
     frames_count: int
@@ -27,11 +26,7 @@ class State(AttributeLoader):
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path'
-            },
-            {
-                'parameter': {'output', 'output-path'},
-                'attribute': 'output_path'
-            },
+            }
         ]
 
     def __init__(self, parameters: Namespace, target_path: str, temp_dir: str, frames_count: int, processor_name: str):
