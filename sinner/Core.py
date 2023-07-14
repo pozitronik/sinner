@@ -41,6 +41,7 @@ class Core(AttributeLoader, Status):
 
     parameters: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
+    preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
     _stop_flag: bool = False
 
     def rules(self) -> Rules:
@@ -134,8 +135,9 @@ class Core(AttributeLoader, Status):
     def suggest_temp_dir(self) -> str:
         return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
-    def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:
-        extractor_handler = self.suggest_handler(self.parameters, self.target_path)
+    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> Frame | None:
+        if extractor_handler is None:
+            extractor_handler = self.suggest_handler(self.parameters, self.target_path)
         try:
             _, frame = extractor_handler.extract_frame(frame_number)
         except Exception:

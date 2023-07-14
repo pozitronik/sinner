@@ -12,7 +12,7 @@ from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner.Core import Core
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.utilities import is_image, is_video
+from sinner.utilities import is_image, is_video, list_class_descendants, resolve_relative_path
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
@@ -42,6 +42,7 @@ class Preview(AttributeLoader):
     current_position: StringVar = StringVar()
     source_path: str = ''
     target_path: str = ''
+    _extractor_handler: BaseFrameHandler | None = None
 
     def rules(self) -> Rules:
         return [
@@ -55,12 +56,10 @@ class Preview(AttributeLoader):
             }
         ]
 
-    def __init__(self, core: Core, parameters: Namespace | None = None):
-        if parameters is None:
-            parameters = core.parameters
-        super().__init__(parameters)
-        self.run_thread = None
+    def __init__(self, core: Core):
         self.core = core
+        super().__init__(self.core.parameters)
+        self.run_thread = None
         self.PreviewWindow.title('😈sinner')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
         self.PreviewWindow.resizable(width=True, height=True)
@@ -132,6 +131,7 @@ class Preview(AttributeLoader):
             self.target_path = path
             self.core.parameters.target = self.target_path
             self.core.load(self.core.parameters)
+            self._extractor_handler = None
             self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.configure(state=NORMAL)
             self.TargetPathEntry.delete(0, END)
@@ -143,7 +143,7 @@ class Preview(AttributeLoader):
         return PhotoImage(Image.fromarray(frame))
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
-        frame = self.core.get_frame(frame_number, processed)
+        frame = self.core.get_frame(frame_number, self.frame_handler, processed)
         if frame is not None:
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
@@ -170,3 +170,9 @@ class Preview(AttributeLoader):
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
             ImageTk.getimage(preview_label.cget('image')).save(save_file)
+
+    @property
+    def frame_handler(self) -> BaseFrameHandler:
+        if self._extractor_handler is None:
+            self._extractor_handler = Core.suggest_handler(self.core.parameters, self.target_path)
+        return self._extractor_handler
