@@ -40,7 +40,7 @@ def limit_resources(max_memory: int) -> None:
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
 
 
-def update_status(message: str, caller: str = 'GLOBAL') -> None:
+def update_status(message: str, caller: str = '😈sinner') -> None:
     print(f'[{caller}] {message}')
 
 
