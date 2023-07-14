@@ -10,12 +10,13 @@ from PIL.ImageTk import PhotoImage
 from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner.Core import Core
+from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.utilities import is_image, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Preview(AttributeLoader):
+class Preview(AttributeLoader, Status):
     #  window controls
     PreviewWindow: CTk = CTk()
     PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
@@ -173,5 +174,8 @@ class Preview(AttributeLoader):
     @property
     def frame_handler(self) -> BaseFrameHandler:
         if self._extractor_handler is None:
-            self._extractor_handler = Core.suggest_handler(self.core.parameters, self.target_path)
+            try:
+                self._extractor_handler = Core.suggest_handler(self.core.parameters, self.target_path)
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler

@@ -6,7 +6,7 @@ from typing import List, Callable
 import os
 import sys
 
-from sinner.Status import Status
+from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
@@ -140,7 +140,8 @@ class Core(AttributeLoader, Status):
             extractor_handler = self.suggest_handler(self.parameters, self.target_path)
         try:
             _, frame = extractor_handler.extract_frame(frame_number)
-        except Exception:
+        except Exception as exception:
+            self.update_status(message=str(exception), mood=Mood.BAD)
             return None
         if processed:  # return processed frame
             for processor_name in self.frame_processor:
