@@ -16,7 +16,7 @@ class State(AttributeLoader):
     target_path: str
 
     frames_count: int
-    _processor_name: str = ''
+    processor_name: str = ''
     _temp_dir: str
     _zfill_length: int | None
     _in_dir: str | None = None
@@ -77,7 +77,7 @@ class State(AttributeLoader):
         for any situation
         :return: adapted state path
         """
-        sub_path = (self._processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), dir_type)
+        sub_path = (self.processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), dir_type)
         return os.path.join(self._temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
