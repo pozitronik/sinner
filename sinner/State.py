@@ -2,6 +2,7 @@ import os
 from argparse import Namespace
 from pathlib import Path
 
+from sinner.Status import Status
 from sinner.typing import Frame
 from sinner.utilities import write_image
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
@@ -10,7 +11,7 @@ OUT_DIR = 'OUT'
 IN_DIR = 'IN'
 
 
-class State(AttributeLoader):
+class State(AttributeLoader, Status):
     source_path: str
     target_path: str
 
@@ -36,26 +37,37 @@ class State(AttributeLoader):
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
+        state = [
+            {"Source": getattr(self, "source_path", "None")},
+            {"Target": self.target_path},
+            {"Temporary dir": self._temp_dir}
+        ]
+        state_string = "\n".join([f"\t{key}: {value}" for d in state for key, value in d.items()])
+        self.update_status(f'The processing state:\n{state_string}')
 
     @property
     def out_dir(self) -> str:
         if self._out_dir is None:
             self._out_dir = self.make_path(self.state_path(OUT_DIR))
+            self.update_status(f'The output directory is {self._out_dir}')
         return self._out_dir
 
     @out_dir.setter
     def out_dir(self, value: str) -> None:
         self._out_dir = value
+        self.update_status(f'The output directory is changed to {self._out_dir}')
 
     @property
     def in_dir(self) -> str:
         if self._in_dir is None:
             self._in_dir = self.make_path(self.state_path(IN_DIR))
+            self.update_status(f'The input directory is {self._in_dir}')
         return self._in_dir
 
     @in_dir.setter
     def in_dir(self, value: str) -> None:
         self._in_dir = value
+        self.update_status(f'The input directory is changed to {self._in_dir}')
 
     @staticmethod
     def make_path(path: str) -> str:
