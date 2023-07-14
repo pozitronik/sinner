@@ -16,7 +16,7 @@ import tensorflow
 from numpy import uint8, fromfile
 from tqdm import tqdm
 
-from sinner.typing import Frame, Mood
+from sinner.typing import Frame
 
 TEMP_DIRECTORY = 'temp'
 
@@ -38,10 +38,6 @@ def limit_resources(max_memory: int) -> None:
         else:
             import resource
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
-
-
-def update_status(message: str, caller: str = 'sinner', mood: Mood = Mood.GOOD) -> None:
-    print(f'{mood}{caller}: {message}')
 
 
 def is_image(image_path: str | None) -> bool:

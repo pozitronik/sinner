@@ -6,6 +6,7 @@ from typing import List, Callable
 import os
 import sys
 
+from sinner.Status import Status
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
@@ -13,7 +14,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY, update_status
+from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -30,7 +31,7 @@ warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
-class Core(AttributeLoader):
+class Core(AttributeLoader, Status):
     target_path: str
     frame_processor: List[str]
     frame_handler: str
@@ -97,10 +98,10 @@ class Core(AttributeLoader):
             current_handler = self.suggest_handler(self.parameters, current_target_path)
             state = State(parameters=self.parameters, target_path=current_target_path, temp_dir=self.temp_dir, frames_count=current_handler.fc, processor_name=processor_name)
             if state.is_finished:
-                update_status(f'Processing with {state.processor_name} already done ({state.processed_frames_count}/{state.frames_count})', state.processor_name)
+                self.update_status(f'Processing with {state.processor_name} already done ({state.processed_frames_count}/{state.frames_count})')
             else:
                 if state.is_started:
-                    update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing...', state.processor_name)
+                    self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing with {state.processor_name}')
                 current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
                 current_processor.process(frames_handler=current_handler, state=state, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
                 current_processor.release_resources()

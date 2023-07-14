@@ -6,7 +6,7 @@ from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import read_image, is_image, get_file_name, update_status
+from sinner.utilities import read_image, is_image, get_file_name
 
 
 class DirectoryHandler(BaseFrameHandler):
@@ -30,6 +30,6 @@ class DirectoryHandler(BaseFrameHandler):
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
-        update_status(f"Copying results from {from_dir} to {filename}", self.__class__.__name__)
+        self.update_status(f"Copying results from {from_dir} to {filename}")
         shutil.copytree(from_dir, filename, dirs_exist_ok=True)
         return True  # Handler can't product any result
