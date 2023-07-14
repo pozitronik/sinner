@@ -16,7 +16,7 @@ class State(AttributeLoader):
     target_path: str
 
     frames_count: int
-    processor_name: str = ''
+    processor_name: str
     _temp_dir: str
     _zfill_length: int | None
     _in_dir: str | None = None
@@ -39,10 +39,11 @@ class State(AttributeLoader):
             },
         ]
 
-    def __init__(self, parameters: Namespace, temp_dir: str, frames_count: int):
+    def __init__(self, parameters: Namespace, temp_dir: str, frames_count: int, processor_name: str):
         super().__init__(parameters)
         self._temp_dir = temp_dir
         self.frames_count = frames_count
+        self.processor_name = processor_name
         self._zfill_length = None
 
     @property
@@ -92,7 +93,7 @@ class State(AttributeLoader):
     #  Checks if the process is finished
     @property
     def is_finished(self) -> bool:
-        return self.frames_count >= self.processed_frames_count
+        return self.frames_count <= self.processed_frames_count
 
     #  Returns count of already processed frame for this target (0, if none).
     @property
