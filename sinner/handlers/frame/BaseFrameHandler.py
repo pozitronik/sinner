@@ -6,7 +6,7 @@ from typing import List
 
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import load_class, get_file_name
+from sinner.utilities import load_class, get_file_name, update_status
 
 
 class BaseFrameHandler(AttributeLoader, ABC):
@@ -42,6 +42,7 @@ class BaseFrameHandler(AttributeLoader, ABC):
         self.fps = self.detect_fps()
         self.fc = self.detect_fc()
         super().__init__(parameters)
+        update_status(f"Handle frames for {self._target_path} ({self.fc} frame(s)/{self.fps} FPS", self.__class__.__name__)
 
     @abstractmethod
     def detect_fps(self) -> float:

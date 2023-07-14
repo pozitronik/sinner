@@ -12,7 +12,7 @@ import torch
 from sinner.Core import Core
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
-from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
+from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants, update_status
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
@@ -106,7 +106,7 @@ class Benchmark(AttributeLoader):
             threads = 1
             last_execution_time = 0
             while True:
-                print(f'Benchmarking {self.frame_processor} with {execution_provider} on {threads} thread(s)')
+                update_status(f'Benchmarking {self.frame_processor} with {execution_provider} on {threads} thread(s)', self.__class__.__name__)
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
                 self.frame_processors = [self.frame_processor]
                 self.execution_threads = threads
@@ -115,7 +115,7 @@ class Benchmark(AttributeLoader):
                 execution_time = self.benchmark()
 
                 self.store_result(self.frame_processor, execution_provider, threads, execution_time)
-                print(f"Result for {self.frame_processor} with {execution_provider} on {threads} thread(s) = {execution_time} ns (~{execution_time / 1000000000} sec -> {98 / (execution_time / 1000000000)} FPS)")
+                update_status(f"Result for {self.frame_processor} with {execution_provider} on {threads} thread(s) = {execution_time} ns (~{execution_time / 1000000000} sec -> {10 / (execution_time / 1000000000)} FPS)", self.__class__.__name__)
                 if last_execution_time != 0 and execution_time > last_execution_time + self.delta:
                     break
                 last_execution_time = execution_time
@@ -152,7 +152,7 @@ class Benchmark(AttributeLoader):
         slowest_run = max(self.results, key=lambda x: x['time'])['time']  # slowest
         for stats in self.results:
             seconds = int(int(stats['time']) / 1000000000)
-            fps = round(98 / seconds, 2)
+            fps = round(10 / seconds, 2)
             p_style = style_set[0]
             if provider != stats['provider']:
                 provider = stats['provider']
@@ -165,8 +165,7 @@ class Benchmark(AttributeLoader):
                 r_time = f'{Fore.GREEN}{r_time}{Style.RESET_ALL}'
             else:
                 r_time = f'{Fore.BLUE}{r_time}{Style.RESET_ALL}'
-            print(f"Result for {Fore.YELLOW}{stats['processor']}{Style.RESET_ALL} with {p_style}{provider}{Style.RESET_ALL} on {Fore.YELLOW}{stats['threads']}{Style.RESET_ALL} thread(s) ="
-                  f" {r_time} ns (~{seconds} sec -> {fps} FPS)")
+            update_status(f"Result for {Fore.YELLOW}{stats['processor']}{Style.RESET_ALL} with {p_style}{provider}{Style.RESET_ALL} on {Fore.YELLOW}{stats['threads']}{Style.RESET_ALL} thread(s) = {r_time}ns (~{seconds} sec -> {fps} FPS)", self.__class__.__name__)
 
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.execution_providers:

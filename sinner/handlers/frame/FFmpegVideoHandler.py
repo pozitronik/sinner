@@ -10,6 +10,7 @@ from numpy import uint8, frombuffer
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.utilities import update_status
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -29,12 +30,12 @@ class FFmpegVideoHandler(BaseFrameHandler):
     def run(args: List[str]) -> bool:
         commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
         commands.extend(args)
-        print(' '.join(commands))
+        update_status(' '.join(commands), 'ffmpeg')
         try:
             subprocess.check_output(commands, stderr=subprocess.STDOUT)
             return True
         except Exception as exception:
-            print(exception)
+            update_status(str(exception), 'ffmpeg')
             pass
         return False
 
@@ -55,7 +56,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
             numerator, denominator = map(int, output)
             return numerator / denominator
         except Exception as exception:
-            print(exception)
+            update_status(str(exception), self.__class__.__name__)
             pass
         return 30.0
 
@@ -67,7 +68,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 return 1  # non-frame files, still processable
             return int(output)
         except Exception as exception:
-            print(exception)
+            update_status(str(exception), self.__class__.__name__)
             return 0
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
@@ -82,6 +83,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
         return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
+        update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS", self.__class__.__name__)
         filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
         Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
         command = ['-r', str(self.output_fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',

@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import write_image, get_file_name
+from sinner.utilities import write_image, get_file_name, update_status
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -85,8 +85,9 @@ class CV2VideoHandler(BaseFrameHandler):
         return frame_number, frame
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
+        update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS", self.__class__.__name__)
         if audio_target is not None:
-            print('Sound is not supported in CV2VideoHandler')
+            update_status('Sound copying is not supported in CV2VideoHandler', self.__class__.__name__)
         try:
             Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
@@ -99,7 +100,8 @@ class CV2VideoHandler(BaseFrameHandler):
                 video_writer.write(frame)
             video_writer.release()
             return True
-        except Exception:
+        except Exception as exception:
+            update_status(str(exception), self.__class__.__name__)
             return False
 
     @staticmethod
@@ -108,5 +110,6 @@ class CV2VideoHandler(BaseFrameHandler):
         for codec in codecs_strings:
             fourcc = cv2.VideoWriter_fourcc(*codec)
             if 0 != fourcc:
+                update_status(f"Suggested codec: {fourcc}", self.__class__.__name__)
                 return fourcc
         raise NotImplementedError('No supported codecs found')

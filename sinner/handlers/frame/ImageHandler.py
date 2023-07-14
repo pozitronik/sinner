@@ -6,7 +6,7 @@ from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import read_image, is_image
+from sinner.utilities import read_image, is_image, update_status
 
 
 class ImageHandler(BaseFrameHandler):
@@ -30,10 +30,12 @@ class ImageHandler(BaseFrameHandler):
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:
+            result_file = os.path.join(from_dir, os.listdir(from_dir).pop())
+            update_status(f"Copy frame from {result_file} to {filename}", self.__class__.__name__)
             Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             # fixme: there can by other files in the from_dir
-            shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
+            shutil.copyfile(result_file, filename)
             return True
-        except Exception:
-            pass
+        except Exception as exception:
+            update_status(str(exception), self.__class__.__name__)
             return False
