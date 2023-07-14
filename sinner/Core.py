@@ -132,7 +132,7 @@ class Core(AttributeLoader, Status):
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def suggest_temp_dir(self) -> str:
-        return self.temp_dir if getattr(self, 'temp_dir', None) is not None else os.path.join(os.path.dirname(self.target_path), get_app_dir(), TEMP_DIRECTORY)
+        return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
     def get_frame(self, frame_number: int = 0, processed: bool = False) -> Frame | None:
         extractor_handler = self.suggest_handler(self.parameters, self.target_path)
