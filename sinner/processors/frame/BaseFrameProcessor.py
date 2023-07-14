@@ -62,6 +62,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
         super().__init__(parameters)
         self.parameters = parameters
         self.state = state
+        update_status(f'Run {self.__class__.__name__} with {self.validated_attributes}')
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
@@ -69,6 +70,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
         if self.statistics['mem_rss_max'] < mem_rss:
             self.statistics['mem_rss_max'] = mem_rss
         if self.statistics['mem_vms_max'] < mem_vms:
+
             self.statistics['mem_vms_max'] = mem_vms
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
