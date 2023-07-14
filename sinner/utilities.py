@@ -40,10 +40,6 @@ def limit_resources(max_memory: int) -> None:
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
 
 
-def update_status(message: str, caller: str = 'sinner') -> None:
-    print(f'😈{caller}: {message}')
-
-
 def is_image(image_path: str | None) -> bool:
     if image_path is not None and image_path and os.path.isfile(image_path):
         mimetype, _ = mimetypes.guess_type(image_path)

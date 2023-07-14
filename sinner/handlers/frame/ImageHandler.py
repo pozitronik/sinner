@@ -4,6 +4,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import List
 
+from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import read_image, is_image
@@ -30,10 +31,12 @@ class ImageHandler(BaseFrameHandler):
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:
+            result_file = os.path.join(from_dir, os.listdir(from_dir).pop())
+            self.update_status(f"Copy frame from {result_file} to {filename}")
             Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             # fixme: there can by other files in the from_dir
-            shutil.copyfile(os.path.join(from_dir, os.listdir(from_dir).pop()), filename)
+            shutil.copyfile(result_file, filename)
             return True
-        except Exception:
-            pass
+        except Exception as exception:
+            self.update_status(message=str(exception), mood=Mood.BAD)
             return False

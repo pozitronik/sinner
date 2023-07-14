@@ -12,7 +12,7 @@ from sinner.utilities import read_image, is_image, get_file_name
 class DirectoryHandler(BaseFrameHandler):
 
     def __init__(self, target_path: str, parameters: Namespace):
-        if not os.path.exists(target_path) or not os.path.isdir(target_path):
+        if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
 
@@ -30,5 +30,6 @@ class DirectoryHandler(BaseFrameHandler):
         return frame_number, read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
+        self.update_status(f"Copying results from {from_dir} to {filename}")
         shutil.copytree(from_dir, filename, dirs_exist_ok=True)
         return True  # Handler can't product any result
