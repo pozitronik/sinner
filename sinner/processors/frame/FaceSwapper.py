@@ -49,6 +49,10 @@ class FaceSwapper(BaseFrameProcessor):
             },
         ]
 
+    def load(self, parameters: Namespace, validate: bool = True) -> bool:
+        self._source_face = None
+        return super().load(parameters, validate)
+
     def suggest_output_path(self) -> str:
         source_name = get_file_name(self.source_path)
         target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))

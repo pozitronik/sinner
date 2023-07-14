@@ -144,22 +144,9 @@ class Core(AttributeLoader, Status):
             for processor_name in self.frame_processor:
                 if processor_name not in self.preview_processors:
                     self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
+                self.preview_processors[processor_name].load(self.parameters)
                 frame = self.preview_processors[processor_name].process_frame(frame)
         return frame
-
-    def change_source(self, data: str) -> bool:
-        if data != '':
-            self.source_path = data
-            self.preview_processors.clear()
-            return True
-        return False
-
-    def change_target(self, data: str) -> bool:
-        if data != '':
-            self.target_path = data
-            self.preview_processors.clear()
-            return True
-        return False
 
     def stop(self) -> None:
         self._stop_flag = True

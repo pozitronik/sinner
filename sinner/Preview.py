@@ -13,9 +13,10 @@ from customtkinter import CTkLabel, CTk, CTkSlider
 from sinner.Core import Core
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.utilities import is_image, is_video
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Preview:
+class Preview(AttributeLoader):
     #  window controls
     PreviewWindow: CTk = CTk()
     PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
@@ -39,8 +40,25 @@ class Preview:
     core: Core
     run_thread: threading.Thread | None
     current_position: StringVar = StringVar()
+    source_path: str = ''
+    target_path: str = ''
 
-    def __init__(self, core: Core):
+    def rules(self) -> Rules:
+        return [
+            {
+                'parameter': {'source', 'source-path'},
+                'attribute': 'source_path'
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path'
+            }
+        ]
+
+    def __init__(self, core: Core, parameters: Namespace | None = None):
+        if parameters is None:
+            parameters = core.parameters
+        super().__init__(parameters)
         self.run_thread = None
         self.core = core
         self.PreviewWindow.title('😈sinner')
@@ -62,14 +80,14 @@ class Preview:
         self.SaveButton.pack(anchor=NE, side=LEFT)
         self.NavigateSliderFrame.pack(fill=X)
         # init source selection control set
-        self.SourcePathEntry.insert(END, getattr(self.core, 'source_path', ''))
+        self.SourcePathEntry.insert(END, self.source_path)
         self.SourcePathEntry.configure(state=DISABLED)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.configure(command=lambda: self.change_source(int(self.NavigateSlider.get())))
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X)
         # init target selection control set
-        self.TargetPathEntry.insert(END, self.core.target_path)
+        self.TargetPathEntry.insert(END, self.target_path)
         self.TargetPathEntry.configure(state=DISABLED)
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.configure(command=lambda: self.change_target())
@@ -84,12 +102,12 @@ class Preview:
         return self.PreviewWindow
 
     def update_slider(self) -> int:
-        if is_image(self.core.target_path):
+        if is_image(self.target_path):
             self.NavigateSlider.configure(to=1)
             self.NavigateSlider.set(1)
             self.NavigateSlider.pack_forget()
-        if is_video(self.core.target_path):
-            video_frame_total = BaseFrameHandler.create(handler_name=self.core.frame_handler, target_path=self.core.target_path, parameters=Namespace()).fc
+        if is_video(self.target_path):
+            video_frame_total = BaseFrameHandler.create(handler_name=self.core.frame_handler, target_path=self.target_path, parameters=Namespace()).fc
             self.NavigateSlider.configure(to=video_frame_total)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.set(video_frame_total / 2)
@@ -97,19 +115,27 @@ class Preview:
         return int(self.NavigateSlider.get())
 
     def change_source(self, frame_number: int = 0) -> None:
-        if self.core.change_source(self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.core.source_path))):
+        path = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.source_path))
+        if path != '':
+            self.source_path = path
+            self.core.parameters.source = self.source_path
+            self.core.load(self.core.parameters)
             self.update_preview(frame_number, True)
             self.SourcePathEntry.configure(state=NORMAL)
             self.SourcePathEntry.delete(0, END)
-            self.SourcePathEntry.insert(END, self.core.source_path)
+            self.SourcePathEntry.insert(END, self.source_path)
             self.SourcePathEntry.configure(state=DISABLED)
 
     def change_target(self) -> None:
-        if self.core.change_target(self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.core.target_path))):
+        path = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.target_path))
+        if path != '':
+            self.target_path = path
+            self.core.parameters.target = self.target_path
+            self.core.load(self.core.parameters)
             self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.configure(state=NORMAL)
             self.TargetPathEntry.delete(0, END)
-            self.TargetPathEntry.insert(END, self.core.target_path)
+            self.TargetPathEntry.insert(END, self.target_path)
             self.TargetPathEntry.configure(state=DISABLED)
 
     @staticmethod
