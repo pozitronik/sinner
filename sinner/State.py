@@ -29,18 +29,14 @@ class State(AttributeLoader):
                 'attribute': 'source_path'
             },
             {
-                'parameter': {'target', 'target-path'},
-                'attribute': 'target_path',
-                'required': True
-            },
-            {
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path'
             },
         ]
 
-    def __init__(self, parameters: Namespace, temp_dir: str, frames_count: int, processor_name: str):
+    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str, frames_count: int, processor_name: str):
         super().__init__(parameters)
+        self.target_path = target_path
         self._temp_dir = temp_dir
         self.frames_count = frames_count
         self.processor_name = processor_name

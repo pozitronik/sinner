@@ -95,10 +95,12 @@ class Core(AttributeLoader):
             if self._stop_flag:  # todo: create a shared variable to stop processing
                 continue
             current_handler = self.suggest_handler(self.parameters, current_target_path)
-            state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=current_handler.fc, processor_name=processor_name)
+            state = State(parameters=self.parameters, target_path=current_target_path, temp_dir=self.temp_dir, frames_count=current_handler.fc, processor_name=processor_name)
             if state.is_finished:
                 update_status(f'Processing with {state.processor_name} already done ({state.processed_frames_count}/{state.frames_count})', state.processor_name)
             else:
+                if state.is_started:
+                    update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing...', state.processor_name)
                 current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
                 current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
                 current_processor.release_resources()
