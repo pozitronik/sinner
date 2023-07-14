@@ -106,7 +106,9 @@ class Preview(AttributeLoader, Status):
             self.NavigateSlider.set(1)
             self.NavigateSlider.pack_forget()
         if is_video(self.target_path):
-            video_frame_total = self.frame_handler.fc
+            video_frame_total = 1
+            if self.frame_handler is not None:
+                video_frame_total = self.frame_handler.fc
             self.NavigateSlider.configure(to=video_frame_total)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.set(video_frame_total / 2)
@@ -130,7 +132,7 @@ class Preview(AttributeLoader, Status):
         if path != '':
             self.target_path = path
             self.core.parameters.target = self.target_path
-            # self.core.load(self.core.parameters) # no need
+            self.core.load(self.core.parameters)
             self._extractor_handler = None
             self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.configure(state=NORMAL)
@@ -148,6 +150,9 @@ class Preview(AttributeLoader, Status):
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
+        else:
+            self.PreviewFrameLabel.configure(image=None)
+            self.PreviewFrameLabel.image = None
 
     @staticmethod
     def destroy() -> None:
@@ -172,7 +177,7 @@ class Preview(AttributeLoader, Status):
             ImageTk.getimage(preview_label.cget('image')).save(save_file)
 
     @property
-    def frame_handler(self) -> BaseFrameHandler:
+    def frame_handler(self) -> BaseFrameHandler | None:
         if self._extractor_handler is None:
             try:
                 self._extractor_handler = Core.suggest_handler(self.core.parameters, self.target_path)
