@@ -144,11 +144,15 @@ class Core(AttributeLoader, Status):
             self.update_status(message=str(exception), mood=Mood.BAD)
             return None
         if processed:  # return processed frame
-            for processor_name in self.frame_processor:
-                if processor_name not in self.preview_processors:
-                    self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
-                self.preview_processors[processor_name].load(self.parameters)
-                frame = self.preview_processors[processor_name].process_frame(frame)
+            try:
+                for processor_name in self.frame_processor:
+                    if processor_name not in self.preview_processors:
+                        self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
+                    self.preview_processors[processor_name].load(self.parameters)
+                    frame = self.preview_processors[processor_name].process_frame(frame)
+            except Exception as exception:  # skip, if parameters is not enough for processors
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                pass
         return frame
 
     def stop(self) -> None:
