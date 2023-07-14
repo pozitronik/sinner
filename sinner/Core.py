@@ -100,7 +100,7 @@ class Core(AttributeLoader):
             current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
-            if not self.extract_frames:
+            if self.extract_frames:
                 temp_resources.append(state.in_dir)
             current_processor.release_resources()
 
