@@ -76,13 +76,12 @@ class BaseFrameProcessor(ABC, AttributeLoader):
 
     def process(self, frames_handler: BaseFrameHandler, extract_frames: bool = False, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.extract_frame_method = frames_handler.extract_frame
-        self.state._processor_name = self.__class__.__name__
         self.progress_callback = set_progress
         frames_handler.current_frame_index = self.state.processed_frames_count
+        if self.state.is_started:
+            update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...', self.state.processor_name)
         # todo: do not create on intermediate directory handler
         frames_list: FramesDataType = frames_handler.get_frames_paths(self.state.in_dir) if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
-        if self.state.is_started:
-            update_status(f'Temp resources for this target already exists with {self.state.processed_frames_count} frames processed, continue processing...')
         with tqdm(
                 total=self.state.frames_count,
                 desc=desc, unit='frame',

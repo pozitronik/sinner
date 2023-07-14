@@ -13,7 +13,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
+from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY, update_status
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -95,14 +95,17 @@ class Core(AttributeLoader):
             if self._stop_flag:  # todo: create a shared variable to stop processing
                 continue
             current_handler = self.suggest_handler(self.parameters, current_target_path)
-            state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=current_handler.fc)
-            current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
-            current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
+            state = State(parameters=self.parameters, temp_dir=self.temp_dir, frames_count=current_handler.fc, processor_name=processor_name)
+            if state.is_finished:
+                update_status(f'Processing with {state.processor_name} already done ({state.processed_frames_count}/{state.frames_count})', state.processor_name)
+            else:
+                current_processor = BaseFrameProcessor.create(processor_name, self.parameters, state)
+                current_processor.process(frames_handler=current_handler, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
+                current_processor.release_resources()
             current_target_path = state.out_dir
             temp_resources.append(state.out_dir)
             if self.extract_frames:
                 temp_resources.append(state.in_dir)
-            current_processor.release_resources()
 
         if current_processor is not None:
             final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
