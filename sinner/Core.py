@@ -114,6 +114,7 @@ class Core(AttributeLoader, Status):
             final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
             if final_handler.result(from_dir=current_target_path, filename=current_processor.output_path, audio_target=self.target_path) is True:
                 if self.keep_frames is False:
+                    self.update_status('Deleting temp resources')
                     delete_subdirectories(self.temp_dir, temp_resources)
             else:
                 raise Exception("Something went wrong while resulting frames")
