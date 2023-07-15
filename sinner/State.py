@@ -33,17 +33,25 @@ class State(AttributeLoader, Status):
     def __init__(self, parameters: Namespace, target_path: str | None, temp_dir: str, frames_count: int, processor_name: str):
         super().__init__(parameters)
         self.target_path = target_path
-        self._temp_dir = os.path.normpath(temp_dir)
+        self.temp_dir = temp_dir
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
         state = [
             {"Source": getattr(self, "source_path", "None")},
             {"Target": self.target_path},
-            {"Temporary dir": self._temp_dir}
+            {"Temporary dir": self.temp_dir}
         ]
         state_string = "\n".join([f"\t{key}: {value}" for d in state for key, value in d.items()])
         self.update_status(f'The processing state:\n{state_string}')
+
+    @property
+    def temp_dir(self) -> str | None:
+        return self._temp_dir
+
+    @temp_dir.setter
+    def temp_dir(self, value: str | None) -> None:
+        self._temp_dir = os.path.abspath(os.path.normpath(value)) if value is not None else None
 
     @property
     def target_path(self) -> str | None:
@@ -51,30 +59,30 @@ class State(AttributeLoader, Status):
 
     @target_path.setter
     def target_path(self, value: str | None) -> None:
-        self._target_path = os.path.normpath(value) if value is not None else None
+        self._target_path = os.path.abspath(os.path.normpath(value)) if value is not None else None
 
     @property
     def out_dir(self) -> str:
         if self._out_dir is None:
-            self._out_dir = os.path.normpath(self.make_path(self.state_path(OUT_DIR)))
+            self._out_dir = os.path.abspath(os.path.normpath(self.make_path(self.state_path(OUT_DIR))))
             self.update_status(f'The output directory is {self._out_dir}')
         return self._out_dir
 
     @out_dir.setter
     def out_dir(self, value: str) -> None:
-        self._out_dir = os.path.normpath(value)
+        self._out_dir = os.path.abspath(os.path.normpath(value))
         self.update_status(f'The output directory is changed to {self._out_dir}')
 
     @property
     def in_dir(self) -> str:
         if self._in_dir is None:
-            self._in_dir = os.path.normpath(self.make_path(self.state_path(IN_DIR)))
+            self._in_dir = os.path.abspath(os.path.normpath(self.make_path(self.state_path(IN_DIR))))
             self.update_status(f'The input directory is {self._in_dir}')
         return self._in_dir
 
     @in_dir.setter
     def in_dir(self, value: str) -> None:
-        self._in_dir = os.path.normpath(value)
+        self._in_dir = os.path.abspath(os.path.normpath(value))
         self.update_status(f'The input directory is changed to {self._in_dir}')
 
     @staticmethod
@@ -90,7 +98,7 @@ class State(AttributeLoader, Status):
         :return: adapted state path
         """
         sub_path = (self.processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), dir_type)
-        return os.path.join(self._temp_dir, *sub_path)
+        return os.path.join(self.temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
         if not write_image(frame, self.get_frame_processed_name(index)):
