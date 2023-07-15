@@ -12,26 +12,22 @@ class FrameThumbnail:
     frame: Frame
     caption: str = ''
     position: int
-    onclick: Callable[[Frame, int], None] | None = None
+    onclick: Callable[[int, int], None] | None = None
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def photo(self, size: tuple[int, int] = (400, 400), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
+    def photo(self, size: tuple[int, int] = (600, 600), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
         image = Image.fromarray(cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB))
         image.thumbnail(size, resample, reducing_gap)
         return ImageTk.PhotoImage(image)
-
-    def handle_click(self, index: int) -> None:
-        if self.onclick:
-            self.onclick(self.frame, index)
 
 
 class ImageList(tk.Frame):
     def __init__(self, parent: tk.Widget, thumbnails: Optional[List[FrameThumbnail]] = None):
         tk.Frame.__init__(self, parent)
-        self.canvas: tk.Canvas = tk.Canvas(self, width=400, height=200)
+        self.canvas: tk.Canvas = tk.Canvas(self, width=600, height=600)
         self.scrollbar: tk.Scrollbar = tk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
         self.image_frame: tk.Frame = tk.Frame(self.canvas)
         self.caption_frame: tk.Frame = tk.Frame(self.canvas)
@@ -54,7 +50,7 @@ class ImageList(tk.Frame):
                 image_label = tk.Label(self.image_frame, image=photo)
                 image_label.image = photo
                 image_label.grid(row=0, column=i, padx=10)
-                image_label.bind("<Button-1>", lambda event, index=i: thumbnail.handle_click(index))
+                image_label.bind("<Button-1>", lambda event, index=i: thumbnail.onclick(thumbnail.position, index))
                 self.image_widgets.append(image_label)
 
                 caption_label = tk.Label(self.caption_frame, text=thumbnail.caption)

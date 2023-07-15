@@ -49,6 +49,7 @@ class Preview(AttributeLoader, Status):
     source_path: str = ''
     target_path: str = ''
     _extractor_handler: BaseFrameHandler | None = None
+    _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # second: frames
 
     def rules(self) -> Rules:
         return [
@@ -153,14 +154,23 @@ class Preview(AttributeLoader, Status):
         return PhotoImage(Image.fromarray(frame))
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
-        frames: List[Tuple[typing.Frame, str]] = self.core.get_frame(frame_number, self.frame_handler, processed)
+        saved_frames = self._previews.get(frame_number)
+        if not saved_frames or len(saved_frames) == 1:
+            self._previews[frame_number] = self.core.get_frame(frame_number, self.frame_handler, processed)
+        frames = self._previews[frame_number]
         if frames:
-            self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=lambda thumbnail, index: self.update_status(thumbnail.position)) for frame in frames])
+            thumbnails = [FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames]
+            self.PreviewFrames.show(thumbnails)
             self.show_frame(frames[-1 if processed else 0][0])
         else:
             self.show_frame()
 
-    def show_frame(self, frame: typing.Frame | None = None):
+    def show_saved(self, frame_number: int, thumbnail_index: int) -> None:
+        frames = self._previews.get(frame_number)
+        if frames:
+            self.show_frame(frames[thumbnail_index][0])
+
+    def show_frame(self, frame: typing.Frame | None = None) -> None:
         if frame is not None:
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
