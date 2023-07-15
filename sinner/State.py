@@ -42,16 +42,16 @@ class State(AttributeLoader, Status):
             {"Target": self.target_path},
             {"Temporary dir": self.temp_dir}
         ]
-        state_string = "\n".join([f"\t{key}: {value}" for d in state for key, value in d.items()])
+        state_string = "\n".join([f"\t{key}: {value}" for dict_line in state for key, value in dict_line.items()])
         self.update_status(f'The processing state:\n{state_string}')
 
     @property
-    def temp_dir(self) -> str | None:
+    def temp_dir(self) -> str:
         return self._temp_dir
 
     @temp_dir.setter
     def temp_dir(self, value: str | None) -> None:
-        self._temp_dir = os.path.abspath(os.path.normpath(value)) if value is not None else None
+        self._temp_dir = os.path.abspath(os.path.normpath(value or ''))
 
     @property
     def target_path(self) -> str | None:
