@@ -1,6 +1,7 @@
 import tkinter as tk
 from typing import List, Optional, Literal, Callable
 
+import cv2
 from PIL import ImageTk, Image
 from PIL.Image import Resampling
 
@@ -18,7 +19,7 @@ class FrameThumbnail:
             setattr(self, key, value)
 
     def photo(self, size: tuple[int, int] = (200, 200), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
-        image = Image.fromarray(self.frame)
+        image = Image.fromarray(cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB))
         image.thumbnail(size, resample, reducing_gap)
         return ImageTk.PhotoImage(image)
 
