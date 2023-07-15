@@ -12,20 +12,20 @@ class FrameThumbnail:
     frame: Frame
     caption: str = ''
     position: int
-    onclick: Callable[['FrameThumbnail', int], None] | None = None
+    onclick: Callable[[Frame, int], None] | None = None
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def photo(self, size: tuple[int, int] = (200, 200), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
+    def photo(self, size: tuple[int, int] = (400, 400), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
         image = Image.fromarray(cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB))
         image.thumbnail(size, resample, reducing_gap)
         return ImageTk.PhotoImage(image)
 
     def handle_click(self, index: int) -> None:
         if self.onclick:
-            self.onclick(self, index)
+            self.onclick(self.frame, index)
 
 
 class ImageList(tk.Frame):
