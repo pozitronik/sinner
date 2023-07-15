@@ -1,6 +1,7 @@
 import os
 from argparse import Namespace
 from pathlib import Path
+from typing import Any, Dict, List
 
 from sinner.Status import Status
 from sinner.typing import Frame
@@ -37,7 +38,7 @@ class State(AttributeLoader, Status):
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
-        state = [
+        state: List[Dict[str, Any]] = [
             {"Source": getattr(self, "source_path", "None")},
             {"Target": self.target_path},
             {"Temporary dir": self.temp_dir}
