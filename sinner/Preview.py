@@ -145,9 +145,9 @@ class Preview(AttributeLoader, Status):
         return PhotoImage(Image.fromarray(frame))
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
-        frame = self.core.get_frame(frame_number, self.frame_handler, processed)
-        if frame is not None:
-            image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
+        frames = self.core.get_frame(frame_number, self.frame_handler, processed)
+        if frames:
+            image = PhotoImage(Image.fromarray(cv2.cvtColor(frames[-1 if processed else 0], cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
         else:

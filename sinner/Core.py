@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import warnings
 from argparse import Namespace
-from typing import List, Callable
+from typing import List, Callable, Union, Tuple
 
 import os
 import sys
@@ -135,14 +135,17 @@ class Core(AttributeLoader, Status):
     def suggest_temp_dir(self) -> str:
         return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
-    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> Frame | None:
+    #  returns list of all processed frames, starting from the original
+    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Frame]:
+        result: List[Frame] = []
         try:
             if extractor_handler is None:
                 extractor_handler = self.suggest_handler(self.parameters, self.target_path)
             _, frame = extractor_handler.extract_frame(frame_number)
+            result.append(frame)
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
-            return None
+            return result
         if processed:  # return processed frame
             try:
                 for processor_name in self.frame_processor:
@@ -150,10 +153,11 @@ class Core(AttributeLoader, Status):
                         self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
                     self.preview_processors[processor_name].load(self.parameters)
                     frame = self.preview_processors[processor_name].process_frame(frame)
+                    result.append(frame)
             except Exception as exception:  # skip, if parameters is not enough for processors
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 pass
-        return frame
+        return result
 
     def stop(self) -> None:
         self._stop_flag = True
