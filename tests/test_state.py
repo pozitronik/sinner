@@ -19,7 +19,7 @@ def setup():
         shutil.rmtree(tmp_dir)
 
 
-def test() -> None:
+def test_basic() -> None:
     state = State(parameters=Namespace(), target_path=None, temp_dir='data/temp', frames_count=0, processor_name='')
 
     assert os.path.exists('data/temp/IN') is False
@@ -35,3 +35,7 @@ def test() -> None:
 
     assert state.is_started is False
     assert state.is_finished is False
+
+    assert state.processed_frames_count == 0
+    assert state.zfill_length == 1
+    assert state.get_frame_processed_name(100) == os.path.normpath('data/temp/OUT/100.png')

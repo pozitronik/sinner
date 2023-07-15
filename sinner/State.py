@@ -123,11 +123,11 @@ class State(AttributeLoader, Status):
 
     #  Returns a processed file name for an unprocessed frame index
     def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index).zfill(self.get_zfill_length) + '.png'
+        filename = str(frame_index).zfill(self.zfill_length) + '.png'
         return str(os.path.join(self.out_dir, filename))
 
     @property
-    def get_zfill_length(self) -> int:
+    def zfill_length(self) -> int:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
