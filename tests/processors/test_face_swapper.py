@@ -22,7 +22,7 @@ def test_init():
     assert (test_object._face_swapper, FaceSwapperType)
 
 
-def test_face_analysis():  # todo: move to face_analyser_test
+def test_face_analysis():
     face = get_test_object().source_face
     assert (face, Face)
     assert face.age == 31
