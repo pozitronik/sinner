@@ -2,6 +2,7 @@ import os.path
 import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
 from tkinter.ttk import Progressbar
+from typing import List, Tuple
 
 import cv2
 
@@ -9,6 +10,7 @@ from PIL import Image, ImageTk
 from PIL.ImageTk import PhotoImage
 from customtkinter import CTkLabel, CTk, CTkSlider
 
+from sinner import typing
 from sinner.Core import Core
 from sinner.Status import Status, Mood
 from sinner.gui.ImageList import ImageList, FrameThumbnail
@@ -147,14 +149,20 @@ class Preview(AttributeLoader, Status):
             self.TargetPathEntry.configure(state=DISABLED)
 
     @staticmethod
-    def render_image_preview(frame: Frame) -> PhotoImage:
+    def render_image_preview(frame: typing.Frame) -> PhotoImage:
         return PhotoImage(Image.fromarray(frame))
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
-        frames = self.core.get_frame(frame_number, self.frame_handler, processed)
+        frames: List[Tuple[typing.Frame, str]] = self.core.get_frame(frame_number, self.frame_handler, processed)
         if frames:
-            self.PreviewFrames.show([FrameThumbnail(frame=frame, caption=str(frame_number), position=frame_number, onclick=lambda thumbnail, index: self.update_status(thumbnail.position)) for frame in frames])
-            image = PhotoImage(Image.fromarray(cv2.cvtColor(frames[-1 if processed else 0], cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
+            self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=lambda thumbnail, index: self.update_status(thumbnail.position)) for frame in frames])
+            self.show_frame(frames[-1 if processed else 0][0])
+        else:
+            self.show_frame()
+
+    def show_frame(self, frame: typing.Frame | None = None):
+        if frame is not None:
+            image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
         else:

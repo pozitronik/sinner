@@ -136,13 +136,13 @@ class Core(AttributeLoader, Status):
         return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
     #  returns list of all processed frames, starting from the original
-    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Frame]:
-        result: List[Frame] = []
+    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Tuple[Frame, str]]:
+        result: List[Tuple[Frame, str]] = []
         try:
             if extractor_handler is None:
                 extractor_handler = self.suggest_handler(self.parameters, self.target_path)
             _, frame = extractor_handler.extract_frame(frame_number)
-            result.append(frame)
+            result.append((frame, 'Original'))
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
             return result
@@ -153,7 +153,7 @@ class Core(AttributeLoader, Status):
                         self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
                     self.preview_processors[processor_name].load(self.parameters)
                     frame = self.preview_processors[processor_name].process_frame(frame)
-                    result.append(frame)
+                    result.append((frame, processor_name))
             except Exception as exception:  # skip, if parameters is not enough for processors
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 pass
