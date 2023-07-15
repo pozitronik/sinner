@@ -32,8 +32,8 @@ class State(AttributeLoader, Status):
 
     def __init__(self, parameters: Namespace, target_path: str, temp_dir: str, frames_count: int, processor_name: str):
         super().__init__(parameters)
-        self.target_path = target_path
-        self._temp_dir = temp_dir
+        self.target_path = os.path.normpath(target_path)
+        self._temp_dir = os.path.normpath(temp_dir)
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
@@ -54,7 +54,7 @@ class State(AttributeLoader, Status):
 
     @out_dir.setter
     def out_dir(self, value: str) -> None:
-        self._out_dir = value
+        self._out_dir = os.path.normpath(value)
         self.update_status(f'The output directory is changed to {self._out_dir}')
 
     @property
@@ -66,7 +66,7 @@ class State(AttributeLoader, Status):
 
     @in_dir.setter
     def in_dir(self, value: str) -> None:
-        self._in_dir = value
+        self._in_dir = os.path.normpath(value)
         self.update_status(f'The input directory is changed to {self._in_dir}')
 
     @staticmethod
