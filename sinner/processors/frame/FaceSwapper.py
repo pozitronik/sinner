@@ -3,7 +3,7 @@ from argparse import Namespace
 
 import insightface
 
-from sinner.face_analyser import FaceAnalyser
+from sinner.FaceAnalyser import FaceAnalyser
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Face, Frame, FaceSwapperType

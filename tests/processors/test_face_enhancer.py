@@ -4,7 +4,7 @@ from argparse import Namespace
 from gfpgan import GFPGANer  # type: ignore[attr-defined]
 from sinner.Parameters import Parameters
 
-from sinner.face_analyser import FaceAnalyser
+from sinner.FaceAnalyser import FaceAnalyser
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.State import State
 from sinner.typing import Frame

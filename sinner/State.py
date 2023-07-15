@@ -1,6 +1,7 @@
 import os
 from argparse import Namespace
 from pathlib import Path
+from typing import Any, Dict, List
 
 from sinner.Status import Status
 from sinner.typing import Frame
@@ -12,9 +13,9 @@ IN_DIR = 'IN'
 
 
 class State(AttributeLoader, Status):
-    source_path: str
-    target_path: str
+    source_path: str | None = None
 
+    _target_path: str | None = None
     frames_count: int
     processor_name: str
     _temp_dir: str
@@ -30,43 +31,61 @@ class State(AttributeLoader, Status):
             }
         ]
 
-    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str, frames_count: int, processor_name: str):
+    def __init__(self, parameters: Namespace, target_path: str | None, temp_dir: str, frames_count: int, processor_name: str):
         super().__init__(parameters)
         self.target_path = target_path
-        self._temp_dir = temp_dir
+        self.temp_dir = temp_dir
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
-        state = [
+        state: List[Dict[str, Any]] = [
             {"Source": getattr(self, "source_path", "None")},
             {"Target": self.target_path},
-            {"Temporary dir": self._temp_dir}
+            {"Temporary dir": self.temp_dir}
         ]
-        state_string = "\n".join([f"\t{key}: {value}" for d in state for key, value in d.items()])
+        state_string = "\n".join([f"\t{key}: {value}" for dict_line in state for key, value in dict_line.items()])
         self.update_status(f'The processing state:\n{state_string}')
+
+    @property
+    def temp_dir(self) -> str:
+        return self._temp_dir
+
+    @temp_dir.setter
+    def temp_dir(self, value: str | None) -> None:
+        if not os.path.isabs(value or ''):
+            raise Exception("Relative paths is not supported")
+        self._temp_dir = os.path.abspath(os.path.normpath(value or ''))
+
+    @property
+    def target_path(self) -> str | None:
+        return self._target_path
+
+    @target_path.setter
+    def target_path(self, value: str | None) -> None:
+        self._target_path = os.path.abspath(os.path.normpath(value)) if value is not None else None
 
     @property
     def out_dir(self) -> str:
         if self._out_dir is None:
-            self._out_dir = self.make_path(self.state_path(OUT_DIR))
+            self._out_dir = os.path.abspath(os.path.normpath(self.make_path(self.state_path(OUT_DIR))))
             self.update_status(f'The output directory is {self._out_dir}')
         return self._out_dir
 
     @out_dir.setter
     def out_dir(self, value: str) -> None:
-        self._out_dir = value
+        self._out_dir = os.path.abspath(os.path.normpath(value))
         self.update_status(f'The output directory is changed to {self._out_dir}')
 
     @property
     def in_dir(self) -> str:
         if self._in_dir is None:
-            self._in_dir = self.make_path(self.state_path(IN_DIR))
+            self._in_dir = os.path.abspath(os.path.normpath(self.make_path(self.state_path(IN_DIR))))
             self.update_status(f'The input directory is {self._in_dir}')
         return self._in_dir
 
     @in_dir.setter
     def in_dir(self, value: str) -> None:
-        self._in_dir = value
+        self._in_dir = os.path.abspath(os.path.normpath(value))
         self.update_status(f'The input directory is changed to {self._in_dir}')
 
     @staticmethod
@@ -82,7 +101,7 @@ class State(AttributeLoader, Status):
         :return: adapted state path
         """
         sub_path = (self.processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), dir_type)
-        return os.path.join(self._temp_dir, *sub_path)
+        return os.path.join(self.temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
         if not write_image(frame, self.get_frame_processed_name(index)):
@@ -96,7 +115,7 @@ class State(AttributeLoader, Status):
     #  Checks if the process is finished
     @property
     def is_finished(self) -> bool:
-        return self.frames_count <= self.processed_frames_count
+        return self.frames_count <= self.processed_frames_count != 0
 
     #  Returns count of already processed frame for this target (0, if none).
     @property
@@ -115,11 +134,11 @@ class State(AttributeLoader, Status):
 
     #  Returns a processed file name for an unprocessed frame index
     def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index).zfill(self.get_zfill_length) + '.png'
+        filename = str(frame_index).zfill(self.zfill_length) + '.png'
         return str(os.path.join(self.out_dir, filename))
 
     @property
-    def get_zfill_length(self) -> int:
+    def zfill_length(self) -> int:
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
