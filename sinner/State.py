@@ -52,6 +52,8 @@ class State(AttributeLoader, Status):
 
     @temp_dir.setter
     def temp_dir(self, value: str | None) -> None:
+        if not os.path.isabs(value):
+            raise Exception("Relative paths is not supported")
         self._temp_dir = os.path.abspath(os.path.normpath(value or ''))
 
     @property
