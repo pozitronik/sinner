@@ -1,12 +1,22 @@
 import os.path
 import shutil
 from argparse import Namespace
+from typing import List
 
 from sinner.Parameters import Parameters
 from sinner.State import State
-from tests.constants import tmp_dir, target_mp4, source_jpg, target_png
+from tests.constants import tmp_dir, target_mp4, source_jpg, target_png, TARGET_FC, state_frames_dir
 
 parameters: Namespace = Parameters(f'--frame-processor=DummyProcessor --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"').parameters
+
+
+def copy_files(from_dir: str, to_dir: str, filenames: List[str]) -> None:
+    for file_name in filenames:
+        source_path = os.path.join(from_dir, file_name)
+        destination_path = os.path.join(to_dir, file_name)
+
+        if os.path.isfile(source_path):
+            shutil.copy2(source_path, destination_path)
 
 
 def setup_function():
@@ -79,3 +89,42 @@ def test_state_names_generation() -> None:
 
     assert os.path.exists('data/temp/DummyProcessor/target.png/source.jpg/IN') is True
     assert os.path.exists('data/temp/DummyProcessor/target.png/source.jpg/OUT') is True
+
+
+def test_states() -> None:
+    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
+    assert state.zfill_length == 2
+    assert state.is_started is False
+    assert state.is_finished is False
+    assert state.processed_frames_count == 0
+    assert state.unprocessed_frames_count == 10
+
+    copy_files(state_frames_dir, state.in_dir, ['01.png'])
+    assert state.is_started is False
+    assert state.is_finished is False
+    assert state.processed_frames_count == 0
+    assert state.unprocessed_frames_count == 10
+
+    copy_files(state_frames_dir, state.in_dir, ['02.png', '03.png', '04.png', '05.png'])  # nothing changes
+    assert state.is_started is False
+    assert state.is_finished is False
+    assert state.processed_frames_count == 0
+    assert state.unprocessed_frames_count == 10
+
+    copy_files(state_frames_dir, state.out_dir, ['01.png'])
+    assert state.is_started is True
+    assert state.is_finished is False
+    assert state.processed_frames_count == 1
+    assert state.unprocessed_frames_count == 9
+
+    copy_files(state_frames_dir, state.out_dir, ['02.png', '03.png', '04.png', '05.png'])
+    assert state.is_started is True
+    assert state.is_finished is False
+    assert state.processed_frames_count == 5
+    assert state.unprocessed_frames_count == 5
+
+    copy_files(state_frames_dir, state.out_dir, ['06.png', '07.png', '08.png', '09.png', '10.png'])
+    assert state.is_started is False
+    assert state.is_finished is True
+    assert state.processed_frames_count == 10
+    assert state.unprocessed_frames_count == 0
