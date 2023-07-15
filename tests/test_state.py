@@ -4,7 +4,7 @@ from argparse import Namespace
 
 from sinner.Parameters import Parameters
 from sinner.State import State
-from tests.constants import tmp_dir, target_mp4, source_jpg
+from tests.constants import tmp_dir, target_mp4, source_jpg, target_png
 
 parameters: Namespace = Parameters(f'--frame-processor=DummyProcessor --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"').parameters
 
@@ -67,3 +67,15 @@ def test_state_names_generation() -> None:
 
     assert os.path.exists('data/temp/DummyProcessor/target.mp4/IN') is True
     assert os.path.exists('data/temp/DummyProcessor/target.mp4/OUT') is True
+
+    state = State(parameters=Namespace(source=source_jpg), target_path=target_png, temp_dir=tmp_dir, frames_count=0, processor_name='DummyProcessor')
+    assert os.path.exists('data/temp/DummyProcessor/target.png/source.jpg/IN') is False
+    assert os.path.exists('data/temp/DummyProcessor/target.png/source.jpg/OUT') is False
+    assert state.source_path == source_jpg
+    assert state.target_path == target_png
+    assert state._temp_dir == tmp_dir  # absolute path used
+    assert state.in_dir == os.path.abspath(os.path.normpath('data/temp/DummyProcessor/target.png/source.jpg/IN'))
+    assert state.out_dir == os.path.abspath(os.path.normpath('data/temp/DummyProcessor/target.png/source.jpg/OUT'))
+
+    assert os.path.exists('data/temp/DummyProcessor/target.png/source.jpg/IN') is True
+    assert os.path.exists('data/temp/DummyProcessor/target.png/source.jpg/OUT') is True
