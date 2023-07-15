@@ -11,6 +11,7 @@ from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner.Core import Core
 from sinner.Status import Status, Mood
+from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.utilities import is_image, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
@@ -19,7 +20,10 @@ from sinner.validators.AttributeLoader import Rules, AttributeLoader
 class Preview(AttributeLoader, Status):
     #  window controls
     PreviewWindow: CTk = CTk()
+    PreviewFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
+    PreviewFrames: ImageList = ImageList(PreviewWindow)
+
     NavigateSliderFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     NavigateSlider: CTkSlider = CTkSlider(NavigateSliderFrame, to=0)
     NavigatePositionLabel: Label = Label(NavigateSliderFrame)
@@ -68,6 +72,8 @@ class Preview(AttributeLoader, Status):
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
         self.PreviewFrameLabel.bind("<Button-3>", lambda event: self.change_target())
         self.PreviewFrameLabel.pack(fill='both', expand=True)
+        # init generated frames list
+        self.PreviewFrames.pack(fill='both', expand=True)
         # init slider
         self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
         self.update_slider()
@@ -147,6 +153,7 @@ class Preview(AttributeLoader, Status):
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
         frames = self.core.get_frame(frame_number, self.frame_handler, processed)
         if frames:
+            self.PreviewFrames.show([FrameThumbnail(frame=frame, caption=str(frame_number), position=frame_number, onclick=lambda thumbnail, index: self.update_status(thumbnail.position)) for frame in frames])
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frames[-1 if processed else 0], cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
