@@ -26,9 +26,9 @@ def test_basic() -> None:
     assert os.path.exists('data/temp/OUT') is False
     assert state.source_path is None
     assert state.target_path is None
-    assert state._temp_dir == os.path.normpath('data/temp')
-    assert state.in_dir == os.path.normpath('data/temp/IN')
-    assert state.out_dir == os.path.normpath('data/temp/OUT')
+    assert state._temp_dir == os.path.abspath(os.path.normpath('data/temp'))  # relative path used
+    assert state.in_dir == os.path.abspath(os.path.normpath('data/temp/IN'))
+    assert state.out_dir == os.path.abspath(os.path.normpath('data/temp/OUT'))
 
     assert os.path.exists('data/temp/IN') is True
     assert os.path.exists('data/temp/OUT') is True
@@ -38,4 +38,32 @@ def test_basic() -> None:
 
     assert state.processed_frames_count == 0
     assert state.zfill_length == 1
-    assert state.get_frame_processed_name(100) == os.path.normpath('data/temp/OUT/100.png')
+    assert state.get_frame_processed_name(100) == os.path.abspath(os.path.normpath('data/temp/OUT/100.png'))
+
+
+def test_state_names_generation_absolute_path() -> None:
+    state = State(parameters=Namespace(), target_path=None, temp_dir=tmp_dir, frames_count=0, processor_name='')
+    assert os.path.exists('data/temp/IN') is False
+    assert os.path.exists('data/temp/OUT') is False
+    assert state.source_path is None
+    assert state.target_path is None
+    assert state._temp_dir == tmp_dir  # absolute path used
+    assert state.in_dir == os.path.abspath(os.path.abspath('data/temp/IN'))
+    assert state.out_dir == os.path.abspath(os.path.abspath('data/temp/OUT'))
+
+    assert os.path.exists('data/temp/IN') is True
+    assert os.path.exists('data/temp/OUT') is True
+
+
+def test_state_names_generation() -> None:
+    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=0, processor_name='DummyProcessor')
+    assert os.path.exists('data/temp/DummyProcessor/target.mp4/IN') is False
+    assert os.path.exists('data/temp/DummyProcessor/target.mp4/OUT') is False
+    assert state.source_path is None
+    assert state.target_path == target_mp4
+    assert state._temp_dir == tmp_dir  # absolute path used
+    assert state.in_dir == os.path.abspath(os.path.normpath('data/temp/DummyProcessor/target.mp4/IN'))
+    assert state.out_dir == os.path.abspath(os.path.normpath('data/temp/DummyProcessor/target.mp4/OUT'))
+
+    assert os.path.exists('data/temp/DummyProcessor/target.mp4/IN') is True
+    assert os.path.exists('data/temp/DummyProcessor/target.mp4/OUT') is True
