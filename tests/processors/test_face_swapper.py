@@ -2,7 +2,7 @@ import multiprocessing
 from argparse import Namespace
 
 from sinner.Parameters import Parameters
-from sinner.face_analyser import FaceAnalyser
+from sinner.FaceAnalyser import FaceAnalyser
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.typing import Frame, FaceSwapperType, Face
 from sinner.utilities import read_image
