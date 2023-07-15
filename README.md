@@ -15,9 +15,7 @@ The tasks that I aim to accomplish here are:
 - :white_check_mark: Allowing the ability to resume processing after a stop.
 - :white_check_mark: Implementing a continuous frames processing chain.
 - :white_check_mark: Implementing memory control code.
-- :soon: Providing code coverage through comprehensive tests.
-- :white_square_button: Improving swapping on rotated faces.
-- :white_square_button: Implementing face selection functionality.
+- :white_check_mark: Providing code coverage through comprehensive tests.
 
 ## How do I install it?
 
