@@ -48,7 +48,7 @@ class State(AttributeLoader, Status):
     @property
     def out_dir(self) -> str:
         if self._out_dir is None:
-            self._out_dir = self.make_path(self.state_path(OUT_DIR))
+            self._out_dir = os.path.normpath(self.make_path(self.state_path(OUT_DIR)))
             self.update_status(f'The output directory is {self._out_dir}')
         return self._out_dir
 
@@ -60,7 +60,7 @@ class State(AttributeLoader, Status):
     @property
     def in_dir(self) -> str:
         if self._in_dir is None:
-            self._in_dir = self.make_path(self.state_path(IN_DIR))
+            self._in_dir = os.path.normpath(self.make_path(self.state_path(IN_DIR)))
             self.update_status(f'The input directory is {self._in_dir}')
         return self._in_dir
 
