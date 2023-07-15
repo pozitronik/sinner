@@ -12,9 +12,9 @@ IN_DIR = 'IN'
 
 
 class State(AttributeLoader, Status):
-    source_path: str
-    target_path: str
+    source_path: str | None = None
 
+    _target_path: str | None = None
     frames_count: int
     processor_name: str
     _temp_dir: str
@@ -30,9 +30,9 @@ class State(AttributeLoader, Status):
             }
         ]
 
-    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str, frames_count: int, processor_name: str):
+    def __init__(self, parameters: Namespace, target_path: str | None, temp_dir: str, frames_count: int, processor_name: str):
         super().__init__(parameters)
-        self.target_path = os.path.normpath(target_path)
+        self.target_path = target_path
         self._temp_dir = os.path.normpath(temp_dir)
         self.frames_count = frames_count
         self.processor_name = processor_name
@@ -44,6 +44,14 @@ class State(AttributeLoader, Status):
         ]
         state_string = "\n".join([f"\t{key}: {value}" for d in state for key, value in d.items()])
         self.update_status(f'The processing state:\n{state_string}')
+
+    @property
+    def target_path(self) -> str | None:
+        return self._target_path
+
+    @target_path.setter
+    def target_path(self, value: str | None) -> None:
+        self._target_path = os.path.normpath(value) if value is not None else None
 
     @property
     def out_dir(self) -> str:
@@ -96,7 +104,7 @@ class State(AttributeLoader, Status):
     #  Checks if the process is finished
     @property
     def is_finished(self) -> bool:
-        return self.frames_count <= self.processed_frames_count
+        return self.frames_count <= self.processed_frames_count != 0
 
     #  Returns count of already processed frame for this target (0, if none).
     @property
