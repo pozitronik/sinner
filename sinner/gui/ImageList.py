@@ -1,11 +1,10 @@
-import tkinter
 from tkinter import Frame, Canvas, Scrollbar, Label, Event, TOP, NW, HORIZONTAL, Misc
 from typing import List, Optional, Callable, Tuple, Any
 
 import cv2
 from PIL import ImageTk, Image
 from PIL.Image import Resampling
-from customtkinter import CTk, CTkLabel
+from customtkinter import CTk
 
 from sinner import typing
 
@@ -60,7 +59,7 @@ class ImageList(Frame):
                 image_label = Label(self.image_frame, text=thumbnail.caption, image=photo, compound=TOP)
                 image_label.image = photo  # type: ignore[attr-defined]
                 image_label.grid(row=0, column=i, padx=10)
-                image_label.bind("<Button-1>", lambda event, index=i: thumbnail.onclick(thumbnail.position, index))
+                image_label.bind("<Button-1>", lambda event, t=thumbnail, index=i: thumbnail.onclick(thumbnail.position, index))  # type: ignore[misc]
 
-    def on_frame_configure(self) -> None:
+    def on_frame_configure(self, event: Event[Any]) -> None:
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
