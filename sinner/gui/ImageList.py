@@ -54,16 +54,11 @@ class ImageList(tk.Frame):
 
             for i, thumbnail in enumerate(thumbnails):
                 photo = thumbnail.photo((self.width, self.height))
-                self.canvas.configure(height=min(photo.width(), photo.height()))
-                image_label = tk.Label(self.image_frame, image=photo)
+                # self.canvas.configure(height=min(photo.width(), photo.height()))
+                image_label = tk.Label(self.image_frame, text=thumbnail.caption, image=photo, compound=tk.TOP)
                 image_label.image = photo
                 image_label.grid(row=0, column=i, padx=10)
                 image_label.bind("<Button-1>", lambda event, index=i: thumbnail.onclick(thumbnail.position, index))
-                self.image_widgets.append(image_label)
-
-                caption_label = tk.Label(self.caption_frame, text=thumbnail.caption)
-                caption_label.grid(row=0, column=i, padx=10)
-                self.caption_labels.append(caption_label)
 
     def on_frame_configure(self, event: tk.Event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
