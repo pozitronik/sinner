@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import warnings
 from argparse import Namespace
-from typing import List, Callable, Union, Tuple
+from typing import List, Callable, Tuple
 
 import os
 import sys

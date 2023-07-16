@@ -1,9 +1,10 @@
-from tkinter import Frame, Canvas, Scrollbar, Widget, Label, Event, TOP, NW, HORIZONTAL
+from tkinter import Frame, Canvas, Scrollbar,  Label, Event, TOP, NW, HORIZONTAL
 from typing import List, Optional, Callable, Tuple
 
 import cv2
 from PIL import ImageTk, Image
 from PIL.Image import Resampling
+from customtkinter import CTk
 
 from sinner import typing
 
@@ -14,7 +15,7 @@ class FrameThumbnail:
     position: int
     onclick: Callable[[int, int], None] | None = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -28,7 +29,7 @@ class ImageList(Frame):
     width: int
     height: int
 
-    def __init__(self, parent: Widget, size: Tuple[int, int] = (400, 400), thumbnails: Optional[List[FrameThumbnail]] = None):
+    def __init__(self, parent: CTk, size: Tuple[int, int] = (400, 400), thumbnails: Optional[List[FrameThumbnail]] = None):
         self.width = size[0]
         self.height = size[1]
         Frame.__init__(self, parent)

@@ -24,7 +24,7 @@ class Preview(AttributeLoader, Status):
     PreviewWindow: CTk = CTk()
     PreviewFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
-    PreviewFrames: ImageList = ImageList(PreviewWindow)
+    PreviewFrames: ImageList = ImageList(parent=PreviewWindow)
 
     NavigateSliderFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     NavigateSlider: CTkSlider = CTkSlider(NavigateSliderFrame, to=0)
