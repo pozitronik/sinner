@@ -1,15 +1,15 @@
-import tkinter as tk
-from typing import List, Optional, Literal, Callable, Tuple
+from tkinter import Frame, Canvas, Scrollbar, Widget, Label, Event, TOP, NW, HORIZONTAL
+from typing import List, Optional, Callable, Tuple
 
 import cv2
 from PIL import ImageTk, Image
 from PIL.Image import Resampling
 
-from sinner.typing import Frame
+from sinner import typing
 
 
 class FrameThumbnail:
-    frame: Frame
+    frame: typing.Frame
     caption: str = ''
     position: int
     onclick: Callable[[int, int], None] | None = None
@@ -24,25 +24,25 @@ class FrameThumbnail:
         return ImageTk.PhotoImage(image)
 
 
-class ImageList(tk.Frame):
+class ImageList(Frame):
     width: int
     height: int
 
-    def __init__(self, parent: tk.Widget, size: Tuple[int, int] = (400, 400), thumbnails: Optional[List[FrameThumbnail]] = None):
+    def __init__(self, parent: Widget, size: Tuple[int, int] = (400, 400), thumbnails: Optional[List[FrameThumbnail]] = None):
         self.width = size[0]
         self.height = size[1]
-        tk.Frame.__init__(self, parent)
-        self.canvas: tk.Canvas = tk.Canvas(self)
-        self.scrollbar: tk.Scrollbar = tk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
-        self.image_frame: tk.Frame = tk.Frame(self.canvas)
-        self.caption_frame: tk.Frame = tk.Frame(self.canvas)
+        Frame.__init__(self, parent)
+        self.canvas: Canvas = Canvas(self)
+        self.scrollbar: Scrollbar = Scrollbar(self, orient=HORIZONTAL, command=self.canvas.xview)
+        self.image_frame: Frame = Frame(self.canvas)
+        self.caption_frame: Frame = Frame(self.canvas)
         self.canvas.configure(xscrollcommand=self.scrollbar.set)
 
-        self.canvas.create_window((0, 0), window=self.image_frame, anchor="nw", tags="image_frame")
-        self.canvas.create_window((0, 0), window=self.caption_frame, anchor="nw", tags="caption_frame")
+        self.canvas.create_window((0, 0), window=self.image_frame, anchor=NW, tags="image_frame")
+        self.canvas.create_window((0, 0), window=self.caption_frame, anchor=NW, tags="caption_frame")
         self.image_frame.bind("<Configure>", self.on_frame_configure)
-        self.image_widgets: List[tk.Label] = []
-        self.caption_labels: List[tk.Label] = []
+        self.image_widgets: List[Label] = []
+        self.caption_labels: List[Label] = []
 
         self.show(thumbnails)
 
@@ -55,10 +55,10 @@ class ImageList(tk.Frame):
             for i, thumbnail in enumerate(thumbnails):
                 photo = thumbnail.photo((self.width, self.height))
                 # self.canvas.configure(height=min(photo.width(), photo.height()))
-                image_label = tk.Label(self.image_frame, text=thumbnail.caption, image=photo, compound=tk.TOP)
+                image_label = Label(self.image_frame, text=thumbnail.caption, image=photo, compound=TOP)
                 image_label.image = photo
                 image_label.grid(row=0, column=i, padx=10)
                 image_label.bind("<Button-1>", lambda event, index=i: thumbnail.onclick(thumbnail.position, index))
 
-    def on_frame_configure(self, event: tk.Event):
+    def on_frame_configure(self, event: Event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
