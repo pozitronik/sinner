@@ -1,5 +1,5 @@
 import tkinter as tk
-from typing import List, Optional, Literal, Callable
+from typing import List, Optional, Literal, Callable, Tuple
 
 import cv2
 from PIL import ImageTk, Image
@@ -25,16 +25,14 @@ class FrameThumbnail:
 
 
 class ImageList(tk.Frame):
-    def __init__(self, parent: tk.Widget, thumbnails: Optional[List[FrameThumbnail]] = None):
+    def __init__(self, parent: tk.Widget, size: Tuple[int, int] = (400, 400), thumbnails: Optional[List[FrameThumbnail]] = None):
         tk.Frame.__init__(self, parent)
-        self.canvas: tk.Canvas = tk.Canvas(self, width=600, height=600)
+        self.canvas: tk.Canvas = tk.Canvas(self, width=size[0], height=size[0])
         self.scrollbar: tk.Scrollbar = tk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
         self.image_frame: tk.Frame = tk.Frame(self.canvas)
         self.caption_frame: tk.Frame = tk.Frame(self.canvas)
         self.canvas.configure(xscrollcommand=self.scrollbar.set)
 
-        self.canvas.pack(side="top", fill="both", expand=True)
-        self.scrollbar.pack(side="bottom", fill="x")
         self.canvas.create_window((0, 0), window=self.image_frame, anchor="nw", tags="image_frame")
         self.canvas.create_window((0, 0), window=self.caption_frame, anchor="nw", tags="caption_frame")
         self.image_frame.bind("<Configure>", self.on_frame_configure)
@@ -45,6 +43,10 @@ class ImageList(tk.Frame):
 
     def show(self, thumbnails: Optional[List[FrameThumbnail]] = None):
         if thumbnails is not None:
+            if not self.canvas.winfo_manager():
+                self.canvas.pack(side="top", fill="both", expand=True)
+                self.scrollbar.pack(side="bottom", fill="x")
+
             for i, thumbnail in enumerate(thumbnails):
                 photo = thumbnail.photo()
                 image_label = tk.Label(self.image_frame, image=photo)
