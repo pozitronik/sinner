@@ -130,6 +130,7 @@ class Preview(AttributeLoader, Status):
             self.source_path = path
             self.core.parameters.source = self.source_path
             self.core.load(self.core.parameters)
+            self._previews.clear()
             self.update_preview(frame_number, True)
             self.SourcePathEntry.configure(state=NORMAL)
             self.SourcePathEntry.delete(0, END)
@@ -139,6 +140,7 @@ class Preview(AttributeLoader, Status):
     def change_target(self) -> None:
         path = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.target_path))
         if path != '':
+            self._previews.clear()
             self.target_path = path
             self.core.parameters.target = self.target_path
             self.core.load(self.core.parameters)
@@ -148,6 +150,7 @@ class Preview(AttributeLoader, Status):
             self.TargetPathEntry.delete(0, END)
             self.TargetPathEntry.insert(END, self.target_path)
             self.TargetPathEntry.configure(state=DISABLED)
+            self._previews.clear()
 
     @staticmethod
     def render_image_preview(frame: typing.Frame) -> PhotoImage:
