@@ -2,6 +2,7 @@ import os.path
 import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
 from tkinter.ttk import Progressbar
+from typing import List, Tuple
 
 import cv2
 
@@ -9,8 +10,10 @@ from PIL import Image, ImageTk
 from PIL.ImageTk import PhotoImage
 from customtkinter import CTkLabel, CTk, CTkSlider
 
+from sinner import typing
 from sinner.Core import Core
 from sinner.Status import Status, Mood
+from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.utilities import is_image, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
@@ -19,7 +22,10 @@ from sinner.validators.AttributeLoader import Rules, AttributeLoader
 class Preview(AttributeLoader, Status):
     #  window controls
     PreviewWindow: CTk = CTk()
+    PreviewFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
+    PreviewFrames: ImageList = ImageList(parent=PreviewWindow)
+
     NavigateSliderFrame: Frame = Frame(PreviewWindow, borderwidth=2)
     NavigateSlider: CTkSlider = CTkSlider(NavigateSliderFrame, to=0)
     NavigatePositionLabel: Label = Label(NavigateSliderFrame)
@@ -43,6 +49,7 @@ class Preview(AttributeLoader, Status):
     source_path: str = ''
     target_path: str = ''
     _extractor_handler: BaseFrameHandler | None = None
+    _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
 
     def rules(self) -> Rules:
         return [
@@ -68,6 +75,8 @@ class Preview(AttributeLoader, Status):
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
         self.PreviewFrameLabel.bind("<Button-3>", lambda event: self.change_target())
         self.PreviewFrameLabel.pack(fill='both', expand=True)
+        # init generated frames list
+        self.PreviewFrames.pack(fill='both', expand=True)
         # init slider
         self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
         self.update_slider()
@@ -141,11 +150,32 @@ class Preview(AttributeLoader, Status):
             self.TargetPathEntry.configure(state=DISABLED)
 
     @staticmethod
-    def render_image_preview(frame: Frame) -> PhotoImage:
+    def render_image_preview(frame: typing.Frame) -> PhotoImage:
         return PhotoImage(Image.fromarray(frame))
 
+    def get_frames(self, frame_number: int = 0, processed: bool = False) -> List[Tuple[typing.Frame, str]]:
+        saved_frames = self._previews.get(frame_number)
+        if not saved_frames and processed:
+            self._previews[frame_number] = self.core.get_frame(frame_number, self.frame_handler, processed)
+        return [saved_frames[0]] if saved_frames else self.core.get_frame(frame_number, self.frame_handler, processed)
+
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
-        frame = self.core.get_frame(frame_number, self.frame_handler, processed)
+        frames = self.get_frames(frame_number, processed)
+        if frames:
+            if processed:
+                self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames])
+                self.show_frame(frames[-1][0])
+            else:
+                self.show_frame(frames[0][0])
+        else:
+            self.show_frame()
+
+    def show_saved(self, frame_number: int, thumbnail_index: int) -> None:
+        frames = self._previews.get(frame_number)
+        if frames:
+            self.show_frame(frames[thumbnail_index][0])
+
+    def show_frame(self, frame: typing.Frame | None = None) -> None:
         if frame is not None:
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
