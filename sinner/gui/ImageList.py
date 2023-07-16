@@ -1,10 +1,11 @@
-from tkinter import Frame, Canvas, Scrollbar,  Label, Event, TOP, NW, HORIZONTAL
-from typing import List, Optional, Callable, Tuple
+import tkinter
+from tkinter import Frame, Canvas, Scrollbar, Label, Event, TOP, NW, HORIZONTAL, Misc
+from typing import List, Optional, Callable, Tuple, Any
 
 import cv2
 from PIL import ImageTk, Image
 from PIL.Image import Resampling
-from customtkinter import CTk
+from customtkinter import CTk, CTkLabel
 
 from sinner import typing
 
@@ -13,9 +14,9 @@ class FrameThumbnail:
     frame: typing.Frame
     caption: str = ''
     position: int
-    onclick: Callable[[int, int], None] | None = None
+    onclick: Callable[[int, int], None]
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -47,7 +48,7 @@ class ImageList(Frame):
 
         self.show(thumbnails)
 
-    def show(self, thumbnails: Optional[List[FrameThumbnail]] = None):
+    def show(self, thumbnails: Optional[List[FrameThumbnail]] = None) -> None:
         if thumbnails is not None:
             if not self.canvas.winfo_manager():
                 self.canvas.pack(side="top", fill="x", expand=True)
@@ -57,9 +58,9 @@ class ImageList(Frame):
                 photo = thumbnail.photo((self.width, self.height))
                 # self.canvas.configure(height=min(photo.width(), photo.height()))
                 image_label = Label(self.image_frame, text=thumbnail.caption, image=photo, compound=TOP)
-                image_label.image = photo
+                image_label.image = photo  # type: ignore[attr-defined]
                 image_label.grid(row=0, column=i, padx=10)
                 image_label.bind("<Button-1>", lambda event, index=i: thumbnail.onclick(thumbnail.position, index))
 
-    def on_frame_configure(self, event: Event):
+    def on_frame_configure(self) -> None:
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
