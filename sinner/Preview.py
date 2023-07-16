@@ -49,7 +49,7 @@ class Preview(AttributeLoader, Status):
     source_path: str = ''
     target_path: str = ''
     _extractor_handler: BaseFrameHandler | None = None
-    _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # second: frames
+    _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
 
     def rules(self) -> Rules:
         return [
@@ -153,15 +153,20 @@ class Preview(AttributeLoader, Status):
     def render_image_preview(frame: typing.Frame) -> PhotoImage:
         return PhotoImage(Image.fromarray(frame))
 
-    def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
+    def get_frames(self, frame_number: int = 0, processed: bool = False) -> List[Tuple[typing.Frame, str]]:
         saved_frames = self._previews.get(frame_number)
-        if not saved_frames or len(saved_frames) == 1:
+        if not saved_frames and processed:
             self._previews[frame_number] = self.core.get_frame(frame_number, self.frame_handler, processed)
-        frames = self._previews[frame_number]
+        return [saved_frames[0]] if saved_frames else self.core.get_frame(frame_number, self.frame_handler, processed)
+
+    def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
+        frames = self.get_frames(frame_number, processed)
         if frames:
-            thumbnails = [FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames]
-            self.PreviewFrames.show(thumbnails)
-            self.show_frame(frames[-1 if processed else 0][0])
+            if processed:
+                self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames])
+                self.show_frame(frames[-1][0])
+            else:
+                self.show_frame(frames[0][0])
         else:
             self.show_frame()
 
