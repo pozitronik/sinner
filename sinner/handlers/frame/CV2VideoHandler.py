@@ -44,8 +44,9 @@ class CV2VideoHandler(BaseFrameHandler):
 
     def detect_fc(self) -> int:  # this value can be inaccurate
         capture = self.open()
-        search_position = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-        step = int(search_position / 10) + 1
+        frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        search_position = frames_count
+        step = int(search_position / 20) + 1
         backward = True
         last_ret = False
         while True:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
@@ -60,6 +61,9 @@ class CV2VideoHandler(BaseFrameHandler):
                 backward = not backward
             last_ret = ret
             search_position = search_position - step if backward else search_position + step
+            if search_position >= frames_count:
+                search_position = frames_count
+                break
         capture.release()
         return search_position
 
