@@ -18,16 +18,21 @@ class FrameThumbnail:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def photo(self, size: tuple[int, int] = (600, 600), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
+    def photo(self, size: tuple[int, int] = (400, 400), resample: Resampling = Resampling.BICUBIC, reducing_gap: float = 2.0) -> ImageTk.PhotoImage:
         image = Image.fromarray(cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB))
         image.thumbnail(size, resample, reducing_gap)
         return ImageTk.PhotoImage(image)
 
 
 class ImageList(tk.Frame):
+    width: int
+    height: int
+
     def __init__(self, parent: tk.Widget, size: Tuple[int, int] = (400, 400), thumbnails: Optional[List[FrameThumbnail]] = None):
+        self.width = size[0]
+        self.height = size[1]
         tk.Frame.__init__(self, parent)
-        self.canvas: tk.Canvas = tk.Canvas(self, width=size[0], height=size[0])
+        self.canvas: tk.Canvas = tk.Canvas(self)
         self.scrollbar: tk.Scrollbar = tk.Scrollbar(self, orient="horizontal", command=self.canvas.xview)
         self.image_frame: tk.Frame = tk.Frame(self.canvas)
         self.caption_frame: tk.Frame = tk.Frame(self.canvas)
@@ -44,11 +49,12 @@ class ImageList(tk.Frame):
     def show(self, thumbnails: Optional[List[FrameThumbnail]] = None):
         if thumbnails is not None:
             if not self.canvas.winfo_manager():
-                self.canvas.pack(side="top", fill="both", expand=True)
+                self.canvas.pack(side="top", fill="x", expand=True)
                 self.scrollbar.pack(side="bottom", fill="x")
 
             for i, thumbnail in enumerate(thumbnails):
-                photo = thumbnail.photo()
+                photo = thumbnail.photo((self.width, self.height))
+                self.canvas.configure(height=min(photo.width(), photo.height()))
                 image_label = tk.Label(self.image_frame, image=photo)
                 image_label.image = photo
                 image_label.grid(row=0, column=i, padx=10)
