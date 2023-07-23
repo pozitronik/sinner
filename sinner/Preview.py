@@ -63,6 +63,16 @@ class Preview(AttributeLoader, Status):
             }
         ]
 
+    def key_release(self, event):
+        if event.keycode == 37 or event.keycode == 39:
+            self.update_preview(int(self.NavigateSlider.get()))
+
+    def key_press(self, event):
+        if event.keycode == 37:
+            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
+        if event.keycode == 39:
+            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
+
     def __init__(self, core: Core):
         self.core = core
         super().__init__(self.core.parameters)
@@ -70,6 +80,8 @@ class Preview(AttributeLoader, Status):
         self.PreviewWindow.title('😈sinner')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
         self.PreviewWindow.resizable(width=True, height=True)
+        self.PreviewWindow.bind("<KeyRelease>", lambda event: self.key_release(event))
+        self.PreviewWindow.bind("<KeyPress>", lambda event: self.key_press(event))
         # init gui
         self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
@@ -79,6 +91,7 @@ class Preview(AttributeLoader, Status):
         self.PreviewFrames.pack(fill='both', expand=True)
         # init slider
         self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
+        self.NavigateSlider.bind("<<Value>>", lambda event: self.key_release())
         self.update_slider()
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
