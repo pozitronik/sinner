@@ -14,6 +14,7 @@ IN_DIR = 'IN'
 
 class State(AttributeLoader, Status):
     source_path: str | None = None
+    initial_target_path: str | None = None
 
     _target_path: str | None = None
     frames_count: int
@@ -28,6 +29,10 @@ class State(AttributeLoader, Status):
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path'
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'initial_target_path'  # issue 29: need to know this parameter to avoid names collisions
             }
         ]
 
@@ -100,7 +105,11 @@ class State(AttributeLoader, Status):
         for any situation
         :return: adapted state path
         """
-        sub_path = (self.processor_name, os.path.basename(self.target_path or ''), os.path.basename(self.source_path or ''), dir_type)
+        if self.initial_target_path is not None:
+            target_path = os.path.basename(self.initial_target_path)
+        else:
+            target_path = os.path.basename(self.target_path or '')
+        sub_path = (self.processor_name, target_path, os.path.basename(self.source_path or ''), dir_type)
         return os.path.join(self.temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
