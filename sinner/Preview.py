@@ -1,8 +1,8 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event
 from tkinter.ttk import Progressbar
-from typing import List, Tuple
+from typing import List, Tuple, Generic
 
 import cv2
 
@@ -62,17 +62,6 @@ class Preview(AttributeLoader, Status):
                 'attribute': 'target_path'
             }
         ]
-
-    def key_release(self, event):
-        if event.keycode == 37 or event.keycode == 39:
-            self.update_preview(int(self.NavigateSlider.get()))
-
-    def key_press(self, event):
-        if event.keycode == 37:
-            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
-        if event.keycode == 39:
-            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
-        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
 
     def __init__(self, core: Core):
         self.core = core
@@ -231,3 +220,14 @@ class Preview(AttributeLoader, Status):
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler
+
+    def key_release(self, event: Event) -> None:  # type: ignore[type-arg]
+        if event.keycode == 37 or event.keycode == 39:
+            self.update_preview(int(self.NavigateSlider.get()))
+
+    def key_press(self, event: Event) -> None:  # type: ignore[type-arg]
+        if event.keycode == 37:
+            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
+        if event.keycode == 39:
+            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
+        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
