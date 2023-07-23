@@ -61,9 +61,8 @@ class CV2VideoHandler(BaseFrameHandler):
                 backward = not backward
             last_ret = ret
             search_position = search_position - step if backward else search_position + step
-            if search_position >= frames_count:
+            if search_position > frames_count:
                 search_position = frames_count
-                break
         capture.release()
         return search_position
 

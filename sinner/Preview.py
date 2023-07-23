@@ -1,6 +1,6 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event
 from tkinter.ttk import Progressbar
 from typing import List, Tuple
 
@@ -70,6 +70,8 @@ class Preview(AttributeLoader, Status):
         self.PreviewWindow.title('😈sinner')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
         self.PreviewWindow.resizable(width=True, height=True)
+        self.PreviewWindow.bind("<KeyRelease>", lambda event: self.key_release(event))
+        self.PreviewWindow.bind("<KeyPress>", lambda event: self.key_press(event))
         # init gui
         self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
@@ -172,6 +174,7 @@ class Preview(AttributeLoader, Status):
                 self.show_frame(frames[0][0])
         else:
             self.show_frame()
+        self.current_position.set(f'{frame_number}/{self.NavigateSlider.cget("to")}')
 
     def show_saved(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self._previews.get(frame_number)
@@ -217,3 +220,14 @@ class Preview(AttributeLoader, Status):
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler
+
+    def key_release(self, event: Event) -> None:  # type: ignore[type-arg]
+        if event.keycode == 37 or event.keycode == 39:
+            self.update_preview(int(self.NavigateSlider.get()))
+
+    def key_press(self, event: Event) -> None:  # type: ignore[type-arg]
+        if event.keycode == 37:
+            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
+        if event.keycode == 39:
+            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
+        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
