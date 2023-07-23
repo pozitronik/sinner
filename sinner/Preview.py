@@ -2,7 +2,7 @@ import os.path
 import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event
 from tkinter.ttk import Progressbar
-from typing import List, Tuple, Generic
+from typing import List, Tuple
 
 import cv2
 
