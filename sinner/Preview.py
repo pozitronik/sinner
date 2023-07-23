@@ -72,6 +72,7 @@ class Preview(AttributeLoader, Status):
             self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
         if event.keycode == 39:
             self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
+        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
 
     def __init__(self, core: Core):
         self.core = core
@@ -91,7 +92,6 @@ class Preview(AttributeLoader, Status):
         self.PreviewFrames.pack(fill='both', expand=True)
         # init slider
         self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
-        self.NavigateSlider.bind("<<Value>>", lambda event: self.key_release())
         self.update_slider()
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
@@ -185,6 +185,7 @@ class Preview(AttributeLoader, Status):
                 self.show_frame(frames[0][0])
         else:
             self.show_frame()
+        self.current_position.set(f'{frame_number}/{self.NavigateSlider.cget("to")}')
 
     def show_saved(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self._previews.get(frame_number)
