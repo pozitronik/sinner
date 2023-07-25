@@ -168,9 +168,9 @@ class State(AttributeLoader, Status):
             result = False
 
         #  check if the last file name in the processed sequence is right
-        last_file_name = max(os.scandir(self.out_dir), key=lambda entry: int(os.path.splitext(entry.name)[0])).name
-        if processed_frames_count != last_file_name:
-            self.update_status(message=f"Processed files count {last_file_name}, but expected {processed_frames_count}. Check in {self.out_dir} for it.", mood=Mood.BAD)
+        last_file_name = int(max(os.scandir(self.out_dir), key=lambda entry: int(os.path.splitext(entry.name)[0])).name.split('.')[0])
+        if self.frames_count != last_file_name:
+            self.update_status(message=f"Last processed frame is {last_file_name}, but expected {self.frames_count}. Check in {self.out_dir} for it.", mood=Mood.BAD)
             result = False
         #  check if all frames are non zero-sized
         zero_sized_files_count = 0
