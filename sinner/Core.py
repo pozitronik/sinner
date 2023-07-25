@@ -14,7 +14,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
+from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY, suggest_output_path
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -113,9 +113,10 @@ class Core(AttributeLoader, Status):
             if self.extract_frames:
                 temp_resources.append(state.in_dir)
 
-        if current_processor is not None:
+        if temp_resources is not []:
+            output_filename = current_processor.output_path if current_processor is not None else suggest_output_path(self.target_path)
             final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
-            if final_handler.result(from_dir=current_target_path, filename=current_processor.output_path, audio_target=self.target_path) is True:
+            if final_handler.result(from_dir=current_target_path, filename=output_filename, audio_target=self.target_path) is True:
                 if self.keep_frames is False:
                     self.update_status('Deleting temp resources')
                     delete_subdirectories(self.temp_dir, temp_resources)
