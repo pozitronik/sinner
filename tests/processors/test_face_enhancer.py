@@ -5,10 +5,10 @@ from gfpgan import GFPGANer  # type: ignore[attr-defined]
 from sinner.Parameters import Parameters
 
 from sinner.FaceAnalyser import FaceAnalyser
+from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import read_image
 from tests.constants import target_png, IMAGE_SHAPE, tmp_dir
 
 parameters: Namespace = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --target-path="{target_png}" --output-path="{tmp_dir}"').parameters
@@ -36,6 +36,6 @@ def test_init():
 
 
 def test_process_frame():
-    processed_frame = get_test_object().process_frame(read_image(target_png))
+    processed_frame = get_test_object().process_frame(CV2VideoHandler.read_image(target_png))
     assert (processed_frame, Frame)
     assert processed_frame.shape == IMAGE_SHAPE

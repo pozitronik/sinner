@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from sinner.Status import Status, Mood
+from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import Frame
-from sinner.utilities import write_image
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 OUT_DIR = 'OUT'
@@ -113,7 +113,7 @@ class State(AttributeLoader, Status):
         return os.path.join(self.temp_dir, *sub_path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
-        if not write_image(frame, self.get_frame_processed_name(index)):
+        if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(index)):
             raise Exception(f"Error saving frame: {self.get_frame_processed_name(index)}")
 
     #  Checks if some frame already processed

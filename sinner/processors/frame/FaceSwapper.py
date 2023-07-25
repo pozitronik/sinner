@@ -4,10 +4,11 @@ from argparse import Namespace
 import insightface
 
 from sinner.FaceAnalyser import FaceAnalyser
+from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Face, Frame, FaceSwapperType
-from sinner.utilities import conditional_download, read_image, get_app_dir, is_image, is_video, get_file_name
+from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, get_file_name
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -65,7 +66,7 @@ class FaceSwapper(BaseFrameProcessor):
     @property
     def source_face(self) -> Face | None:
         if self._source_face is None:
-            self._source_face = self.face_analyser.get_one_face(read_image(self.source_path))
+            self._source_face = self.face_analyser.get_one_face(CV2VideoHandler.read_image(self.source_path))
         return self._source_face
 
     @property
