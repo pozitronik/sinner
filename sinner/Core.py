@@ -33,7 +33,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core(AttributeLoader, Status):
     target_path: str
-    output_path: str | None
+    output_path: str
     frame_processor: List[str]
     frame_handler: str
     temp_dir: str
@@ -58,7 +58,6 @@ class Core(AttributeLoader, Status):
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
                 'default:': lambda: self.suggest_output_path(),
-                'default': None,
             },
             {
                 'parameter': 'frame-processor',
