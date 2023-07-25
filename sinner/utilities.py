@@ -209,12 +209,3 @@ def declared_attr_type(obj: object, attribute: str) -> Any:
     if attribute in declared_typed_variables:
         return declared_typed_variables[attribute]
     return None
-
-
-def suggest_output_path(target_path: str, output_path: str | None = None) -> str:
-    target_name, target_extension = os.path.splitext(os.path.basename(target_path))
-    if output_path is None:
-        return os.path.join(os.path.dirname(target_path), 'result-' + target_name + target_extension)
-    if os.path.isdir(output_path):
-        return os.path.join(output_path, 'result-' + target_name + target_extension)
-    return output_path

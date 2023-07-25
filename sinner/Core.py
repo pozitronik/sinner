@@ -14,7 +14,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY, suggest_output_path
+from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -33,6 +33,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 class Core(AttributeLoader, Status):
     target_path: str
+    output_path: str | None
     frame_processor: List[str]
     frame_handler: str
     temp_dir: str
@@ -52,6 +53,12 @@ class Core(AttributeLoader, Status):
                 'valid': lambda: os.path.exists(self.target_path),
                 'required': True,
                 'help': 'Select the target file or the directory'
+            },
+            {
+                'parameter': {'output', 'output-path'},
+                'attribute': 'output_path',
+                'default:': lambda: self.suggest_output_path(),
+                'default': None,
             },
             {
                 'parameter': 'frame-processor',
@@ -114,7 +121,7 @@ class Core(AttributeLoader, Status):
                 temp_resources.append(state.in_dir)
 
         if temp_resources is not []:
-            output_filename = current_processor.output_path if current_processor is not None else suggest_output_path(self.target_path)
+            output_filename = current_processor.output_path if current_processor is not None else self.output_path
             final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
             if final_handler.result(from_dir=current_target_path, filename=output_filename, audio_target=self.target_path) is True:
                 if self.keep_frames is False:
@@ -157,10 +164,18 @@ class Core(AttributeLoader, Status):
                     self.preview_processors[processor_name].load(self.parameters)
                     frame = self.preview_processors[processor_name].process_frame(frame)
                     result.append((frame, processor_name))
-            except Exception as exception:  # skip, if parameters is not enough for processors
+            except Exception as exception:  # skip, if parameters is not enough for processor
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 pass
         return result
 
     def stop(self) -> None:
         self._stop_flag = True
+
+    def suggest_output_path(self) -> str:
+        target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
+        if self.output_path is None:
+            return os.path.join(os.path.dirname(self.target_path), 'result-' + target_name + target_extension)
+        if os.path.isdir(self.output_path):
+            return os.path.join(self.output_path, 'result-' + target_name + target_extension)
+        return self.output_path
