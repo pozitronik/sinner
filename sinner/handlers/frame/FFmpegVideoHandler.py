@@ -62,7 +62,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
     def detect_fc(self) -> int:
         try:
             command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()
+            output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
             if 'N/A' == output:
                 return 1  # non-frame files, still processable
             return int(output)
