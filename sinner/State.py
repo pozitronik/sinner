@@ -3,7 +3,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List
 
-from sinner.Status import Status
+from sinner.Status import Status, Mood
 from sinner.typing import Frame
 from sinner.utilities import write_image
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
@@ -126,15 +126,23 @@ class State(AttributeLoader, Status):
     def is_finished(self) -> bool:
         return self.frames_count <= self.processed_frames_count != 0
 
+    @property
+    def processed_frames(self) -> List[str]:
+        return [os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")]
+
     #  Returns count of already processed frame for this target (0, if none).
     @property
     def processed_frames_count(self) -> int:
-        return len([os.path.join(self.out_dir, file) for file in os.listdir(self.out_dir) if file.endswith(".png")])
+        return len(self.processed_frames)
+
+    @property
+    def extracted_frames(self) -> List[str]:
+        return [os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir) if file.endswith(".png")]
 
     #  Returns count of already extracted frame for this target (0, if none).
     @property
     def extracted_frames_count(self) -> int:
-        return len([os.path.join(self.in_dir, file) for file in os.listdir(self.in_dir) if file.endswith(".png")])
+        return len(self.extracted_frames)
 
     #  Returns count of still unprocessed frame for this target (0, if none).
     @property
@@ -151,3 +159,25 @@ class State(AttributeLoader, Status):
         if self._zfill_length is None:
             self._zfill_length = len(str(self.frames_count))
         return self._zfill_length
+
+    def final_check(self) -> bool:
+        result = True
+        processed_frames_count = self.processed_frames_count
+        if not self.is_finished:
+            self.update_status(message=f"The final processing check failed: processing is done, but state is not finished. Check in {self.out_dir}, may be some frames lost?", mood=Mood.BAD)
+            result = False
+
+        #  check if the last file name in the processed sequence is right
+        last_file_name = int(max(os.scandir(self.out_dir), key=lambda entry: int(os.path.splitext(entry.name)[0])).name.split('.')[0])
+        if self.frames_count != last_file_name:
+            self.update_status(message=f"Last processed frame is {last_file_name}, but expected {self.frames_count}. Check in {self.out_dir} for it.", mood=Mood.BAD)
+            result = False
+        #  check if all frames are non zero-sized
+        zero_sized_files_count = 0
+        for file_path in self.processed_frames:
+            if os.path.getsize(file_path) == 0:
+                zero_sized_files_count += 1
+        if zero_sized_files_count > 0:
+            self.update_status(message=f"There is zero-sized files in {self.out_dir} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
+            result = False
+        return result

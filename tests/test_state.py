@@ -120,3 +120,31 @@ def test_states() -> None:
     assert state.is_finished is True
     assert state.processed_frames_count == 10
     assert state.unprocessed_frames_count == 0
+
+
+def test_final_check_ok():
+    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
+    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
+    assert state.final_check() is True
+
+
+def test_final_check_fail_state():
+    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
+    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
+    os.remove(os.path.join(state.out_dir, '05.png'))
+    assert state.final_check() is False
+
+
+def test_final_check_fail_last_file():
+    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
+    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
+    os.rename(src=os.path.join(state.out_dir, '10.png'), dst=os.path.join(state.out_dir, '11.png'))
+    assert state.final_check() is False
+
+
+def test_final_check_fail_zero_files():
+    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
+    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
+    with open(os.path.join(state.out_dir, '04.png'), 'r+') as file:
+        file.truncate(0)
+    assert state.final_check() is False
