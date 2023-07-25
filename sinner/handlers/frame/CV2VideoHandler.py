@@ -47,12 +47,13 @@ class CV2VideoHandler(BaseFrameHandler):
         frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
         search_position = frames_count
         step = int(search_position / 20) + 1
+        initial_step = step
         backward = True
         last_ret = False
         while True:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
             capture.set(cv2.CAP_PROP_POS_FRAMES, search_position - 1)
             ret, _ = capture.read()
-            if step == 1 and ret is True and last_ret is False:
+            if (step == 1 or step == initial_step) and ret is True and last_ret is False:
                 break
             if last_ret != ret:
                 step = int(step / 2)
