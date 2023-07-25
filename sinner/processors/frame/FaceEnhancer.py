@@ -25,7 +25,7 @@ class FaceEnhancer(BaseFrameProcessor):
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
                 'required': True,
-                'valid': lambda: is_image(self.target_path) or is_video(self.target_path),
+                'valid': lambda attribute_name, attribute_value: attribute_value is not None and (is_image(attribute_value) or is_video(attribute_value) or os.path.isdir(attribute_value)),
                 'help': 'Select the target file (image or video) or the directory'
             },
             {
