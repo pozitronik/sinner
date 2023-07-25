@@ -14,8 +14,6 @@ import psutil
 import tensorflow
 from tqdm import tqdm
 
-from sinner.typing import Frame
-
 TEMP_DIRECTORY = 'temp'
 
 
