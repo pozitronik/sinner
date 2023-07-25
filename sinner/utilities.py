@@ -9,11 +9,9 @@ import sys
 import urllib
 from typing import List, Literal, Any, get_type_hints
 
-import cv2
 import onnxruntime
 import psutil
 import tensorflow
-from numpy import uint8, fromfile
 from tqdm import tqdm
 
 from sinner.typing import Frame
@@ -75,25 +73,6 @@ def resolve_relative_path(path: str, from_file: str | None = None) -> str:
         except Exception:
             raise Exception("Can't find caller method")
     return os.path.abspath(os.path.join(os.path.dirname(from_file), path))  # type: ignore[arg-type]
-
-
-def read_image(path: str) -> Frame:
-    if platform.system().lower() == 'windows':  # issue #511
-        image = cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
-        if image.shape[2] == 4:  # fixes the alpha-channel issue
-            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-        return image
-    else:
-        return cv2.imread(path)
-
-
-def write_image(image: Frame, path: str) -> bool:
-    if platform.system().lower() == 'windows':  # issue #511
-        is_success, im_buf_arr = cv2.imencode(".png", image)
-        im_buf_arr.tofile(path)
-        return is_success
-    else:
-        return cv2.imwrite(path, image)
 
 
 def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 'dirty'] = 'rss', size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:

@@ -6,8 +6,9 @@ from typing import List
 
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import read_image, is_image
+from sinner.utilities import is_image
 
 
 class ImageHandler(BaseFrameHandler):
@@ -27,7 +28,7 @@ class ImageHandler(BaseFrameHandler):
         return [(1, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
-        return frame_number, read_image(self._target_path)
+        return frame_number, CV2VideoHandler.read_image(self._target_path)
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:

@@ -8,10 +8,11 @@ from tqdm import tqdm
 from argparse import Namespace
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
 from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
-from sinner.utilities import load_class, get_mem_usage, read_image, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
+from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
 
 
 class BaseFrameProcessor(ABC, AttributeLoader):
@@ -96,7 +97,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
             if isinstance(frame_data, int):
                 frame_num, frame = self.extract_frame_method(frame_data)
             else:
-                frame = read_image(frame_data[1])
+                frame = CV2VideoHandler.read_image(frame_data[1])
                 frame_num = frame_data[0]
             state.save_temp_frame(self.process_frame(frame), frame_num)
         except Exception as exception:
