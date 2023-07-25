@@ -8,12 +8,12 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import read_image
 from tests.constants import source_jpg, target_png, IMAGE_SHAPE, target_mp4, tmp_dir, TARGET_FC
 
 parameters: Namespace = Parameters(f'--frame-processor=DummyProcessor --execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"').parameters
@@ -61,7 +61,7 @@ def test_init():
 
 
 def test_process_frame():
-    processed_frame = get_test_object().process_frame(read_image(target_png))
+    processed_frame = get_test_object().process_frame(CV2VideoHandler.read_image(target_png))
     assert (processed_frame, Frame)
     assert processed_frame.shape == IMAGE_SHAPE
 
