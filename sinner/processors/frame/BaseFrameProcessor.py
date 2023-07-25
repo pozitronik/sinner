@@ -77,7 +77,7 @@ class BaseFrameProcessor(ABC, AttributeLoader):
         self.progress_callback = set_progress
         frames_handler.current_frame_index = state.processed_frames_count
         # todo: do not create on intermediate directory handler
-        frames_list: FramesDataType = frames_handler.get_frames_paths(state.in_dir)[state.processed_frames_count + 1:] if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
+        frames_list: FramesDataType = frames_handler.get_frames_paths(state.in_dir)[state.processed_frames_count:] if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
         with tqdm(
                 total=state.frames_count,
                 desc=desc, unit='frame',
