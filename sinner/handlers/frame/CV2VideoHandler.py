@@ -68,7 +68,7 @@ class CV2VideoHandler(BaseFrameHandler):
         return search_position
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        fc = self.detect_fc()
+        fc = self.fc
         i = self.current_frame_index
         #  fixme: do not ignore, if frames already ignored over the frame index
         with tqdm(
