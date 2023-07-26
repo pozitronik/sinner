@@ -71,7 +71,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
             return 0
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
+        filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(path).mkdir(parents=True, exist_ok=True)
         self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
@@ -83,7 +83,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")
-        filename_length = len(str(self.detect_fc()))  # a way to determine frame names length
+        filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
         command = ['-r', str(self.output_fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
                    'colorspace=bt709:iall=bt601-6-625:fast=1', filename]

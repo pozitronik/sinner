@@ -56,7 +56,10 @@ class CV2VideoHandler(BaseFrameHandler):
             capture.set(cv2.CAP_PROP_POS_FRAMES, search_position - 1)
             ret, _ = capture.read()
             if (step == 1 or step == initial_step) and ret is True and last_ret is False:
-                break
+                capture.set(cv2.CAP_PROP_POS_FRAMES, search_position)
+                check_ret, _ = capture.read()
+                if check_ret is False:
+                    break
             if last_ret != ret:
                 step = int(step / 2)
                 if step == 0:
@@ -70,7 +73,7 @@ class CV2VideoHandler(BaseFrameHandler):
         return search_position
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        fc = self.detect_fc()
+        fc = self.fc
         i = self.current_frame_index
         #  fixme: do not ignore, if frames already ignored over the frame index
         with tqdm(

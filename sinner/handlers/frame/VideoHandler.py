@@ -1,11 +1,9 @@
-from argparse import Namespace
-
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
 from sinner.validators.AttributeLoader import Rules
 
 
-class VideoHandler(CV2VideoHandler):
+class VideoHandler(CV2VideoHandler, FFmpegVideoHandler):
     keep_audio: bool
 
     fps: float
@@ -23,6 +21,6 @@ class VideoHandler(CV2VideoHandler):
         ]
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
-        if audio_target is not None and self.keep_audio:
-            return FFmpegVideoHandler(self._target_path, Namespace()).result(from_dir, filename, audio_target)
+        if FFmpegVideoHandler.available():
+            return FFmpegVideoHandler.result(self, from_dir, filename, audio_target)
         return super().result(from_dir, filename, audio_target)
