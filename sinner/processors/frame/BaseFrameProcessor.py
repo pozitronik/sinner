@@ -7,6 +7,7 @@ import torch
 from tqdm import tqdm
 from argparse import Namespace
 
+from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
@@ -15,7 +16,7 @@ from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
 from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
 
 
-class BaseFrameProcessor(ABC, AttributeLoader):
+class BaseFrameProcessor(ABC, AttributeLoader, Status):
     target_path: str
     output_path: str
     execution_provider: List[str]
@@ -68,7 +69,6 @@ class BaseFrameProcessor(ABC, AttributeLoader):
         if self.statistics['mem_rss_max'] < mem_rss:
             self.statistics['mem_rss_max'] = mem_rss
         if self.statistics['mem_vms_max'] < mem_vms:
-
             self.statistics['mem_vms_max'] = mem_vms
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
@@ -94,15 +94,17 @@ class BaseFrameProcessor(ABC, AttributeLoader):
 
     def process_frames(self, frame_data: FrameDataType, state: State) -> None:  # type: ignore[type-arg]
         try:
-            if isinstance(frame_data, int):
+            if isinstance(frame_data, int):  # frame number
                 frame_num, frame = self.extract_frame_method(frame_data)
-            else:
+            elif isinstance(frame_data, tuple):  # raw frame
                 frame = CV2VideoHandler.read_image(frame_data[1])
                 frame_num = frame_data[0]
+            else:
+                raise Exception(f"Unknown frame data type passed: {type(frame_data).__name__}")
             state.save_temp_frame(self.process_frame(frame), frame_num)
         except Exception as exception:
-            print(exception)
-            pass
+            self.update_status(message=str(exception), mood=Mood.BAD)
+            quit()
 
     def get_postfix(self, futures_length: int) -> dict[str, Any]:
         postfix = {

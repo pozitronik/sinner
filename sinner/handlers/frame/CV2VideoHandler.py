@@ -89,10 +89,13 @@ class CV2VideoHandler(BaseFrameHandler):
             filename_length = len(str(fc))  # a way to determine frame names length
             Path(path).mkdir(parents=True, exist_ok=True)
             while True or i <= fc:
+                frame: Frame
                 ret, frame = capture.read()
                 if not ret:
                     break
-                self.write_image(frame, os.path.join(path, str(i + 1).zfill(filename_length) + ".png"))
+                filename: str = os.path.join(path, str(i + 1).zfill(filename_length) + ".png")
+                if self.write_image(frame, filename) is False:
+                    raise Exception(f"Error writing {frame.nbytes} bytes to {filename}")
                 progress.update()
                 i += 1
             capture.release()
