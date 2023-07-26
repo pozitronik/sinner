@@ -9,7 +9,7 @@ from sinner.FaceAnalyser import FaceAnalyser
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import conditional_download, get_app_dir, is_image, is_video
+from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, is_absolute_path
 
 
 class FaceEnhancer(BaseFrameProcessor):
@@ -32,7 +32,7 @@ class FaceEnhancer(BaseFrameProcessor):
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
                 'default': lambda: self.suggest_output_path(),
-                'valid': lambda: os.path.isabs(self.output_path),
+                'valid': lambda: is_absolute_path(self.output_path),
                 'help': 'Select an output file or a directory'
             },
         ]

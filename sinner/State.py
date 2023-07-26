@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import Frame
+from sinner.utilities import is_absolute_path
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 OUT_DIR = 'OUT'
@@ -57,7 +58,7 @@ class State(AttributeLoader, Status):
 
     @temp_dir.setter
     def temp_dir(self, value: str | None) -> None:
-        if not os.path.isabs(value or ''):
+        if not is_absolute_path(value or ''):
             raise Exception("Relative paths is not supported")
         self._temp_dir = os.path.abspath(os.path.normpath(value or ''))
 

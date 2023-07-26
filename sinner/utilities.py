@@ -186,3 +186,8 @@ def declared_attr_type(obj: object, attribute: str) -> Any:
     if attribute in declared_typed_variables:
         return declared_typed_variables[attribute]
     return None
+
+
+# this method considers windows root paths (e.g. c:) as absolute
+def is_absolute_path(path: str) -> bool:
+    return os.path.isabs(path) or (len(path) >= 2 and path[1] == ':' and path[0].isalpha())

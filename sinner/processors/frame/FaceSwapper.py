@@ -8,7 +8,7 @@ from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Face, Frame, FaceSwapperType
-from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, get_file_name
+from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, get_file_name, is_absolute_path
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -39,7 +39,7 @@ class FaceSwapper(BaseFrameProcessor):
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
                 'default': lambda: self.suggest_output_path(),
-                'valid': lambda attribute_name, attribute_value: attribute_value is not None and os.path.isabs(attribute_value),
+                'valid': lambda attribute_name, attribute_value: attribute_value is not None and is_absolute_path(attribute_value),
                 'help': 'Select an output file or a directory'
             },
             {
