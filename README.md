@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/pozitronik/roop/actions/workflows/ci.yml/badge.svg)](https://github.com/pozitronik/roop/actions)
+
 # sinner: sinner is non exactly roop
 
 Deepfakes and more.
