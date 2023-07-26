@@ -69,7 +69,6 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
         if self.statistics['mem_rss_max'] < mem_rss:
             self.statistics['mem_rss_max'] = mem_rss
         if self.statistics['mem_vms_max'] < mem_vms:
-
             self.statistics['mem_vms_max'] = mem_vms
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
@@ -95,11 +94,13 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
 
     def process_frames(self, frame_data: FrameDataType, state: State) -> None:  # type: ignore[type-arg]
         try:
-            if isinstance(frame_data, int):
+            if isinstance(frame_data, int):  # frame number
                 frame_num, frame = self.extract_frame_method(frame_data)
-            else:
+            elif isinstance(frame_data, tuple):  # raw frame
                 frame = CV2VideoHandler.read_image(frame_data[1])
                 frame_num = frame_data[0]
+            else:
+                raise Exception(f"Unknown frame data type passed: {type(frame_data).__name__}")
             state.save_temp_frame(self.process_frame(frame), frame_num)
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)

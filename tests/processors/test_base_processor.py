@@ -78,9 +78,13 @@ def test_process_frames_in_mem():
     assert os.path.exists(out_dir) is False
     in_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/IN/')
     assert os.path.exists(in_dir) is False
-    get_test_object().process_frames(get_test_handler(), get_test_state())  # in memory
+    test_object: BaseFrameProcessor = get_test_object()
+    test_handler: BaseFrameHandler = get_test_handler()
+    test_object.extract_frame_method = test_handler.extract_frame
+    for frame_num in test_handler:
+        test_object.process_frames(frame_num, get_test_state())  # in memory
     processed_files = glob.glob(os.path.join(out_dir, '*.png'))
-    assert (len(processed_files),TARGET_FC)
+    assert (len(processed_files), TARGET_FC)
     assert os.path.exists(in_dir) is False
 
 
@@ -90,6 +94,9 @@ def test_process_frames():
     in_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/IN/')
     assert os.path.exists(in_dir) is False
     test_state: State = get_test_state()
-    get_test_object().process_frames(get_test_handler().get_frames_paths(test_state.in_dir), test_state)  # via frames
+    test_object: BaseFrameProcessor = get_test_object()
+    test_handler: BaseFrameHandler = get_test_handler()
+    for frame in test_handler.get_frames_paths(test_state.in_dir):
+        test_object.process_frames(frame, test_state)  # via frames
     assert (len(glob.glob(os.path.join(in_dir, '*.png'))), TARGET_FC)
     assert (len(glob.glob(os.path.join(out_dir, '*.png'))), TARGET_FC)
