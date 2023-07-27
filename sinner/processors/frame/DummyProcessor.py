@@ -31,5 +31,5 @@ class DummyProcessor(BaseFrameProcessor):
             return os.path.join(self.output_path, 'dummy-' + target_name + target_extension)
         return self.output_path
 
-    def process_frame(self, temp_frame: Frame) -> Frame:
-        return temp_frame
+    def process_frame(self, frame: Frame) -> Frame:
+        return frame

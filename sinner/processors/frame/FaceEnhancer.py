@@ -9,12 +9,14 @@ from sinner.FaceAnalyser import FaceAnalyser
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, is_absolute_path
+from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, is_absolute_path, is_float
 
 
 class FaceEnhancer(BaseFrameProcessor):
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
+
+    upscale: float
 
     _face_analyser: FaceAnalyser | None = None
     _face_enhancer: GFPGANer | None = None
@@ -34,6 +36,13 @@ class FaceEnhancer(BaseFrameProcessor):
                 'default': lambda: self.suggest_output_path(),
                 'valid': lambda: is_absolute_path(self.output_path),
                 'help': 'Select an output file or a directory'
+            },
+            {
+                'parameter': {'upscale'},
+                'attribute': 'upscale',
+                'default': 1,
+                'valid': lambda attribute, value: is_float(value),
+                'help': 'Select the upscale for FaceEnhancer'
             },
         ]
 
@@ -56,7 +65,7 @@ class FaceEnhancer(BaseFrameProcessor):
         if self._face_enhancer is None:
             with self.thread_lock:
                 model_path = get_app_dir('models/GFPGANv1.4.pth')
-                self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=1)  # type: ignore[attr-defined]
+                self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
         return self._face_enhancer
 
     def __init__(self, parameters: Namespace):
@@ -69,7 +78,7 @@ class FaceEnhancer(BaseFrameProcessor):
             _, _, temp_frame = self.face_enhancer.enhance(temp_frame)
         return temp_frame
 
-    def process_frame(self, temp_frame: Frame) -> Frame:
-        if self.face_analyser.get_one_face(temp_frame):
-            temp_frame = self.enhance_face(temp_frame)
-        return temp_frame
+    def process_frame(self, frame: Frame) -> Frame:
+        if self.face_analyser.get_one_face(frame):
+            frame = self.enhance_face(frame)
+        return frame
