@@ -18,8 +18,6 @@ class FrameResizer(BaseFrameProcessor):
     height_min: int
     width_min: int
 
-    _scale: float | None = None  # calculated scale
-
     def rules(self) -> Rules:
         return super().rules() + [
             {
@@ -105,24 +103,21 @@ class FrameResizer(BaseFrameProcessor):
 
     def calculate_scale(self, frame: Frame) -> float:
         current_height, current_width = frame.shape[:2]
-        if self._scale is None:
-            if self.height_max is not None and current_height > self.height_max and (self.height is None or self.height > self.height_max):
-                self.height = self.height_max
-            if self.width_max is not None and current_width > self.width_max and (self.width is None or self.width > self.width_max):
-                self.width = self.width_max
-            if self.height_min is not None and current_height < self.height_min and (self.height is None or self.height < self.height_min):
-                self.height = self.height_min
-            if self.width_min is not None and current_width < self.width_min and (self.width is None or self.width < self.width_min):
-                self.width = self.width_min
+        if self.height_max is not None and current_height > self.height_max and (self.height is None or self.height > self.height_max):
+            self.height = self.height_max
+        if self.width_max is not None and current_width > self.width_max and (self.width is None or self.width > self.width_max):
+            self.width = self.width_max
+        if self.height_min is not None and current_height < self.height_min and (self.height is None or self.height < self.height_min):
+            self.height = self.height_min
+        if self.width_min is not None and current_width < self.width_min and (self.width is None or self.width < self.width_min):
+            self.width = self.width_min
 
-            if self.height is not None or self.width is not None:
-                if self.height is not None:
-                    self._scale = self.height / current_height
-                else:
-                    self._scale = self.width / current_width
-            else:
-                self._scale = self.scale
-        return self._scale
+        if self.height is not None:
+            return self.height / current_height
+        elif self.width is not None:
+            return self.width / current_width
+        else:
+            return self.scale
 
     def suggest_output_path(self) -> str:
         target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
