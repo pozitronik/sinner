@@ -15,7 +15,7 @@ from sinner.Core import Core
 from sinner.Status import Status, Mood
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.utilities import is_image, is_video
+from sinner.utilities import is_image, is_video, is_int
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
@@ -48,6 +48,8 @@ class Preview(AttributeLoader, Status):
     current_position: StringVar = StringVar()
     source_path: str = ''
     target_path: str = ''
+    preview_max_width: float
+    preview_max_height: float
     _extractor_handler: BaseFrameHandler | None = None
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
 
@@ -60,7 +62,21 @@ class Preview(AttributeLoader, Status):
             {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path'
-            }
+            },
+            {
+                'parameter': {'preview-max-height'},
+                'attribute': 'preview_max_height',
+                'default': None,
+                'valid': lambda attribute, value: is_int(value),
+                'help': 'Maximum preview window height'
+            },
+            {
+                'parameter': {'preview-max-width'},
+                'attribute': 'preview_max_width',
+                'default': None,
+                'valid': lambda attribute, value: is_int(value),
+                'help': 'Maximum preview window width'
+            },
         ]
 
     def __init__(self, core: Core):
@@ -181,8 +197,19 @@ class Preview(AttributeLoader, Status):
         if frames:
             self.show_frame(frames[thumbnail_index][0])
 
+    def resize_frame(self, frame: typing.Frame) -> typing.Frame:
+        current_height, current_width = frame.shape[:2]
+        if self.preview_max_height is not None and current_height > self.preview_max_height:
+            scale = self.preview_max_height / current_height
+            frame = cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
+        if self.preview_max_width is not None and current_width > self.preview_max_width:
+            scale = self.preview_max_width / current_width
+            frame = cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
+        return frame
+
     def show_frame(self, frame: typing.Frame | None = None) -> None:
         if frame is not None:
+            frame = self.resize_frame(frame)
             image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
