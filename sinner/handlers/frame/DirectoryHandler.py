@@ -17,10 +17,12 @@ class DirectoryHandler(BaseFrameHandler):
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
 
-    def detect_fps(self) -> float:
+    @property
+    def fps(self) -> float:
         return 1  # todo
 
-    def detect_fc(self) -> int:
+    @property
+    def fc(self) -> int:
         return len(glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:

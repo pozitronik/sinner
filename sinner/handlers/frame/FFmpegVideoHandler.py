@@ -48,27 +48,32 @@ class FFmpegVideoHandler(BaseFrameHandler):
 
         super().__init__(target_path, parameters)
 
-    def detect_fps(self) -> float:
-        command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=avg_frame_rate', '-of', 'default=noprint_wrappers=1:nokey=1', self._target_path]
-        output = subprocess.check_output(command).decode().strip().split('/')
-        try:
-            numerator, denominator = map(int, output)
-            return numerator / denominator
-        except Exception as exception:
-            self.update_status(message=str(exception), mood=Mood.BAD)
-            pass
-        return 30.0
+    @property
+    def fps(self) -> float:
+        if self._fps is None:
+            command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=avg_frame_rate', '-of', 'default=noprint_wrappers=1:nokey=1', self._target_path]
+            output = subprocess.check_output(command).decode().strip().split('/')
+            try:
+                numerator, denominator = map(int, output)
+                self._fps = numerator / denominator
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                self._fps = 30.0
+        return self._fps
 
-    def detect_fc(self) -> int:
-        try:
-            command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
-            output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
-            if 'N/A' == output:
-                return 1  # non-frame files, still processable
-            return int(output)
-        except Exception as exception:
-            self.update_status(message=str(exception), mood=Mood.BAD)
-            return 0
+    @property
+    def fc(self) -> int:
+        if self._fc is None:
+            try:
+                command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
+                if 'N/A' == output:
+                    return 1  # non-frame files, still processable
+                self._fc = int(output)
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                self._fc = 0
+        return self._fc
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         filename_length = len(str(self.fc))  # a way to determine frame names length

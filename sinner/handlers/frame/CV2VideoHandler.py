@@ -38,35 +38,40 @@ class CV2VideoHandler(BaseFrameHandler):
             raise Exception("Error opening frame file")
         return cap
 
-    def detect_fps(self) -> float:
-        capture = self.open()
-        fps = capture.get(cv2.CAP_PROP_FPS)
-        capture.release()
-        return fps
+    @property
+    def fps(self) -> float:
+        if self._fps is None:
+            capture = self.open()
+            self._fps = capture.get(cv2.CAP_PROP_FPS)
+            capture.release()
+        return self._fps
 
-    def detect_fc(self) -> int:  # this value can be inaccurate
+    @property
+    def fc(self) -> int:  # this value can be inaccurate
         def is_frame_readable(position: int) -> bool:
             capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)
             return capture.read()[0]
 
-        capture = self.open()
-        header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-        if is_frame_readable(header_frames_count):
-            return header_frames_count
-        else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
-            last_good_position = 1
-            last_bad_position = header_frames_count
-            current_position = int((last_bad_position - last_good_position) / 2)
-            while last_bad_position - last_good_position > 1:
-                if is_frame_readable(current_position):
-                    last_good_position = current_position
-                    current_position += int((last_bad_position - last_good_position) / 2)
-                else:
-                    last_bad_position = current_position
-                    current_position -= int((last_bad_position - last_good_position) / 2)
+        if self._fc is None:
+            capture = self.open()
+            header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+            if is_frame_readable(header_frames_count):
+                return header_frames_count
+            else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
+                last_good_position = 1
+                last_bad_position = header_frames_count
+                current_position = int((last_bad_position - last_good_position) / 2)
+                while last_bad_position - last_good_position > 1:
+                    if is_frame_readable(current_position):
+                        last_good_position = current_position
+                        current_position += int((last_bad_position - last_good_position) / 2)
+                    else:
+                        last_bad_position = current_position
+                        current_position -= int((last_bad_position - last_good_position) / 2)
 
-        capture.release()
-        return last_good_position
+            capture.release()
+            self._fc = last_good_position
+        return self._fc
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         fc = self.fc

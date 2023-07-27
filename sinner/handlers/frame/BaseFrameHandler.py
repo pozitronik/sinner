@@ -11,11 +11,11 @@ from sinner.utilities import load_class, get_file_name
 
 
 class BaseFrameHandler(AttributeLoader, Status, ABC):
-    fps: float
-    fc: int
     current_frame_index: int = 0
 
     _target_path: str
+    _fps: float | None = None
+    _fc: int | None = None
 
     def rules(self) -> Rules:
         return [
@@ -40,17 +40,17 @@ class BaseFrameHandler(AttributeLoader, Status, ABC):
 
     def __init__(self, target_path: str, parameters: Namespace):
         self._target_path = target_path
-        self.fps = self.detect_fps()
-        self.fc = self.detect_fc()
         super().__init__(parameters)
         self.update_status(f"Handle frames for {self._target_path} ({self.fc} frame(s)/{self.fps} FPS)")
 
+    @property
     @abstractmethod
-    def detect_fps(self) -> float:
+    def fps(self) -> float:
         pass
 
+    @property
     @abstractmethod
-    def detect_fc(self) -> int:
+    def fc(self) -> int:
         pass
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:

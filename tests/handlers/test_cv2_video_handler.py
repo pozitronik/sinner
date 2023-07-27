@@ -38,11 +38,11 @@ def test_available() -> None:
 
 
 def test_detect_fps() -> None:
-    assert TARGET_FPS == get_test_object().detect_fps()
+    assert TARGET_FPS == get_test_object().fps
 
 
 def test_detect_fc() -> None:
-    assert TARGET_FC == get_test_object().detect_fc()
+    assert TARGET_FC == get_test_object().fc
 
 
 def test_get_frames_paths() -> None:
