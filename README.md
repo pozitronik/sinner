@@ -47,14 +47,24 @@ Here is the list of all possible command-line parameters.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 * `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
 * `--gui`: starts in GUI mode (experimental).
+
+**FrameResizer:**
 * `--scale`: Scales output frames to certain float value. Example: `--scale=0.5` will halve frame in both size and `--scale=2` will zoom it twice. 
 * `--height`: Set output frames height to this integer value, the width also will be scaled proportional.
 * `--width`: Set output frames width to this integer value, the height also will be scaled proportional.
 * `--height-max`: Set output frames height to this integer value, but only if current frame height is greater. The width also will be scaled proportional.
 * `--width-max`: Set output frames width to this integer value, but only if current frame width is greater. The width also will be scaled proportional.
 * `--height-max`: Set output frames height to this integer value, but only if current frame height is smaller. The width also will be scaled proportional.
-  * `--width-max`: Set output frames width to this integer value, but only if current frame width is smaller. The width also will be scaled proportional.
-  **Note 1**: The size keys priority is: all `height` keys will be used in the first place; if they skipped, then all `width` keys will be used; and if no `height` or `width` keys are provided, then `scale` key is used. 
+* `--width-max`: Set output frames width to this integer value, but only if current frame width is smaller. The width also will be scaled proportional.
+**Note**: The size keys priority is: all `height` keys will be used in the first place; if they skipped, then all `width` keys will be used; and if no `height` or `width` keys are provided, then `scale` key is used.
+
+**FaceEnhancer:**
+* `--upscale`: Scales output frames to certain float value. Example: `--scale=0.5` will halve frame in both size and `--scale=2` will zoom it twice.
+**Note**: You can combine this parameter with `FrameResizer` scaling possibilities. As example:
+```cmd
+python run.py --target="d:\videos\not_a_porn.mp4" --frame-processor FrameResizer FaceEnhancer --output="d:\results\result.mp4" --scale=0.5 --upscale=2
+```
+Thus, all frames will be halved before enhancing, and restored to original size with FaceEnhancer with its magic. The profit is that the processing of smaller frames can be faster. 
 
 ## Built-in frame processors
 
@@ -62,8 +72,9 @@ There are modules named frame processors, and each processor can perform its own
 you want to use, and provide them with some sources to work on. Here is the list of built-in frame processors: 
 - `FaceSwapper`: performs face-swapping deepfake magic. It substitutes a face from the `source` to a face (or faces) in the `target`. The processor is based on the [insightface project example](https://github.com/deepinsight/insightface/blob/master/examples/in_swapper/inswapper_main.py) code.
 ![FaceSwapper demo](/demos/swapper-demo.gif)
-- `FaceEnhancer`: performs face restoration and enhances the quality magic of the `target`. The processor is based on the libraries of the [ARC Lab GFPGAN project](https://github.com/TencentARC/GFPGAN).
+- `FaceEnhancer`: performs face restoration and enhances the quality of the `target`. The processor is based on the libraries of the [ARC Lab GFPGAN project](https://github.com/TencentARC/GFPGAN).
 ![FaceEnhancer demo](/demos/enhancer-demo.jpg)
+- `FrameResizer`: resizes frames to certain size.
 - `DummyProcessor`: literally does nothing; it is just a test tool.
 
 ## Command line usage examples
