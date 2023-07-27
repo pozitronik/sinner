@@ -13,6 +13,10 @@ class FrameResizer(BaseFrameProcessor):
     scale: float
     height: int
     width: int
+    height_max: int
+    width_max: int
+    height_min: int
+    width_min: int
 
     _scale: float | None = None  # calculated scale
 
@@ -53,6 +57,34 @@ class FrameResizer(BaseFrameProcessor):
                 'valid': lambda attribute, value: self.is_int(value),
                 'help': 'Select resize width'
             },
+            {
+                'parameter': {'height-max'},
+                'attribute': 'height_max',
+                'default': None,
+                'valid': lambda attribute, value: self.is_int(value),
+                'help': 'Select maximal allowed height'
+            },
+            {
+                'parameter': {'width-max'},
+                'attribute': 'width_max',
+                'default': None,
+                'valid': lambda attribute, value: self.is_int(value),
+                'help': 'Select maximal allowed width'
+            },
+            {
+                'parameter': {'height-min'},
+                'attribute': 'height_min',
+                'default': None,
+                'valid': lambda attribute, value: self.is_int(value),
+                'help': 'Select minimal allowed height'
+            },
+            {
+                'parameter': {'width-min'},
+                'attribute': 'width_min',
+                'default': None,
+                'valid': lambda attribute, value: self.is_int(value),
+                'help': 'Select minimal allowed width'
+            },
         ]
 
     @staticmethod
@@ -72,9 +104,18 @@ class FrameResizer(BaseFrameProcessor):
             return False
 
     def calculate_scale(self, frame: Frame) -> float:
+        current_height, current_width = frame.shape[:2]
         if self._scale is None:
+            if self.height_max is not None and current_height > self.height_max and (self.height is None or self.height > self.height_max):
+                self.height = self.height_max
+            if self.width_max is not None and current_width > self.width_max and (self.width is None or self.width > self.width_max):
+                self.width = self.width_max
+            if self.height_min is not None and current_height < self.height_min and (self.height is None or self.height < self.height_min):
+                self.height = self.height_min
+            if self.width_min is not None and current_width < self.width_min and (self.width is None or self.width < self.width_min):
+                self.width = self.width_min
+
             if self.height is not None or self.width is not None:
-                current_height, current_width = frame.shape[:2]
                 if self.height is not None:
                     self._scale = self.height / current_height
                 else:
