@@ -37,7 +37,7 @@ class FrameResizer(BaseFrameProcessor):
             {
                 'parameter': {'scale'},
                 'attribute': 'scale',
-                'default': 0.5,
+                'default': 1,
                 'valid': lambda attribute, value: self.is_float(value),
                 'help': 'Select frame resize scale'
             },
