@@ -29,30 +29,6 @@ In short, you need to install python 3.9 or a later version, VC runtimes, and de
 Go to application folder and run `python run.py` with desired set of command-line parameters (or just pick one of the [example](#command-line-usage-examples) and make changes to suit your need).
 
 Here is the list of all possible command-line parameters. 
-```
-  -h, --help            show this help message and exit
-  --source SOURCE_PATH  select an source
-  --target TARGET_PATH  select an target
-  --output OUTPUT_PATH  select output file or directory
-  --frame-processor {DummyProcessor,FaceEnhancer,FaceSwapper} [{DummyProcessor,FaceEnhancer,FaceSwapper} ...]
-                        pipeline of frame processors
-  --frame-handler {CV2VideoHandler,DirectoryHandler,FFmpegVideoHandler,ImageHandler}
-                        frame engine
-  --fps FPS             set output frame fps
-  --keep-audio          keep original audio
-  --keep-frames         keep temporary frames
-  --many-faces          process every face
-  --max-memory MAX_MEMORY
-                        limit of RAM usage in GB
-  --execution-provider {tensorrt,cuda,cpu} [{tensorrt,cuda,cpu} ...]
-                        execution provider
-  --execution-threads EXECUTION_THREADS
-                        number of execution threads
-  --extract-frames      extract video frames before processing
-  --temp-dir TEMP_DIR   temp directory
-  --benchmark           run a benchmark on a selected frame processor
-  --gui                 start in GUI mode
-```
 * `--source`: the image file containing a face, which will be used for deepfake magic.
 * `--target`: an image, a video file, or a directory with PNG images for processing.
 * `--output`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
@@ -71,6 +47,14 @@ Here is the list of all possible command-line parameters.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 * `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
 * `--gui`: starts in GUI mode (experimental).
+* `--scale`: Scales output frames to certain float value. Example: `--scale=0.5` will halve frame in both size and `--scale=2` will zoom it twice. 
+* `--height`: Set output frames height to this integer value, the width also will be scaled proportional.
+* `--width`: Set output frames width to this integer value, the height also will be scaled proportional.
+* `--height-max`: Set output frames height to this integer value, but only if current frame height is greater. The width also will be scaled proportional.
+* `--width-max`: Set output frames width to this integer value, but only if current frame width is greater. The width also will be scaled proportional.
+* `--height-max`: Set output frames height to this integer value, but only if current frame height is smaller. The width also will be scaled proportional.
+  * `--width-max`: Set output frames width to this integer value, but only if current frame width is smaller. The width also will be scaled proportional.
+  **Note 1**: The size keys priority is: all `height` keys will be used in the first place; if they skipped, then all `width` keys will be used; and if no `height` or `width` keys are provided, then `scale` key is used. 
 
 ## Built-in frame processors
 
