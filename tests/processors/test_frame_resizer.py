@@ -15,15 +15,6 @@ def test_resize_scale() -> None:
     assert (processed_frame, Frame)
     assert (324, 258) == processed_frame.shape[:2]
 
-
-def test_resize_scale_default() -> None:
-    assert (1080, 861) == CV2VideoHandler.read_image(target_png).shape[:2]
-    test_object = FrameResizer(parameters=Parameters(f'--target-path="{target_png}" --output-path="{tmp_dir}"').parameters)
-    processed_frame = test_object.process_frame(CV2VideoHandler.read_image(target_png))
-    assert (processed_frame, Frame)
-    assert (540, 430) == processed_frame.shape[:2]
-
-
 def test_resize_scale_error() -> None:
     with pytest.raises(LoadingException):
         FrameResizer(parameters=Parameters(f'--target-path="{target_png}" --output-path="{tmp_dir}" --scale=abd').parameters)

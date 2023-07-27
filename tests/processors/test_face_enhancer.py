@@ -46,4 +46,4 @@ def test_process_frame_upscale():
     test_object = FaceEnhancer(parameters=Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --target-path="{target_png}" --output-path="{tmp_dir}" --upscale=2').parameters)
     processed_frame = test_object.process_frame(CV2VideoHandler.read_image(target_png))
     assert (processed_frame, Frame)
-    assert processed_frame.shape == (2160, 1722)
+    assert processed_frame.shape[:2] == (2160, 1722)
