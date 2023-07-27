@@ -15,6 +15,7 @@ def test_resize_scale() -> None:
     assert (processed_frame, Frame)
     assert (324, 258) == processed_frame.shape[:2]
 
+
 def test_resize_scale_error() -> None:
     with pytest.raises(LoadingException):
         FrameResizer(parameters=Parameters(f'--target-path="{target_png}" --output-path="{tmp_dir}" --scale=abd').parameters)
