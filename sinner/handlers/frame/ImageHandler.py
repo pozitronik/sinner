@@ -18,10 +18,12 @@ class ImageHandler(BaseFrameHandler):
             raise Exception(f"{target_path} should point to a image file")
         super().__init__(target_path, parameters)
 
-    def detect_fps(self) -> float:
+    @property
+    def fps(self) -> float:
         return 1
 
-    def detect_fc(self) -> int:
+    @property
+    def fc(self) -> int:
         return 1
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
