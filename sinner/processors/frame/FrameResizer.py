@@ -6,7 +6,7 @@ import cv2
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, is_absolute_path
+from sinner.utilities import is_image, is_video, is_absolute_path, is_int, is_float
 
 
 class FrameResizer(BaseFrameProcessor):
@@ -38,68 +38,52 @@ class FrameResizer(BaseFrameProcessor):
                 'parameter': {'scale'},
                 'attribute': 'scale',
                 'default': 1,
-                'valid': lambda attribute, value: self.is_float(value),
+                'valid': lambda attribute, value: is_float(value),
                 'help': 'Select frame resize scale'
             },
             {
                 'parameter': {'height'},
                 'attribute': 'height',
                 'default': None,
-                'valid': lambda attribute, value: self.is_int(value),
+                'valid': lambda attribute, value: is_int(value),
                 'help': 'Select resize height'
             },
             {
                 'parameter': {'width'},
                 'attribute': 'width',
                 'default': None,
-                'valid': lambda attribute, value: self.is_int(value),
+                'valid': lambda attribute, value: is_int(value),
                 'help': 'Select resize width'
             },
             {
                 'parameter': {'height-max'},
                 'attribute': 'height_max',
                 'default': None,
-                'valid': lambda attribute, value: self.is_int(value),
+                'valid': lambda attribute, value: is_int(value),
                 'help': 'Select maximal allowed height'
             },
             {
                 'parameter': {'width-max'},
                 'attribute': 'width_max',
                 'default': None,
-                'valid': lambda attribute, value: self.is_int(value),
+                'valid': lambda attribute, value: is_int(value),
                 'help': 'Select maximal allowed width'
             },
             {
                 'parameter': {'height-min'},
                 'attribute': 'height_min',
                 'default': None,
-                'valid': lambda attribute, value: self.is_int(value),
+                'valid': lambda attribute, value: is_int(value),
                 'help': 'Select minimal allowed height'
             },
             {
                 'parameter': {'width-min'},
                 'attribute': 'width_min',
                 'default': None,
-                'valid': lambda attribute, value: self.is_int(value),
+                'valid': lambda attribute, value: is_int(value),
                 'help': 'Select minimal allowed width'
             },
         ]
-
-    @staticmethod
-    def is_float(value: str) -> bool:
-        try:
-            float(value)
-            return True
-        except ValueError:
-            return False
-
-    @staticmethod
-    def is_int(value: str) -> bool:
-        try:
-            int(value)
-            return True
-        except ValueError:
-            return False
 
     def calculate_scale(self, frame: Frame) -> float:
         current_height, current_width = frame.shape[:2]

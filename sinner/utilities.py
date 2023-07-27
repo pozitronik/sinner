@@ -191,3 +191,19 @@ def declared_attr_type(obj: object, attribute: str) -> Any:
 # this method considers windows root paths (e.g. c:) as absolute
 def is_absolute_path(path: str) -> bool:
     return os.path.isabs(path) or (len(path) >= 2 and path[1] == ':' and path[0].isalpha())
+
+
+def is_float(value: str) -> bool:
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
+def is_int(value: str) -> bool:
+    try:
+        int(value)
+        return True
+    except ValueError:
+        return False
