@@ -45,32 +45,28 @@ class CV2VideoHandler(BaseFrameHandler):
         return fps
 
     def detect_fc(self) -> int:  # this value can be inaccurate
+        def is_frame_readable(position: int) -> bool:
+            capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)
+            return capture.read()[0]
+
         capture = self.open()
-        frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-        search_position = frames_count
-        step = int(search_position / 20) + 1
-        initial_step = step
-        backward = True
-        last_ret = False
-        while True:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
-            capture.set(cv2.CAP_PROP_POS_FRAMES, search_position - 1)
-            ret, _ = capture.read()
-            if (step == 1 or step == initial_step) and ret is True and last_ret is False:
-                capture.set(cv2.CAP_PROP_POS_FRAMES, search_position)
-                check_ret, _ = capture.read()
-                if check_ret is False:
-                    break
-            if last_ret != ret:
-                step = int(step / 2)
-                if step == 0:
-                    step = 1
-                backward = not backward
-            last_ret = ret
-            search_position = search_position - step if backward else search_position + step
-            if search_position > frames_count:
-                search_position = frames_count
+        header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+        if is_frame_readable(header_frames_count):
+            return header_frames_count
+        else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
+            last_good_position = 1
+            last_bad_position = header_frames_count
+            current_position = int((last_bad_position - last_good_position) / 2)
+            while last_bad_position - last_good_position > 1:
+                if is_frame_readable(current_position):
+                    last_good_position = current_position
+                    current_position += int((last_bad_position - last_good_position) / 2)
+                else:
+                    last_bad_position = current_position
+                    current_position -= int((last_bad_position - last_good_position) / 2)
+
         capture.release()
-        return search_position
+        return last_good_position
 
     def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
         fc = self.fc
