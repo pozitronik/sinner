@@ -86,14 +86,14 @@ class FaceSwapper(BaseFrameProcessor):
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
         super().__init__(parameters=parameters)
 
-    def process_frame(self, temp_frame: Frame) -> Frame:
+    def process_frame(self, frame: Frame) -> Frame:
         if self.many_faces:
-            many_faces = self.face_analyser.get_many_faces(temp_frame)
+            many_faces = self.face_analyser.get_many_faces(frame)
             if many_faces:
                 for target_face in many_faces:
-                    temp_frame = self.face_swapper.get(temp_frame, target_face, self.source_face)
+                    frame = self.face_swapper.get(frame, target_face, self.source_face)
         else:
-            target_face = self.face_analyser.get_one_face(temp_frame)
+            target_face = self.face_analyser.get_one_face(frame)
             if target_face:
-                temp_frame = self.face_swapper.get(temp_frame, target_face, self.source_face)
-        return temp_frame
+                frame = self.face_swapper.get(frame, target_face, self.source_face)
+        return frame

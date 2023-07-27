@@ -89,7 +89,7 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
             self.multi_process_frame(frames_list=frames_list, state=state, process_frames=self.process_frames, progress=progress)
 
     @abstractmethod
-    def process_frame(self, temp_frame: Frame) -> Frame:
+    def process_frame(self, frame: Frame) -> Frame:
         pass
 
     def process_frames(self, frame_data: FrameDataType, state: State) -> None:  # type: ignore[type-arg]

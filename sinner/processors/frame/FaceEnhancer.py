@@ -69,7 +69,7 @@ class FaceEnhancer(BaseFrameProcessor):
             _, _, temp_frame = self.face_enhancer.enhance(temp_frame)
         return temp_frame
 
-    def process_frame(self, temp_frame: Frame) -> Frame:
-        if self.face_analyser.get_one_face(temp_frame):
-            temp_frame = self.enhance_face(temp_frame)
-        return temp_frame
+    def process_frame(self, frame: Frame) -> Frame:
+        if self.face_analyser.get_one_face(frame):
+            frame = self.enhance_face(frame)
+        return frame
