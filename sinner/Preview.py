@@ -64,14 +64,14 @@ class Preview(AttributeLoader, Status):
                 'attribute': 'target_path'
             },
             {
-                'parameter': {'preview-max-height'},
+                'parameter': {'preview-max-height', 'preview-height-max'},
                 'attribute': 'preview_max_height',
                 'default': None,
                 'valid': lambda attribute, value: is_int(value),
                 'help': 'Maximum preview window height'
             },
             {
-                'parameter': {'preview-max-width'},
+                'parameter': {'preview-max-width', 'preview-width-max'},
                 'attribute': 'preview_max_width',
                 'default': None,
                 'valid': lambda attribute, value: is_int(value),
