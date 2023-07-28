@@ -85,7 +85,7 @@ class State(AttributeLoader, Status):
             else:
                 target_path = os.path.basename(self.target_path or '')
             sub_path = (self.processor_name, target_path, os.path.basename(self.source_path or ''))
-            self._path = os.path.join(self.temp_dir, *sub_path)
+            self._path = os.path.abspath(os.path.join(self.temp_dir, *sub_path))
             self.make_path(self._path)
         return self._path
 
