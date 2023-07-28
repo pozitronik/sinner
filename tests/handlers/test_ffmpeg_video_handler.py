@@ -37,9 +37,9 @@ def test_get_frames_paths() -> None:
     frames_paths = get_test_object().get_frames_paths(path=tmp_dir)
     assert TARGET_FC == len(frames_paths)
     first_item = frames_paths[0]
-    assert (1, resolve_relative_path('../data/temp/01.png')) == first_item
+    assert (1, resolve_relative_path(os.path.join(tmp_dir, '01.png'))) == first_item
     last_item = frames_paths.pop()
-    assert (TARGET_FC, resolve_relative_path('../data/temp/10.png')) == last_item
+    assert (TARGET_FC, resolve_relative_path(os.path.join(tmp_dir, '10.png'))) == last_item
 
 
 def test_extract_frame() -> None:
