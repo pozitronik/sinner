@@ -15,6 +15,7 @@ class State(AttributeLoader, Status):
     initial_target_path: str | None = None
 
     _target_path: str | None = None
+    _path: str | None = None
     frames_count: int
     processor_name: str
     _temp_dir: str
@@ -78,12 +79,15 @@ class State(AttributeLoader, Status):
         for any situation
         :return: adapted state path
         """
-        if self.initial_target_path is not None:
-            target_path = os.path.basename(self.initial_target_path)
-        else:
-            target_path = os.path.basename(self.target_path or '')
-        sub_path = (self.processor_name, target_path, os.path.basename(self.source_path or ''))
-        return os.path.join(self.temp_dir, *sub_path)
+        if self._path is None:
+            if self.initial_target_path is not None:
+                target_path = os.path.basename(self.initial_target_path)
+            else:
+                target_path = os.path.basename(self.target_path or '')
+            sub_path = (self.processor_name, target_path, os.path.basename(self.source_path or ''))
+            self._path = os.path.join(self.temp_dir, *sub_path)
+            self.make_path(self._path)
+        return self._path
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
         if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(index)):
