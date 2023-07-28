@@ -106,7 +106,7 @@ class Core(AttributeLoader, Status):
             current_target_path = state.path
             temp_resources.append(state.path)
 
-        if temp_resources is not []:
+        if temp_resources is not []:  # todo: use VideoCreator instead of FrameHandler
             output_filename = current_processor.output_path if current_processor is not None else self.output_path
             final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
             if final_handler.result(from_dir=current_target_path, filename=output_filename, audio_target=self.target_path) is True:
