@@ -135,6 +135,7 @@ def test_list_parameter() -> None:
     assert test_object.list_attribute == [True]
 
 
+# noinspection PyArgumentList,PyUnresolvedReferences
 @pytest.mark.skip(reason="Feature not implemented")
 def test_dynamic_parameters_loading_defaults() -> None:
     test_object = TestInitAttribute()
@@ -163,6 +164,7 @@ def test_dynamic_parameters_loading_defaults() -> None:
     assert test_object.non_existent_parameter_type_required == 'something'
 
 
+# noinspection PyArgumentList,PyUnresolvedReferences
 @pytest.mark.skip(reason="Feature not implemented")
 def test_dynamic_parameters_loading() -> None:
     test_object = TestInitAttribute()

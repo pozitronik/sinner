@@ -19,11 +19,11 @@ def setup():
 
 def test_init() -> None:
     with pytest.raises(Exception):
-        ImageHandler(target_path='not_existed_directory')
+        ImageHandler(target_path='not_existed_directory', parameters=Namespace())
     with pytest.raises(Exception):
-        ImageHandler(target_path=target_mp4)
+        ImageHandler(target_path=target_mp4, parameters=Namespace())
     with pytest.raises(Exception):
-        ImageHandler(target_path=state_frames_dir)
+        ImageHandler(target_path=state_frames_dir, parameters=Namespace())
 
 
 def get_test_object() -> ImageHandler:
