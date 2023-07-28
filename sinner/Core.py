@@ -40,7 +40,6 @@ class Core(AttributeLoader, Status):
     keep_frames: bool
 
     parameters: Namespace
-    frame_handler: str
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
     preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
     _stop_flag: bool = False
@@ -108,7 +107,7 @@ class Core(AttributeLoader, Status):
 
         if temp_resources is not []:  # todo: use VideoCreator instead of FrameHandler
             output_filename = current_processor.output_path if current_processor is not None else self.output_path
-            final_handler = BaseFrameHandler.create(handler_name=self.frame_handler, parameters=self.parameters, target_path=self.target_path)
+            final_handler = self.suggest_handler(self.parameters, self.target_path)
             if final_handler.result(from_dir=current_target_path, filename=output_filename, audio_target=self.target_path) is True:
                 if self.keep_frames is False:
                     self.update_status('Deleting temp resources')
