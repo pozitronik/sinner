@@ -35,12 +35,12 @@ class Core(AttributeLoader, Status):
     target_path: str
     output_path: str
     frame_processor: List[str]
-    frame_handler: str
     temp_dir: str
     extract_frames: bool
     keep_frames: bool
 
     parameters: Namespace
+    frame_handler: str
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
     preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
     _stop_flag: bool = False
@@ -65,12 +65,6 @@ class Core(AttributeLoader, Status):
                 'required': True,
                 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
                 'help': 'Select the frame processor from available processors'
-            },
-            {
-                'parameter': 'frame-handler',
-                'default': lambda: self.suggest_handler(self.parameters, self.target_path).__class__.__name__,
-                'choices': list_class_descendants(resolve_relative_path('handlers/frame'), 'BaseFrameHandler'),
-                'help': 'Select the frame handler from available handlers'
             },
             {
                 'parameter': 'temp-dir',

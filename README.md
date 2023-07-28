@@ -33,7 +33,6 @@ Here is the list of all possible command-line parameters.
 * `--target`: an image, a video file, or a directory with PNG images for processing.
 * `--output`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
 * `--frame-processor`: the frame processor module or modules that you want to apply to your files. See the [built-in frame processors](#built-in-frame-processors) section for the list of built-in modules and their possibilities.
-* `--frame-handler`: a module to handle the `target`. In the most cases, you should omit that parameter (sinner will figure it out itself).
 * `--fps`: the parameter to set the frames per second (FPS) in the resulting video. If not provided, the resulting video's FPS will be the same as the `target`'s video (or 30, if an image directory is used as the `target`).
 * `--keep-audio`: defaults to `true`. Keeps the original audio in the resulting video.
 * `--keep-frames`: defaults to `false`. Keeps processed frames in the `temp-dir` after finishing.
