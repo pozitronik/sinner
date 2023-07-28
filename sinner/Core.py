@@ -72,11 +72,6 @@ class Core(AttributeLoader, Status):
                 'help': 'Select the directory for temporary files'
             },
             {
-                'parameter': 'extract-frames',
-                'default': False,
-                'help': 'Extract video frames before processing'
-            },
-            {
                 'parameter': 'keep-frames',
                 'default': False,
                 'help': 'Keep temporary frames'
