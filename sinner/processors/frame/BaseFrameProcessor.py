@@ -55,7 +55,14 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
                 'parameter': 'execution-threads',
                 'type': int,
                 'default': suggest_execution_threads()
-            }
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
+                'valid': lambda: os.path.exists(self.target_path),
+                'required': True,
+                'help': 'Select the target file or the directory'
+            },
         ]
 
     def __init__(self, parameters: Namespace) -> None:
@@ -72,7 +79,7 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
+    def process(self, frames_handler: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> bool:
         self.extract_frame_method = frames_handler.extract_frame
         self.progress_callback = set_progress
         frames_handler.current_frame_index = state.processed_frames_count
@@ -85,6 +92,8 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
                 initial=state.processed_frames_count,
         ) as progress:
             self.multi_process_frame(frames_iterator=frames_handler, state=state, process_frames=self.process_frames, progress=progress)
+        if not state.final_check():
+            raise Exception("Something went wrong on processed frames check")
 
     @abstractmethod
     def process_frame(self, frame: Frame) -> Frame:
