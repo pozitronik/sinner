@@ -110,7 +110,7 @@ class Core(AttributeLoader, Status):
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing with {state.processor_name}')
                 current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
-                current_processor.process(frames_handler=current_handler, state=state, desc=processor_name, extract_frames=self.extract_frames, set_progress=set_progress)
+                current_processor.process(frames_handler=current_handler, state=state, desc=processor_name, set_progress=set_progress)
                 current_processor.release_resources()
                 if not state.final_check():
                     raise Exception("Something went wrong on processed frames check")
