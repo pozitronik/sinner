@@ -35,7 +35,7 @@ class FrameExtractor(BaseFrameProcessor):
         super().__init__(parameters=parameters)
 
     def process(self, frames_handler: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
-        frames_handler.get_frames_paths(state.out_dir)[state.processed_frames_count:]
+        frames_handler.get_frames_paths(state.path)[state.processed_frames_count:]
 
     def process_frame(self, frame: Frame) -> Frame:
-        pass
+        return frame

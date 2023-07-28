@@ -114,10 +114,8 @@ class Core(AttributeLoader, Status):
                 current_processor.release_resources()
                 if not state.final_check():
                     raise Exception("Something went wrong on processed frames check")
-            current_target_path = state.out_dir
-            temp_resources.append(state.out_dir)
-            if self.extract_frames:
-                temp_resources.append(state.in_dir)
+            current_target_path = state.path
+            temp_resources.append(state.path)
 
         if temp_resources is not []:
             output_filename = current_processor.output_path if current_processor is not None else self.output_path
