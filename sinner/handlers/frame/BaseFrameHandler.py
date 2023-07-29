@@ -84,4 +84,4 @@ class BaseFrameHandler(AttributeLoader, Status, ABC):
         if self.current_frame_index >= self.fc:
             raise StopIteration
         self.current_frame_index += 1
-        return self.current_frame_index
+        return self.current_frame_index - 1  # zero-based
