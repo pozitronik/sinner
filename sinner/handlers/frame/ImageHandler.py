@@ -26,8 +26,8 @@ class ImageHandler(BaseFrameHandler):
     def fc(self) -> int:
         return 1
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        return [(1, self._target_path)]
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
+        return [(0, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, CV2VideoHandler.read_image(self._target_path)

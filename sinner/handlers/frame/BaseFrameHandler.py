@@ -53,9 +53,15 @@ class BaseFrameHandler(AttributeLoader, Status, ABC):
     def fc(self) -> int:
         pass
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
+        """
+        Returns all frames paths (extracting them into files, if needed). File names starting from zero index
+        :param path: the frames directory
+        :param frames_range: sets the range of returned (and extracted) frames
+        :return: list of requested frames
+        """
         frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path]
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path][frames_range[0]:frames_range[1]]
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> NumeratedFrame:

@@ -23,11 +23,14 @@ class DirectoryHandler(BaseFrameHandler):
 
     @property
     def fc(self) -> int:
-        return len(glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))
+        return len(list(filter(is_image, glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))))
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         frames_path = sorted(glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))
-        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_image(file_path)]
+        frames_path = list(filter(is_image, frames_path))
+        start_frame = frames_range[0] if frames_range[0] is not None else 0
+        stop_frame = frames_range[1] + 1 if frames_range[1] is not None else len(frames_path)
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_image(file_path)][start_frame:stop_frame]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         return frame_number, CV2VideoHandler.read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list

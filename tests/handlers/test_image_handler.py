@@ -46,7 +46,7 @@ def test_get_frames_paths() -> None:
     frames_paths = get_test_object().get_frames_paths(path=tmp_dir)
     assert 1 == len(frames_paths)
     first_item = frames_paths[0]
-    assert (1, target_png) == first_item
+    assert (0, target_png) == first_item
 
 
 def test_extract_frame() -> None:
