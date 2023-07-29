@@ -67,7 +67,7 @@ def test_process_frame():
 
 
 def test_process():
-    get_test_object().process(frames_handler=get_test_handler(), state=get_test_state())
+    get_test_object().process(frames=get_test_handler(), state=get_test_state())
     out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/', '*.png')
     processed_files = glob.glob(out_dir)
     assert (len(processed_files), 98)

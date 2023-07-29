@@ -139,7 +139,7 @@ class Benchmark(AttributeLoader, Status):
         )
         current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
         start_time = time.time_ns()
-        current_processor.process(frames_handler=current_handler, state=state, desc=processor_name)
+        current_processor.process(frames=current_handler, state=state, desc=processor_name)
         end_time = time.time_ns()
         self.release_resources()
         return end_time - start_time

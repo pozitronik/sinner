@@ -79,10 +79,10 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> bool:
-        self.extract_frame_method = frames_handler.extract_frame
+    def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> bool:
+        self.extract_frame_method = frames.extract_frame
         self.progress_callback = set_progress
-        frames_handler.current_frame_index = state.processed_frames_count
+        frames.current_frame_index = state.processed_frames_count
         # todo: do not create on intermediate directory handler
         with tqdm(
                 total=state.frames_count,
@@ -91,7 +91,7 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                 initial=state.processed_frames_count,
         ) as progress:
-            self.multi_process_frame(frames_iterator=frames_handler, state=state, process_frames=self.process_frames, progress=progress)
+            self.multi_process_frame(frames_iterator=frames, state=state, process_frames=self.process_frames, progress=progress)
         if not state.final_check():
             raise Exception("Something went wrong on processed frames check")
 

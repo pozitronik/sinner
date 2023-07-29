@@ -2,7 +2,6 @@ import os
 from argparse import Namespace
 from typing import Callable
 
-from sinner.Core import Core
 from sinner.State import State
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
@@ -36,7 +35,7 @@ class VideoCreator(BaseFrameProcessor):
     def __init__(self, parameters: Namespace):
         super().__init__(parameters=parameters)
 
-    def process(self, frames_handler: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
+    def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         handler = VideoHandler(self.target_path, self.parameters)  # todo: output format should be set via parameters
         handler.result(from_dir=state.target_path, filename=self.output_path, audio_target=self.target_path)
 
