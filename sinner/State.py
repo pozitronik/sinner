@@ -135,8 +135,14 @@ class State(AttributeLoader, Status):
             self.update_status(message=f"The final processing check failed: processing is done, but state is not finished. Check in {self.path}, may be some frames lost?", mood=Mood.BAD)
             result = False
 
+        def frame_index(entry: os.DirEntry) -> int:
+            try:
+                return int(os.path.splitext(entry.name)[0])
+            except Exception:
+                return -1
+
         #  check if the last file name in the processed sequence is right
-        last_file_name = int(max(os.scandir(self.path), key=lambda entry: int(os.path.splitext(entry.name)[0])).name.split('.')[0]) + 1  # zero-based names
+        last_file_name = int(max(os.scandir(self.path), key=lambda entry: frame_index(entry)).name.split('.')[0]) + 1  # zero-based index
         if self.frames_count != last_file_name:
             self.update_status(message=f"Last processed frame is {last_file_name}, but expected {self.frames_count}. Check in {self.path} for it.", mood=Mood.BAD)
             result = False
