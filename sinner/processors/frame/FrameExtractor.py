@@ -35,6 +35,7 @@ class FrameExtractor(BaseFrameProcessor):
         super().__init__(parameters=parameters)
 
     def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
+        state.path = os.path.abspath(os.path.join(state.temp_dir, self.__class__.__name__, os.path.basename(self.target_path)))
         frames.get_frames_paths(state.path, (state.processed_frames_count, None))
         if not state.final_check():
             raise Exception("Something went wrong on processed frames check")
