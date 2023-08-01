@@ -128,7 +128,7 @@ class Benchmark(AttributeLoader, Status):
 
     def benchmark(self) -> int:
         current_target_path = self.target_path
-        current_handler = Core.suggest_handler(self.parameters, current_target_path)
+        current_handler = Core.suggest_handler(current_target_path, self.parameters)
         processor_name = self.frame_processors[0]
         state = State(
             parameters=self.parameters,

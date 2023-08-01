@@ -243,7 +243,7 @@ class Preview(AttributeLoader, Status):
     def frame_handler(self) -> BaseFrameHandler | None:
         if self._extractor_handler is None:
             try:
-                self._extractor_handler = Core.suggest_handler(self.core.parameters, self.target_path)
+                self._extractor_handler = Core.suggest_handler(self.target_path, self.core.parameters)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler
