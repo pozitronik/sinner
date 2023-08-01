@@ -60,7 +60,7 @@ class Core(AttributeLoader, Status):
             },
             {
                 'parameter': 'frame-processor',
-                'default': ['FaceSwapper', 'ResultProcessor'],
+                'default': ['FaceSwapper'],
                 'required': True,
                 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
                 'help': 'Select the frame processor from available processors'
@@ -81,6 +81,8 @@ class Core(AttributeLoader, Status):
         self.parameters = parameters
         self.preview_processors = {}
         super().__init__(parameters)
+        if self.frame_processor and 'ResultProcessor' not in self.frame_processor:
+            self.frame_processor.append('ResultProcessor')
 
     def run(self, set_progress: Callable[[int], None] | None = None) -> None:
         self._stop_flag = False
