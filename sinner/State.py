@@ -135,7 +135,8 @@ class State(AttributeLoader, Status):
             self.update_status(message=f"The final processing check failed: processing is done, but state is not finished. Check in {self.path}, may be some frames lost?", mood=Mood.BAD)
             result = False
 
-        def frame_index(entry: os.DirEntry) -> int:
+        def frame_index(entry: os.DirEntry) -> int:  # type: ignore[type-arg]
+
             try:
                 return int(os.path.splitext(entry.name)[0])
             except Exception:
