@@ -93,8 +93,8 @@ def test_swap_enhance_mp4() -> None:
     limit_resources(suggest_max_memory())
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', '10.png')) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer', 'source.jpg', '10.png')) is False
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', '09.png')) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', '09.png')) is True
 
 
 def test_swap_enhance_mp4_extract() -> None:
