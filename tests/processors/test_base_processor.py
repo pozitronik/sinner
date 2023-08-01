@@ -67,17 +67,15 @@ def test_process_frame():
 
 
 def test_process():
-    get_test_object().process(frames_handler=get_test_handler(), state=get_test_state())
-    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/OUT/', '*.png')
+    get_test_object().process(frames=get_test_handler(), state=get_test_state())
+    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/', '*.png')
     processed_files = glob.glob(out_dir)
     assert (len(processed_files), 98)
 
 
-def test_process_frames_in_mem():
-    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/OUT/')
+def test_process_frames():
+    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/')
     assert os.path.exists(out_dir) is False
-    in_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/IN/')
-    assert os.path.exists(in_dir) is False
     test_object: BaseFrameProcessor = get_test_object()
     test_handler: BaseFrameHandler = get_test_handler()
     test_object.extract_frame_method = test_handler.extract_frame
@@ -85,18 +83,3 @@ def test_process_frames_in_mem():
         test_object.process_frames(frame_num, get_test_state())  # in memory
     processed_files = glob.glob(os.path.join(out_dir, '*.png'))
     assert (len(processed_files), TARGET_FC)
-    assert os.path.exists(in_dir) is False
-
-
-def test_process_frames():
-    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/OUT/')
-    assert os.path.exists(out_dir) is False
-    in_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/IN/')
-    assert os.path.exists(in_dir) is False
-    test_state: State = get_test_state()
-    test_object: BaseFrameProcessor = get_test_object()
-    test_handler: BaseFrameHandler = get_test_handler()
-    for frame in test_handler.get_frames_paths(test_state.in_dir):
-        test_object.process_frames(frame, test_state)  # via frames
-    assert (len(glob.glob(os.path.join(in_dir, '*.png'))), TARGET_FC)
-    assert (len(glob.glob(os.path.join(out_dir, '*.png'))), TARGET_FC)

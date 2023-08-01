@@ -27,7 +27,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
         ]
 
     def run(self, args: List[str]) -> bool:
-        commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
+        commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose', '-progress', 'pipe:1']
         commands.extend(args)
         self.update_status(message=' '.join(commands), mood=Mood.NEUTRAL)
         try:
@@ -75,10 +75,12 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._fc = 0
         return self._fc
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(path).mkdir(parents=True, exist_ok=True)
-        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
+        start_frame = frames_range[0] if frames_range[0] is not None else 0
+        stop_frame = frames_range[1] if frames_range[1] is not None else self.fc
+        self.run(['-i', self._target_path, '-vf', f"select='between(n,{start_frame},{stop_frame})'", '-vsync', '0', '-pix_fmt', 'rgb24', '-frame_pts', '1', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:

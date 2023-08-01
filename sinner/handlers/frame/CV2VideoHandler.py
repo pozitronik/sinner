@@ -73,32 +73,32 @@ class CV2VideoHandler(BaseFrameHandler):
             self._fc = last_good_position
         return self._fc
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        fc = self.fc
-        i = self.current_frame_index
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
+        start = frames_range[0] if frames_range[0] is not None else 0
+        stop = frames_range[1] if frames_range[1] is not None else self.fc - 1
         #  fixme: do not ignore, if frames already ignored over the frame index
         with tqdm(
-                total=self.fc,
+                total=stop - start,
                 desc='Extracting frame',
                 unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]',
-                initial=i
+                initial=start
         ) as progress:
             capture = self.open()
-            capture.set(cv2.CAP_PROP_POS_FRAMES, i)
-            filename_length = len(str(fc))  # a way to determine frame names length
+            capture.set(cv2.CAP_PROP_POS_FRAMES, start)
+            filename_length = len(str(self.fc))  # a way to determine frame names length
             Path(path).mkdir(parents=True, exist_ok=True)
-            while True or i <= fc:
+            while start <= stop:
                 frame: Frame
                 ret, frame = capture.read()
                 if not ret:
                     break
-                filename: str = os.path.join(path, str(i + 1).zfill(filename_length) + ".png")
+                filename: str = os.path.join(path, str(start).zfill(filename_length) + ".png")
                 if self.write_image(frame, filename) is False:
                     raise Exception(f"Error writing {frame.nbytes} bytes to {filename}")
                 progress.update()
-                i += 1
+                start += 1
             capture.release()
             frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
             return [(int(get_file_name(file_path)), file_path) for file_path in frames_path]

@@ -8,7 +8,6 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.Core import Core
-from sinner.State import IN_DIR, OUT_DIR
 from sinner.utilities import limit_resources, suggest_max_memory
 from sinner.validators.LoaderException import LoadingException
 from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC
@@ -94,10 +93,8 @@ def test_swap_enhance_mp4() -> None:
     limit_resources(suggest_max_memory())
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', OUT_DIR, '10.png')) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', OUT_DIR, '10.png')) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', IN_DIR)) is False  # those directories shouldn't create if frame extraction isn't requested
-    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer', IN_DIR, 'source.jpg', IN_DIR, '10.png')) is False
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceSwapper/target.mp4/source.jpg', '09.png')) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'FaceEnhancer/target.mp4/source.jpg', '09.png')) is True
 
 
 def test_swap_enhance_mp4_extract() -> None:
@@ -118,8 +115,8 @@ def test_dummy_mp4_extract_keep_frames() -> None:
     limit_resources(suggest_max_memory())
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', IN_DIR)) is True
-    assert len(glob.glob(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', IN_DIR, '*.png'))) == TARGET_FC
+    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4')) is True
+    assert len(glob.glob(os.path.join(tmp_dir, 'DummyProcessor', 'target.mp4', '*.png'))) == TARGET_FC
 
 
 def test_set_execution_provider(capsys) -> None:

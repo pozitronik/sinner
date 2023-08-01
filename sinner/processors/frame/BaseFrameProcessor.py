@@ -9,10 +9,9 @@ from argparse import Namespace
 
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 from sinner.State import State
-from sinner.typing import Frame, FramesDataType, FrameDataType, NumeratedFrame
+from sinner.typing import Frame, NumeratedFrame
 from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
 
 
@@ -56,7 +55,14 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
                 'parameter': 'execution-threads',
                 'type': int,
                 'default': suggest_execution_threads()
-            }
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path',
+                'valid': lambda: os.path.exists(self.target_path),
+                'required': True,
+                'help': 'Select the target file or the directory'
+            },
         ]
 
     def __init__(self, parameters: Namespace) -> None:
@@ -73,12 +79,11 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames_handler: BaseFrameHandler, state: State, extract_frames: bool = False, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
-        self.extract_frame_method = frames_handler.extract_frame
+    def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
+        self.extract_frame_method = frames.extract_frame
         self.progress_callback = set_progress
-        frames_handler.current_frame_index = state.processed_frames_count
+        frames.current_frame_index = state.processed_frames_count
         # todo: do not create on intermediate directory handler
-        frames_list: FramesDataType = frames_handler.get_frames_paths(state.in_dir)[state.processed_frames_count:] if extract_frames and isinstance(frames_handler, Iterable) else frames_handler
         with tqdm(
                 total=state.frames_count,
                 desc=desc, unit='frame',
@@ -86,21 +91,17 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                 initial=state.processed_frames_count,
         ) as progress:
-            self.multi_process_frame(frames_list=frames_list, state=state, process_frames=self.process_frames, progress=progress)
+            self.multi_process_frame(frames_iterator=frames, state=state, process_frames=self.process_frames, progress=progress)
+        if not state.final_check():
+            raise Exception("Something went wrong on processed frames check")
 
     @abstractmethod
     def process_frame(self, frame: Frame) -> Frame:
         pass
 
-    def process_frames(self, frame_data: FrameDataType, state: State) -> None:  # type: ignore[type-arg]
+    def process_frames(self, frame_num: int, state: State) -> None:  # type: ignore[type-arg]
         try:
-            if isinstance(frame_data, int):  # frame number
-                frame_num, frame = self.extract_frame_method(frame_data)
-            elif isinstance(frame_data, tuple):  # raw frame
-                frame = CV2VideoHandler.read_image(frame_data[1])
-                frame_num = frame_data[0]
-            else:
-                raise Exception(f"Unknown frame data type passed: {type(frame_data).__name__}")
+            frame_num, frame = self.extract_frame_method(frame_num)
             state.save_temp_frame(self.process_frame(frame), frame_num)
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
@@ -115,7 +116,7 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
             postfix['limit_reaches'] = self.statistics['limits_reaches']
         return postfix
 
-    def multi_process_frame(self, frames_list: FramesDataType, state: State, process_frames: Callable[[FrameDataType, State], None], progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, frames_iterator: Iterable[int], state: State, process_frames: Callable[[int, State], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
@@ -125,7 +126,7 @@ class BaseFrameProcessor(ABC, AttributeLoader, Status):
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
-            for frame in frames_list:
+            for frame in frames_iterator:
                 future: Future[None] = executor.submit(process_frames, frame, state)
                 future.add_done_callback(process_done)
                 futures.append(future)
