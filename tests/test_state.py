@@ -81,19 +81,19 @@ def test_states() -> None:
     assert state.processed_frames_count == 0
     assert state.unprocessed_frames_count == 10
 
-    copy_files(state_frames_dir, state.path, ['01.png'])
+    copy_files(state_frames_dir, state.path, ['00.png'])
     assert state.is_started is True
     assert state.is_finished is False
     assert state.processed_frames_count == 1
     assert state.unprocessed_frames_count == 9
 
-    copy_files(state_frames_dir, state.path, ['02.png', '03.png', '04.png', '05.png'])
+    copy_files(state_frames_dir, state.path, ['01.png', '02.png', '03.png', '04.png'])
     assert state.is_started is True
     assert state.is_finished is False
     assert state.processed_frames_count == 5
     assert state.unprocessed_frames_count == 5
 
-    copy_files(state_frames_dir, state.path, ['06.png', '07.png', '08.png', '09.png', '10.png'])
+    copy_files(state_frames_dir, state.path, ['05.png', '06.png', '07.png', '08.png', '09.png'])
     assert state.is_started is False
     assert state.is_finished is True
     assert state.processed_frames_count == 10
