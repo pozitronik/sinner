@@ -1,7 +1,10 @@
 import shlex
 import sys
 from argparse import ArgumentParser, Namespace
+from configparser import ConfigParser
 from typing import List
+
+from sinner.utilities import get_app_dir
 
 
 class Parameters:
@@ -9,7 +12,18 @@ class Parameters:
     parameters: Namespace
 
     def __init__(self, command_line: str | None = None):
-        self.parameters = self.command_line_to_namespace(command_line)
+        self.parameters: Namespace = self.command_line_to_namespace(command_line)
+        if 'ini' in self.parameters:
+            config_name = self.parameters.inifile
+        else:
+            config_name = get_app_dir('sinner.ini')
+
+        config = ConfigParser()
+        config.read(config_name)
+        for section in config['sinner']:
+            for key in section:
+                if config['sinner'][key] not in self.parameters:
+                    self.parameters.key = config['sinner'][key]
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
