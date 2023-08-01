@@ -4,6 +4,7 @@ from typing import Callable
 
 from sinner.Core import Core
 from sinner.State import State
+from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import Frame
 from sinner.validators.AttributeLoader import Rules
@@ -43,7 +44,10 @@ class ResultProcessor(BaseFrameProcessor):
 
     def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         handler = Core.suggest_handler(self.target_path, self.parameters)  # todo: output format should be set via parameters
-        handler.result(from_dir=state.target_path, filename=self.output_path, audio_target=self.target_path)
+        if state.target_path is not None:
+            handler.result(from_dir=state.target_path, filename=self.output_path, audio_target=self.target_path)
+        else:
+            self.update_status('Target path is empty, ignoring', mood=Mood.BAD)
 
     def process_frame(self, frame: Frame) -> Frame:
         return frame
