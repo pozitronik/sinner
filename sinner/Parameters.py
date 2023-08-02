@@ -20,11 +20,12 @@ class Parameters:
 
         config = ConfigParser()
         config.read(config_name)
-        for key in config['sinner']:
-            value = config['sinner'][key]
-            key = key.replace('-', '_')
-            if key not in self.parameters:
-                self.parameters.__setattr__(key, value)
+        if config.has_section('sinner'):
+            for key in config['sinner']:
+                value = config['sinner'][key]
+                key = key.replace('-', '_')
+                if key not in self.parameters:
+                    self.parameters.__setattr__(key, value)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
