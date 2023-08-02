@@ -98,7 +98,7 @@ Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory usin
 
 ## Configuration file
 
-You can store commonly used options in the configuration file, to make them apply on every run by default. Just create `sinner.ini` file in the application directory and add desired parameters inside the `[sinner]` section as key-value pairs.
+You can store commonly used options in the configuration file, to make them apply on every run by default. Just edit `sinner.ini` file in the application directory and add desired parameters inside the `[sinner]` section as key-value pairs.
 
 Example:
 ```ini
