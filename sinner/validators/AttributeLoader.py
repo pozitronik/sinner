@@ -81,7 +81,7 @@ class AttributeLoader:
                 if isinstance(parameter, str):
                     parameter = [parameter]
                 if isinstance(parameter, (list, set)):
-                    if key in parameter or key.replace('-', '_') in parameter:
+                    if key in parameter or key.replace('-', '_') in parameter or key.replace('_', '-') in parameter:
                         return rule['attribute'] if 'attribute' in rule else list(parameter)[0].replace('-', '_')
             if 'attribute' in rule:
                 if rule['attribute'] == key.replace('-', '_'):
