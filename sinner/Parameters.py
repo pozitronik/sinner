@@ -1,7 +1,10 @@
 import shlex
 import sys
 from argparse import ArgumentParser, Namespace
+from configparser import ConfigParser
 from typing import List
+
+from sinner.utilities import get_app_dir
 
 
 class Parameters:
@@ -9,7 +12,20 @@ class Parameters:
     parameters: Namespace
 
     def __init__(self, command_line: str | None = None):
-        self.parameters = self.command_line_to_namespace(command_line)
+        self.parameters: Namespace = self.command_line_to_namespace(command_line)
+        if 'ini' in self.parameters:
+            config_name = self.parameters.ini
+        else:
+            config_name = get_app_dir('sinner.ini')
+
+        config = ConfigParser()
+        config.read(config_name)
+        if config.has_section('sinner'):
+            for key in config['sinner']:
+                value = config['sinner'][key]
+                key = key.replace('-', '_')
+                if key not in self.parameters:
+                    self.parameters.__setattr__(key, value)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
@@ -33,12 +49,12 @@ class Parameters:
 
         for parameter in result:
             if len(parameter) > 2:
-                setattr(processed_parameters, parameter[0].lstrip('-'), parameter[1:])
+                setattr(processed_parameters, parameter[0].lstrip('-').replace('-', '_'), parameter[1:])
             elif len(parameter) == 1 and '=' not in parameter[0]:
-                setattr(processed_parameters, parameter[0].lstrip('-'), True)
+                setattr(processed_parameters, parameter[0].lstrip('-').replace('-', '_'), True)
             else:  # 2 args
                 key, value = parameter[0].split('=') if '=' in parameter[0] else parameter
-                setattr(processed_parameters, key.lstrip('-'), value)
+                setattr(processed_parameters, key.lstrip('-').replace('-', '_'), value)
         return processed_parameters
 
     @staticmethod

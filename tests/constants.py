@@ -17,3 +17,5 @@ tmp_dir: str = resolve_relative_path('temp', get_app_dir())
 state_frames_dir: str = resolve_relative_path('data/frames', __file__)
 result_mp4: str = os.path.join(tmp_dir, 'result.mp4')
 result_png: str = os.path.join(tmp_dir, 'result.png')
+
+test_config: str = resolve_relative_path('data/test.ini', __file__)

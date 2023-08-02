@@ -26,13 +26,13 @@ In short, you need to install python 3.9 or a later version, VC runtimes, and de
 
 ## How do I use it?
 
-Go to application folder and run `python run.py` with desired set of command-line parameters (or just pick one of the [example](#command-line-usage-examples) and make changes to suit your need).
+Go to application folder and run `python run.py` with desired set of command-line parameters (or just pick one of [examples](#command-line-usage-examples) and make changes to suit your need).
 
 Here is the list of all possible command-line parameters. 
 * `--source`: the image file containing a face, which will be used for deepfake magic.
 * `--target`: an image, a video file, or a directory with PNG images for processing.
 * `--output`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
-* `--frame-processor`: the frame processor module or modules that you want to apply to your files. See the [built-in frame processors](#built-in-frame-processors) section for the list of built-in modules and their possibilities.
+* `--frame-processor`: the frame processor module or modules that you want to apply to your files. See the [Built-in frame processors](#built-in-frame-processors) section for the list of built-in modules and their possibilities.
 * `--fps`: the parameter to set the frames per second (FPS) in the resulting video. If not provided, the resulting video's FPS will be the same as the `target`'s video (or 30, if an image directory is used as the `target`).
 * `--keep-audio`: defaults to `true`. Keeps the original audio in the resulting video.
 * `--keep-frames`: defaults to `false`. Keeps processed frames in the `temp-dir` after finishing.
@@ -45,6 +45,7 @@ Here is the list of all possible command-line parameters.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 * `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
 * `--gui`: starts in GUI mode (experimental).
+* `--ini`: path to a custom configuration file, see the [Configuration file](#configuration-file) section.
 
 **FrameExtractor**
 Use this processor in the processing chain when using video file as the target to force sinner extract frames to a temporary folder as a sequence of PNG files. If not used, every frame will be extracted to a memory only by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
@@ -94,6 +95,26 @@ python run.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_
 Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory using the `cuda` provider and 8 simultaneous execution threads, with limit of 24 Gb RAM, and save every enhanced image to the `d:\pictures\pngs_dir\enhanced` directory.<br/>
 **Note 1**: only PNG images are supported at the moment.<br/>
 **Note 2**: even if the selected frame processor does not require a `source`, you should provide one at this time.
+
+## Configuration file
+
+You can store commonly used options in the configuration file, to make them apply on every run by default. Just edit `sinner.ini` file in the application directory and add desired parameters inside the `[sinner]` section as key-value pairs.
+
+Example:
+```ini
+[sinner]
+keep-frames=1
+many-faces=1
+execution-provider=gpu
+execution-threads=2
+```
+
+Any parameter set from command line will override corresponding parameter from the ini file.
+
+You also can pass path to the custom configuration file as a command line parameter:
+```cmd
+python run.py --ini="d:\path\custom.ini"
+```
 
 ## FAQ
 

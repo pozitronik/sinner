@@ -92,6 +92,7 @@ class State(AttributeLoader, Status):
     @path.setter
     def path(self, path: str) -> None:
         self._path = path
+        self.make_path(self._path)
 
     def save_temp_frame(self, frame: Frame, index: int) -> None:
         if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(index)):
