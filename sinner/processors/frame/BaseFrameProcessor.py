@@ -9,7 +9,7 @@ from argparse import Namespace
 
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.AttributeLoader import  Rules
 from sinner.State import State
 from sinner.typing import Frame, NumeratedFrame
 from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory

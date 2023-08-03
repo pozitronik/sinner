@@ -14,7 +14,7 @@ from sinner.Status import Status
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
-from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.AttributeLoader import Rules
 
 
 class Benchmark(Status):

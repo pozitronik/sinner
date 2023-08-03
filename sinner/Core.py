@@ -15,7 +15,7 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.State import State
 from sinner.typing import Frame
 from sinner.utilities import is_image, is_video, delete_subdirectories, list_class_descendants, resolve_relative_path, get_app_dir, TEMP_DIRECTORY
-from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.AttributeLoader import Rules
 
 # single thread doubles cuda performance - needs to be set before torch import
 if any(arg.startswith('--execution-provider') for arg in sys.argv):

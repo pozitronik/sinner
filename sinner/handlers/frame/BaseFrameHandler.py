@@ -5,7 +5,7 @@ from argparse import Namespace
 from typing import List
 
 from sinner.Status import Status
-from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.AttributeLoader import Rules
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 

@@ -16,7 +16,7 @@ from sinner.Status import Status, Mood
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.utilities import is_image, is_video, is_int
-from sinner.validators.AttributeLoader import Rules, AttributeLoader
+from sinner.validators.AttributeLoader import Rules
 
 
 class Preview(Status):

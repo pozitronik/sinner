@@ -7,7 +7,7 @@ from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import Frame
 from sinner.utilities import is_absolute_path
-from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.AttributeLoader import Rules
 
 
 class State(Status):
