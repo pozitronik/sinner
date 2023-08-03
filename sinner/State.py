@@ -110,7 +110,11 @@ class State(Status):
 
     @property
     def processed_frames(self) -> List[str]:
-        return [os.path.join(self.path, file) for file in os.listdir(self.path) if file.endswith(".png")]
+        png_files = []
+        for file in os.listdir(self.path):
+            if file.endswith(".png") and os.path.isfile(os.path.join(self.path, file)):
+                png_files.append(os.path.join(self.path, file))
+        return png_files
 
     #  Returns count of already processed frame for this target (0, if none).
     @property
@@ -143,9 +147,11 @@ class State(Status):
         def frame_index(entry: os.DirEntry) -> int:  # type: ignore[type-arg]
 
             try:
-                return int(os.path.splitext(entry.name)[0])
+                if os.path.isfile(entry.path):
+                    return int(os.path.splitext(entry.name)[0])
             except Exception:
-                return -1
+                pass
+            return -1
 
         #  check if the last file name in the processed sequence is right
         last_file_name = int(max(os.scandir(self.path), key=lambda entry: frame_index(entry)).name.split('.')[0]) + 1  # zero-based index
@@ -155,7 +161,7 @@ class State(Status):
         #  check if all frames are non zero-sized
         zero_sized_files_count = 0
         for file_path in self.processed_frames:
-            if os.path.getsize(file_path) == 0:
+            if os.path.isfile(file_path) and os.path.getsize(file_path) == 0:
                 zero_sized_files_count += 1
         if zero_sized_files_count > 0:
             self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
