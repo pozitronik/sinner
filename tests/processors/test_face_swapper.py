@@ -6,7 +6,7 @@ from sinner.FaceAnalyser import FaceAnalyser
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.typing import Frame, FaceSwapperType, Face
-from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir
+from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir, no_face_jpg
 
 parameters: Namespace = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path="{source_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"').parameters
 
@@ -27,6 +27,13 @@ def test_face_analysis():
     assert (face, Face)
     assert face.age == 31
     assert face.sex == 'F'
+
+
+def test_no_face_found(capsys):
+    face = FaceSwapper(parameters=Parameters(f'--source-path="{no_face_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"').parameters).source_face
+    assert face is None
+    captured: str = capsys.readouterr()
+    assert f'👿FaceSwapper: There is no face found on {no_face_jpg}' == captured.out.splitlines()[-1].strip()
 
 
 def test_process_frame():
