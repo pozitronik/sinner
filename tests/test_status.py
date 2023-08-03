@@ -34,6 +34,6 @@ def test_status_log() -> None:
 
 
 def test_status_error() -> None:
-    parameters: Namespace = Parameters(f'--log="incorrect:file\\path?"').parameters
+    parameters: Namespace = Parameters(f'--log="incorrect:file\\path*?"').parameters
     with pytest.raises(LoadingException):
         assert Status(parameters=parameters)
