@@ -10,7 +10,7 @@ from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 
 
-class BaseFrameHandler(AttributeLoader, Status, ABC):
+class BaseFrameHandler(Status, ABC):
     current_frame_index: int = 0
 
     _target_path: str

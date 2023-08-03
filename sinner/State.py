@@ -10,7 +10,7 @@ from sinner.utilities import is_absolute_path
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
-class State(AttributeLoader, Status):
+class State(Status):
     source_path: str | None = None
     initial_target_path: str | None = None
 

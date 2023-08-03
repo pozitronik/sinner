@@ -19,7 +19,7 @@ from sinner.utilities import is_image, is_video, is_int
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Preview(AttributeLoader, Status):
+class Preview(Status):
     #  window controls
     PreviewWindow: CTk = CTk()
     PreviewFrame: Frame = Frame(PreviewWindow, borderwidth=2)

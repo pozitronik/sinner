@@ -31,7 +31,7 @@ warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
-class Core(AttributeLoader, Status):
+class Core(Status):
     target_path: str
     output_path: str
     frame_processor: List[str]

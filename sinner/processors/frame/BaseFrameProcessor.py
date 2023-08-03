@@ -15,7 +15,7 @@ from sinner.typing import Frame, NumeratedFrame
 from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
 
 
-class BaseFrameProcessor(ABC, AttributeLoader, Status):
+class BaseFrameProcessor(ABC, Status):
     target_path: str
     output_path: str
     execution_provider: List[str]

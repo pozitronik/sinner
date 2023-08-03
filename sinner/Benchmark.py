@@ -17,7 +17,7 @@ from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
-class Benchmark(AttributeLoader, Status):
+class Benchmark(Status):
     source_path: str
     target_path: str
     output_path: str
