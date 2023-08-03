@@ -8,6 +8,7 @@ FRAME_SHAPE = (360, 640, 3)
 IMAGE_SHAPE = (1080, 861, 3)
 
 source_jpg: str = resolve_relative_path('data/sources/source.jpg', __file__)
+no_face_jpg: str = resolve_relative_path('data/sources/no_face.jpg', __file__)
 target_faces: str = resolve_relative_path('data/targets/faces.jpg', __file__)
 target_png: str = resolve_relative_path('data/targets/target.png', __file__)
 target_mp4: str = resolve_relative_path('data/targets/target.mp4', __file__)
