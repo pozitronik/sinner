@@ -45,7 +45,8 @@ Here is the list of all possible command-line parameters.
 * `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
 * `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
 * `--gui`: starts in GUI mode (experimental).
-* `--ini`: path to a custom configuration file, see the [Configuration file](#configuration-file) section.
+* `--ini`: optional path to a custom configuration file, see the [Configuration file](#configuration-file) section.
+* `--log`: optional path to a logfile where all status messages will be logged.
 
 **FrameExtractor**
 Use this processor in the processing chain when using video file as the target to force sinner extract frames to a temporary folder as a sequence of PNG files. If not used, every frame will be extracted to a memory only by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
