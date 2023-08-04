@@ -32,6 +32,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
 class Core(Status):
+    gui: bool
     target_path: str
     output_path: str
     frame_processor: List[str]
@@ -47,10 +48,14 @@ class Core(Status):
     def rules(self) -> Rules:
         return [
             {
+                'parameter': 'gui',
+                'default': False
+            },
+            {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
                 'valid': lambda: os.path.exists(self.target_path),
-                'required': True,
+                'required': lambda: not self.gui,
                 'help': 'Select the target file or the directory'
             },
             {
