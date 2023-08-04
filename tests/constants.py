@@ -16,6 +16,7 @@ source_target_png_result: str = resolve_relative_path('data/targets/source-targe
 source_target_mp4_result: str = resolve_relative_path('data/targets/source-target.mp4', __file__)  # auto result name for video swap
 tmp_dir: str = resolve_relative_path('temp', get_app_dir())
 state_frames_dir: str = resolve_relative_path('data/frames', __file__)
+images_dir: str = resolve_relative_path('data/images', __file__)
 result_mp4: str = os.path.join(tmp_dir, 'result.mp4')
 result_png: str = os.path.join(tmp_dir, 'result.png')
 
