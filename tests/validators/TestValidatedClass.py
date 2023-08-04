@@ -30,6 +30,25 @@ class TestRequiredValidation(AttributeLoader):
         ]
 
 
+class TestRequiredValidationLambda(AttributeLoader):
+    required_lambda_parameter: int = None
+    not_required_lambda_parameter: bool = None
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'required_lambda_parameter', 'required': lambda: self.valid_lambda()},  # required
+            {'parameter': 'not_required_lambda_parameter', 'required': lambda: self.invalid_lambda()},  # not required
+        ]
+
+    @staticmethod
+    def valid_lambda() -> bool:
+        return True
+
+    @staticmethod
+    def invalid_lambda() -> int:
+        return 0
+
+
 class TestUntypedAttribute(AttributeLoader):
     untyped_attribute: Any = None
 
