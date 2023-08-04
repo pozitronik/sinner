@@ -10,7 +10,7 @@ from sinner.Parameters import Parameters
 from sinner.Core import Core
 from sinner.utilities import limit_resources, suggest_max_memory
 from sinner.validators.LoaderException import LoadingException
-from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC
+from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC, images_dir, source_images_result
 
 threads_count = multiprocessing.cpu_count()
 
@@ -21,6 +21,8 @@ def setup():
         shutil.rmtree(tmp_dir)
     if os.path.exists(source_target_png_result):
         os.remove(source_target_png_result)
+    if os.path.exists(source_images_result):
+        os.remove(source_images_result)
     if os.path.exists(source_target_mp4_result):
         os.remove(source_target_mp4_result)
 
@@ -67,6 +69,18 @@ def test_swap_frames_to_mp4() -> None:
     limit_resources(suggest_max_memory())
     Core(parameters=params.parameters).run()
     assert os.path.exists(result_mp4) is True
+
+
+def test_swap_images() -> None:
+    assert os.path.exists(source_images_result) is False
+    original_images_names = glob.glob(os.path.join(images_dir, '*.jpg'))
+    params = Parameters(f'--target-path="{images_dir}" --source-path="{source_jpg}" --execution-treads={threads_count}')
+    limit_resources(suggest_max_memory())
+    Core(parameters=params.parameters).run()
+    assert os.path.exists(source_images_result) is True
+    result_image_names = glob.glob(os.path.join(source_images_result, '*.*'))
+    for name in original_images_names:
+        assert name in result_image_names
 
 
 def test_enhance_image() -> None:
