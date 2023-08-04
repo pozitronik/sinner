@@ -4,7 +4,7 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.validators.LoaderException import LoaderException
-from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped
+from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped, TestRequiredValidationLambda
 
 
 def test_default_validator() -> None:
@@ -61,6 +61,32 @@ def test_required_validator() -> None:
     assert test_object.required_parameter == 'test'
     assert test_object.default_required_parameter == 100
     assert test_object.required_default_parameter == DEFAULT_VALUE
+
+
+def test_required_validator_lambda() -> None:
+    test_object = TestRequiredValidationLambda()
+    parameters = Parameters.command_line_to_namespace('--required_lambda_parameter=10 --not_required_lambda_parameter=1')
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+    assert test_object.load(parameters=parameters) is True
+    assert test_object.required_lambda_parameter == 10
+    assert test_object.not_required_lambda_parameter is True
+
+    test_object = TestRequiredValidationLambda()
+    parameters = Parameters.command_line_to_namespace('--required_lambda_parameter=12')
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+    assert test_object.load(parameters=parameters) is True
+    assert test_object.required_lambda_parameter == 12
+    assert test_object.not_required_lambda_parameter is None
+
+    test_object = TestRequiredValidationLambda()
+    parameters = Parameters.command_line_to_namespace('--not_required_lambda_parameter=1')
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+    assert test_object.load(parameters=parameters) is False
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
 
 
 def test_untyped_attribute() -> None:
