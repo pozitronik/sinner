@@ -22,7 +22,6 @@ class State(Status):
     _zfill_length: int | None
 
     final_check_state: bool = True
-    final_check_index: bool = True
     final_check_empty: bool = True
 
     def rules(self) -> Rules:
@@ -158,12 +157,6 @@ class State(Status):
             except Exception:
                 pass
             return -1
-
-        if self.final_check_index:  # check if the last file name in the processed sequence is right
-            last_file_name = int(max(os.scandir(self.path), key=lambda entry: frame_index(entry)).name.split('.')[0]) + 1  # zero-based index
-            if self.frames_count != last_file_name:
-                self.update_status(message=f"Last processed frame is {last_file_name}, but expected {self.frames_count}. Check in {self.path} for it.", mood=Mood.BAD)
-                result = False
 
         if self.final_check_empty:  # check if all frames are non zero-sized
             zero_sized_files_count = 0
