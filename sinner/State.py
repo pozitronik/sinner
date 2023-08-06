@@ -21,6 +21,10 @@ class State(Status):
     _temp_dir: str
     _zfill_length: int | None
 
+    final_check_state: bool = True
+    final_check_index: bool = True
+    final_check_empty: bool = True
+
     def rules(self) -> Rules:
         return [
             {
@@ -143,12 +147,11 @@ class State(Status):
     def final_check(self) -> bool:
         result = True
         processed_frames_count = self.processed_frames_count
-        if not self.is_finished:
+        if self.final_check_state and not self.is_finished:
             self.update_status(message=f"The final processing check failed: processing is done, but state is not finished. Check in {self.path}, may be some frames lost?", mood=Mood.BAD)
             result = False
 
         def frame_index(entry: os.DirEntry) -> int:  # type: ignore[type-arg]
-
             try:
                 if os.path.isfile(entry.path):
                     return int(os.path.splitext(entry.name)[0])
@@ -156,17 +159,18 @@ class State(Status):
                 pass
             return -1
 
-        #  check if the last file name in the processed sequence is right
-        last_file_name = int(max(os.scandir(self.path), key=lambda entry: frame_index(entry)).name.split('.')[0]) + 1  # zero-based index
-        if self.frames_count != last_file_name:
-            self.update_status(message=f"Last processed frame is {last_file_name}, but expected {self.frames_count}. Check in {self.path} for it.", mood=Mood.BAD)
-            result = False
-        #  check if all frames are non zero-sized
-        zero_sized_files_count = 0
-        for file_path in self.processed_frames:
-            if os.path.isfile(file_path) and os.path.getsize(file_path) == 0:
-                zero_sized_files_count += 1
-        if zero_sized_files_count > 0:
-            self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
-            result = False
+        if self.final_check_index:  # check if the last file name in the processed sequence is right
+            last_file_name = int(max(os.scandir(self.path), key=lambda entry: frame_index(entry)).name.split('.')[0]) + 1  # zero-based index
+            if self.frames_count != last_file_name:
+                self.update_status(message=f"Last processed frame is {last_file_name}, but expected {self.frames_count}. Check in {self.path} for it.", mood=Mood.BAD)
+                result = False
+
+        if self.final_check_empty:  # check if all frames are non zero-sized
+            zero_sized_files_count = 0
+            for file_path in self.processed_frames:
+                if os.path.isfile(file_path) and os.path.getsize(file_path) == 0:
+                    zero_sized_files_count += 1
+            if zero_sized_files_count > 0:
+                self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
+                result = False
         return result
