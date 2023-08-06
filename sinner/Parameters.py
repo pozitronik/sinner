@@ -5,6 +5,7 @@ from configparser import ConfigParser
 from typing import List
 
 from sinner.utilities import get_app_dir
+from sinner.validators.AttributeDocumenter import AttributeDocumenter
 
 
 class Parameters:
@@ -13,6 +14,8 @@ class Parameters:
 
     def __init__(self, command_line: str | None = None):
         self.parameters: Namespace = self.command_line_to_namespace(command_line)
+        if 'h' in self.parameters or 'help' in self.parameters:
+            AttributeDocumenter().show_help()
         if 'ini' in self.parameters:
             config_name = self.parameters.ini
         else:
