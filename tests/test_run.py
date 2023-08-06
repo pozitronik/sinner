@@ -79,7 +79,7 @@ def test_swap_images() -> None:
     Core(parameters=params.parameters).run()
     assert os.path.exists(source_images_result) is True
     result_image_names = [get_file_name(filepath) for filepath in glob.glob(os.path.join(source_images_result, '*.*'))]
-    assert original_images_names == result_image_names  # compare names without extensions
+    assert sorted(original_images_names) == sorted(result_image_names)  # compare names without extensions
 
 
 def test_enhance_image() -> None:
