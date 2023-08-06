@@ -134,7 +134,7 @@ class Core(Status):
         try:
             if extractor_handler is None:
                 extractor_handler = self.suggest_handler(self.target_path, self.parameters)
-            _, frame = extractor_handler.extract_frame(frame_number)
+            _, frame, _ = extractor_handler.extract_frame(frame_number)
             result.append((frame, 'Original'))
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)

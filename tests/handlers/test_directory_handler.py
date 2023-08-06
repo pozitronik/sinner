@@ -8,7 +8,7 @@ from sympy.testing import pytest
 
 from sinner.Parameters import Parameters
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
-from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4
+from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4, images_dir
 
 parameters: Namespace = Parameters().parameters
 
@@ -123,3 +123,9 @@ def tests_iterator() -> None:
         assert isinstance(frame_index, int)
         frame_counter += 1
     assert frame_counter == 2
+
+
+def test_respect_filenames() -> None:
+    test_object: DirectoryHandler = DirectoryHandler(parameters=parameters, target_path=images_dir)
+    assert isinstance(test_object, Iterator)
+    assert 3 == len(test_object.get_frames_paths(path=tmp_dir))

@@ -110,7 +110,7 @@ class CV2VideoHandler(BaseFrameHandler):
         capture.release()
         if not ret:
             raise Exception(f"Error reading frame {frame_number}")
-        return frame_number, frame
+        return frame_number, frame, None
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")

@@ -30,7 +30,7 @@ class ImageHandler(BaseFrameHandler):
         return [(0, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
-        return frame_number, CV2VideoHandler.read_image(self._target_path)
+        return frame_number, CV2VideoHandler.read_image(self._target_path), None
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:

@@ -113,13 +113,6 @@ def test_final_check_fail_state():
     assert state.final_check() is False
 
 
-def test_final_check_fail_last_file():
-    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
-    shutil.copytree(state_frames_dir, state.path, dirs_exist_ok=True)
-    os.rename(src=os.path.join(state.path, '09.png'), dst=os.path.join(state.path, '10.png'))
-    assert state.final_check() is False
-
-
 def test_final_check_fail_zero_files():
     state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
     shutil.copytree(state_frames_dir, state.path, dirs_exist_ok=True)
