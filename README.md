@@ -22,7 +22,7 @@ The tasks that I aim to accomplish here are:
 ## How do I install it?
 
 The basic installation instructions for now are the same as those in the [s0md3v/roop](https://github.com/s0md3v/roop#how-do-i-install-it), check them out.
-In short, you need to install python 3.9 or a later version, VC runtimes, and desired Execution Provider kit (depending on your hardware and OS).
+In short, you need to install python 3.10 or a later version, VC runtimes, and desired Execution Provider kit (depending on your hardware and OS).
 
 ## How do I use it?
 
