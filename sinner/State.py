@@ -94,9 +94,9 @@ class State(Status):
         self._path = path
         self.make_path(self._path)
 
-    def save_temp_frame(self, frame: Frame, index: int) -> None:
-        if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(index)):
-            raise Exception(f"Error saving frame: {self.get_frame_processed_name(index)}")
+    def save_temp_frame(self, frame: Frame, name: int) -> None:
+        if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(name)):
+            raise Exception(f"Error saving frame: {self.get_frame_processed_name(name)}")
 
     #  Checks if some frame already processed
     @property
@@ -127,8 +127,11 @@ class State(Status):
         return self.frames_count - self.processed_frames_count
 
     #  Returns a processed file name for an unprocessed frame index
-    def get_frame_processed_name(self, frame_index: int) -> str:
-        filename = str(frame_index).zfill(self.zfill_length) + '.png'
+    def get_frame_processed_name(self, frame_index: int | str) -> str:
+        if isinstance(frame_index, str):
+            filename = frame_index + '.png'
+        else:
+            filename = str(frame_index).zfill(self.zfill_length) + '.png'
         return str(os.path.join(self.path, filename))
 
     @property
