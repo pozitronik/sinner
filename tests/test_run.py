@@ -22,7 +22,7 @@ def setup():
     if os.path.exists(source_target_png_result):
         os.remove(source_target_png_result)
     if os.path.exists(source_images_result):
-        os.remove(source_images_result)
+        shutil.rmtree(source_images_result)
     if os.path.exists(source_target_mp4_result):
         os.remove(source_target_mp4_result)
 
