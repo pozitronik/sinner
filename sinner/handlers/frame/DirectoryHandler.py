@@ -32,7 +32,7 @@ class DirectoryHandler(BaseFrameHandler):
         return [(frames_index, file_path) for frames_index, file_path in enumerate(frames_path)][start_frame:stop_frame]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
-        return frame_number, CV2VideoHandler.read_image(self.get_frames_paths(self._target_path)[frame_number - 1][1])  # zero-based sorted frames list
+        return frame_number, CV2VideoHandler.read_image(self.get_frames_paths(self._target_path, (frame_number, frame_number))[0][1])  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Copying results from {from_dir} to {filename}")
