@@ -127,7 +127,7 @@ class Benchmark(Status):
     def benchmark(self) -> int:
         current_target_path = self.target_path
         processor_name = self.frame_processors[0]
-        current_processor = BaseFrameProcessor.create(processor_name, self.parameters, target_path=current_target_path, temp_dir=self.temp_dir)
+        current_processor = BaseFrameProcessor.create(processor_name, self.parameters, target_path=current_target_path)
         start_time = time.time_ns()
         current_processor.process(desc=processor_name)
         end_time = time.time_ns()

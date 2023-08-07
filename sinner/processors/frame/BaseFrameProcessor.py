@@ -14,7 +14,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.State import State
 from sinner.typing import Frame
-from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory, is_image, is_video
+from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory, is_image, is_video, get_app_dir, TEMP_DIRECTORY
 
 
 class BaseFrameProcessor(ABC, Status):
@@ -22,6 +22,7 @@ class BaseFrameProcessor(ABC, Status):
     output_path: str
     execution_provider: List[str]
     execution_threads: int
+    temp_dir: str
 
     max_memory: int
 
@@ -33,14 +34,17 @@ class BaseFrameProcessor(ABC, Status):
     handler: BaseFrameHandler
 
     @staticmethod
-    def create(processor_name: str, parameters: Namespace, target_path: str, temp_dir: str) -> 'BaseFrameProcessor':  # processors factory
+    def create(processor_name: str, parameters: Namespace, target_path: str | None = None) -> 'BaseFrameProcessor':  # processors factory
         handler_class = load_class(os.path.dirname(__file__), processor_name)
 
         if handler_class and issubclass(handler_class, BaseFrameProcessor):
-            params: dict[str, Any] = {'parameters': parameters, 'target_path': target_path, 'temp_dir': temp_dir}
+            params: dict[str, Any] = {'parameters': parameters, 'target_path': target_path}
             return handler_class(**params)
         else:
             raise ValueError(f"Invalid processor name: {processor_name}")
+
+    def suggest_temp_dir(self) -> str:
+        return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
     def rules(self) -> Rules:
         return [
@@ -66,13 +70,21 @@ class BaseFrameProcessor(ABC, Status):
                 'required': True,
                 'help': 'Select the target file or the directory'
             },
+            {
+                'parameter': 'temp-dir',
+                'default': lambda: self.suggest_temp_dir(),
+                'help': 'Select the directory for temporary files'
+            },
         ]
 
-    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str) -> None:
+    def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
         self.parameters = parameters
         super().__init__(self.parameters)
+        if target_path is None:
+            target_path = self.target_path
+
         self.handler = self.suggest_handler(target_path, self.parameters)
-        self.state = State(parameters=self.parameters, target_path=target_path, temp_dir=temp_dir, frames_count=self.handler.fc, processor_name=self.__class__.__name__)
+        self.state = State(parameters=self.parameters, target_path=target_path, temp_dir=self.temp_dir, frames_count=self.handler.fc, processor_name=self.__class__.__name__)
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()

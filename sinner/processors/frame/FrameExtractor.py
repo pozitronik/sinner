@@ -31,11 +31,13 @@ class FrameExtractor(BaseFrameProcessor):
             return os.path.join(self.output_path, 'extracted-' + target_name + target_extension)
         return self.output_path
 
-    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str) -> None:
+    def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
         self.parameters = parameters
         Status.__init__(self, self.parameters)
+        if target_path is None:
+            target_path = self.target_path
         self.handler = self.suggest_handler(target_path, self.parameters)
-        self.state = State(parameters=self.parameters, target_path=target_path, temp_dir=temp_dir, frames_count=self.handler.fc, processor_name=self.__class__.__name__)
+        self.state = State(parameters=self.parameters, target_path=target_path, temp_dir=self.temp_dir, frames_count=self.handler.fc, processor_name=self.__class__.__name__)
         self.state.path = os.path.abspath(os.path.join(self.state.temp_dir, self.__class__.__name__, os.path.basename(target_path)))
 
     def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:

@@ -69,10 +69,10 @@ class FaceEnhancer(BaseFrameProcessor):
                 self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
         return self._face_enhancer
 
-    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str) -> None:
+    def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
-        super().__init__(parameters, target_path, temp_dir)
+        super().__init__(parameters, target_path)
 
     def enhance_face(self, temp_frame: Frame) -> Frame:
         with self.thread_semaphore:
