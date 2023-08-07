@@ -28,10 +28,10 @@ class Status(AttributeLoader):
             },
         ]
 
-    def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD) -> None:
+    def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD, emoji: str = '😈') -> None:
         if caller is None:
             caller = self.__class__.__name__
-        content = f'{mood}{caller}: {message}{Back.RESET}{Fore.RESET}'
+        content = f'{emoji}{mood}{caller}: {message}{Back.RESET}{Fore.RESET}'
         print(content)
         self.log_write(content)
 
