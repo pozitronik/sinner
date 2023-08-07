@@ -20,7 +20,7 @@ def setup():
 
 def test_extract() -> None:
     assert os.path.exists(tmp_dir) is False
-    test_extractor = FrameExtractor(parameters=parameters)
+    test_extractor = FrameExtractor(parameters=parameters, target_path=target_mp4)
     test_state = State(
         parameters=parameters,
         frames_count=TARGET_FC,
@@ -28,7 +28,6 @@ def test_extract() -> None:
         processor_name=test_extractor.__class__.__name__,
         target_path=target_mp4
     )
-    test_handler = VideoHandler(target_path=target_mp4, parameters=parameters)
-    test_extractor.process(frames=test_handler, state=test_state)
+    test_extractor.process()
     assert os.path.exists(tmp_dir) is True
     assert len(glob.glob(os.path.join(glob.escape(test_state.path), '*.png'))) == TARGET_FC
