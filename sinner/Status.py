@@ -17,6 +17,7 @@ class Mood(Enum):
 
 class Status(AttributeLoader):
     logfile: str
+    emoji: str = '😈'
 
     def rules(self) -> Rules:
         return [
@@ -28,12 +29,13 @@ class Status(AttributeLoader):
             },
         ]
 
-    def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD, emoji: str = '😈') -> None:
+    def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD, emoji: str | None = None) -> None:
+        if emoji is None:
+            emoji = self.emoji
         if caller is None:
             caller = self.__class__.__name__
-        content = f'{emoji}{mood}{caller}: {message}{Back.RESET}{Fore.RESET}'
-        print(content)
-        self.log_write(content)
+        print(f'{emoji}{mood}{caller}: {message}{Back.RESET}{Fore.RESET}')
+        self.log_write(f'{emoji}{caller}: {message}')
 
     def log_write(self, content: str | None = None) -> bool:
         try:
