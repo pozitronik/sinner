@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable
 
-import torch
 from tqdm import tqdm
 from argparse import Namespace
 
@@ -14,7 +13,7 @@ from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.State import State
-from sinner.typing import Frame, NumeratedFrame
+from sinner.typing import Frame
 from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory, is_image, is_video
 
 

@@ -125,7 +125,7 @@ class Core(Status):
                     self.frame_processor.remove('ResultProcessor')
                 for processor_name in self.frame_processor:
                     if processor_name not in self.preview_processors:
-                        self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name=processor_name, parameters=self.parameters)
+                        self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name, self.parameters, target_path=self.target_path, temp_dir=self.temp_dir)
                     self.preview_processors[processor_name].load(self.parameters)
                     frame = self.preview_processors[processor_name].process_frame(frame)
                     result.append((frame, processor_name))

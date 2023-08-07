@@ -9,10 +9,8 @@ import onnxruntime
 import psutil
 import torch
 
-from sinner.Core import Core
 from sinner.Status import Status
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.State import State
 from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
 from sinner.validators.AttributeLoader import Rules
 
@@ -128,18 +126,10 @@ class Benchmark(Status):
 
     def benchmark(self) -> int:
         current_target_path = self.target_path
-        current_handler = Core.suggest_handler(current_target_path, self.parameters)
         processor_name = self.frame_processors[0]
-        state = State(
-            parameters=self.parameters,
-            target_path=current_target_path,
-            frames_count=current_handler.fc,
-            temp_dir=self.temp_dir,
-            processor_name=processor_name
-        )
-        current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
+        current_processor = BaseFrameProcessor.create(processor_name, self.parameters, target_path=current_target_path, temp_dir=self.temp_dir)
         start_time = time.time_ns()
-        current_processor.process(frames=current_handler, state=state, desc=processor_name)
+        current_processor.process(desc=processor_name)
         end_time = time.time_ns()
         self.release_resources()
         return end_time - start_time
