@@ -1,6 +1,8 @@
 import multiprocessing
 from argparse import Namespace
 
+from colorama import Fore, Back
+
 from sinner.Parameters import Parameters
 from sinner.FaceAnalyser import FaceAnalyser
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
@@ -33,7 +35,7 @@ def test_no_face_found(capsys):
     face = FaceSwapper(parameters=Parameters(f'--source-path="{no_face_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"').parameters).source_face
     assert face is None
     captured: str = capsys.readouterr()
-    assert f'👿FaceSwapper: There is no face found on {no_face_jpg}' == captured.out.splitlines()[-1].strip()
+    assert f'🔁{Fore.BLACK}{Back.RED}FaceSwapper: There is no face found on {no_face_jpg}{Back.RESET}{Fore.RESET}' == captured.out.splitlines()[-1].strip()
 
 
 def test_process_frame():
