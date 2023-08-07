@@ -90,12 +90,9 @@ class Core(Status):
             self.frame_processor.append('ResultProcessor')
 
     def run(self, set_progress: Callable[[int], None] | None = None) -> None:
-        self._stop_flag = False
         current_target_path = self.target_path
         temp_resources: List[str] = []  # list of temporary created resources
         for processor_name in self.frame_processor:
-            if self._stop_flag:  # todo: create a shared variable to stop processing
-                continue
             current_handler = self.suggest_handler(current_target_path, self.parameters)
             state = State(parameters=self.parameters, target_path=current_target_path, temp_dir=self.temp_dir, frames_count=current_handler.fc, processor_name=processor_name)
             if state.is_finished:
