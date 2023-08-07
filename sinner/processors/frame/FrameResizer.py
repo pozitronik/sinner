@@ -1,5 +1,4 @@
 import os
-from argparse import Namespace
 
 import cv2
 
@@ -110,9 +109,6 @@ class FrameResizer(BaseFrameProcessor):
         if os.path.isdir(self.output_path):
             return os.path.join(self.output_path, 'resized-' + target_name + target_extension)
         return self.output_path
-
-    def __init__(self, parameters: Namespace):
-        super().__init__(parameters=parameters)
 
     def process_frame(self, frame: Frame) -> Frame:
         current_height, current_width = frame.shape[:2]

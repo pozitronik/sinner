@@ -9,10 +9,13 @@ from argparse import Namespace
 
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.validators.AttributeLoader import  Rules
+from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
+from sinner.handlers.frame.ImageHandler import ImageHandler
+from sinner.handlers.frame.VideoHandler import VideoHandler
+from sinner.validators.AttributeLoader import Rules
 from sinner.State import State
 from sinner.typing import Frame, NumeratedFrame
-from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory
+from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory, is_image, is_video
 
 
 class BaseFrameProcessor(ABC, Status):
@@ -23,18 +26,19 @@ class BaseFrameProcessor(ABC, Status):
 
     max_memory: int
 
-    extract_frame_method: Callable[[int], NumeratedFrame]
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
     progress_callback: Callable[[int], None] | None = None
 
     parameters: Namespace
+    state: State
+    handler: BaseFrameHandler
 
     @staticmethod
-    def create(processor_name: str, parameters: Namespace) -> 'BaseFrameProcessor':  # processors factory
+    def create(processor_name: str, parameters: Namespace, target_path: str, temp_dir: str) -> 'BaseFrameProcessor':  # processors factory
         handler_class = load_class(os.path.dirname(__file__), processor_name)
 
         if handler_class and issubclass(handler_class, BaseFrameProcessor):
-            params: dict[str, Any] = {'parameters': parameters}
+            params: dict[str, Any] = {'parameters': parameters, 'target_path': target_path, 'temp_dir': temp_dir}
             return handler_class(**params)
         else:
             raise ValueError(f"Invalid processor name: {processor_name}")
@@ -65,9 +69,11 @@ class BaseFrameProcessor(ABC, Status):
             },
         ]
 
-    def __init__(self, parameters: Namespace) -> None:
-        super().__init__(parameters)
+    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str) -> None:
         self.parameters = parameters
+        super().__init__(self.parameters)
+        self.handler = self.suggest_handler(target_path, self.parameters)
+        self.state = State(parameters=self.parameters, target_path=target_path, temp_dir=temp_dir, frames_count=self.handler.fc, processor_name=self.__class__.__name__)
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
@@ -79,20 +85,19 @@ class BaseFrameProcessor(ABC, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
-        self.extract_frame_method = frames.extract_frame
+    def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.progress_callback = set_progress
-        frames.current_frame_index = state.processed_frames_count
+        self.handler.current_frame_index = self.state.processed_frames_count
         # todo: do not create on intermediate directory handler
         with tqdm(
-                total=state.frames_count,
+                total=self.state.frames_count,
                 desc=desc, unit='frame',
                 dynamic_ncols=True,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                initial=state.processed_frames_count,
+                initial=self.state.processed_frames_count,
         ) as progress:
-            self.multi_process_frame(frames_iterator=frames, state=state, process_frames=self.process_frames, progress=progress)
-        if not state.final_check():
+            self.multi_process_frame(frames_iterator=self.handler, state=self.state, process_frames=self.process_frames, progress=progress)
+        if not self.state.final_check():
             raise Exception("Something went wrong on processed frames check")
 
     @abstractmethod
@@ -101,7 +106,7 @@ class BaseFrameProcessor(ABC, Status):
 
     def process_frames(self, frame_num: int, state: State) -> None:  # type: ignore[type-arg]
         try:
-            frame_num, frame, frame_name = self.extract_frame_method(frame_num)
+            frame_num, frame, frame_name = self.handler.extract_frame(frame_num)
             state.save_temp_frame(self.process_frame(frame), frame_name or frame_num)
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
@@ -138,8 +143,7 @@ class BaseFrameProcessor(ABC, Status):
                 completed_future.result()
 
     def release_resources(self) -> None:
-        if 'CUDAExecutionProvider' in self.execution_providers:
-            torch.cuda.empty_cache()
+        pass
 
     @abstractmethod
     def suggest_output_path(self) -> str:
@@ -148,3 +152,15 @@ class BaseFrameProcessor(ABC, Status):
     @property
     def execution_providers(self) -> List[str]:
         return decode_execution_providers(self.execution_provider)
+
+    @staticmethod
+    def suggest_handler(target_path: str | None, parameters: Namespace) -> BaseFrameHandler:
+        if target_path is None:
+            raise Exception("The target path is not set")
+        if os.path.isdir(target_path):
+            return DirectoryHandler(target_path, parameters)
+        if is_image(target_path):
+            return ImageHandler(target_path, parameters)
+        if is_video(target_path):
+            return VideoHandler(target_path, parameters)
+        raise NotImplementedError("The handler for current target type is not implemented")

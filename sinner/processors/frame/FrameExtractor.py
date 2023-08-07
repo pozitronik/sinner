@@ -3,7 +3,7 @@ from argparse import Namespace
 from typing import Callable
 
 from sinner.State import State
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.Status import Status
 from sinner.typing import Frame
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -30,20 +30,16 @@ class FrameExtractor(BaseFrameProcessor):
         if os.path.isdir(self.output_path):
             return os.path.join(self.output_path, 'extracted-' + target_name + target_extension)
         return self.output_path
+    
+    def __init__(self, parameters: Namespace, target_path: str, temp_dir: str) -> None:
+        self.parameters = parameters
+        Status().__init__(self.parameters)
+        self.handler = self.suggest_handler(target_path, self.parameters)
+        self.state = State(parameters=self.parameters, target_path=target_path, temp_dir=temp_dir, frames_count=self.handler.fc, processor_name=self.__class__.__name__)
+        self.state.path = os.path.abspath(os.path.join(self.state.temp_dir, self.__class__.__name__, os.path.basename(target_path)))
 
-    def __init__(self, parameters: Namespace):
-        super().__init__(parameters=parameters)
-
-    def process(self, frames: BaseFrameHandler, state: State, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
-        state.path = os.path.abspath(os.path.join(state.temp_dir, self.__class__.__name__, os.path.basename(self.target_path)))
-        if state.is_finished:  # it is a little overcomplicated, need to think, how to force Core make a lookahead for state path into a Processor
-            self.update_status(f'Processing with {state.processor_name} already done ({state.processed_frames_count}/{state.frames_count})')
-        else:
-            if state.is_started:
-                self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing with {state.processor_name}')
-        frames.get_frames_paths(state.path, (state.processed_frames_count, None))
-        if not state.final_check():
-            raise Exception("Something went wrong on processed frames check")
+    def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
+        self.handler.get_frames_paths(self.state.path, (self.state.processed_frames_count, None))
 
     def process_frame(self, frame: Frame) -> Frame:
         return frame
