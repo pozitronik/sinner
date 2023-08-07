@@ -11,6 +11,7 @@ from sinner.utilities import is_video
 
 
 class FrameExtractor(BaseFrameProcessor):
+    emoji: str = '🏃'
 
     def rules(self) -> Rules:
         return super().rules() + [

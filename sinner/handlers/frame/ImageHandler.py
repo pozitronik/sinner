@@ -12,6 +12,7 @@ from sinner.utilities import is_image
 
 
 class ImageHandler(BaseFrameHandler):
+    emoji: str = '🖼️'
 
     def __init__(self, target_path: str, parameters: Namespace):
         if not os.path.exists(target_path) or not os.path.isfile(target_path) or not is_image(target_path):

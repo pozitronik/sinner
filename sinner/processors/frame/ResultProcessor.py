@@ -10,6 +10,8 @@ from sinner.utilities import is_absolute_path
 
 
 class ResultProcessor(BaseFrameProcessor):
+    emoji: str = '🏁'
+
     source_path: str
 
     def rules(self) -> Rules:

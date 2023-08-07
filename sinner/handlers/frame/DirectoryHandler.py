@@ -11,6 +11,7 @@ from sinner.utilities import is_image, get_file_name
 
 
 class DirectoryHandler(BaseFrameHandler):
+    emoji: str = '📂'
 
     def __init__(self, target_path: str, parameters: Namespace):
         if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator

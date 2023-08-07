@@ -11,6 +11,7 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class State(Status):
+    emoji: str = '👀'
     source_path: str | None = None
     initial_target_path: str | None = None
 

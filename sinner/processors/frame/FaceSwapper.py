@@ -15,6 +15,8 @@ from sinner.utilities import conditional_download, get_app_dir, is_image, is_vid
 
 
 class FaceSwapper(BaseFrameProcessor):
+    emoji: str = '🔁'
+
     source_path: str
     many_faces: bool = False
 

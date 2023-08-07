@@ -9,6 +9,8 @@ from sinner.utilities import is_image, is_video, is_absolute_path, is_int, is_fl
 
 
 class FrameResizer(BaseFrameProcessor):
+    emoji: str = '🔍'
+
     scale: float
     height: int
     width: int

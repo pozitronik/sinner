@@ -17,6 +17,8 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class CV2VideoHandler(BaseFrameHandler):
+    emoji: str = '📹'
+
     output_fps: float
 
     def rules(self) -> Rules:
