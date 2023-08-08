@@ -18,6 +18,7 @@ class Sin(AttributeLoader):
 
     parameters: Namespace
 
+    # the main module cannot be documented with AttributeDocumenter, because it will lead to a circular import
     def rules(self) -> Rules:
         return [
             {
