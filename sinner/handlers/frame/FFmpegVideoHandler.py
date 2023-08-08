@@ -15,6 +15,8 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class FFmpegVideoHandler(BaseFrameHandler):
+    emoji: str = '🎥'
+
     output_fps: float
 
     def rules(self) -> Rules:

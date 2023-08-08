@@ -3,6 +3,7 @@ import threading
 from argparse import Namespace
 
 import gfpgan
+import torch
 from gfpgan import GFPGANer  # type: ignore[attr-defined]
 
 from sinner.FaceAnalyser import FaceAnalyser
@@ -13,6 +14,8 @@ from sinner.utilities import conditional_download, get_app_dir, is_image, is_vid
 
 
 class FaceEnhancer(BaseFrameProcessor):
+    emoji: str = '👍'
+
     thread_semaphore = threading.Semaphore()
     thread_lock = threading.Lock()
 
@@ -68,10 +71,10 @@ class FaceEnhancer(BaseFrameProcessor):
                 self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
         return self._face_enhancer
 
-    def __init__(self, parameters: Namespace):
+    def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/GFPGANv1.4.pth'])
-        super().__init__(parameters=parameters)
+        super().__init__(parameters, target_path)
 
     def enhance_face(self, temp_frame: Frame) -> Frame:
         with self.thread_semaphore:
@@ -82,3 +85,7 @@ class FaceEnhancer(BaseFrameProcessor):
         if self.face_analyser.get_one_face(frame):
             frame = self.enhance_face(frame)
         return frame
+
+    def release_resources(self) -> None:
+        if 'CUDAExecutionProvider' in self.execution_providers:
+            torch.cuda.empty_cache()

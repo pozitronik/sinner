@@ -6,6 +6,7 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class DummyProcessor(BaseFrameProcessor):
+    emoji: str = '🤪'
 
     def rules(self) -> Rules:
         return super().rules() + [

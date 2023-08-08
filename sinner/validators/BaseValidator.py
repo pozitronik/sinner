@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Any
 
 from sinner.utilities import declared_attr_type
+from sinner.validators.ErrorDTO import ErrorDTO
 from sinner.validators.ValidatorException import ValidatorException
 
 
@@ -13,7 +14,7 @@ class BaseValidator(ABC):
         self.arguments.update(kwargs)
 
     @abstractmethod
-    def validate(self, validated_object: object, attribute: str) -> str | None:  # text error or None, if valid
+    def validate(self, validated_object: object, attribute: str) -> ErrorDTO | None:  # text error or None, if valid
         pass
 
     def get_validated_attribute_value(self, validated_object: object, attribute: str) -> Any:

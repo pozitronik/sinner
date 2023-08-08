@@ -1,12 +1,13 @@
 # defines a typed class variable, even it not defined in the class declaration
 # also casts the variable type to the specified type
 from sinner.validators.BaseValidator import BaseValidator
+from sinner.validators.ErrorDTO import ErrorDTO
 from sinner.validators.ValidatorException import ValidatorException
 
 
 class InitValidator(BaseValidator):
 
-    def validate(self, validated_object: object, attribute: str) -> str | None:
+    def validate(self, validated_object: object, attribute: str) -> ErrorDTO | None:
         attribute_type_name = None
         new_value = None
         try:

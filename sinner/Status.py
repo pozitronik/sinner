@@ -1,13 +1,15 @@
 from enum import Enum
 
+from colorama import Fore, Back
+
 from sinner.typing import UTF8
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
 class Mood(Enum):
-    GOOD = (0, '😈')
-    BAD = (1, '👿')
-    NEUTRAL = (2, '😑')
+    GOOD = (0, f'{Fore.LIGHTWHITE_EX}{Back.BLACK}')
+    BAD = (1, f'{Fore.BLACK}{Back.RED}')
+    NEUTRAL = (2, f'{Fore.YELLOW}{Back.BLACK}')
 
     def __str__(self) -> str:
         return self.value[1]
@@ -15,6 +17,7 @@ class Mood(Enum):
 
 class Status(AttributeLoader):
     logfile: str
+    emoji: str = '😈'
 
     def rules(self) -> Rules:
         return [
@@ -26,12 +29,13 @@ class Status(AttributeLoader):
             },
         ]
 
-    def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD) -> None:
+    def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD, emoji: str | None = None) -> None:
+        if emoji is None:
+            emoji = self.emoji
         if caller is None:
             caller = self.__class__.__name__
-        content = f'{mood}{caller}: {message}'
-        print(content)
-        self.log_write(content)
+        print(f'{emoji}{mood}{caller}: {message}{Back.RESET}{Fore.RESET}')
+        self.log_write(f'{emoji}{caller}: {message}')
 
     def log_write(self, content: str | None = None) -> bool:
         try:

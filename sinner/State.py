@@ -11,6 +11,7 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class State(Status):
+    emoji: str = '👀'
     source_path: str | None = None
     initial_target_path: str | None = None
 
@@ -149,14 +150,6 @@ class State(Status):
         if self.final_check_state and not self.is_finished:
             self.update_status(message=f"The final processing check failed: processing is done, but state is not finished. Check in {self.path}, may be some frames lost?", mood=Mood.BAD)
             result = False
-
-        def frame_index(entry: os.DirEntry) -> int:  # type: ignore[type-arg]
-            try:
-                if os.path.isfile(entry.path):
-                    return int(os.path.splitext(entry.name)[0])
-            except Exception:
-                pass
-            return -1
 
         if self.final_check_empty:  # check if all frames are non zero-sized
             zero_sized_files_count = 0

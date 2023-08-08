@@ -1,6 +1,7 @@
 import os
 from argparse import Namespace
 
+from colorama import Fore, Back
 from sympy.testing import pytest
 
 from sinner.Parameters import Parameters
@@ -20,7 +21,7 @@ def test_status(capsys) -> None:
 
     status.update_status('test', 'self', Mood.BAD)
     captured = capsys.readouterr()
-    assert '👿self: test' == captured.out.strip()
+    assert f'😈{Fore.BLACK}{Back.RED}self: test{Back.RESET}{Fore.RESET}' == captured.out.strip()
 
 
 def test_status_log() -> None:
@@ -30,7 +31,7 @@ def test_status_log() -> None:
     status.update_status('test', 'self', Mood.BAD)
     with open(test_logfile, encoding=UTF8) as file:
         actual_content = file.read()
-    assert '👿self: test' == actual_content
+    assert '😈self: test' == actual_content
 
 
 def test_status_error() -> None:
