@@ -52,24 +52,25 @@ class Core(Status):
                 'attribute': 'target_path',
                 'valid': lambda: os.path.exists(self.target_path),
                 'required': lambda: not self.gui,
-                'help': 'Select the target file or the directory'
+                'help': 'Path to the target file or directory (depends on used frame processors set)'
             },
             {
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
                 'default:': lambda: self.suggest_output_path(),
+                'help': 'Path to the resulting file or directory (depends on used frame processors set and target)'
             },
             {
-                'parameter': 'frame-processor',
+                'parameter': {'frame-processor', 'processor', 'processors'},
                 'default': ['FaceSwapper'],
                 'required': True,
                 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
-                'help': 'Select the frame processor from available processors'
+                'help': 'The set of frame processors to handle the target'
             },
             {
                 'parameter': 'keep-frames',
                 'default': False,
-                'help': 'Keep temporary frames'
+                'help': 'Keep temporary frames after processing'
             },
             {
                 'module_help': 'The main handler for the processing modules'
