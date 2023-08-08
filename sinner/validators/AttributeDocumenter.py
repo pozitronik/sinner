@@ -69,5 +69,5 @@ class AttributeDocumenter:
             for attribute in module_data['attributes']:
                 for name, value in attribute.items():
                     help_str: str = f"{Style.DIM}<No help provided>{Fore.RESET}" if value is None else value
-                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{name}{Fore.RESET}{Style.RESET_ALL}: {help_str}\n'
+                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{name.replace("_", "-")}{Fore.RESET}{Style.RESET_ALL}: {help_str}\n'
         return result
