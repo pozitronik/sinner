@@ -7,33 +7,16 @@ from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
 from sinner.Preview import Preview
 from sinner.Core import Core
+from sinner.Sinner import Sinner
 from sinner.utilities import limit_resources, suggest_max_memory
-from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Sin(AttributeLoader):
+class Sin(Sinner):
     gui: bool
     benchmark: bool
     max_memory: int
 
     parameters: Namespace
-
-    # the main module cannot be documented with AttributeDocumenter, because it will lead to a circular import
-    def rules(self) -> Rules:
-        return [
-            {
-                'parameter': 'max-memory',
-                'default': suggest_max_memory()
-            },
-            {
-                'parameter': 'gui',
-                'default': False
-            },
-            {
-                'parameter': 'benchmark',
-                'default': None,
-            },
-        ]
 
     def __init__(self) -> None:
         if sys.version_info < (3, 10):

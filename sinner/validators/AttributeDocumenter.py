@@ -5,6 +5,7 @@ from colorama import Style, Fore
 from sinner.Benchmark import Benchmark
 from sinner.Core import Core
 from sinner.Preview import Preview
+from sinner.Sinner import Sinner
 from sinner.State import State
 from sinner.Status import Status
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
@@ -20,6 +21,7 @@ from sinner.processors.frame.ResultProcessor import ResultProcessor
 from sinner.validators import AttributeLoader
 
 DocumentedClasses: List[Type[AttributeLoader]] = [
+    Sinner,
     Core,
     Status,
     State,
