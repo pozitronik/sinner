@@ -101,7 +101,6 @@ class Benchmark(Status):
             execution_providers = onnxruntime.get_available_providers()
         else:
             execution_providers = decode_execution_providers(self.execution_provider)
-        limit_resources(self.max_memory)
 
         for execution_provider in execution_providers:
             threads = 1
