@@ -195,6 +195,12 @@ class AttributeLoader:
         attribute_help = self.get_attribute_rules(attribute)
         return attribute_help['help'] if 'help' in attribute_help else None
 
+    def get_module_help(self) -> str | None:
+        for rule in self.rules():
+            if 'module_help' in rule:
+                return rule['module_help']
+        return None
+
     # get all initialized attributes, enlisted in cls.rules() and update parameters
     def update_parameters(self, parameters: Namespace) -> None:
         attributes = self.validating_attributes()

@@ -56,17 +56,18 @@ class AttributeDocumenter:
             for attribute in loadable_attributes:
                 help_string = loaded_class.get_attribute_help(attribute)
                 class_doc.append({attribute: help_string})
-            collected_doc.append({doc_class.__name__: class_doc})
+            module_help = loaded_class.get_module_help()
+            collected_doc.append({'module': doc_class.__name__, 'module_help': module_help, 'attributes': class_doc})
         return collected_doc
 
     @staticmethod
     def format(raw_help_doc: List[Dict[str, List[Dict[str, str]]]]) -> str:
         result: str = ''
-        for module_help in raw_help_doc:
-            for module_name, attributes in module_help.items():
-                result += f'{Style.BRIGHT}{Fore.BLUE}{module_name}{Fore.RESET}{Style.RESET_ALL}:\n'
-                for attribute in attributes:
-                    for name, value in attribute.items():
-                        help_str: str = f"{Style.DIM}<No help provided>{Fore.RESET}" if value is None else value
-                        result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{name}{Fore.RESET}{Style.RESET_ALL}: {help_str}\n'
+        for module_data in raw_help_doc:
+            module_help = f"{Style.DIM}<No help provided>{Fore.RESET}" if module_data['module_help'] is None else module_data['module_help']
+            result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL} {module_help}:\n'
+            for attribute in module_data['attributes']:
+                for name, value in attribute.items():
+                    help_str: str = f"{Style.DIM}<No help provided>{Fore.RESET}" if value is None else value
+                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{name}{Fore.RESET}{Style.RESET_ALL}: {help_str}\n'
         return result
