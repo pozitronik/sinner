@@ -65,7 +65,7 @@ class AttributeDocumenter:
         result: str = ''
         for module_data in raw_help_doc:
             module_help = f"{Style.DIM}<No help provided>{Fore.RESET}" if module_data['module_help'] is None else module_data['module_help']
-            result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL} {module_help}:\n'
+            result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help[:1].lower() + module_help[1:]}\n'
             for attribute in module_data['attributes']:
                 for name, value in attribute.items():
                     help_str: str = f"{Style.DIM}<No help provided>{Fore.RESET}" if value is None else value
