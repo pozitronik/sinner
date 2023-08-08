@@ -96,7 +96,7 @@ class Core(Status):
             current_target_path = current_processor.state.path
             temp_resources.append(current_processor.state.path)
 
-        if self.keep_frames is False:  # todo: add a final result check before deleting (keep frames if something wrong)
+        if self.keep_frames is False:
             self.update_status('Deleting temp resources')
             delete_subdirectories(self.temp_dir, temp_resources)
 
