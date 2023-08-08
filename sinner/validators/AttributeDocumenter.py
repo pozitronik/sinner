@@ -69,6 +69,6 @@ class AttributeDocumenter:
             result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help[:1].lower() + module_help[1:]}\n'
             for attribute in module_data['attributes']:
                 help_str: str = f"{Style.DIM}<No help provided>{Fore.RESET}" if attribute['help'] is None else attribute['help']
-                attribute_name = ', --'.join(attribute['parameter']).replace("_", "-")
+                attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
                 result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {help_str}\n'
         return result
