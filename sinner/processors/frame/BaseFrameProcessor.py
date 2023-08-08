@@ -49,7 +49,7 @@ class BaseFrameProcessor(ABC, Status):
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'max-memory',  # key defined in Run, but class can be called separately in tests
+                'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
                 'default': suggest_max_memory()
             },
             {

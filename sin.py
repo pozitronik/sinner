@@ -11,7 +11,7 @@ from sinner.utilities import limit_resources, suggest_max_memory
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Run(AttributeLoader):
+class Sin(AttributeLoader):
     gui: bool
     benchmark: bool
     max_memory: int
@@ -56,4 +56,4 @@ class Run(AttributeLoader):
 
 
 if __name__ == '__main__':
-    Run().run()
+    Sin().run()
