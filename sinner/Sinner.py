@@ -9,14 +9,21 @@ class Sinner(AttributeLoader):
         return [
             {
                 'parameter': 'max-memory',
-                'default': suggest_max_memory()
+                'attribute': 'max_memory',
+                'default': suggest_max_memory(),
+                'help': 'The maximum amount of RAM (in GB) that will be allowed for use'
             },
             {
                 'parameter': 'gui',
-                'default': False
+                'default': False,
+                'help': 'Run application in a graphic mode'
             },
             {
                 'parameter': 'benchmark',
                 'default': None,
+                'help': 'Run a benchmark on a selected frame processor'
             },
+            {
+                'module_help': 'The main application'
+            }
         ]

@@ -72,7 +72,7 @@ class Core(Status):
                 'help': 'Keep temporary frames'
             },
             {
-                'module_help': 'The Core module is the main handler for the other modules'
+                'module_help': 'The main handler for the processing modules'
             }
         ]
 
