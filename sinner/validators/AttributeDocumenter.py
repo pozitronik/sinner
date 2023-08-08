@@ -48,8 +48,7 @@ class AttributeDocumenter:
         print(help_doc)
         quit()
 
-    @staticmethod
-    def collect() -> List[Dict[str, List[Dict[str, List[str]]]]]:
+    def collect(self) -> List[Dict[str, List[Dict[str, List[str]]]]]:
         collected_doc: List[Dict[str, List[Dict[str, List[str]]]]] = []
         for doc_class in DocumentedClasses:
             class_doc: List[Dict[str, List[str]]] = []
@@ -58,7 +57,11 @@ class AttributeDocumenter:
             for attribute in loadable_attributes:
                 parameters: List[str] = loaded_class.get_attribute_parameters(attribute)
                 help_string: str | None = loaded_class.get_attribute_help(attribute)
-                class_doc.append({'parameter': parameters, 'help': help_string})
+                defaults = None
+                rules = loaded_class.get_attribute_rules(attribute)
+                if 'default' in rules:
+                    defaults = self.format_default(rules['default'])
+                class_doc.append({'parameter': parameters, 'help': help_string, 'defaults': defaults})
             module_help = loaded_class.get_module_help()
             collected_doc.append({'module': doc_class.__name__, 'module_help': module_help, 'attributes': class_doc})
         return collected_doc
@@ -70,7 +73,16 @@ class AttributeDocumenter:
             module_help = f"{Style.DIM}<No help provided>{Fore.RESET}" if module_data['module_help'] is None else module_data['module_help']
             result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help}\n'
             for attribute in module_data['attributes']:
+                defaults: str = "" if attribute['defaults'] is None else f" Defaults to {Fore.MAGENTA}{attribute['defaults']}{Fore.RESET}."
                 help_str: str = f"{Style.DIM}<No help provided>{Fore.RESET}" if attribute['help'] is None else attribute['help']
                 attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
-                result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {help_str}\n'
+                result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {help_str}.{defaults}\n'
         return result
+
+    @staticmethod
+    def format_default(default_value: any) -> str:
+        if callable(default_value):
+            return "value calculated in the runtime"
+        if isinstance(default_value, list):
+            return " ".join(default_value)
+        return str(default_value)
