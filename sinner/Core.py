@@ -70,6 +70,9 @@ class Core(Status):
                 'parameter': 'keep-frames',
                 'default': False,
                 'help': 'Keep temporary frames'
+            },
+            {
+                'module_help': 'The Core module is the main handler for the other modules'
             }
         ]
 
