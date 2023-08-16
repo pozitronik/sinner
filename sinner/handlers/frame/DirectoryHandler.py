@@ -14,6 +14,7 @@ class DirectoryHandler(BaseFrameHandler):
     emoji: str = '📂'
 
     _fc: int | None = None
+    _frames_path: list | None = None
 
     def __init__(self, target_path: str, parameters: Namespace):
         if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
@@ -31,10 +32,11 @@ class DirectoryHandler(BaseFrameHandler):
         return self._fc
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
-        frames_path = sorted((file_path for file_path in glob.glob(os.path.join(glob.escape(self._target_path), '*.*')) if is_image(file_path)))
+        if self._frames_path is None:
+            self._frames_path = sorted((file_path for file_path in glob.glob(os.path.join(glob.escape(self._target_path), '*.*')) if is_image(file_path)))
         start_frame = frames_range[0] if frames_range[0] is not None else 0
-        stop_frame = frames_range[1] + 1 if frames_range[1] is not None else len(frames_path)
-        return [(frames_index, file_path) for frames_index, file_path in enumerate(frames_path)][start_frame:stop_frame]
+        stop_frame = frames_range[1] + 1 if frames_range[1] is not None else len(self._frames_path)
+        return [(frames_index, file_path) for frames_index, file_path in enumerate(self._frames_path)][start_frame:stop_frame]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         frame_path = self.get_frames_paths(self._target_path, (frame_number, frame_number))[0][1]
