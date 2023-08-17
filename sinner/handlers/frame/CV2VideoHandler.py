@@ -80,7 +80,7 @@ class CV2VideoHandler(BaseFrameHandler):
         stop = frames_range[1] if frames_range[1] is not None else self.fc - 1
         #  fixme: do not ignore, if frames already ignored over the frame index
         with tqdm(
-                total=stop - start,
+                total=stop,
                 desc='Extracting frame',
                 unit='frame',
                 dynamic_ncols=True,
