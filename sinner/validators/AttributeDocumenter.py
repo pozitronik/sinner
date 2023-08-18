@@ -85,9 +85,9 @@ class AttributeDocumenter:
         return result
 
     @staticmethod
-    def format_default(default_value: any) -> str:
+    def format_default(default_value: any) -> str | None:
         if callable(default_value):
-            return "value calculated in the runtime"
+            return None
         if isinstance(default_value, list):
             return " ".join(default_value)
         return str(default_value)
