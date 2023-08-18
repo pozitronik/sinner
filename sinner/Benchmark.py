@@ -22,7 +22,6 @@ class Benchmark(Status):
     target_path: str
     output_path: str
     many_faces: bool
-    extract_frames: bool
     max_memory: int
     execution_provider: List[str]
     frame_processor: str
@@ -61,11 +60,6 @@ class Benchmark(Status):
                 'parameter': 'many-faces',
                 'default': True,
                 'help': 'Enable every face processing in the target'
-            },
-            {
-                'parameter': 'extract-frames',
-                'default': False,
-                'help': 'Extract video frames before processing'
             },
             {
                 'parameter': 'max-memory',
