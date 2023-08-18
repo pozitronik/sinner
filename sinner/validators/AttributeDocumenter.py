@@ -19,6 +19,8 @@ from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.processors.frame.FrameResizer import FrameResizer
 from sinner.processors.frame.ResultProcessor import ResultProcessor
 from sinner.validators import AttributeLoader
+from sinner.validators.AttributeLoader import VALIDATORS, Rule
+from sinner.validators.ValueValidator import ValueValidator
 
 DocumentedClasses: List[Type[AttributeLoader]] = [
     Sinner,
@@ -61,7 +63,8 @@ class AttributeDocumenter:
                 rules = loaded_class.get_attribute_rules(attribute)
                 if 'default' in rules:
                     defaults = self.format_default(rules['default'])
-                class_doc.append({'parameter': parameters, 'help': help_string, 'defaults': defaults})
+                choices = self.format_choices(rules)
+                class_doc.append({'parameter': parameters, 'help': help_string, 'defaults': defaults, 'choices': choices})
             module_help = loaded_class.get_module_help()
             collected_doc.append({'module': doc_class.__name__, 'module_help': module_help, 'attributes': class_doc})
         return collected_doc
@@ -74,9 +77,10 @@ class AttributeDocumenter:
             result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help}\n'
             for attribute in module_data['attributes']:
                 defaults: str = "" if attribute['defaults'] is None else f" Defaults to {Fore.MAGENTA}{attribute['defaults']}{Fore.RESET}."
+                choices: str = "" if attribute['choices'] is None else f" Choices are: {Fore.LIGHTBLUE_EX}{attribute['choices']}{Fore.RESET}."
                 if attribute['help'] is not None:
                     attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
-                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {attribute["help"]}.{defaults}\n'
+                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {attribute["help"]}.{defaults}{choices}\n'
         return result
 
     @staticmethod
@@ -86,3 +90,16 @@ class AttributeDocumenter:
         if isinstance(default_value, list):
             return " ".join(default_value)
         return str(default_value)
+
+    @staticmethod
+    def format_choices(rule: Rule) -> str | None:
+        choices_key = [key for key, value in VALIDATORS.items() if value == ValueValidator]
+        choice_key = [key for key in rule if key in choices_key]
+        if not choice_key:
+            return None
+        choice_value = rule[next(iter(choice_key))]
+        if callable(choice_value):
+            return "value calculated in the runtime"
+        if isinstance(choice_value, list):
+            return "[" + ", ".join(choice_value) + "]"
+        return str(choice_value)
