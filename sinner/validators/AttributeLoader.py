@@ -104,7 +104,7 @@ class AttributeLoader:
                     parameter = [parameter]
                 if isinstance(parameter, (list, set)):
                     if attribute in parameter or attribute.replace('-', '_') in parameter or attribute.replace('_', '-') in parameter:
-                        return parameter
+                        return list(parameter)
         return []
 
     def validate(self, stop_on_error: bool = True) -> bool:
