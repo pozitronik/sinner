@@ -44,9 +44,9 @@ class AttributeDocumenter:
         quit()
 
     def collect(self) -> List[Dict[str, List[Dict[str, List[str]]]]]:
-        collected_doc: List[Dict[str, List[Dict[str, List[str]]]]] = []
+        collected_doc: List[Dict[str, Any]] = []
         for doc_class in DocumentedClasses:
-            class_doc: List[Dict[str, List[str]]] = []
+            class_doc: List[Dict[str, Any]] = []
             loaded_class: AttributeLoader = doc_class.__new__(doc_class)
             loadable_attributes = loaded_class.validating_attributes()
             for attribute in loadable_attributes:
@@ -65,7 +65,7 @@ class AttributeDocumenter:
         return collected_doc
 
     @staticmethod
-    def filter_attributes(attributes_list: list[dict[str]]) -> list[dict[str]]:
+    def filter_attributes(attributes_list: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Attributes doc strings can be duplicated because of inheritance from super(). To avoid this, duplicates are filtered (only last items are left).
         :param attributes_list: unfiltered attributes list
