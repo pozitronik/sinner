@@ -89,6 +89,24 @@ class AttributeLoader:
                     return rule['attribute']
         return None
 
+    # by attribute name return all its parameters
+    def get_attribute_parameters(self, attribute: str) -> List[str]:
+        for rule in self.rules():
+            if 'attribute' in rule:
+                if rule['attribute'] == attribute.replace('-', '_'):
+                    if isinstance(rule['parameter'], str):
+                        return [rule['parameter']]
+                    else:
+                        return list(rule['parameter'])
+            if 'parameter' in rule:
+                parameter = rule['parameter']
+                if isinstance(parameter, str):
+                    parameter = [parameter]
+                if isinstance(parameter, (list, set)):
+                    if attribute in parameter or attribute.replace('-', '_') in parameter or attribute.replace('_', '-') in parameter:
+                        return list(parameter)
+        return []
+
     def validate(self, stop_on_error: bool = True) -> bool:
         validating_attributes = self.validating_attributes()
         self.init_declared_attributes(validating_attributes)
@@ -194,6 +212,12 @@ class AttributeLoader:
     def get_attribute_help(self, attribute: str) -> str | None:
         attribute_help = self.get_attribute_rules(attribute)
         return attribute_help['help'] if 'help' in attribute_help else None
+
+    def get_module_help(self) -> str | None:
+        for rule in self.rules():
+            if 'module_help' in rule:
+                return rule['module_help']
+        return None
 
     # get all initialized attributes, enlisted in cls.rules() and update parameters
     def update_parameters(self, parameters: Namespace) -> None:

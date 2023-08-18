@@ -49,19 +49,21 @@ class BaseFrameProcessor(ABC, Status):
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'max-memory',  # key defined in Run, but class can be called separately in tests
-                'default': suggest_max_memory()
+                'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
+                'default': suggest_max_memory(),
             },
             {
                 'parameter': 'execution-provider',
                 'required': True,
                 'default': ['cpu'],
-                'choices': suggest_execution_providers()
+                'choices': suggest_execution_providers(),
+                'help': 'The execution provider, from available on your hardware/software'
             },
             {
                 'parameter': 'execution-threads',
                 'type': int,
-                'default': suggest_execution_threads()
+                'default': suggest_execution_threads(),
+                'help': 'The count of simultaneous processing threads'
             },
             {
                 'parameter': {'target', 'target-path'},

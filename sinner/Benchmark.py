@@ -11,7 +11,7 @@ import torch
 
 from sinner.Status import Status
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.utilities import resolve_relative_path, limit_resources, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
+from sinner.utilities import resolve_relative_path, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -22,7 +22,6 @@ class Benchmark(Status):
     target_path: str
     output_path: str
     many_faces: bool
-    extract_frames: bool
     max_memory: int
     execution_provider: List[str]
     frame_processor: str
@@ -42,7 +41,7 @@ class Benchmark(Status):
                 'attribute': 'source_path',
                 'default': resolve_relative_path('../tests/data/targets/target.png', __file__),
                 'required': True,
-                'help': 'Select a input image with the source face'
+                'help': 'Select an input image with the source face'
             },
             {
                 'parameter': {'target', 'target-path'},
@@ -61,11 +60,6 @@ class Benchmark(Status):
                 'parameter': 'many-faces',
                 'default': True,
                 'help': 'Enable every face processing in the target'
-            },
-            {
-                'parameter': 'extract-frames',
-                'default': False,
-                'help': 'Extract video frames before processing'
             },
             {
                 'parameter': 'max-memory',
@@ -89,6 +83,10 @@ class Benchmark(Status):
                 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
                 'help': 'Select the frame processor from available processors'
             },
+            {
+                'module_help': 'The benchmarking module'
+            }
+
         ]
 
     def __init__(self, parameters: Namespace):
@@ -101,7 +99,6 @@ class Benchmark(Status):
             execution_providers = onnxruntime.get_available_providers()
         else:
             execution_providers = decode_execution_providers(self.execution_provider)
-        limit_resources(self.max_memory)
 
         for execution_provider in execution_providers:
             threads = 1

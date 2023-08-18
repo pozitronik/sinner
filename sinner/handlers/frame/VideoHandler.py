@@ -19,6 +19,9 @@ class VideoHandler(CV2VideoHandler, FFmpegVideoHandler):
                 'parameter': 'keep-audio',
                 'default': False,
                 'help': 'Keep original audio'
+            },
+            {
+                'module_help': 'The combined video processing module'
             }
         ]
 

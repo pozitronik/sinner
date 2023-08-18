@@ -25,9 +25,12 @@ class CV2VideoHandler(BaseFrameHandler):
         return super().rules() + [
             {
                 'parameter': 'output-fps',
-                'default': self.fps,
+                'default': lambda: self.fps,
                 'help': 'FPS of resulting video'
             },
+            {
+                'module_help': 'The video processing module, based on CV2 library'
+            }
         ]
 
     @staticmethod

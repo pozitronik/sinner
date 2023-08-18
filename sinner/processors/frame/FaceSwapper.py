@@ -31,7 +31,7 @@ class FaceSwapper(BaseFrameProcessor):
                 'attribute': 'source_path',
                 'required': True,
                 'valid': lambda attribute_name, attribute_value: is_image(attribute_value),
-                'help': 'Select a input image with the source face'
+                'help': 'Select an input image with the source face'
             },
             {
                 'parameter': {'target', 'target-path'},
@@ -53,6 +53,9 @@ class FaceSwapper(BaseFrameProcessor):
                 'action': True,
                 'help': 'Enable every face processing in the target'
             },
+            {
+                'module_help': 'This module swaps faces on images'
+            }
         ]
 
     def load(self, parameters: Namespace, validate: bool = True) -> bool:

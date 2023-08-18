@@ -84,6 +84,9 @@ class FrameResizer(BaseFrameProcessor):
                 'valid': lambda attribute, value: is_int(value),
                 'help': 'Select minimal allowed width'
             },
+            {
+                'module_help': 'This module changes images resolution'
+            }
         ]
 
     def calculate_scale(self, frame: Frame) -> float:

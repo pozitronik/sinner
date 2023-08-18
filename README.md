@@ -22,52 +22,17 @@ The tasks that I aim to accomplish here are:
 ## How do I install it?
 
 The basic installation instructions for now are the same as those in the [s0md3v/roop](https://github.com/s0md3v/roop#how-do-i-install-it), check them out.
-In short, you need to install python 3.9 or a later version, VC runtimes, and desired Execution Provider kit (depending on your hardware and OS).
+In short, you need to install python 3.10 or a later version, VC runtimes, and desired Execution Provider kit (depending on your hardware and OS).
 
 ## How do I use it?
 
 Go to application folder and run `python sin.py` with desired set of command-line parameters (or just pick one of [examples](#command-line-usage-examples) and make changes to suit your need).
 
-Here is the list of all possible command-line parameters. 
-* `--source`: the image file containing a face, which will be used for deepfake magic.
-* `--target`: an image, a video file, or a directory with PNG images for processing.
-* `--output`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
-* `--frame-processor`: the frame processor module or modules that you want to apply to your files. See the [Built-in frame processors](#built-in-frame-processors) section for the list of built-in modules and their possibilities.
-* `--fps`: the parameter to set the frames per second (FPS) in the resulting video. If not provided, the resulting video's FPS will be the same as the `target`'s video (or 30, if an image directory is used as the `target`).
-* `--keep-audio`: defaults to `true`. Keeps the original audio in the resulting video.
-* `--keep-frames`: defaults to `false`. Keeps processed frames in the `temp-dir` after finishing.
-* `--many-faces`: defaults to `false`. If set to true, every frame processor in the processing chain will apply its magic to every face on every frame of the `target`. If set to `false`, only one face (the first one found, no heavy logic here) will be processed.
-* `--max-memory`: defaults to `4` for Mac and `16` for any other platforms. The maximum amount of gigabytes of RAM that will be allowed for sinner use.
-**Note 1**: AI processing usually requires a significant amount of RAM. While processing, you will see the memory usage statistics, and the `MEM LIMIT REACHED` statistics indicate a lack of RAM.
-**Note 2**: This parameter does not affect the amount of used video RAM if a GPU-accelerated `execution-provider` is used.
-* `--execution-provider`: defaults to `cpu`. This parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth trying.
-* `--execution-threads`: defaults to `1`. Configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or waiting until the benchmark mode is implemented in sinner.
-* `--temp-dir`: defaults to the `temp` subdirectory in the application directory. A way to provide a directory, where processed (and, in the case of `--in-memory=false`, extracted too) frames will be saved.
-* `--benchmark`: runs a benchmark on a selected `frame-processor` to determine the optimal value for the execution-threads parameter. Additionally, you can specify the `--execution-provider` parameter to choose a specific execution provider (if not provided, all available providers will be tried in sequence). Furthermore, you have the option to specify the `--source` and `--target` parameters to use custom files during the benchmark (if not provided, default test files will be used).
-* `--gui`: starts in GUI mode (experimental).
-* `--ini`: optional path to a custom configuration file, see the [Configuration file](#configuration-file) section.
-* `--log`: optional path to a logfile where all status messages will be logged.
+You can get the list of all available command-line parameters by running the program with `--h` or `--help` keys. Those commands will list all configurable modules and their supported parameters.
+1
+Some modules may have the same parameters. It is okay: those parameters (and its values) are shared. It is also okay, if parameters expected values are different between modules: usually, they will be harmonized in runtime. But if something goes wrong, you will get an explicit error message.
 
-**FrameExtractor**
-Use this processor in the processing chain when using video file as the target to force sinner extract frames to a temporary folder as a sequence of PNG files. If not used, every frame will be extracted to a memory only by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
-
-**FrameResizer:**
-* `--scale`: Scales output frames to certain float value. Example: `--scale=0.5` will halve frame in both size and `--scale=2` will zoom it twice. 
-* `--height`: Set output frames height to this integer value, the width also will be scaled proportional.
-* `--width`: Set output frames width to this integer value, the height also will be scaled proportional.
-* `--height-max`: Set output frames height to this integer value, but only if current frame height is greater. The width also will be scaled proportional.
-* `--width-max`: Set output frames width to this integer value, but only if current frame width is greater. The width also will be scaled proportional.
-* `--height-max`: Set output frames height to this integer value, but only if current frame height is smaller. The width also will be scaled proportional.
-* `--width-max`: Set output frames width to this integer value, but only if current frame width is smaller. The width also will be scaled proportional.
-**Note**: The size keys priority is: all `height` keys will be used in the first place; if they skipped, then all `width` keys will be used; and if no `height` or `width` keys are provided, then `scale` key is used.
-
-**FaceEnhancer:**
-* `--upscale`: Scales output frames to certain float value. Example: `--scale=0.5` will halve frame in both size and `--scale=2` will zoom it twice.
-**Note**: You can combine this parameter with `FrameResizer` scaling possibilities. As example:
-```cmd
-python sin.py --target="d:\videos\not_a_porn.mp4" --frame-processor FrameResizer FaceEnhancer --output="d:\results\result.mp4" --scale=0.5 --upscale=2
-```
-Thus, all frames will be halved before enhancing, and restored to original size with FaceEnhancer with its magic. The profit is that the processing of smaller frames can be faster. 
+Also, you can read about modules parameters [here](/docs/modules.md)
 
 ## Built-in frame processors
 
@@ -77,6 +42,7 @@ you want to use, and provide them with some sources to work on. Here is the list
 ![FaceSwapper demo](/demos/swapper-demo.gif)
 - `FaceEnhancer`: performs face restoration and enhances the quality of the `target`. The processor is based on the libraries of the [ARC Lab GFPGAN project](https://github.com/TencentARC/GFPGAN).
 ![FaceEnhancer demo](/demos/enhancer-demo.jpg)
+- `FrameExtractor`: use this processor in the processing chain when using video file as the target to force sinner extract frames to a temporary folder as a sequence of PNG files. If not used, every frame will be extracted into the memory by a processor module's request. The first way requires some disk space for temporary frames, the second way might be a little slower in some cases.
 - `FrameResizer`: resizes frames to certain size.
 - `DummyProcessor`: literally does nothing; it is just a test tool.
 

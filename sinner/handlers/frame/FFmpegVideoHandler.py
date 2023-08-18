@@ -23,9 +23,12 @@ class FFmpegVideoHandler(BaseFrameHandler):
         return super().rules() + [
             {
                 'parameter': 'output-fps',
-                'default': self.fps,
+                'default': lambda: self.fps,
                 'help': 'FPS of resulting video'
             },
+            {
+                'module_help': 'The video processing module, based on ffmpeg'
+            }
         ]
 
     def run(self, args: List[str]) -> bool:
