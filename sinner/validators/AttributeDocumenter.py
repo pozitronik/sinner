@@ -12,8 +12,7 @@ from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.processors.frame.FrameResizer import FrameResizer
-from sinner.validators import AttributeLoader
-from sinner.validators.AttributeLoader import VALIDATORS, Rule
+from sinner.validators.AttributeLoader import VALIDATORS, Rule, AttributeLoader
 from sinner.validators.ValueValidator import ValueValidator
 
 DocumentedClasses: List[Type[AttributeLoader]] = [
@@ -48,7 +47,7 @@ class AttributeDocumenter:
         collected_doc: List[Dict[str, List[Dict[str, List[str]]]]] = []
         for doc_class in DocumentedClasses:
             class_doc: List[Dict[str, List[str]]] = []
-            loaded_class: Type[AttributeLoader] = doc_class.__new__(doc_class)
+            loaded_class: AttributeLoader = doc_class.__new__(doc_class)
             loadable_attributes = loaded_class.validating_attributes()
             for attribute in loadable_attributes:
                 parameters: List[str] = loaded_class.get_attribute_parameters(attribute)
