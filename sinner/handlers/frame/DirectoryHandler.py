@@ -14,7 +14,7 @@ class DirectoryHandler(BaseFrameHandler):
     emoji: str = '📂'
 
     _fc: int | None = None
-    _frames_path: list | None = None
+    _frames_path: list[str] | None = None
 
     def __init__(self, target_path: str, parameters: Namespace):
         if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
