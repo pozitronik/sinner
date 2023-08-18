@@ -1,4 +1,4 @@
-from typing import Type, List, Dict, Iterable
+from typing import Type, List, Dict
 
 from colorama import Style, Fore
 
