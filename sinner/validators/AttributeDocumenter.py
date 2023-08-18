@@ -74,9 +74,9 @@ class AttributeDocumenter:
             result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help}\n'
             for attribute in module_data['attributes']:
                 defaults: str = "" if attribute['defaults'] is None else f" Defaults to {Fore.MAGENTA}{attribute['defaults']}{Fore.RESET}."
-                help_str: str = f"{Style.DIM}<No help provided>{Style.RESET_ALL}" if attribute['help'] is None else attribute['help']
-                attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
-                result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {help_str}.{defaults}\n'
+                if attribute['help'] is not None:
+                    attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
+                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {attribute["help"]}.{defaults}\n'
         return result
 
     @staticmethod
