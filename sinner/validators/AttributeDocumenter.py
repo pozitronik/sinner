@@ -7,16 +7,11 @@ from sinner.Core import Core
 from sinner.Preview import Preview
 from sinner.Sinner import Sinner
 from sinner.Status import Status
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
-from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
-from sinner.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
-from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.processors.frame.FrameResizer import FrameResizer
-# from sinner.processors.frame.ResultProcessor import ResultProcessor
 from sinner.validators import AttributeLoader
 from sinner.validators.AttributeLoader import VALIDATORS, Rule
 from sinner.validators.ValueValidator import ValueValidator
@@ -33,11 +28,11 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     FrameExtractor,
     FrameResizer,
     # ResultProcessor,
-    CV2VideoHandler,
-    FFmpegVideoHandler,
+    # CV2VideoHandler,
+    # FFmpegVideoHandler,
     VideoHandler,
-    DirectoryHandler,
-    ImageHandler
+    # DirectoryHandler,
+    # ImageHandler
 ]
 
 
