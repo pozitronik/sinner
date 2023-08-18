@@ -20,7 +20,7 @@ class Sinner(AttributeLoader):
             },
             {
                 'parameter': 'benchmark',
-                'default': None,
+                'default': False,
                 'help': 'Run a benchmark on a selected frame processor'
             },
             {
