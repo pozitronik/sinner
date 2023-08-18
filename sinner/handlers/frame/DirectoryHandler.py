@@ -14,7 +14,7 @@ class DirectoryHandler(BaseFrameHandler):
     emoji: str = '📂'
 
     _fc: int | None = None
-    _frames_path: list | None = None
+    _frames_path: list[str] | None = None
 
     def rules(self) -> Rules:
         return super().rules() + [

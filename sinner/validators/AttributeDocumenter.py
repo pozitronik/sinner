@@ -1,4 +1,4 @@
-from typing import Type, List, Dict
+from typing import Type, List, Dict, Any
 
 from colorama import Style, Fore
 
@@ -38,7 +38,7 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
 
 class AttributeDocumenter:
 
-    def show_help(self):
+    def show_help(self) -> None:
         raw_help_doc = self.collect()
         help_doc = self.format(raw_help_doc)
         print(help_doc)
@@ -102,7 +102,7 @@ class AttributeDocumenter:
         return result
 
     @staticmethod
-    def format_default(default_value: any) -> str | None:
+    def format_default(default_value: Any) -> str | None:
         if callable(default_value):
             return None
         if isinstance(default_value, list):
