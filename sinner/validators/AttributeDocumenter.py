@@ -66,13 +66,32 @@ class AttributeDocumenter:
         return collected_doc
 
     @staticmethod
-    def format(raw_help_doc: List[Dict[str, List[Dict[str, List[str]]]]]) -> str:
+    def filter_attributes(attributes_list: list[dict[str]]) -> list[dict[str]]:
+        """
+        Attributes doc strings can be duplicated because of inheritance from super(). To avoid this, duplicates are filtered (only last items are left).
+        :param attributes_list: unfiltered attributes list
+        :return: filtered attributes list
+        """
+        original_list = []
+        parameters = []
+        for dictionary in attributes_list:
+            if dictionary['parameter'] not in parameters:
+                parameters.append(dictionary['parameter'])
+                original_list.append(dictionary)
+            else:  # duplicate
+                indices = [i for i, d in enumerate(original_list) if d.get('parameter') == dictionary['parameter']]
+                original_list[indices[0]] = dictionary
+
+        return original_list
+
+    def format(self, raw_help_doc: List[Dict[str, List[Dict[str, List[str]]]]]) -> str:
         result: str = ''
         for module_data in raw_help_doc:
             module_help = f"{Style.DIM}<No help provided>{Style.RESET_ALL}" if module_data['module_help'] is None else module_data['module_help']
             result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help}\n'
-            sorted_items = sorted(module_data['attributes'], key=lambda item: list(item['parameter'])[0] if isinstance(item['parameter'], set) else item['parameter'][0] if isinstance(item['parameter'], list) else item['parameter'])
-            # sorted_items = sorted(module_data['attributes'], key=sorting_key)
+            module_attributes = self.filter_attributes(module_data['attributes'])
+
+            sorted_items = sorted(module_attributes, key=lambda item: list(item['parameter'])[0] if isinstance(item['parameter'], set) else item['parameter'][0] if isinstance(item['parameter'], list) else item['parameter'])
             for attribute in sorted_items:
                 defaults: str = "" if attribute['defaults'] is None else f" Defaults to {Fore.MAGENTA}{attribute['defaults']}{Fore.RESET}."
                 choices: str = "" if attribute['choices'] is None else f" Choices are: {Fore.LIGHTBLUE_EX}{attribute['choices']}{Fore.RESET}."
