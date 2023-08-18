@@ -1,6 +1,7 @@
 import glob
 import os
 import shutil
+from argparse import Namespace
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -19,15 +20,14 @@ class DirectoryHandler(BaseFrameHandler):
     def rules(self) -> Rules:
         return super().rules() + [
             {
-                'parameter': 'target-path',
-                'attribute': '_target_path',
-                'valid': lambda: os.path.exists(self._target_path) and os.path.isdir(self._target_path),
-                'help': 'Select a directory with image files'
-            },
-            {
                 'module_help': 'The module for processing image files in a directory'
             }
         ]
+
+    def __init__(self, target_path: str, parameters: Namespace):
+        if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
+            raise Exception(f"{target_path} should point to a directory with image files")
+        super().__init__(target_path, parameters)
 
     @property
     def fps(self) -> float:
