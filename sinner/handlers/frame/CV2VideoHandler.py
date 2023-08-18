@@ -58,7 +58,8 @@ class CV2VideoHandler(BaseFrameHandler):
             capture = self.open()
             header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
             if is_frame_readable(header_frames_count):
-                return header_frames_count
+                self._fc = header_frames_count
+                return self._fc
             else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
                 last_good_position = 1
                 last_bad_position = header_frames_count
@@ -80,7 +81,7 @@ class CV2VideoHandler(BaseFrameHandler):
         stop = frames_range[1] if frames_range[1] is not None else self.fc - 1
         #  fixme: do not ignore, if frames already ignored over the frame index
         with tqdm(
-                total=stop - start,
+                total=stop,
                 desc='Extracting frame',
                 unit='frame',
                 dynamic_ncols=True,
