@@ -28,6 +28,8 @@ jobs:
         with:
           python-version: 3.11
       - run: pip install -r requirements-ci.txt
-      - run: sudo apt-get install -y xvfb
+      - run: |
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1600x1200x16 &
       - run: pytest -m "not skip"
 
