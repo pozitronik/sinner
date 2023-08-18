@@ -60,10 +60,12 @@ class AttributeDocumenter:
                 parameters: List[str] = loaded_class.get_attribute_parameters(attribute)
                 help_string: str | None = loaded_class.get_attribute_help(attribute)
                 defaults = None
+                choices = None
                 rules = loaded_class.get_attribute_rules(attribute)
                 if 'default' in rules:
                     defaults = self.format_default(rules['default'])
-                choices = self.format_choices(rules)
+                if 'choices' in rules:  # choices should be listed only in 'choices' rule, despite value validator also validates some other rules
+                    choices = self.format_choices(rules)
                 class_doc.append({'parameter': parameters, 'help': help_string, 'defaults': defaults, 'choices': choices})
             module_help = loaded_class.get_module_help()
             collected_doc.append({'module': doc_class.__name__, 'module_help': module_help, 'attributes': class_doc})
@@ -80,7 +82,7 @@ class AttributeDocumenter:
                 choices: str = "" if attribute['choices'] is None else f" Choices are: {Fore.LIGHTBLUE_EX}{attribute['choices']}{Fore.RESET}."
                 if attribute['help'] is not None:
                     attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
-                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {attribute["help"]}.{defaults}{choices}\n'
+                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {attribute["help"]}.{choices}{defaults}\n'
         return result
 
     @staticmethod
@@ -102,4 +104,4 @@ class AttributeDocumenter:
             return "value calculated in the runtime"
         if isinstance(choice_value, list):
             return "[" + ", ".join(choice_value) + "]"
-        return str(choice_value)
+        return f"[{choice_value}]"
