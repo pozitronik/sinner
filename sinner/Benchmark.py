@@ -42,7 +42,7 @@ class Benchmark(Status):
                 'attribute': 'source_path',
                 'default': resolve_relative_path('../tests/data/targets/target.png', __file__),
                 'required': True,
-                'help': 'Select a input image with the source face'
+                'help': 'Select an input image with the source face'
             },
             {
                 'parameter': {'target', 'target-path'},
