@@ -6,7 +6,6 @@ from sinner.Benchmark import Benchmark
 from sinner.Core import Core
 from sinner.Preview import Preview
 from sinner.Sinner import Sinner
-from sinner.State import State
 from sinner.Status import Status
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -26,7 +25,7 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     Sinner,
     Core,
     Status,
-    State,
+    # State,
     Preview,
     Benchmark,
     FaceEnhancer,
