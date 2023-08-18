@@ -27,6 +27,9 @@ class Status(AttributeLoader):
                 'valid': lambda: self.log_write(),
                 'help': 'Path to the log file'
             },
+            {
+                'module_help': 'The status messaging module'
+            }
         ]
 
     def update_status(self, message: str, caller: str | None = None, mood: Mood = Mood.GOOD, emoji: str | None = None) -> None:

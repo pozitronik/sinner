@@ -34,6 +34,9 @@ class State(Status):
             {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'initial_target_path'  # issue 29: need to know this parameter to avoid names collisions
+            },
+            {
+                'module_help': 'The state control module'
             }
         ]
 

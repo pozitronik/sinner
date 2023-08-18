@@ -20,7 +20,10 @@ class FrameExtractor(BaseFrameProcessor):
                 'attribute': 'target_path',
                 'required': True,
                 'valid': lambda attribute_name, attribute_value: attribute_value is not None and is_video(attribute_value),
-                'help': 'Select the target file (image or video) or the directory'
+                'help': 'Select the target video file'
+            },
+            {
+                'module_help': 'This module extracts frames from video file as set of png images'
             }
         ]
 

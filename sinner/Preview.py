@@ -78,6 +78,9 @@ class Preview(Status):
                 'valid': lambda attribute, value: is_int(value),
                 'help': 'Maximum preview window width'
             },
+            {
+                'module_help': 'GUI module'
+            }
         ]
 
     def __init__(self, core: Core):

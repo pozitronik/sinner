@@ -50,18 +50,21 @@ class BaseFrameProcessor(ABC, Status):
         return [
             {
                 'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
-                'default': suggest_max_memory()
+                'default': suggest_max_memory(),
+                'help': 'The maximum amount of RAM (in GB) that will be allowed for use'
             },
             {
                 'parameter': 'execution-provider',
                 'required': True,
                 'default': ['cpu'],
-                'choices': suggest_execution_providers()
+                'choices': suggest_execution_providers(),
+                'help': 'The execution provider, from available on your hardware/software'
             },
             {
                 'parameter': 'execution-threads',
                 'type': int,
-                'default': suggest_execution_threads()
+                'default': suggest_execution_threads(),
+                'help': 'The count of simultaneous processing threads'
             },
             {
                 'parameter': {'target', 'target-path'},

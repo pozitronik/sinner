@@ -89,6 +89,10 @@ class Benchmark(Status):
                 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
                 'help': 'Select the frame processor from available processors'
             },
+            {
+                'module_help': 'The benchmarking module'
+            }
+
         ]
 
     def __init__(self, parameters: Namespace):

@@ -47,6 +47,9 @@ class FaceEnhancer(BaseFrameProcessor):
                 'valid': lambda attribute, value: is_float(value),
                 'help': 'Select the upscale for FaceEnhancer'
             },
+            {
+                'module_help': 'This module enhances faces on images'
+            }
         ]
 
     def suggest_output_path(self) -> str:

@@ -26,6 +26,9 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 'default': lambda: self.fps,
                 'help': 'FPS of resulting video'
             },
+            {
+                'module_help': 'The video processing module, based on ffmpeg'
+            }
         ]
 
     def run(self, args: List[str]) -> bool:

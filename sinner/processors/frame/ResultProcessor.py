@@ -26,6 +26,9 @@ class ResultProcessor(BaseFrameProcessor):
                 'default': lambda: self.suggest_output_path(),
                 'valid': lambda: is_absolute_path(self.output_path),
                 'help': 'Select an output file or a directory'
+            },
+            {
+                'module_help': 'This module results processed frames to the final file/directory'
             }
         ]
 

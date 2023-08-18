@@ -53,6 +53,9 @@ class FaceSwapper(BaseFrameProcessor):
                 'action': True,
                 'help': 'Enable every face processing in the target'
             },
+            {
+                'module_help': 'This module swaps faces on images'
+            }
         ]
 
     def load(self, parameters: Namespace, validate: bool = True) -> bool:
