@@ -1,7 +1,6 @@
 import glob
 import os
 import shutil
-from argparse import Namespace
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler

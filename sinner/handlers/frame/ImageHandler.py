@@ -1,6 +1,5 @@
 import os.path
 import shutil
-from argparse import Namespace
 from pathlib import Path
 from typing import List
 
