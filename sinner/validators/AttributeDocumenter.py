@@ -65,7 +65,7 @@ class AttributeDocumenter:
                     defaults = self.format_default(rules['default'])
                 if 'choices' in rules:  # choices should be listed only in 'choices' rule, despite value validator also validates some other rules
                     choices = self.format_choices(rules)
-                class_doc.append({'parameter': parameters, 'help': help_string, 'defaults': defaults, 'choices': choices})
+                class_doc.append({'parameter': parameters, 'help': help_string, 'defaults': defaults, 'choices': choices, 'required': 'required' in rules})
             module_help = loaded_class.get_module_help()
             collected_doc.append({'module': doc_class.__name__, 'module_help': module_help, 'attributes': class_doc})
         return collected_doc
@@ -79,9 +79,10 @@ class AttributeDocumenter:
             for attribute in module_data['attributes']:
                 defaults: str = "" if attribute['defaults'] is None else f" Defaults to {Fore.MAGENTA}{attribute['defaults']}{Fore.RESET}."
                 choices: str = "" if attribute['choices'] is None else f" Choices are: {Fore.LIGHTBLUE_EX}{attribute['choices']}{Fore.RESET}."
+                required: str = "" if attribute['required'] is False else f" {Fore.RED}(required){Fore.RESET}"
                 if attribute['help'] is not None:
                     attribute_name = f'{Fore.WHITE},{Fore.YELLOW} --'.join(attribute['parameter']).replace("_", "-")
-                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}: {attribute["help"]}.{choices}{defaults}\n'
+                    result += f'\t{Style.BRIGHT}{Fore.YELLOW}--{attribute_name}{Fore.RESET}{Style.RESET_ALL}{required}: {attribute["help"]}.{choices}{defaults}\n'
         return result
 
     @staticmethod
