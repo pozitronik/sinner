@@ -8,7 +8,7 @@ from sinner.Parameters import Parameters
 from sinner.Preview import Preview
 from sinner.Core import Core
 from sinner.Sinner import Sinner
-from sinner.utilities import limit_resources, suggest_max_memory
+from sinner.utilities import limit_resources
 
 
 class Sin(Sinner):
