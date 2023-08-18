@@ -21,7 +21,7 @@ class ImageHandler(BaseFrameHandler):
                 'parameter': 'target-path',
                 'attribute': '_target_path',
                 'valid': lambda: os.path.exists(self._target_path) and os.path.isfile(self._target_path) and is_image(self._target_path),
-                'help': 'Select a image files'
+                'help': 'Select an image file'
             },
             {
                 'module_help': 'The module for processing image files'
