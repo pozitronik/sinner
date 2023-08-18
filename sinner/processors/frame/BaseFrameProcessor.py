@@ -51,7 +51,6 @@ class BaseFrameProcessor(ABC, Status):
             {
                 'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
                 'default': suggest_max_memory(),
-                'help': 'The maximum amount of RAM (in GB) that will be allowed for use'
             },
             {
                 'parameter': 'execution-provider',
