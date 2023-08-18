@@ -6,8 +6,6 @@ jobs:
   inspection:
     runs-on: ubuntu-latest
     steps:
-      - name: Install xvfb
-        run: sudo apt-get install -y xvfb
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up Python 3.11
@@ -30,5 +28,6 @@ jobs:
         with:
           python-version: 3.11
       - run: pip install -r requirements-ci.txt
+      - run: sudo apt-get install -y xvfb
       - run: pytest -m "not skip"
 
