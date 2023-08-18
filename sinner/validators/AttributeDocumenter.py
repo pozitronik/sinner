@@ -1,4 +1,4 @@
-from typing import Type, List, Dict
+from typing import Type, List, Dict, Iterable
 
 from colorama import Style, Fore
 
@@ -71,7 +71,9 @@ class AttributeDocumenter:
         for module_data in raw_help_doc:
             module_help = f"{Style.DIM}<No help provided>{Style.RESET_ALL}" if module_data['module_help'] is None else module_data['module_help']
             result += f'{Style.BRIGHT}{Fore.BLUE}{module_data["module"]}{Fore.RESET}{Style.RESET_ALL}: {module_help}\n'
-            for attribute in module_data['attributes']:
+            sorted_items = sorted(module_data['attributes'], key=lambda item: list(item['parameter'])[0] if isinstance(item['parameter'], set) else item['parameter'][0] if isinstance(item['parameter'], list) else item['parameter'])
+            # sorted_items = sorted(module_data['attributes'], key=sorting_key)
+            for attribute in sorted_items:
                 defaults: str = "" if attribute['defaults'] is None else f" Defaults to {Fore.MAGENTA}{attribute['defaults']}{Fore.RESET}."
                 choices: str = "" if attribute['choices'] is None else f" Choices are: {Fore.LIGHTBLUE_EX}{attribute['choices']}{Fore.RESET}."
                 required: str = "" if attribute['required'] is False else f" {Fore.RED}(required){Fore.RESET}"
