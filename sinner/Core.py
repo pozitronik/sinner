@@ -62,6 +62,7 @@ class Core(Status):
             },
             {
                 'parameter': {'frame-processor', 'processor', 'processors'},
+                'attribute': 'frame_processor',
                 'default': ['FaceSwapper'],
                 'required': True,
                 'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
