@@ -16,7 +16,7 @@ from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.processors.frame.FrameResizer import FrameResizer
-from sinner.processors.frame.ResultProcessor import ResultProcessor
+# from sinner.processors.frame.ResultProcessor import ResultProcessor
 from sinner.validators import AttributeLoader
 from sinner.validators.AttributeLoader import VALIDATORS, Rule
 from sinner.validators.ValueValidator import ValueValidator
@@ -32,12 +32,12 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     FaceSwapper,
     FrameExtractor,
     FrameResizer,
-    ResultProcessor,
+    # ResultProcessor,
     CV2VideoHandler,
-    DirectoryHandler,
     FFmpegVideoHandler,
-    ImageHandler,
-    VideoHandler
+    VideoHandler,
+    DirectoryHandler,
+    ImageHandler
 ]
 
 
