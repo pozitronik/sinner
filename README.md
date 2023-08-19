@@ -23,6 +23,9 @@ The tasks that I aim to accomplish here are:
 
 The basic installation instructions for now are the same as those in the [s0md3v/roop](https://github.com/s0md3v/roop#how-do-i-install-it), check them out.
 In short, you need to install python 3.10 or a later version, VC runtimes, and desired Execution Provider kit (depending on your hardware and OS).
+Then you need to install required python packages by running `pip install -r requirements.txt`. Installation result may vary, depending on your system, but in the most cases it should be installed successfully. Otherwise, get a look to the command output, usually you may fix minor issues (like version requirements change) by yourself.
+
+If nothing helps, feel free to create an issue with your problem, we will try to figure it out.
 
 ## How do I use it?
 
