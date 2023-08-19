@@ -38,49 +38,39 @@ def test_raise_on_relative_path() -> None:
 
 def test_basic() -> None:
     state = State(parameters=Namespace(), target_path=None, temp_dir=tmp_dir, frames_count=0, processor_name='')
-    assert os.path.exists(os.path.join(tmp_dir, 'IN')) is False
-    assert os.path.exists(os.path.join(tmp_dir, 'OUT')) is False
+    assert os.path.exists(tmp_dir) is False
     assert state.source_path is None
     assert state.target_path is None
     assert state._temp_dir == tmp_dir  # absolute path used
-    assert state.in_dir == os.path.normpath(os.path.join(tmp_dir, 'IN'))
-    assert state.out_dir == os.path.normpath(os.path.join(tmp_dir, 'OUT'))
+    assert state.path == os.path.normpath(tmp_dir)
 
-    assert os.path.exists(os.path.normpath(os.path.join(tmp_dir, 'IN'))) is True
-    assert os.path.exists(os.path.normpath(os.path.join(tmp_dir, 'OUT'))) is True
+    assert os.path.exists(os.path.normpath(tmp_dir)) is True
 
     assert state.is_started is False
     assert state.is_finished is False
 
     assert state.processed_frames_count == 0
     assert state.zfill_length == 1
-    assert state.get_frame_processed_name(100) == os.path.abspath(os.path.join(tmp_dir, 'OUT/100.png'))
+    assert state.get_frame_processed_name(100) == os.path.abspath(os.path.join(tmp_dir, '100.png'))
 
 
 def test_state_names_generation() -> None:
     state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=0, processor_name='DummyProcessor')
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.mp4/IN')) is False
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.mp4/OUT')) is False
+    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.mp4')) is False
     assert state.source_path is None
     assert state.target_path == target_mp4
     assert state._temp_dir == tmp_dir  # absolute path used
-    assert state.in_dir == os.path.abspath(os.path.join(tmp_dir, 'DummyProcessor/target.mp4/IN'))
-    assert state.out_dir == os.path.abspath(os.path.join(tmp_dir, 'DummyProcessor/target.mp4/OUT'))
+    assert state.path == os.path.abspath(os.path.join(tmp_dir, 'DummyProcessor/target.mp4'))
 
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.mp4/IN')) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.mp4/OUT')) is True
+    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.mp4')) is True
 
     state = State(parameters=Namespace(source=source_jpg), target_path=target_png, temp_dir=tmp_dir, frames_count=0, processor_name='DummyProcessor')
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg/IN')) is False
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg/OUT')) is False
+    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpgT')) is False
     assert state.source_path == source_jpg
     assert state.target_path == target_png
     assert state._temp_dir == tmp_dir  # absolute path used
-    assert state.in_dir == os.path.abspath(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg/IN'))
-    assert state.out_dir == os.path.abspath(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg/OUT'))
-
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg/IN')) is True
-    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg/OUT')) is True
+    assert state.path == os.path.abspath(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg'))
+    assert os.path.exists(os.path.join(tmp_dir, 'DummyProcessor/target.png/source.jpg')) is True
 
 
 def test_states() -> None:
@@ -91,31 +81,19 @@ def test_states() -> None:
     assert state.processed_frames_count == 0
     assert state.unprocessed_frames_count == 10
 
-    copy_files(state_frames_dir, state.in_dir, ['01.png'])
-    assert state.is_started is False
-    assert state.is_finished is False
-    assert state.processed_frames_count == 0
-    assert state.unprocessed_frames_count == 10
-
-    copy_files(state_frames_dir, state.in_dir, ['02.png', '03.png', '04.png', '05.png'])  # nothing changes
-    assert state.is_started is False
-    assert state.is_finished is False
-    assert state.processed_frames_count == 0
-    assert state.unprocessed_frames_count == 10
-
-    copy_files(state_frames_dir, state.out_dir, ['01.png'])
+    copy_files(state_frames_dir, state.path, ['00.png'])
     assert state.is_started is True
     assert state.is_finished is False
     assert state.processed_frames_count == 1
     assert state.unprocessed_frames_count == 9
 
-    copy_files(state_frames_dir, state.out_dir, ['02.png', '03.png', '04.png', '05.png'])
+    copy_files(state_frames_dir, state.path, ['01.png', '02.png', '03.png', '04.png'])
     assert state.is_started is True
     assert state.is_finished is False
     assert state.processed_frames_count == 5
     assert state.unprocessed_frames_count == 5
 
-    copy_files(state_frames_dir, state.out_dir, ['06.png', '07.png', '08.png', '09.png', '10.png'])
+    copy_files(state_frames_dir, state.path, ['05.png', '06.png', '07.png', '08.png', '09.png'])
     assert state.is_started is False
     assert state.is_finished is True
     assert state.processed_frames_count == 10
@@ -124,27 +102,20 @@ def test_states() -> None:
 
 def test_final_check_ok():
     state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
-    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
+    shutil.copytree(state_frames_dir, state.path, dirs_exist_ok=True)
     assert state.final_check() is True
 
 
 def test_final_check_fail_state():
     state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
-    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
-    os.remove(os.path.join(state.out_dir, '05.png'))
-    assert state.final_check() is False
-
-
-def test_final_check_fail_last_file():
-    state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
-    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
-    os.rename(src=os.path.join(state.out_dir, '10.png'), dst=os.path.join(state.out_dir, '11.png'))
+    shutil.copytree(state_frames_dir, state.path, dirs_exist_ok=True)
+    os.remove(os.path.join(state.path, '05.png'))
     assert state.final_check() is False
 
 
 def test_final_check_fail_zero_files():
     state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
-    shutil.copytree(state_frames_dir, state.out_dir, dirs_exist_ok=True)
-    with open(os.path.join(state.out_dir, '04.png'), 'r+') as file:
+    shutil.copytree(state_frames_dir, state.path, dirs_exist_ok=True)
+    with open(os.path.join(state.path, '04.png'), 'r+') as file:
         file.truncate(0)
     assert state.final_check() is False

@@ -3,6 +3,8 @@ from typing import List
 
 from colorama import Fore, Back, Style
 
+from sinner.validators.ErrorDTO import ErrorDTO
+
 
 # The exception inside a loader
 class LoaderException(Exception):
@@ -21,18 +23,18 @@ class LoaderException(Exception):
 
 # The user exception, when loading is not success
 class LoadingException(Exception):
-    errors: List[dict[str, str]] = []
+    errors: List[ErrorDTO] = []
 
-    def __init__(self, errors: List[dict[str, str]]):
+    def __init__(self, errors: List[ErrorDTO]):
         self.errors = errors
 
     def __str__(self) -> str:
         validation_errors: List[str] = []
         attributes_help: List[str] = []
         for error in self.errors:
-            validation_errors.append(f"Parameter {Fore.YELLOW}--{error['attribute']}{Fore.RESET}{Fore.RED} {error['error']}{Fore.RESET} {Fore.WHITE}in module{Fore.RESET} {Fore.CYAN}{error['module']}{Fore.RESET}")
-            if error['help'] is not None:
-                attributes_help.append(f"{Style.BRIGHT}{Fore.YELLOW}--{error['attribute']}{Fore.RESET}={error['help']}{Style.RESET_ALL}")
+            validation_errors.append(f"Parameter {Fore.YELLOW}--{error.attribute}{Fore.RESET}{Fore.RED}={error.value}{Fore.RESET} {Fore.WHITE}in module{Fore.RESET} {Fore.CYAN}{error.module}{Fore.RESET} {error.message}")
+            if error.help_message is not None:
+                attributes_help.append(f"{Style.BRIGHT}{Fore.YELLOW}--{error.attribute}{Fore.RESET}={error.help_message}{Style.RESET_ALL}")
             else:
-                attributes_help.append(f"{Style.BRIGHT}{Fore.YELLOW}--{error['attribute']}{Fore.RESET}{Style.RESET_ALL}")
+                attributes_help.append(f"{Style.BRIGHT}{Fore.YELLOW}--{error.attribute}{Fore.RESET}{Style.RESET_ALL}")
         return os.linesep.join(validation_errors) + os.linesep + ' '.join(attributes_help)

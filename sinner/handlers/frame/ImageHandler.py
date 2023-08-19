@@ -1,6 +1,5 @@
 import os.path
 import shutil
-from argparse import Namespace
 from pathlib import Path
 from typing import List
 
@@ -9,14 +8,24 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import is_image
+from sinner.validators.AttributeLoader import Rules
 
 
 class ImageHandler(BaseFrameHandler):
+    emoji: str = '🖼️'
 
-    def __init__(self, target_path: str, parameters: Namespace):
-        if not os.path.exists(target_path) or not os.path.isfile(target_path) or not is_image(target_path):
-            raise Exception(f"{target_path} should point to a image file")
-        super().__init__(target_path, parameters)
+    def rules(self) -> Rules:
+        return super().rules() + [
+            {
+                'parameter': 'target-path',
+                'attribute': '_target_path',
+                'valid': lambda: os.path.exists(self._target_path) and os.path.isfile(self._target_path) and is_image(self._target_path),
+                'help': 'Select an image file'
+            },
+            {
+                'module_help': 'The module for processing image files'
+            }
+        ]
 
     @property
     def fps(self) -> float:
@@ -26,11 +35,11 @@ class ImageHandler(BaseFrameHandler):
     def fc(self) -> int:
         return 1
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
-        return [(1, self._target_path)]
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
+        return [(0, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
-        return frame_number, CV2VideoHandler.read_image(self._target_path)
+        return frame_number, CV2VideoHandler.read_image(self._target_path), None
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:

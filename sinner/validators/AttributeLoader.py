@@ -4,6 +4,7 @@ from typing import List, Dict, Any, Type
 from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
+from sinner.validators.ErrorDTO import ErrorDTO
 from sinner.validators.HelpValidator import HelpValidator
 from sinner.validators.LoaderException import LoaderException, LoadingException
 from sinner.validators.RequiredValidator import RequiredValidator
@@ -36,7 +37,7 @@ VALIDATORS: dict[str, Type[BaseValidator]] = {
 
 
 class AttributeLoader:
-    errors: List[dict[str, str]] = []  # list of parameters validation errors, attribute: error, help: help message
+    errors: List[ErrorDTO] = []  # list of parameters validation errors
     old_attributes: Namespace = Namespace()  # previous values (before loading)
 
     def rules(self) -> Rules:
@@ -81,31 +82,51 @@ class AttributeLoader:
                 if isinstance(parameter, str):
                     parameter = [parameter]
                 if isinstance(parameter, (list, set)):
-                    if key in parameter or key.replace('-', '_') in parameter:
+                    if key in parameter or key.replace('-', '_') in parameter or key.replace('_', '-') in parameter:
                         return rule['attribute'] if 'attribute' in rule else list(parameter)[0].replace('-', '_')
             if 'attribute' in rule:
                 if rule['attribute'] == key.replace('-', '_'):
                     return rule['attribute']
         return None
 
+    # by attribute name return all its parameters
+    def get_attribute_parameters(self, attribute: str) -> List[str]:
+        for rule in self.rules():
+            if 'attribute' in rule:
+                if rule['attribute'] == attribute.replace('-', '_'):
+                    if isinstance(rule['parameter'], str):
+                        return [rule['parameter']]
+                    else:
+                        return list(rule['parameter'])
+            if 'parameter' in rule:
+                parameter = rule['parameter']
+                if isinstance(parameter, str):
+                    parameter = [parameter]
+                if isinstance(parameter, (list, set)):
+                    if attribute in parameter or attribute.replace('-', '_') in parameter or attribute.replace('_', '-') in parameter:
+                        return list(parameter)
+        return []
+
     def validate(self, stop_on_error: bool = True) -> bool:
         validating_attributes = self.validating_attributes()
         self.init_declared_attributes(validating_attributes)
         for attribute in validating_attributes:
             for error in self.validate_attribute(attribute):
-                self.add_error(attribute=attribute, error=error, module=self.__class__.__name__)
+                self.add_error(error=error, module=self.__class__.__name__)
                 if stop_on_error:
                     return False
         return [] == self.errors
 
-    def add_error(self, attribute: str, error: str = 'invalid value', module: str = '😈sinner') -> None:
-        self.errors.append({'attribute': attribute, 'error': error, 'module': module, 'help': self.get_attribute_help(attribute)})
+    def add_error(self, error: ErrorDTO, module: str = '😈sinner') -> None:
+        error.module = module
+        error.help_message = self.get_attribute_help(error.attribute)
+        self.errors.append(error)
 
-    def validate_attribute(self, attribute: str) -> List[str]:  # returns a list of errors on attribute
+    def validate_attribute(self, attribute: str) -> List[ErrorDTO]:  # returns a list of errors on attribute
         if not declared_attr_type(self, attribute):  # doesn't allow to use dynamic attributes
             raise LoaderException(f'Property {attribute} is not declared in a class', self, attribute)
         rule = self.get_attribute_rules(attribute)
-        errors: List[str] = []
+        errors: List[ErrorDTO] = []
         for validator in self.get_rule_validators(rule):
             error = validator.validate(self, attribute)
             if error is not None:
@@ -188,9 +209,15 @@ class AttributeLoader:
             if hasattr(self, attribute) is False and declared_attr_type(self, attribute) is not None:  # attribute is type declared
                 setattr(self, attribute, None)
 
-    def get_attribute_help(self, attribute: str) -> str:
+    def get_attribute_help(self, attribute: str) -> str | None:
         attribute_help = self.get_attribute_rules(attribute)
-        return attribute_help['help'] if 'help' in attribute_help else ''
+        return attribute_help['help'] if 'help' in attribute_help else None
+
+    def get_module_help(self) -> str | None:
+        for rule in self.rules():
+            if 'module_help' in rule:
+                return rule['module_help']
+        return None
 
     # get all initialized attributes, enlisted in cls.rules() and update parameters
     def update_parameters(self, parameters: Namespace) -> None:

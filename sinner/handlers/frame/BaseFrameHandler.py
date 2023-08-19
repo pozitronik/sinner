@@ -5,12 +5,12 @@ from argparse import Namespace
 from typing import List
 
 from sinner.Status import Status
-from sinner.validators.AttributeLoader import AttributeLoader, Rules
+from sinner.validators.AttributeLoader import Rules
 from sinner.typing import NumeratedFrame, NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 
 
-class BaseFrameHandler(AttributeLoader, Status, ABC):
+class BaseFrameHandler(Status, ABC):
     current_frame_index: int = 0
 
     _target_path: str
@@ -53,9 +53,15 @@ class BaseFrameHandler(AttributeLoader, Status, ABC):
     def fc(self) -> int:
         pass
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
+        """
+        Returns all frames paths (extracting them into files, if needed). File names starting from zero index
+        :param path: the frames directory
+        :param frames_range: sets the range of returned (and extracted) frames
+        :return: list of requested frames
+        """
         frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path]
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)][frames_range[0]:frames_range[1]]
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
@@ -78,4 +84,4 @@ class BaseFrameHandler(AttributeLoader, Status, ABC):
         if self.current_frame_index >= self.fc:
             raise StopIteration
         self.current_frame_index += 1
-        return self.current_frame_index
+        return self.current_frame_index - 1  # zero-based

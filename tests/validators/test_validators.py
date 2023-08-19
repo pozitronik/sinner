@@ -3,8 +3,9 @@ from argparse import Namespace
 import pytest
 
 from sinner.Parameters import Parameters
+from sinner.validators.ErrorDTO import ErrorDTO
 from sinner.validators.LoaderException import LoaderException
-from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped
+from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped, TestRequiredValidationLambda
 
 
 def test_default_validator() -> None:
@@ -63,6 +64,32 @@ def test_required_validator() -> None:
     assert test_object.required_default_parameter == DEFAULT_VALUE
 
 
+def test_required_validator_lambda() -> None:
+    test_object = TestRequiredValidationLambda()
+    parameters = Parameters.command_line_to_namespace('--required_lambda_parameter=10 --not_required_lambda_parameter=1')
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+    assert test_object.load(parameters=parameters) is True
+    assert test_object.required_lambda_parameter == 10
+    assert test_object.not_required_lambda_parameter is True
+
+    test_object = TestRequiredValidationLambda()
+    parameters = Parameters.command_line_to_namespace('--required_lambda_parameter=12')
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+    assert test_object.load(parameters=parameters) is True
+    assert test_object.required_lambda_parameter == 12
+    assert test_object.not_required_lambda_parameter is None
+
+    test_object = TestRequiredValidationLambda()
+    parameters = Parameters.command_line_to_namespace('--not_required_lambda_parameter=1')
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+    assert test_object.load(parameters=parameters) is False
+    assert test_object.required_lambda_parameter is None
+    assert test_object.not_required_lambda_parameter is None
+
+
 def test_untyped_attribute() -> None:
     test_object = TestUntypedAttribute()
     parameters: Namespace = Parameters.command_line_to_namespace('--untyped-attribute=value')
@@ -80,7 +107,11 @@ def test_equal_value_validator() -> None:
     parameters: Namespace = Parameters.command_line_to_namespace('--int_attribute=42')
     assert test_object.load(parameters=parameters) is False
     assert test_object.int_attribute == 10
-    assert test_object.errors == [{'attribute': 'int_attribute', 'error': '42 is not equal to 10', 'help': '', 'module': 'TestEqualValueAttribute'}]
+    assert len(test_object.errors) == 1
+    assert test_object.errors[0].attribute == 'int_attribute'
+    assert test_object.errors[0].value == '42'
+    assert test_object.errors[0].message == 'is not equal to 10'
+    assert test_object.errors[0].module == 'TestEqualValueAttribute'
 
 
 def test_in_value_validator() -> None:
@@ -135,6 +166,7 @@ def test_list_parameter() -> None:
     assert test_object.list_attribute == [True]
 
 
+# noinspection PyArgumentList,PyUnresolvedReferences
 @pytest.mark.skip(reason="Feature not implemented")
 def test_dynamic_parameters_loading_defaults() -> None:
     test_object = TestInitAttribute()
@@ -163,6 +195,7 @@ def test_dynamic_parameters_loading_defaults() -> None:
     assert test_object.non_existent_parameter_type_required == 'something'
 
 
+# noinspection PyArgumentList,PyUnresolvedReferences
 @pytest.mark.skip(reason="Feature not implemented")
 def test_dynamic_parameters_loading() -> None:
     test_object = TestInitAttribute()

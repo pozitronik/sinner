@@ -8,7 +8,7 @@ from sympy.testing import pytest
 
 from sinner.Parameters import Parameters
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
-from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4
+from tests.constants import TARGET_FC, FRAME_SHAPE, tmp_dir, state_frames_dir, target_mp4, result_mp4, images_dir
 
 parameters: Namespace = Parameters().parameters
 
@@ -17,6 +17,10 @@ def setup():
     #  clean previous results, if exists
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
+
+
+def setup_function():
+    setup()
 
 
 def get_test_object() -> DirectoryHandler:
@@ -46,9 +50,50 @@ def test_get_frames_paths() -> None:
     frames_paths = get_test_object().get_frames_paths(path=tmp_dir)
     assert TARGET_FC == len(frames_paths)
     first_item = frames_paths[0]
-    assert (1, os.path.join(state_frames_dir, '01.png')) == first_item
+    assert (0, os.path.join(state_frames_dir, '00.png')) == first_item
     last_item = frames_paths.pop()
-    assert (TARGET_FC, os.path.join(state_frames_dir, '10.png')) == last_item
+    assert (9, os.path.join(state_frames_dir, '09.png')) == last_item
+
+
+def test_get_frames_paths_range() -> None:
+    frames_paths = get_test_object().get_frames_paths(path=tmp_dir, frames_range=(3, 8))
+    assert 6 == len(frames_paths)
+    first_item = frames_paths[0]
+    assert first_item == (3, os.path.join(state_frames_dir, '03.png'))
+    last_item = frames_paths.pop()
+    assert (8, os.path.join(state_frames_dir, '08.png')) == last_item
+
+
+def test_get_frames_paths_range_start() -> None:
+    frames_paths = get_test_object().get_frames_paths(path=tmp_dir, frames_range=(None, 8))
+    assert 9 == len(frames_paths)
+    first_item = frames_paths[0]
+    assert (0, os.path.join(state_frames_dir, '00.png')) == first_item
+    last_item = frames_paths.pop()
+    assert (8, os.path.join(state_frames_dir, '08.png')) == last_item
+
+
+def test_get_frames_paths_range_end() -> None:
+    frames_paths = get_test_object().get_frames_paths(path=tmp_dir, frames_range=(3, None))
+    assert 7 == len(frames_paths)
+    first_item = frames_paths[0]
+    assert (3, os.path.join(state_frames_dir, '03.png')) == first_item
+    last_item = frames_paths.pop()
+    assert (9, os.path.join(state_frames_dir, '09.png')) == last_item
+
+
+def test_get_frames_paths_range_empty() -> None:
+    frames_paths = get_test_object().get_frames_paths(path=tmp_dir, frames_range=(None, None))
+    assert TARGET_FC == len(frames_paths)
+    first_item = frames_paths[0]
+    assert (0, os.path.join(state_frames_dir, '00.png')) == first_item
+    last_item = frames_paths.pop()
+    assert (9, os.path.join(state_frames_dir, '09.png')) == last_item
+
+
+def test_get_frames_paths_range_fail() -> None:
+    frames_paths = get_test_object().get_frames_paths(path=tmp_dir, frames_range=(10, 1))
+    assert 0 == len(frames_paths)
 
 
 def test_extract_frame() -> None:
@@ -78,3 +123,9 @@ def tests_iterator() -> None:
         assert isinstance(frame_index, int)
         frame_counter += 1
     assert frame_counter == 2
+
+
+def test_respect_filenames() -> None:
+    test_object: DirectoryHandler = DirectoryHandler(parameters=parameters, target_path=images_dir)
+    assert isinstance(test_object, Iterator)
+    assert 3 == len(test_object.get_frames_paths(path=tmp_dir))

@@ -15,19 +15,24 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class FFmpegVideoHandler(BaseFrameHandler):
+    emoji: str = '🎥'
+
     output_fps: float
 
     def rules(self) -> Rules:
         return super().rules() + [
             {
                 'parameter': 'output-fps',
-                'default': self.fps,
+                'default': lambda: self.fps,
                 'help': 'FPS of resulting video'
             },
+            {
+                'module_help': 'The video processing module, based on ffmpeg'
+            }
         ]
 
     def run(self, args: List[str]) -> bool:
-        commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose']
+        commands = ['ffmpeg', '-y', '-hide_banner', '-hwaccel', 'auto', '-loglevel', 'verbose', '-progress', 'pipe:1']
         commands.extend(args)
         self.update_status(message=' '.join(commands), mood=Mood.NEUTRAL)
         try:
@@ -75,16 +80,18 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._fc = 0
         return self._fc
 
-    def get_frames_paths(self, path: str) -> List[NumeratedFramePath]:
+    def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(path).mkdir(parents=True, exist_ok=True)
-        self.run(['-i', self._target_path, '-pix_fmt', 'rgb24', os.path.join(path, f'%{filename_length}d.png')])
+        start_frame = frames_range[0] if frames_range[0] is not None else 0
+        stop_frame = frames_range[1] if frames_range[1] is not None else self.fc
+        self.run(['-i', self._target_path, '-vf', f"select='between(n,{start_frame},{stop_frame})'", '-vsync', '0', '-pix_fmt', 'rgb24', '-frame_pts', '1', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select='eq(n,{frame_number})',setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
-        return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR)
+        return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), None
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")

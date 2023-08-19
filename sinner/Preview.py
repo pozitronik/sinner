@@ -15,11 +15,12 @@ from sinner.Core import Core
 from sinner.Status import Status, Mood
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import is_image, is_video, is_int
-from sinner.validators.AttributeLoader import Rules, AttributeLoader
+from sinner.validators.AttributeLoader import Rules
 
 
-class Preview(AttributeLoader, Status):
+class Preview(Status):
     #  window controls
     PreviewWindow: CTk = CTk()
     PreviewFrame: Frame = Frame(PreviewWindow, borderwidth=2)
@@ -77,6 +78,9 @@ class Preview(AttributeLoader, Status):
                 'valid': lambda attribute, value: is_int(value),
                 'help': 'Maximum preview window width'
             },
+            {
+                'module_help': 'GUI module'
+            }
         ]
 
     def __init__(self, core: Core):
@@ -243,7 +247,7 @@ class Preview(AttributeLoader, Status):
     def frame_handler(self) -> BaseFrameHandler | None:
         if self._extractor_handler is None:
             try:
-                self._extractor_handler = Core.suggest_handler(self.core.parameters, self.target_path)
+                self._extractor_handler = BaseFrameProcessor.suggest_handler(self.target_path, self.core.parameters)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler

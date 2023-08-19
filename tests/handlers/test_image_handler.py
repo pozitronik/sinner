@@ -19,11 +19,11 @@ def setup():
 
 def test_init() -> None:
     with pytest.raises(Exception):
-        ImageHandler(target_path='not_existed_directory')
+        ImageHandler(target_path='not_existed_directory', parameters=Namespace())
     with pytest.raises(Exception):
-        ImageHandler(target_path=target_mp4)
+        ImageHandler(target_path=target_mp4, parameters=Namespace())
     with pytest.raises(Exception):
-        ImageHandler(target_path=state_frames_dir)
+        ImageHandler(target_path=state_frames_dir, parameters=Namespace())
 
 
 def get_test_object() -> ImageHandler:
@@ -46,7 +46,7 @@ def test_get_frames_paths() -> None:
     frames_paths = get_test_object().get_frames_paths(path=tmp_dir)
     assert 1 == len(frames_paths)
     first_item = frames_paths[0]
-    assert (1, target_png) == first_item
+    assert (0, target_png) == first_item
 
 
 def test_extract_frame() -> None:
