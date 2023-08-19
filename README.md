@@ -22,10 +22,28 @@ The tasks that I aim to accomplish here are:
 ## How do I install it?
 
 The basic installation instructions for now are the same as those in the [s0md3v/roop](https://github.com/s0md3v/roop#how-do-i-install-it), check them out.
-In short, you need to install python 3.10 or a later version, VC runtimes, and desired Execution Provider kit (depending on your hardware and OS).
-Then you need to install required python packages by running `pip install -r requirements.txt`. Installation result may vary, depending on your system, but in the most cases it should be installed successfully. Otherwise, get a look to the command output, usually you may fix minor issues (like version requirements change) by yourself.
+In short, you need to install python 3.10 or a later version, VC runtimes (on windows), and desired Execution Provider kit (depending on your hardware and OS).
+Then you need to install required python packages, and there are some differences in the process:
 
-If nothing helps, feel free to create an issue with your problem, we will try to figure it out.
+### I have PC with Windows/Linux and no CUDA GPU
+
+Run `pip install -r requirements.txt`. It will install packages, just enough to run magic on CPU only.
+
+### I have PC with Windows/Linux and GPU with CUDA support
+
+Run `pip install -r requirements-pc-cuda.txt`. It will install packages with CUDA support. Do not forget: you also have to install CUDA drivers as well.
+
+### I have x86 MAC 
+
+Run `pip install -r requirements-mac-x86.txt`. It will use only CPU powers, but it should work.
+
+### I have Apple Silicon Mac 
+
+Run `pip install -r requirements-mac-arm64.txt`. There are no CUDA, obviously, but there's some hardware acceleration too.
+
+Anyway, packages should be installed successfully. Otherwise, get a look to the command output, usually you may fix minor issues (like version requirements change) by yourself.
+
+If nothing helps, feel free to create an issue with your problem, we will try to figure it out together.
 
 ## How do I use it?
 

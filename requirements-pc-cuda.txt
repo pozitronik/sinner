@@ -1,4 +1,4 @@
-# this file contains package requirements list for linux/windows PC only with CPU support
+# this file contains package requirements list for linux/windows PC with CPU and CUDA support
 
 --extra-index-url https://download.pytorch.org/whl/cu118
 
@@ -17,6 +17,7 @@ tensorflow>=2.13.0
 future==0.18.3
 colorama>=0.4.6
 sympy==1.12
-torch==2.0.1
-torchvision==0.15.2
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
 onnxruntime==1.15.1
+onnxruntime-gpu==1.15.1

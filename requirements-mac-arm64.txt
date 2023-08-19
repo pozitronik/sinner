@@ -1,5 +1,3 @@
-# this file contains package requirements list for linux/windows PC only with CPU support
-
 --extra-index-url https://download.pytorch.org/whl/cu118
 
 numpy>=1.24.3
@@ -19,4 +17,4 @@ colorama>=0.4.6
 sympy==1.12
 torch==2.0.1
 torchvision==0.15.2
-onnxruntime==1.15.1
+onnxruntime-silicon==1.13.1
