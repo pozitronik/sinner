@@ -102,12 +102,24 @@ You also can pass path to the custom configuration file as a command line parame
 python sin.py --ini="d:\path\custom.ini"
 ```
 
+## How to handle output videos quality/encoding speed/etc?
+
+In brief, sinner relies on the `ffmpeg` software almost every time video processing is required, and it's possible to utilize all the incredible powers of `ffmpeg`. Use the `--ffmpeg_resulting_parameters` key to control how `ffmpeg` will encode the output video: simply pass the usual `ffmpeg` parameters as the value for this key (remember not to forget enclosing the value string in commas). There are some examples:
+
+* `--ffmpeg_resulting_parameters="-c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p"`: use software x264 encoder (`-c:v libx264`) with the medium quality (`-preset medium` and `-crf 20`) and `yuv420p` pixel format. This is the default parameter value.
+* `--ffmpeg_resulting_parameters="-c:v h264_nvenc -preset slow -qp 20 -pix_fmt yuv420p"`: use nVidia GPU-accelerated x264 encoder (`-c:v h264_nvenc`) with the good encoding quality (`-preset slow` and `-qp 20`). This encoder is worth to use if it supported by your GPU.
+* `--ffmpeg_resulting_parameters="-c:v hevc_nvenc -preset slow -qp 20 -pix_fmt yuv420p"`: the same as above, but with x265 encoding.
+* `--ffmpeg_resulting_parameters="-c:v h264_amf -b:v 2M -pix_fmt yuv420p"`: the AMD hardware-accelerated x264 encoder (`-c:v h264_amf`) with 2mbps resulting video bitrate (-b:v 2M). This should be good for AMD GPUs.
+
+And so on. As you can find, there are a lot of different presets and options for the every `ffmpeg` encoder, and you can rely on the [documentation](https://ffmpeg.org/ffmpeg-codecs.html) to achieve desired results. 
+
+In case, when `ffmpeg` is not available in your system, sinner will gracefully degrade to CV2 library possibilities. In that case all video processing features should work, but in a very basic way: only with the software x264 encoder, which is slow and thriftless. 
+
 ## FAQ
 
 :question: What are the differences between sinner and roop?<br/>
 :exclamation: As said before, sinner has started as a fork of roop. They share similar ideas, but they differ in the ways how those ideas should be implemented.
-sinner uses the same ML libraries to perform its magic, but handles them in its own way. From a developer's perspective, it has a better architecture (OOP instead of functional approach),
- stricter types handling and more comprehensive tests. From the point of view of a user, sinner offers additional features that Roop currently lacks.
+sinner uses the same ML libraries to perform its magic, but handles them in its own way. From a developer's perspective, it has a better architecture (OOP instead of functional approach), stricter types handling and more comprehensive tests. From the point of view of a user, sinner offers additional features that Roop currently lacks.
 
 :question: Is there a NSWF filter?<br/>
 :exclamation: Nope. I don't care if you will do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife, it is the responsibility of the user to decide how they want to use it.
