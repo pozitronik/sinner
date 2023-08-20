@@ -18,6 +18,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
     emoji: str = '🎥'
 
     output_fps: float
+    ffmpeg_resulting_parameters: str
 
     def rules(self) -> Rules:
         return super().rules() + [
@@ -25,6 +26,11 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 'parameter': 'output-fps',
                 'default': lambda: self.fps,
                 'help': 'FPS of resulting video'
+            },
+            {
+                'parameter': ['ffmpeg_resulting_parameters'],
+                'default': '-c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p',
+                'help': 'ffmpeg command-line part to adjust resulting video parameters'
             },
             {
                 'module_help': 'The video processing module, based on ffmpeg'
@@ -97,8 +103,9 @@ class FFmpegVideoHandler(BaseFrameHandler):
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")
         filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
-        command = ['-r', str(self.output_fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png'), '-c:v', 'h264_nvenc', '-preset', 'medium', '-qp', '18', '-pix_fmt', 'yuv420p', '-vf',
-                   'colorspace=bt709:iall=bt601-6-625:fast=1', filename]
+        command = ['-framerate', str(self.output_fps), '-i', os.path.join(from_dir, f'%0{filename_length}d.png')]
+        command.extend(self.ffmpeg_resulting_parameters.split(' '))
+        command.extend(['-r', str(self.output_fps), filename])
         if audio_target:
             command.extend(['-i', audio_target, '-shortest'])
         return self.run(command)
