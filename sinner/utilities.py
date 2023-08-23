@@ -207,3 +207,21 @@ def is_int(value: str) -> bool:
         return True
     except ValueError:
         return False
+
+
+def format_sequences(sorted_list: List[int]) -> str:
+    def format_sequence(s_start: int, s_end: int) -> str:
+        return str(start) if s_start == s_end else f"{start}..{end}"
+
+    sequences = []
+    start = end = sorted_list[0]
+
+    for num in sorted_list[1:]:
+        if num == end + 1:
+            end = num
+        else:
+            sequences.append(format_sequence(start, end))
+            start = end = num
+
+    sequences.append(format_sequence(start, end))
+    return ", ".join(sequences)

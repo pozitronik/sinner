@@ -1,4 +1,4 @@
-from sinner.utilities import get_all_base_names
+from sinner.utilities import get_all_base_names, format_sequences
 
 
 def test_get_all_base_names() -> None:
@@ -36,3 +36,8 @@ def test_get_all_base_names() -> None:
     assert 'B' in get_all_base_names(F)
     assert 'E' not in get_all_base_names(F)
     assert 'C' not in get_all_base_names(F)
+
+
+def test_find_sequences() -> None:
+    assert format_sequences([1, 2, 3, 4, 10, 20, 21, 22, 23]) == '1..4, 10, 20..23'
+    assert format_sequences([100, 3, 2, 3, 4, 5]) == '100, 3, 2..5'

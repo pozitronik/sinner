@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import Frame
-from sinner.utilities import is_absolute_path
+from sinner.utilities import is_absolute_path, format_sequences
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -24,6 +24,7 @@ class State(Status):
 
     final_check_state: bool = True
     final_check_empty: bool = True
+    final_check_integrity: bool = True
 
     def rules(self) -> Rules:
         return [
@@ -162,4 +163,21 @@ class State(Status):
             if zero_sized_files_count > 0:
                 self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
                 result = False
+
+        if self.final_check_integrity:
+            lost_frames = self.check_integrity()
+            if lost_frames:
+                self.update_status(message=f"There is lost frames in the processed sequence: {format_sequences(lost_frames)}", mood=Mood.BAD)
+                result = False
+
         return result
+
+    def check_integrity(self) -> List[int]:
+        result: List[int] = []
+        for frame in range(self.frames_count):
+            f_name = self.get_frame_processed_name(frame)
+            if not os.path.exists(f_name):
+                result.append(frame)
+        return result
+
+
