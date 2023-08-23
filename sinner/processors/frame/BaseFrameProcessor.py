@@ -110,7 +110,17 @@ class BaseFrameProcessor(ABC, Status):
                 initial=self.state.processed_frames_count,
         ) as progress:
             self.multi_process_frame(frames_iterator=self.handler, state=self.state, process_frames=self.process_frames, progress=progress)
-        if not self.state.final_check():
+        _, lost_frames = self.state.final_check()
+        if lost_frames:
+            with tqdm(
+                    total=len(lost_frames),
+                    desc="Processing lost frames", unit='frame',
+                    dynamic_ncols=True,
+                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+            ) as progress:
+                self.multi_process_frame(frames_iterator=lost_frames, state=self.state, process_frames=self.process_frames, progress=progress)
+        is_ok, _ = self.state.final_check()
+        if not is_ok:
             raise Exception("Something went wrong on processed frames check")
 
     @abstractmethod
