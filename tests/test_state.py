@@ -110,7 +110,7 @@ def test_final_check_fail_state():
     state = State(parameters=Namespace(), target_path=target_mp4, temp_dir=tmp_dir, frames_count=TARGET_FC, processor_name='DummyProcessor')
     shutil.copytree(state_frames_dir, state.path, dirs_exist_ok=True)
     os.remove(os.path.join(state.path, '05.png'))
-    assert state.final_check() == (False, [])
+    assert state.final_check() == (False, [5])
 
 
 def test_final_check_fail_zero_files():
