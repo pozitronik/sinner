@@ -8,7 +8,8 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.Core import Core
-from sinner.utilities import limit_resources, suggest_max_memory, get_file_name
+from sinner.processors.frame.DummyProcessor import DummyProcessor
+from sinner.utilities import limit_resources, suggest_max_memory, get_file_name, get_app_dir, resolve_relative_path
 from sinner.validators.LoaderException import LoadingException
 from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC, images_dir, source_images_result
 
@@ -140,3 +141,18 @@ def test_set_execution_provider(capsys) -> None:
     captured = capsys.readouterr()
     assert "Error Unknown Provider Type" not in captured.out
     assert os.path.exists(result_png) is True
+
+
+def test_reprocess_lost_frames() -> None:
+    case_temp_dir = resolve_relative_path('temp/DummyProcessor/frames/source.jpg', get_app_dir())
+    assert os.path.exists(case_temp_dir) is False
+    params = Parameters(f'--target-path="{state_frames_dir}" --source-path="{source_jpg}" --output-path="{result_mp4}" --execution-treads={threads_count}')
+    current_processor = DummyProcessor(params.parameters)
+    current_processor.process()
+    assert os.path.exists(case_temp_dir) is True
+    assert len(glob.glob(os.path.join(case_temp_dir, '*.png'))) == 10
+    os.remove(os.path.join(case_temp_dir, '05.png'))
+    os.remove(os.path.join(case_temp_dir, '08.png'))
+    assert len(glob.glob(os.path.join(case_temp_dir, '*.png'))) == 8
+    current_processor.process()
+    assert len(glob.glob(os.path.join(case_temp_dir, '*.png'))) == 10
