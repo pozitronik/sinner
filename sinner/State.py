@@ -164,7 +164,7 @@ class State(Status):
                 self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
                 result = False
         lost_frames = []
-        if self.final_check_integrity:
+        if self.final_check_integrity and not self.is_finished:
             lost_frames = self.check_integrity()
             if lost_frames:
                 self.update_status(message=f"There is lost frames in the processed sequence: {format_sequences(lost_frames)}", mood=Mood.BAD)
