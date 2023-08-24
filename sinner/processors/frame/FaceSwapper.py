@@ -101,7 +101,7 @@ class FaceSwapper(BaseFrameProcessor):
 
     def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
         download_directory_path = get_app_dir('models')
-        conditional_download(download_directory_path, ['https://huggingface.co/henryruhs/roop/resolve/main/inswapper_128.onnx'])
+        conditional_download(download_directory_path, ['https://github.com/pozitronik/sinner/releases/download/v200823/inswapper_128.onnx'])
         super().__init__(parameters, target_path)
 
     def process_frame(self, frame: Frame) -> Frame:
