@@ -134,7 +134,6 @@ sinner uses the same ML libraries to perform its magic, but handles them in its 
 ## Credits
 
 - [s0md3v](https://github.com/s0md3v/): the original author of roop
-- [henryruhs](https://github.com/henryruhs): the significant contributor to roop
 - [ffmpeg](https://ffmpeg.org/): for making video related operations easy
 - [deepinsight](https://github.com/deepinsight): for their [insightface](https://github.com/deepinsight/insightface) project which provided a well-made library and models.
 - [ARC Lab, Tencent PCG](https://github.com/TencentARC): for their [GFPGAN](https://github.com/TencentARC/GFPGAN) project which provided a face restoration library and models.
