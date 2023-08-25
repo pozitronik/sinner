@@ -13,7 +13,7 @@ from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.State import State
-from sinner.typing import Frame
+from sinner.typing import Frame, FrameBuffer, NumeratedFrame
 from sinner.utilities import load_class, get_mem_usage, suggest_execution_threads, suggest_execution_providers, decode_execution_providers, suggest_max_memory, is_image, is_video, get_app_dir, TEMP_DIRECTORY
 
 
@@ -97,6 +97,28 @@ class BaseFrameProcessor(ABC, Status):
             self.statistics['mem_vms_max'] = mem_vms
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
+
+    def process_buffered(self, input_buffer: FrameBuffer, output_buffer: FrameBuffer, frames_count: int):
+        processed_frames_count = 0
+
+        def process_done(future_: Future[None]) -> None:
+            futures.remove(future_)
+
+        def process_to_buffer(frame_: NumeratedFrame) -> None:
+            processed_frame = self.process_frame(frame_[1])
+            output_buffer.append((frame_[0], processed_frame, frame_[1]))
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            futures: list[Future[None]] = []
+            while processed_frames_count < frames_count:
+                if len(input_buffer) > 0:
+                    current_frame = input_buffer.pop()
+                    future: Future[None] = executor.submit(process_to_buffer, current_frame)
+                future.add_done_callback(process_done)
+                futures.append(future)
+                for completed_future in as_completed(futures):
+                    completed_future.result()
+                    processed_frames_count += 1
 
     def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.progress_callback = set_progress
