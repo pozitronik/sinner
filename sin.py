@@ -8,15 +8,15 @@ from sinner.Parameters import Parameters
 from sinner.Preview import Preview
 from sinner.Core import Core
 from sinner.Sinner import Sinner
+from sinner.ThreadedCore import ThreadedCore
 from sinner.utilities import limit_resources
-from tests.constants import target_mp4, source_jpg
-from tests.test_run import threads_count
 
 
 class Sin(Sinner):
     gui: bool
     benchmark: bool
     max_memory: int
+    threading: bool
 
     parameters: Namespace
 
@@ -37,12 +37,11 @@ class Sin(Sinner):
             window.mainloop()
         elif self.benchmark is True:
             Benchmark(parameters=self.parameters)
+        elif self.threading is True:
+            ThreadedCore(parameters=self.parameters).run()
         else:
             Core(parameters=self.parameters).run()
 
 
 if __name__ == '__main__':
-    params = Parameters(f'--target-path="{target_mp4}" --source-path="{source_jpg}" --execution-treads={threads_count}  --frame-processor FaceSwapper FaceEnhancer')
-    Core(parameters=params.parameters).buffered_run()
-    # Sin().run()
-
+    Sin().run()

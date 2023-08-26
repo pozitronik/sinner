@@ -24,6 +24,12 @@ class Sinner(AttributeLoader):
                 'help': 'Run a benchmark on a selected frame processor'
             },
             {
+                'parameter': ['threading', 't'],
+                'attributes': 'threading',
+                'default': True,
+                'help': 'Run processing in threads (experimental)'
+            },
+            {
                 'module_help': 'The main application'
             }
         ]
