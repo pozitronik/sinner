@@ -118,7 +118,6 @@ class BaseFrameProcessor(ABC, Status):
             futures: list[Future[None]] = []
             while processed_frames_count < frames_count:
                 if len(buffers[name]) > 0:
-                    self.update_status(f'Processing {len(buffers[name])}')
                     current_frame = buffers[name].pop()
                     future: Future[None] = executor.submit(process_to_buffer, current_frame)
                     future.add_done_callback(process_done)
