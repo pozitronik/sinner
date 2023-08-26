@@ -1,7 +1,7 @@
 import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
-from multiprocessing.managers import DictProxy
+from threading import Thread
 from typing import List, Callable, Any, Iterable, Dict
 
 from tqdm import tqdm
@@ -99,13 +99,19 @@ class BaseFrameProcessor(ABC, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process_buffered(self, buffers: Dict[str, FrameBuffer], name: str, next_name: str | None, frames_count: int):
+    def fill_initial_buffer(self, shared_buffer: FrameBuffer) -> None:
+        for frame_num in self.handler:
+            frame = self.handler.extract_frame(frame_num)
+            self.update_status(f'Write frame {frame_num} to initial buffer')
+            shared_buffer.append(frame)
+
+    def process_buffered(self, buffers: Dict[str, FrameBuffer], name: str | None, next_name: str | None):
         processed_frames_count = 0
 
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
 
-        def process_to_buffer(frame_: NumeratedFrame) -> None:
+        def process_to_buffer(frame_: NumeratedFrame | None) -> None:
             frame = frame_[0], self.process_frame(frame_[1]), frame_[2]
             if next_name is not None:
                 self.update_status(f'Write frame {frame[0]} to output buffer')
@@ -116,7 +122,7 @@ class BaseFrameProcessor(ABC, Status):
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             futures: list[Future[None]] = []
-            while processed_frames_count < frames_count:
+            while processed_frames_count < self.handler.fc:
                 if len(buffers[name]) > 0:
                     current_frame = buffers[name].pop()
                     future: Future[None] = executor.submit(process_to_buffer, current_frame)
