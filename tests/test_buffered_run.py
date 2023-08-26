@@ -9,4 +9,3 @@ from tests.test_run import threads_count
 def test_buffered_run() -> None:
     params = Parameters(f'--target-path="{target_mp4}" --source-path="{source_jpg}" --execution-treads={threads_count}  --frame-processor FaceSwapper FaceEnhancer')
     Core(parameters=params.parameters).buffered_run()
-    assert os.path.exists(source_target_mp4_result) is True

@@ -1,7 +1,8 @@
 import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
-from typing import List, Callable, Any, Iterable
+from multiprocessing.managers import DictProxy
+from typing import List, Callable, Any, Iterable, Dict
 
 from tqdm import tqdm
 from argparse import Namespace
@@ -98,24 +99,30 @@ class BaseFrameProcessor(ABC, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process_buffered(self, input_buffer: FrameBuffer, output_buffer: FrameBuffer, frames_count: int):
+    def process_buffered(self, buffers: Dict[str, FrameBuffer], name: str, next_name: str | None, frames_count: int):
         processed_frames_count = 0
 
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
 
         def process_to_buffer(frame_: NumeratedFrame) -> None:
-            processed_frame = self.process_frame(frame_[1])
-            output_buffer.append((frame_[0], processed_frame, frame_[1]))
+            frame = frame_[0], self.process_frame(frame_[1]), frame_[2]
+            if next_name is not None:
+                self.update_status(f'Write frame {frame[0]} to output buffer')
+                buffers[next_name].append(frame)
+            else:
+                self.update_status(f'Write frame {frame[0]} to dir')
+                self.state.save_temp_frame(frame)
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
+        with ThreadPoolExecutor(max_workers=2) as executor:
             futures: list[Future[None]] = []
             while processed_frames_count < frames_count:
-                if len(input_buffer) > 0:
-                    current_frame = input_buffer.pop()
+                if len(buffers[name]) > 0:
+                    self.update_status(f'Processing {len(buffers[name])}')
+                    current_frame = buffers[name].pop()
                     future: Future[None] = executor.submit(process_to_buffer, current_frame)
-                future.add_done_callback(process_done)
-                futures.append(future)
+                    future.add_done_callback(process_done)
+                    futures.append(future)
                 for completed_future in as_completed(futures):
                     completed_future.result()
                     processed_frames_count += 1

@@ -9,6 +9,8 @@ from sinner.Preview import Preview
 from sinner.Core import Core
 from sinner.Sinner import Sinner
 from sinner.utilities import limit_resources
+from tests.constants import target_mp4, source_jpg
+from tests.test_run import threads_count
 
 
 class Sin(Sinner):
@@ -40,4 +42,7 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
-    Sin().run()
+    params = Parameters(f'--target-path="{target_mp4}" --source-path="{source_jpg}" --execution-treads={threads_count}  --frame-processor FaceSwapper FaceEnhancer')
+    Core(parameters=params.parameters).buffered_run()
+    # Sin().run()
+
