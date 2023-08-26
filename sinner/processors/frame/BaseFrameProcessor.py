@@ -158,7 +158,8 @@ class BaseFrameProcessor(ABC, Status):
 
     def process_frames(self, frame_num: int, state: State) -> None:  # type: ignore[type-arg]
         try:
-            state.save_temp_frame(self.process_frame(self.handler.extract_frame(frame_num)))
+            frame = self.handler.extract_frame(frame_num)
+            state.save_temp_frame((frame[0], self.process_frame(frame[1]), frame[2]))
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
             quit()
