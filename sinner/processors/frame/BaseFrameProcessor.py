@@ -2,9 +2,10 @@ import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from threading import Thread
+from time import sleep
 from typing import List, Callable, Any, Iterable, Dict
 
-from tqdm import tqdm
+from tqdm import tqdm, trange
 from argparse import Namespace
 
 from sinner.Status import Status, Mood
@@ -100,12 +101,18 @@ class BaseFrameProcessor(ABC, Status):
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
     def fill_initial_buffer(self, shared_buffer: FrameBuffer) -> None:
-        for frame_num in self.handler:
-            frame = self.handler.extract_frame(frame_num)
-            self.update_status(f'Write frame {frame_num} to initial buffer')
-            shared_buffer.append(frame)
+        with tqdm(
+                total=self.handler.fc,
+                desc='Frame extracting', unit='frame',
+                dynamic_ncols=True,
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+        ) as progress:
+            for frame_num in self.handler:
+                frame = self.handler.extract_frame(frame_num)
+                progress.update()
+                shared_buffer.append(frame)
 
-    def process_buffered(self, buffers: Dict[str, FrameBuffer], name: str | None, next_name: str | None):
+    def process_buffered(self, buffers: Dict[str, FrameBuffer], name: str | None, next_name: str | None, progress: tqdm):
         processed_frames_count = 0
 
         def process_done(future_: Future[None]) -> None:
@@ -114,23 +121,34 @@ class BaseFrameProcessor(ABC, Status):
         def process_to_buffer(frame_: NumeratedFrame | None) -> None:
             frame = frame_[0], self.process_frame(frame_[1]), frame_[2]
             if next_name is not None:
-                self.update_status(f'Write frame {frame[0]} to output buffer')
                 buffers[next_name].append(frame)
             else:
-                self.update_status(f'Write frame {frame[0]} to dir')
                 self.state.save_temp_frame(frame)
 
-        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
-            futures: list[Future[None]] = []
-            while processed_frames_count < self.handler.fc:
-                if len(buffers[name]) > 0:
-                    current_frame = buffers[name].pop()
-                    future: Future[None] = executor.submit(process_to_buffer, current_frame)
-                    future.add_done_callback(process_done)
-                    futures.append(future)
-                for completed_future in as_completed(futures):
-                    completed_future.result()
-                    processed_frames_count += 1
+        with tqdm(
+                total=self.handler.fc,
+                desc=self.__class__.__name__, unit='frame',
+                dynamic_ncols=True,
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+                initial=processed_frames_count,
+        ) as progress:
+            with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
+                futures: list[Future[None]] = []
+                while processed_frames_count < self.handler.fc:
+                    buffer_size = len(buffers[name])
+                    if buffer_size > 0:
+                        current_frame = buffers[name].pop()
+                        progress.set_postfix({
+                            'buffer size': buffer_size,
+                            'last frame': current_frame[0]
+                        })
+                        future: Future[None] = executor.submit(process_to_buffer, current_frame)
+                        future.add_done_callback(process_done)
+                        futures.append(future)
+                    for completed_future in as_completed(futures):
+                        completed_future.result()
+                        progress.update()
+                        processed_frames_count += 1
 
     def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.progress_callback = set_progress

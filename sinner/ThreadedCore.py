@@ -24,7 +24,7 @@ class ThreadedCore(Core):
                 if i == 0:  # pass the first dictionary item to fill it in a separate thread
                     threads.append(Thread(target=current_processor.fill_initial_buffer, args=(frame_buffers[name],)))
 
-                thread: Thread = Thread(target=current_processor.process_buffered, args=(frame_buffers, name, next_name))
+                thread: Thread = Thread(target=current_processor.process_buffered, args=(frame_buffers, name, next_name, i))
                 self.update_status(f'Start {name} thread')
                 threads.append(thread)
 
