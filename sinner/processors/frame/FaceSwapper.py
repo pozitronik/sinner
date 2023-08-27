@@ -52,7 +52,6 @@ class FaceSwapper(BaseFrameProcessor):
             {
                 'parameter': 'many-faces',
                 'default': False,
-                'action': True,
                 'help': 'Enable every face processing in the target'
             },
             {
