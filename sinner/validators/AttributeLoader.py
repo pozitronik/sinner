@@ -193,11 +193,14 @@ class AttributeLoader:
             raise LoaderException(f'Property {attribute} is not declared in a class', self, attribute)
         try:
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
+            typed_value: Any
             if attribute_type_name == 'list':
                 if isinstance(value, list):
                     typed_value = value
                 else:
                     typed_value = [value]
+            elif attribute_type_name == 'bool':
+                typed_value = not value.lower() in ['false', 'f', '0', 'n', 'no']
             else:
                 typed_value = attribute_type(value)
         except Exception:  # if attribute has no type, or defined as Any, just ignore type casting

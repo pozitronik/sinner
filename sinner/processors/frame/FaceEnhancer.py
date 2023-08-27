@@ -1,3 +1,4 @@
+import contextlib
 import os
 import threading
 from argparse import Namespace
@@ -20,6 +21,7 @@ class FaceEnhancer(BaseFrameProcessor):
     thread_lock = threading.Lock()
 
     upscale: float
+    less_output: bool = True
 
     _face_analyser: FaceAnalyser | None = None
     _face_enhancer: GFPGANer | None = None
@@ -39,6 +41,11 @@ class FaceEnhancer(BaseFrameProcessor):
                 'default': lambda: self.suggest_output_path(),
                 'valid': lambda: is_absolute_path(self.output_path),
                 'help': 'Select an output file or a directory'
+            },
+            {
+                'parameter': 'less-output',
+                'default': True,
+                'help': 'Silence noisy runtime console output'
             },
             {
                 'parameter': {'upscale'},
@@ -63,15 +70,19 @@ class FaceEnhancer(BaseFrameProcessor):
     @property
     def face_analyser(self) -> FaceAnalyser:
         if self._face_analyser is None:
-            self._face_analyser = FaceAnalyser(self.execution_providers)
+            self._face_analyser = FaceAnalyser(self.execution_providers, self.less_output)
         return self._face_analyser
 
     @property
     def face_enhancer(self) -> GFPGANer:
         if self._face_enhancer is None:
+            model_path = get_app_dir('models/GFPGANv1.4.pth')
             with self.thread_lock:
-                model_path = get_app_dir('models/GFPGANv1.4.pth')
-                self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
+                if self.less_output:
+                    with contextlib.redirect_stdout(None):
+                        self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
+                else:
+                    self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
         return self._face_enhancer
 
     def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
