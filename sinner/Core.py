@@ -104,7 +104,8 @@ class Core(Status):
 
         if self.keep_frames is False:
             self.update_status('Deleting temp resources')
-            [shutil.rmtree(dir_path, ignore_errors=True) for dir_path in temp_resources]
+            for dir_path in temp_resources:
+                shutil.rmtree(dir_path, ignore_errors=True)
 
     #  returns list of all processed frames, starting from the original
     def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Tuple[Frame, str]]:
