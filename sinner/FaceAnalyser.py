@@ -23,6 +23,9 @@ class FaceAnalyser:
                     with contextlib.redirect_stdout(None):
                         self._face_analyser = FaceAnalysis(name='buffalo_l', providers=self._execution_providers)
                         self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
+                else:
+                    self._face_analyser = FaceAnalysis(name='buffalo_l', providers=self._execution_providers)
+                    self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
         return self._face_analyser
 
     def get_one_face(self, frame: Frame) -> None | Face:
