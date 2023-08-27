@@ -1,3 +1,4 @@
+import contextlib
 import os
 from argparse import Namespace
 from typing import List, Dict, Any
@@ -19,6 +20,7 @@ class FaceSwapper(BaseFrameProcessor):
 
     source_path: str
     many_faces: bool = False
+    less_output: bool = True
 
     _source_face: Face | None = None
     _face_analyser: FaceAnalyser | None = None
@@ -52,6 +54,12 @@ class FaceSwapper(BaseFrameProcessor):
                 'default': False,
                 'action': True,
                 'help': 'Enable every face processing in the target'
+            },
+            {
+                'parameter': 'less-output',
+                'default': True,
+                'action': True,
+                'help': 'Silence noisy runtime console output'
             },
             {
                 'module_help': 'This module swaps faces on images'
@@ -90,13 +98,17 @@ class FaceSwapper(BaseFrameProcessor):
     @property
     def face_analyser(self) -> FaceAnalyser:
         if self._face_analyser is None:
-            self._face_analyser = FaceAnalyser(self.execution_providers)
+            self._face_analyser = FaceAnalyser(self.execution_providers, self.less_output)
         return self._face_analyser
 
     @property
     def face_swapper(self) -> FaceSwapperType:
         if self._face_swapper is None:
-            self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
+            if self.less_output:
+                with contextlib.redirect_stdout(None):
+                    self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
+            else:
+                self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
         return self._face_swapper
 
     def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
