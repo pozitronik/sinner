@@ -194,6 +194,7 @@ class AttributeLoader:
             raise LoaderException(f'Property {attribute} is not declared in a class', self, attribute)
         try:
             attribute_type_name = attribute_type.__origin__.__name__ if hasattr(attribute_type, '__origin__') else attribute_type.__name__
+            typed_value: Any
             if attribute_type_name == 'list':
                 if isinstance(value, list):
                     typed_value = value
