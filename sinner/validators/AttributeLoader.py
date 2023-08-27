@@ -201,7 +201,7 @@ class AttributeLoader:
                 else:
                     typed_value = [value]
             elif attribute_type_name == 'bool':
-                typed_value = False if value.lower() in ['', 'false', 'f', '0', 'n', 'no'] else True
+                typed_value = False if value.lower() in ['false', 'f', '0', 'n', 'no'] else True
             else:
                 typed_value = attribute_type(value)
         except Exception:  # if attribute has no type, or defined as Any, just ignore type casting
