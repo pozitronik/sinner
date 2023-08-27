@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import shutil
 import warnings
 from argparse import Namespace
 from typing import List, Callable, Tuple
@@ -10,7 +11,7 @@ from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import delete_subdirectories, list_class_descendants, resolve_relative_path
+from sinner.utilities import list_class_descendants, resolve_relative_path
 from sinner.validators.AttributeLoader import Rules
 
 # single thread doubles cuda performance - needs to be set before torch import
@@ -103,7 +104,7 @@ class Core(Status):
 
         if self.keep_frames is False:
             self.update_status('Deleting temp resources')
-            delete_subdirectories(self.temp_dir, temp_resources)
+            [shutil.rmtree(dir_path, ignore_errors=True) for dir_path in temp_resources]
 
     #  returns list of all processed frames, starting from the original
     def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Tuple[Frame, str]]:

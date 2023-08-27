@@ -147,6 +147,7 @@ def get_file_name(file_path: str) -> str:
     return os.path.splitext(os.path.basename(file_path))[0]
 
 
+# unused
 def delete_subdirectories(root_dir: str, subdirectories: List[str]) -> None:
     for subdirectory in list(set(subdirectories)):
         shutil.rmtree(subdirectory, ignore_errors=True)
