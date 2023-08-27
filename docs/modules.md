@@ -38,6 +38,7 @@
 * `--target-path`, `--target`: an image, a video file, or a directory with image files for processing.
 * `--output`, `--output-path`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
 * `--many-faces`: if set to `true`, every frame processor in the processing chain will apply its magic to every face on every frame of the `target`. If set to `false`, only one face (the first one found, no heavy logic here) will be processed. Defaults to `false`.
+* `--less-output`: if set to `true` all console outputs from the 3rd party runtime models will be silenced. Those outputs usually contains parameters of self-configuration and other stuff, that you can skip without pain. Defaults to `true`.
 
 # FaceEnhancer: This module enhances faces on images
 * `--execution-provider`: this parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth trying. Defaults to cpu.
@@ -45,6 +46,7 @@
 * `--target-path`, `--target`: an image, a video file, or a directory with image files for processing.
 * `--temp-dir`: a way to provide a directory, where processed frames will be saved. Defaults to the `temp` subdirectory in the application directory.
 * `--output`, `--output-path`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
+* `--less-output`: if set to `true` all console outputs from the 3rd party runtime models will be silenced. Those outputs usually contains parameters of self-configuration and other stuff, that you can skip without pain. Defaults to `true`.
 * `--upscale`: scales output frames to certain float value. Example: `--scale=0.5` will halve frame in both size and `--scale=2` will zoom it twice.
 **Note**: You can combine this parameter with `FrameResizer` scaling possibilities. As example:
 ```cmd
