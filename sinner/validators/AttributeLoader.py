@@ -188,6 +188,7 @@ class AttributeLoader:
         return sorted_dict
 
     def setattr(self, attribute: str, value: Any) -> None:
+
         attribute_type = declared_attr_type(self, attribute)
         if attribute_type is None:
             raise LoaderException(f'Property {attribute} is not declared in a class', self, attribute)
@@ -198,6 +199,8 @@ class AttributeLoader:
                     typed_value = value
                 else:
                     typed_value = [value]
+            elif attribute_type_name == 'bool':
+                typed_value = False if value.lower() in ['', 'false', 'f', '0', 'n', 'no'] else True
             else:
                 typed_value = attribute_type(value)
         except Exception:  # if attribute has no type, or defined as Any, just ignore type casting
