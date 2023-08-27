@@ -1,4 +1,3 @@
-from argparse import Namespace
 from threading import Thread
 from multiprocessing import Manager
 from sinner.Core import Core
@@ -23,9 +22,7 @@ class ThreadedCore(Core):
                 current_processor = BaseFrameProcessor.create(name, self.parameters)
 
                 if i == 0:  # pass the first dictionary item to fill it in a separate thread
-                    initial_buffer = frame_buffers[name]
-                    initial_buffering_thread: Thread = Thread(target=current_processor.fill_initial_buffer, args=(initial_buffer,))
-                    threads.append(initial_buffering_thread)
+                    threads.append(Thread(target=current_processor.fill_initial_buffer, args=(frame_buffers[name],)))
 
                 thread: Thread = Thread(target=current_processor.process_buffered, args=(frame_buffers, name, next_name))
                 self.update_status(f'Start {name} thread')
