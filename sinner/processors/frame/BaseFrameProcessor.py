@@ -120,7 +120,7 @@ class BaseFrameProcessor(ABC, Status):
                 self.update_status(f'Write frame {frame[0]} to dir')
                 self.state.save_temp_frame(frame)
 
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
             while processed_frames_count < self.handler.fc:
                 if len(buffers[name]) > 0:
