@@ -1,8 +1,6 @@
 import os.path
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
-from threading import Thread
-from time import sleep
 from typing import List, Callable, Any, Iterable, Dict
 
 from tqdm import tqdm, trange
