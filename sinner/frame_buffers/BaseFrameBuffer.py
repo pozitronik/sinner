@@ -21,16 +21,16 @@ class BaseFrameBuffer(ABC):
         """
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def len(self) -> int:
         """
         :return: the current buffer frames count
         """
         pass
 
-    @abstractmethod
     @property
+    @abstractmethod
     def size(self) -> int:
         """
         :return: summary size of all frames in the buffer
