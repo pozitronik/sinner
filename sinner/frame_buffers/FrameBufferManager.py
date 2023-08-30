@@ -52,3 +52,11 @@ class FrameBufferManager:
     def push(self, buffer_name: str, frame: NumeratedFrame) -> int:
         self.get(buffer_name).push(frame)
         return self.len
+
+    def push_next(self, buffer_name: str, frame: NumeratedFrame) -> bool:
+        next_buffer = self.next(buffer_name)
+        if next_buffer is None:
+            return False
+        else:
+            next_buffer.push(frame)
+            return True

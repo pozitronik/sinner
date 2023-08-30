@@ -7,6 +7,7 @@ from tqdm import tqdm, trange
 from argparse import Namespace
 
 from sinner.Status import Status, Mood
+from sinner.frame_buffers.FrameBufferManager import FrameBufferManager
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
@@ -110,7 +111,7 @@ class BaseFrameProcessor(ABC, Status):
                 progress.update()
                 shared_buffer.append(frame)
 
-    def process_buffered(self, buffers: Dict[str, FrameBuffer], name: str | None, next_name: str | None, progress: tqdm):
+    def process_buffered(self, buffers: FrameBufferManager, buffer_name: str):
         processed_frames_count = 0
 
         def process_done(future_: Future[None]) -> None:
@@ -118,9 +119,7 @@ class BaseFrameProcessor(ABC, Status):
 
         def process_to_buffer(frame_: NumeratedFrame | None) -> None:
             frame = frame_[0], self.process_frame(frame_[1]), frame_[2]
-            if next_name is not None:
-                buffers[next_name].append(frame)
-            else:
+            if buffers.push_next(buffer_name, NumeratedFrame) is False:
                 self.state.save_temp_frame(frame)
 
         with tqdm(
@@ -133,11 +132,12 @@ class BaseFrameProcessor(ABC, Status):
             with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
                 futures: list[Future[None]] = []
                 while processed_frames_count < self.handler.fc:
-                    buffer_size = len(buffers[name])
-                    if buffer_size > 0:
-                        current_frame = buffers[name].pop()
+                    buffer = buffers.get(buffer_name)
+                    if buffer.len > 0:
+                        current_frame = buffer.pop()
                         progress.set_postfix({
-                            'buffer size': buffer_size,
+                            'buffer length': buffer.len,
+                            'buffer size': buffer.size,
                             'last frame': current_frame[0]
                         })
                         future: Future[None] = executor.submit(process_to_buffer, current_frame)
