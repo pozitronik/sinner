@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from sinner.typing import NumeratedFrame
 
 
-class FrameBuffer(ABC):
+class BaseFrameBuffer(ABC):
 
     @abstractmethod
     def pop(self) -> NumeratedFrame | None:
@@ -22,6 +22,7 @@ class FrameBuffer(ABC):
         pass
 
     @abstractmethod
+    @property
     def len(self) -> int:
         """
         :return: the current buffer frames count
@@ -29,6 +30,7 @@ class FrameBuffer(ABC):
         pass
 
     @abstractmethod
+    @property
     def size(self) -> int:
         """
         :return: summary size of all frames in the buffer
