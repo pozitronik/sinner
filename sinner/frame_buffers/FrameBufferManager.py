@@ -12,10 +12,10 @@ class FrameBufferManager:
 
     def __init__(self, named_order: list[str]):
         with Manager() as manager:
-            _frame_buffers = manager.dict()
+            self._frame_buffers = manager.dict()
             for i, name in enumerate(named_order):
                 self._fbi[i] = name
-                self._fbi[name] = i
+                self._fbn[name] = i
                 self._frame_buffers[name] = MemFrameBuffer()
 
     def get_buffer_by_index(self, index: int) -> BaseFrameBuffer | None:
