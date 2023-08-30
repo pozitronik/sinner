@@ -1,22 +1,18 @@
-from multiprocessing import Manager
-
 from sinner.frame_buffers.BaseFrameBuffer import BaseFrameBuffer
 from sinner.frame_buffers.MemFrameBuffer import MemFrameBuffer
 from sinner.typing import NumeratedFrame
 
 
 class FrameBufferManager:
-    _frame_buffers: dict[str, BaseFrameBuffer]  # DictProxy really
+    _frame_buffers: dict[str, BaseFrameBuffer] = {}
     _fbi: dict[int, str] = {}  # frame buffers index
     _fbn: dict[str, int] = {}  # frame buffers reverse index
 
     def __init__(self, named_order: list[str]):
-        with Manager() as manager:
-            self._frame_buffers = manager.dict()
-            for i, name in enumerate(named_order):
-                self._fbi[i] = name
-                self._fbn[name] = i
-                self._frame_buffers[name] = MemFrameBuffer()
+        for i, name in enumerate(named_order):
+            self._fbi[i] = name
+            self._fbn[name] = i
+            self._frame_buffers[name] = MemFrameBuffer()
 
     def get_buffer_by_index(self, index: int) -> BaseFrameBuffer | None:
         if index in self._fbi:

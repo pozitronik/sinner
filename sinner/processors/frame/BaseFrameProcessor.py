@@ -7,6 +7,7 @@ from tqdm import tqdm, trange
 from argparse import Namespace
 
 from sinner.Status import Status, Mood
+from sinner.frame_buffers.BaseFrameBuffer import BaseFrameBuffer
 from sinner.frame_buffers.FrameBufferManager import FrameBufferManager
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -99,7 +100,7 @@ class BaseFrameProcessor(ABC, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def fill_initial_buffer(self, shared_buffer: FrameBuffer) -> None:
+    def fill_initial_buffer(self, shared_buffer: BaseFrameBuffer) -> None:
         with tqdm(
                 total=self.handler.fc,
                 desc='Frame extracting', unit='frame',
@@ -109,7 +110,7 @@ class BaseFrameProcessor(ABC, Status):
             for frame_num in self.handler:
                 frame = self.handler.extract_frame(frame_num)
                 progress.update()
-                shared_buffer.append(frame)
+                shared_buffer.push(frame)
 
     def process_buffered(self, buffers: FrameBufferManager, buffer_name: str):
         processed_frames_count = 0
