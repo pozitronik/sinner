@@ -1,4 +1,5 @@
 import os.path
+import threading
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Callable, Any, Iterable, Dict
@@ -108,46 +109,45 @@ class BaseFrameProcessor(ABC, Status):
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
         ) as progress:
             for frame_num in self.handler:
-                frame = self.handler.extract_frame(frame_num)
+                frame = self.handler.extract_frame(frame_num + 1)
                 progress.update()
                 shared_buffer.push(frame)
 
     def process_buffered(self, buffers: FrameBufferManager, buffer_name: str):
-        processed_frames_count = 0
+        lock = threading.Lock()
+        with lock:
+            processed_frames_count = 0
 
-        def process_done(future_: Future[None]) -> None:
-            futures.remove(future_)
+            def process_to_buffer(frame_: NumeratedFrame | None) -> None:
+                frame = (frame_[0], frame_[1], frame_[2])
+                if buffers.push_next(buffer_name, frame) is False:
+                    self.state.save_temp_frame(frame)
 
-        def process_to_buffer(frame_: NumeratedFrame | None) -> None:
-            frame = frame_[0], self.process_frame(frame_[1]), frame_[2]
-            if buffers.push_next(buffer_name, NumeratedFrame) is False:
-                self.state.save_temp_frame(frame)
-
-        with tqdm(
-                total=self.handler.fc,
-                desc=self.__class__.__name__, unit='frame',
-                dynamic_ncols=True,
-                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                initial=processed_frames_count,
-        ) as progress:
-            with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
-                futures: list[Future[None]] = []
-                while processed_frames_count < self.handler.fc:
-                    buffer = buffers.get(buffer_name)
-                    if buffer.len > 0:
-                        current_frame = buffer.pop()
-                        progress.set_postfix({
-                            'buffer length': buffer.len,
-                            'buffer size': buffer.size,
-                            'last frame': current_frame[0]
-                        })
-                        future: Future[None] = executor.submit(process_to_buffer, current_frame)
-                        future.add_done_callback(process_done)
-                        futures.append(future)
-                    for completed_future in as_completed(futures):
-                        completed_future.result()
-                        progress.update()
-                        processed_frames_count += 1
+            with tqdm(
+                    total=self.handler.fc,
+                    desc=self.__class__.__name__, unit='frame',
+                    dynamic_ncols=True,
+                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+                    initial=processed_frames_count,
+            ) as progress:
+                with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
+                    futures: list[Future[None]] = []
+                    while processed_frames_count < self.handler.fc:
+                        buffer = buffers.get(buffer_name)
+                        if buffer.len > 0:
+                            current_frame = buffer.pop()
+                            progress.set_postfix({
+                                'buffer length': buffer.len,
+                                'buffer size': buffer.size,
+                                'last frame': current_frame[0]
+                            })
+                            future: Future[None] = executor.submit(process_to_buffer, current_frame)
+                            futures.append(future)
+                        for completed_future in as_completed(futures):
+                            completed_future.result()
+                            futures.remove(completed_future)
+                            progress.update()
+                            processed_frames_count += 1
 
     def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.progress_callback = set_progress
