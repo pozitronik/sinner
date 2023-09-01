@@ -5,7 +5,11 @@ from sinner.typing import NumeratedFrame
 
 
 class MemFrameBuffer(BaseFrameBuffer):
-    _items: list[NumeratedFrame] = []  # manager.list()
+    _items: list[NumeratedFrame] = []
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        self._items: list[NumeratedFrame] = []
 
     def pop(self) -> NumeratedFrame | None:
         return None if self.len == 0 else self._items.pop()
