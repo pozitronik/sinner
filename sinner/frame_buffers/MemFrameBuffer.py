@@ -14,6 +14,11 @@ class MemFrameBuffer(BaseFrameBuffer):
         self._items.append(frame)
         return self.len
 
+    def load(self, frames: list[NumeratedFrame]) -> int:
+        self._items = []
+        self._items.extend(frames)
+        return self.len
+
     @property
     def len(self) -> int:
         return len(self._items)

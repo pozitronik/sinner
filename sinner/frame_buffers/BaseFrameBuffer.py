@@ -25,6 +25,15 @@ class BaseFrameBuffer(ABC):
         """
         pass
 
+    @abstractmethod
+    def load(self, frames: list[NumeratedFrame]) -> int:
+        """
+        Loads a frames list to the buffer
+        :param frames: the loaded list
+        :return: the current buffer frames count
+        """
+        pass
+
     @property
     @abstractmethod
     def len(self) -> int:

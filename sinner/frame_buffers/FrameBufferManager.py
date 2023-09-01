@@ -32,6 +32,14 @@ class FrameBufferManager:
             size_ += self.get_buffer_by_index(index).size
         return size_
 
+    def b_len(self, buffer_name: str) -> int:
+        if buffer_name in self._frame_buffers:
+            return self.get(buffer_name).len
+
+    def b_size(self, buffer_name: str) -> int:
+        if buffer_name in self._frame_buffers:
+            return self.get(buffer_name).size
+
     def get(self, buffer_name: str) -> BaseFrameBuffer:
         if buffer_name in self._frame_buffers:
             return self._frame_buffers[buffer_name]
@@ -47,6 +55,10 @@ class FrameBufferManager:
 
     def push(self, buffer_name: str, frame: NumeratedFrame) -> int:
         self.get(buffer_name).push(frame)
+        return self.len
+
+    def load(self, buffer_name: str, frames: list[NumeratedFrame]) -> int:
+        self.get(buffer_name).load(frames)
         return self.len
 
     def push_next(self, buffer_name: str, frame: NumeratedFrame) -> bool:
