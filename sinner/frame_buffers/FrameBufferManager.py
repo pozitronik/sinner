@@ -9,9 +9,9 @@ class FrameBufferManager:
     _fbn: dict[str, int] = {}  # frame buffers reverse index
 
     def __init__(self, named_order: list[str]):
-        for i, name in enumerate(named_order):
-            self._fbi[i] = name
-            self._fbn[name] = i
+        for name in named_order:
+            self._fbi[len(self._fbi)] = name
+            self._fbn[name] = len(self._fbn)
             self._frame_buffers[name] = MemFrameBuffer(name)
 
     def get_buffer_by_index(self, index: int) -> BaseFrameBuffer | None:
@@ -54,12 +54,14 @@ class FrameBufferManager:
         return self.get(buffer_name).pop()
 
     def push(self, buffer_name: str, frame: NumeratedFrame) -> int:
-        self.get(buffer_name).push(frame)
-        return self.len
+        b = self._frame_buffers[buffer_name]
+        b.push(frame)
+        return b.len
 
     def load(self, buffer_name: str, frames: list[NumeratedFrame]) -> int:
-        self.get(buffer_name).load(frames)
-        return self.len
+        b = self._frame_buffers[buffer_name]
+        b.load(frames)
+        return b.len
 
     def push_next(self, buffer_name: str, frame: NumeratedFrame) -> bool:
         next_buffer = self.next(buffer_name)
