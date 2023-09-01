@@ -12,7 +12,7 @@ class FrameBufferManager:
         for i, name in enumerate(named_order):
             self._fbi[i] = name
             self._fbn[name] = i
-            self._frame_buffers[name] = MemFrameBuffer()
+            self._frame_buffers[name] = MemFrameBuffer(name)
 
     def get_buffer_by_index(self, index: int) -> BaseFrameBuffer | None:
         if index in self._fbi:

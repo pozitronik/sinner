@@ -4,6 +4,10 @@ from sinner.typing import NumeratedFrame
 
 
 class BaseFrameBuffer(ABC):
+    _name: str  # this variable is used for debugging purpises and can be deleted later
+
+    def __init__(self, name: str):
+        self._name = name  # debugging purposes
 
     @abstractmethod
     def pop(self) -> NumeratedFrame | None:
