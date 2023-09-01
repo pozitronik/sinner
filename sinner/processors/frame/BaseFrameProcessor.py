@@ -2,13 +2,12 @@ import os.path
 import threading
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
-from typing import List, Callable, Any, Iterable, Dict
+from typing import List, Callable, Any, Iterable
 
-from tqdm import tqdm, trange
+from tqdm import tqdm
 from argparse import Namespace
 
 from sinner.Status import Status, Mood
-from sinner.frame_buffers.BaseFrameBuffer import BaseFrameBuffer
 from sinner.frame_buffers.FrameBufferManager import FrameBufferManager
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -101,17 +100,19 @@ class BaseFrameProcessor(ABC, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def fill_initial_buffer(self, shared_buffer: BaseFrameBuffer) -> None:
-        with tqdm(
-                total=self.handler.fc,
-                desc='Frame extracting', unit='frame',
-                dynamic_ncols=True,
-                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-        ) as progress:
-            for frame_num in self.handler:
-                frame = self.handler.extract_frame(frame_num + 1)
-                progress.update()
-                shared_buffer.push(frame)
+    def fill_initial_buffer(self, buffers: FrameBufferManager, buffer_name: str) -> None:
+        lock = threading.Lock()
+        with lock:
+            with tqdm(
+                    total=self.handler.fc,
+                    desc='Frame extracting', unit='frame',
+                    dynamic_ncols=True,
+                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+            ) as progress:
+                for frame_num in self.handler:
+                    frame = self.handler.extract_frame(frame_num + 1)
+                    progress.update()
+                    buffers.push(buffer_name, frame)
 
     def process_buffered(self, buffers: FrameBufferManager, buffer_name: str):
         lock = threading.Lock()
@@ -119,7 +120,7 @@ class BaseFrameProcessor(ABC, Status):
             processed_frames_count = 0
 
             def process_to_buffer(frame_: NumeratedFrame | None) -> None:
-                frame = (frame_[0], frame_[1], frame_[2])
+                frame = (frame_[0], self.process_frame(frame_[1]), frame_[2])
                 if buffers.push_next(buffer_name, frame) is False:
                     self.state.save_temp_frame(frame)
 
@@ -133,12 +134,11 @@ class BaseFrameProcessor(ABC, Status):
                 with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
                     futures: list[Future[None]] = []
                     while processed_frames_count < self.handler.fc:
-                        buffer = buffers.get(buffer_name)
-                        if buffer.len > 0:
-                            current_frame = buffer.pop()
+                        if buffers.b_len(buffer_name) > 0:
+                            current_frame = buffers.pop(buffer_name)
                             progress.set_postfix({
-                                'buffer length': buffer.len,
-                                'buffer size': buffer.size,
+                                'buffer length': buffers.b_len(buffer_name),
+                                'buffer size': buffers.b_size(buffer_name),
                                 'last frame': current_frame[0]
                             })
                             future: Future[None] = executor.submit(process_to_buffer, current_frame)
