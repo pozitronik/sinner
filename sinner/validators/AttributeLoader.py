@@ -44,6 +44,11 @@ class AttributeLoader:
         return []
 
     def __init__(self, parameters: Namespace = Namespace()):
+        from sinner.Parameters import Parameters
+        local_parameters = Parameters(parameters).module_parameters(self.__class__.__name__)
+        merged_dict = {**vars(parameters), **vars(local_parameters)}  # merge via dict conversion
+        for key, value in merged_dict.items():  # i do it this way, because it is required to change a mutable namespace, not to recreate it
+            setattr(parameters, key, value)
         if not self.load(parameters):
             raise LoadingException(self.errors)
 

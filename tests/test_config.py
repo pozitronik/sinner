@@ -1,5 +1,6 @@
 from sinner.Parameters import Parameters
-from tests.constants import test_config
+from sinner.processors.frame.DummyProcessor import DummyProcessor
+from tests.constants import test_config, target_png
 
 
 def test_ini() -> None:
@@ -17,3 +18,10 @@ def test_ini_and_cmd_line() -> None:
 def test_module_parameters() -> None:
     params = Parameters(f'--ini="{test_config}"').module_parameters('TestModule')
     assert params.module_test_key == 'module_test_value'
+
+
+def test_module_and_global_parameters() -> None:
+    params = Parameters(f'--ini="{test_config}" --frame-processor DummyProcessor --target-path="{target_png}"').parameters
+    assert params.many_faces == 'true'
+    test_module = DummyProcessor(parameters=params)
+    assert test_module.parameters.many_faces == 'false'
