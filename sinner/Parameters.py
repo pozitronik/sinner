@@ -14,8 +14,13 @@ class Parameters:
 
     _config_name: str
 
-    def __init__(self, command_line: str | None = None):
-        self.parameters: Namespace = self.command_line_to_namespace(command_line)
+    def __init__(self, source: Namespace | str | None = None):
+        if isinstance(source, Namespace):
+            self.parameters: Namespace = source
+        elif isinstance(source, str):
+            self.parameters: Namespace = self.command_line_to_namespace(source)
+        else:
+            self.parameters: Namespace = Namespace()
         if 'h' in self.parameters or 'help' in self.parameters:
             AttributeDocumenter().show_help()
         if 'ini' in self.parameters:
