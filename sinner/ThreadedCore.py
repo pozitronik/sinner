@@ -1,3 +1,4 @@
+import time
 from threading import Thread
 from sinner.Core import Core
 from sinner.frame_buffers.FrameBufferManager import FrameBufferManager
@@ -8,6 +9,7 @@ from sinner.typing import NumeratedFrame
 class ThreadedCore(Core):
 
     def run(self) -> None:
+        start_time = time.time()
         threads: list[Thread] = []
 
         frame_buffers = FrameBufferManager(self.frame_processor)
@@ -26,6 +28,8 @@ class ThreadedCore(Core):
             thread.start()
         for thread in threads:
             thread.join()
+        elapsed_time = time.time() - start_time
+        print(f"Elapsed time: {elapsed_time} seconds")
 
     def run_(self) -> None:  # debugging purposes
         frame_buffers = FrameBufferManager(self.frame_processor)
