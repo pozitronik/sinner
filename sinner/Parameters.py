@@ -37,7 +37,7 @@ class Parameters:
                 if key not in self.parameters:
                     self.parameters.__setattr__(key, value)
 
-    def module_parameters(self, module_name: str) -> Namespace:
+    def module_parameters(self, module_name: str) -> Namespace | None:
         module_parameters: Namespace = Namespace()
         config = ConfigParser()
         config.read(self._config_name)
@@ -46,7 +46,8 @@ class Parameters:
                 value = config[module_name][key]
                 key = key.replace('-', '_')
                 module_parameters.__setattr__(key, value)
-        return module_parameters
+            return module_parameters
+        return None
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
