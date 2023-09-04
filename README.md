@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/pozitronik/roop/actions/workflows/ci.yml/badge.svg)](https://github.com/pozitronik/roop/actions)
+[![Build Status](https://github.com/pozitronik/sinner/actions/workflows/ci.yml/badge.svg)](https://github.com/pozitronik/sinner/actions)
 
 # sinner: sinner is non exactly roop
 
