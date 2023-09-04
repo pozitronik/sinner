@@ -44,8 +44,18 @@ class AttributeLoader:
         return []
 
     def __init__(self, parameters: Namespace | None = None):
-        if parameters is not None and not self.load(parameters):
-            raise LoadingException(self.errors)
+        from sinner.Parameters import Parameters
+        local_parameters = Parameters(parameters).module_parameters(self.__class__.__name__)
+        if parameters is None:  # try to load only the current module configuration
+            if local_parameters and not self.load(local_parameters):
+                raise LoadingException(self.errors)
+        else:  # get the current module configuration and merge with the passed parameters
+            if local_parameters:
+                merged_dict = {**vars(parameters), **vars(local_parameters)}  # merge via dict conversion
+                for key, value in merged_dict.items():  # I do it this way, because it is required to change a mutable namespace, not to recreate it
+                    setattr(parameters, key, value)
+            if not self.load(parameters):
+                raise LoadingException(self.errors)
 
     # returns all initialized class variables with values, except properties
     def get_class_attributes(self) -> List[tuple[str, Any]]:
