@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from argparse import Namespace
 
 from sinner.Parameters import Parameters
@@ -46,3 +48,11 @@ def test_attributes_loading() -> None:
     assert test_object.param_one == 1
     assert test_object.param_two == 'sdf'
 
+
+# simulates a run with the real command-line to properly test how the parameters loader handle it
+def test_real_command_line(monkeypatch) -> None:
+    command_line = ["sin.py", "--param-one=1", "--param-two=sdf"]
+    monkeypatch.setattr(sys, 'argv', command_line)
+    test_object = TestParameterAttributes(Parameters().parameters)
+    assert test_object.param_one == 1
+    assert test_object.param_two == 'sdf'
