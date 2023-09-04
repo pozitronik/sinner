@@ -12,23 +12,42 @@ class Parameters:
     parser: ArgumentParser = ArgumentParser()
     parameters: Namespace
 
-    def __init__(self, command_line: str | None = None):
-        self.parameters: Namespace = self.command_line_to_namespace(command_line)
+    _config_name: str
+
+    def __init__(self, source: Namespace | str | None = None):
+        if isinstance(source, Namespace):
+            self.parameters: Namespace = source
+        elif isinstance(source, str):
+            self.parameters: Namespace = self.command_line_to_namespace(source)
+        else:
+            self.parameters: Namespace = Namespace()
         if 'h' in self.parameters or 'help' in self.parameters:
             AttributeDocumenter().show_help()
         if 'ini' in self.parameters:
-            config_name = self.parameters.ini
+            self._config_name = self.parameters.ini
         else:
-            config_name = get_app_dir('sinner.ini')
+            self._config_name = get_app_dir('sinner.ini')
 
         config = ConfigParser()
-        config.read(config_name)
+        config.read(self._config_name)
         if config.has_section('sinner'):
             for key in config['sinner']:
                 value = config['sinner'][key]
                 key = key.replace('-', '_')
                 if key not in self.parameters:
                     self.parameters.__setattr__(key, value)
+
+    def module_parameters(self, module_name: str) -> Namespace | None:
+        module_parameters: Namespace = Namespace()
+        config = ConfigParser()
+        config.read(self._config_name)
+        if config.has_section(module_name):
+            for key in config[module_name]:
+                value = config[module_name][key]
+                key = key.replace('-', '_')
+                module_parameters.__setattr__(key, value)
+            return module_parameters
+        return None
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:

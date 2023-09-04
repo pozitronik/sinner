@@ -50,7 +50,7 @@ If nothing helps, feel free to create an issue with your problem, we will try to
 Go to application folder and run `python sin.py` with desired set of command-line parameters (or just pick one of [examples](#command-line-usage-examples) and make changes to suit your need).
 
 You can get the list of all available command-line parameters by running the program with `--h` or `--help` keys. Those commands will list all configurable modules and their supported parameters.
-1
+
 Some modules may have the same parameters. It is okay: those parameters (and its values) are shared. It is also okay, if parameters expected values are different between modules: usually, they will be harmonized in runtime. But if something goes wrong, you will get an explicit error message.
 
 Also, you can read about modules parameters [here](/docs/modules.md)
@@ -94,6 +94,20 @@ many-faces=1
 execution-provider=gpu
 execution-threads=2
 ```
+
+It is also possible to configure modules separately this way. Just create/modify a config section with the module name, and all key-value pairs from this section will be applied only to that module.
+
+Example:
+```ini
+[sinner]
+execution-threads=2
+
+[FaceSwapper]
+execution-threads=4
+```
+
+In the example above FaceSwapper will run in four execution threads, when other modules will run in two threads (if they support this parameter).
+Module configurations have the priority over global parameters (even if they passed directly from the command line).
 
 Any parameter set from command line will override corresponding parameter from the ini file.
 
