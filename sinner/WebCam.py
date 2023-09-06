@@ -13,18 +13,22 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class WebCam(Status):
+    emoji: str = '🤳'
+
     stop: bool = False
 
     frame_processor: List[str]
     preview: bool
-    input_device: str | None
+    input_device: int
     output_device: str | None
     width: int
     height: int
     fps: int
     print_fps: bool
 
+    _camera_input: VideoCapture
     _processors: List[BaseFrameProcessor] = []
+    _device: Camera
 
     def rules(self) -> Rules:
         return [
@@ -44,8 +48,8 @@ class WebCam(Status):
             {
                 'parameter': ['input', 'input-device'],
                 'attribute': 'input_device',
-                'default': None,
-                'help': 'Input device name, ignore for default web-camera input'
+                'default': 0,
+                'help': 'Input camera index (ignore, if you have one camera)'
             },
             {
                 'parameter': ['output', 'output-device'],
@@ -82,14 +86,19 @@ class WebCam(Status):
     def __init__(self, parameters: Namespace):
         self.parameters = parameters
         super().__init__(parameters)
+        self._camera_input = self.open_camera()
+        self.update_status("Camera input is opened")
+
+        self._device = Camera(width=self.width, height=self.height, fps=self.fps, device=self.output_device, backend=self.output_device, print_fps=self.print_fps)
+        self.update_status(f"Virtual device camera is created as {self.output_device} with {self.width}x{self.height}@{self.fps}fps output")
+
         for processor_name in self.frame_processor:
             self._processors.append(BaseFrameProcessor.create(processor_name, self.parameters))
 
     def run(self):
-        input_camera = self.open_camera()
-        with Camera(width=self.width, height=self.height, fps=self.fps, device=self.output_device, backend=self.output_device, print_fps=self.print_fps) as camera:
+        with self._device as camera:
             while not self.stop:
-                ret, frame = input_camera.read()
+                ret, frame = self._camera_input.read()
                 if not ret:
                     raise Exception(f"Error reading frame from camera")
                 for processor in self._processors:
@@ -97,11 +106,10 @@ class WebCam(Status):
                 camera.send(frame)
                 camera.sleep_until_next_frame()
 
-    @staticmethod
-    def open_camera() -> VideoCapture:
-        cap = cv2.VideoCapture(0)
+    def open_camera(self) -> VideoCapture:
+        cap = cv2.VideoCapture(self.input_device)
         if not cap.isOpened():
-            raise Exception("Error opening frame file")
+            raise Exception(f"Error opening camera {self.input_device}")
         return cap
 
     @staticmethod
