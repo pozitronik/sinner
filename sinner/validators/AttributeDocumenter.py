@@ -7,6 +7,7 @@ from sinner.Core import Core
 from sinner.Preview import Preview
 from sinner.Sinner import Sinner
 from sinner.Status import Status
+from sinner.WebCam import WebCam
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.processors.frame.FaceSwapper import FaceSwapper
@@ -21,6 +22,7 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     Status,
     # State,
     Preview,
+    WebCam,
     Benchmark,
     FaceSwapper,
     FaceEnhancer,
