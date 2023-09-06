@@ -8,12 +8,14 @@ from sinner.Parameters import Parameters
 from sinner.Preview import Preview
 from sinner.Core import Core
 from sinner.Sinner import Sinner
+from sinner.WebCam import WebCam
 from sinner.utilities import limit_resources
 
 
 class Sin(Sinner):
     gui: bool
     benchmark: bool
+    camera: bool
     max_memory: int
 
     parameters: Namespace
@@ -35,6 +37,8 @@ class Sin(Sinner):
             window.mainloop()
         elif self.benchmark is True:
             Benchmark(parameters=self.parameters)
+        elif self.camera is True:
+            WebCam(parameters=self.parameters).run()
         else:
             Core(parameters=self.parameters).run()
 

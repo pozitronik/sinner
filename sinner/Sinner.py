@@ -24,6 +24,11 @@ class Sinner(AttributeLoader):
                 'help': 'Run a benchmark on a selected frame processor'
             },
             {
+                'parameter': 'camera',
+                'default': False,
+                'help': 'Start a face-swapped web-camera'
+            },
+            {
                 'module_help': 'The main application'
             }
         ]
