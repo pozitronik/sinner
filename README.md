@@ -109,7 +109,7 @@ execution-threads=4
 In the example above FaceSwapper will run in four execution threads, when other modules will run in two threads (if they support this parameter).
 Module configurations have the priority over global parameters (even if they passed directly from the command line).
 
-Any parameter set from command line will override corresponding parameter from the ini file.
+Any parameter set from command line will override corresponding global (not module) parameter from the ini file.
 
 You also can pass path to the custom configuration file as a command line parameter:
 ```cmd
