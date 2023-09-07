@@ -135,6 +135,8 @@ In case, when `ffmpeg` is not available in your system, sinner will gracefully d
 :exclamation: As said before, sinner has started as a fork of roop. They share similar ideas, but they differ in the ways how those ideas should be implemented.
 sinner uses the same ML libraries to perform its magic, but handles them in its own way. From a developer's perspective, it has a better architecture (OOP instead of functional approach), stricter types handling and more comprehensive tests. From the point of view of a user, sinner offers additional features that Roop currently lacks.
 
+Also, roop is dead, baby, roop is dead.
+
 :question: Is there a NSWF filter?<br/>
 :exclamation: Nope. I don't care if you will do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife, it is the responsibility of the user to decide how they want to use it.
 
