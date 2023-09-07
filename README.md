@@ -33,13 +33,13 @@ Run `pip install -r requirements.txt`. It will install packages, just enough to 
 
 Run `pip install -r requirements-pc-cuda.txt`. It will install packages with CUDA support. Do not forget: you also have to install CUDA drivers as well.
 
-### I have x86 MAC 
+### I have x86 Mac 
 
 Run `pip install -r requirements-mac-x86.txt`. It will use only CPU powers, but it should work.
 
 ### I have Apple Silicon Mac 
 
-Run `pip install -r requirements-mac-arm64.txt`. There are no CUDA, obviously, but there's some hardware acceleration too.
+Run `pip install -r requirements-mac-arm64.txt`. There is no CUDA, obviously, but there's some hardware acceleration too.
 
 Anyway, packages should be installed successfully. Otherwise, get a look to the command output, usually you may fix minor issues (like version requirements change) by yourself.
 
