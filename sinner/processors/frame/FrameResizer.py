@@ -1,11 +1,9 @@
-import os
-
 import cv2
 
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import is_image, is_video, is_absolute_path, is_int, is_float
+from sinner.utilities import is_int, is_float
 
 
 class FrameResizer(BaseFrameProcessor):
@@ -21,20 +19,6 @@ class FrameResizer(BaseFrameProcessor):
 
     def rules(self) -> Rules:
         return super().rules() + [
-            {
-                'parameter': {'target', 'target-path'},
-                'attribute': 'target_path',
-                'required': True,
-                'valid': lambda attribute_name, attribute_value: attribute_value is not None and (is_image(attribute_value) or is_video(attribute_value) or os.path.isdir(attribute_value)),
-                'help': 'Select the target file (image or video) or the directory'
-            },
-            {
-                'parameter': {'output', 'output-path'},
-                'attribute': 'output_path',
-                'default': lambda: self.suggest_output_path(),
-                'valid': lambda: is_absolute_path(self.output_path),
-                'help': 'Select an output file or a directory'
-            },
             {
                 'parameter': {'scale'},
                 'attribute': 'scale',
@@ -106,14 +90,6 @@ class FrameResizer(BaseFrameProcessor):
             return self.width / current_width
         else:
             return self.scale
-
-    def suggest_output_path(self) -> str:
-        target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
-        if self.output_path is None:
-            return os.path.join(os.path.dirname(self.target_path), 'resized-' + target_name + target_extension)
-        if os.path.isdir(self.output_path):
-            return os.path.join(self.output_path, 'resized-' + target_name + target_extension)
-        return self.output_path
 
     def process_frame(self, frame: Frame) -> Frame:
         current_height, current_width = frame.shape[:2]

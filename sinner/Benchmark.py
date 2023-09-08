@@ -124,11 +124,10 @@ class Benchmark(Status):
         self.results.append({'processor': processor, 'provider': execution_provider, 'threads': threads, 'time': execution_time})
 
     def benchmark(self) -> int:
-        current_target_path = self.target_path
         processor_name = self.frame_processors[0]
-        current_processor = BaseFrameProcessor.create(processor_name, self.parameters, target_path=current_target_path)
+        current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
         start_time = time.time_ns()
-        current_processor.process(desc=processor_name)
+        current_processor.process(desc=processor_name)  # todo
         end_time = time.time_ns()
         self.release_resources()
         return end_time - start_time

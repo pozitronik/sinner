@@ -11,11 +11,11 @@ from PIL.ImageTk import PhotoImage
 from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner import typing
+from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import is_image, is_video, is_int
 from sinner.validators.AttributeLoader import Rules
 
@@ -238,7 +238,7 @@ class GUI(Status):
     def frame_handler(self) -> BaseFrameHandler | None:
         if self._extractor_handler is None:
             try:
-                self._extractor_handler = BaseFrameProcessor.suggest_handler(self.target_path, self.processing_core.parameters)
+                self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.processing_core.parameters)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler
