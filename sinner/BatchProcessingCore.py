@@ -59,7 +59,7 @@ class BatchProcessingCore(Status):
         if self.frame_processor and 'ResultProcessor' not in self.frame_processor:
             self.frame_processor.append('ResultProcessor')
 
-    def run(self, set_progress: Callable[[int], None] | None = None) -> None:
+    def run(self) -> None:
         current_target_path = self.target_path
         temp_resources: List[str] = []  # list of temporary created resources
         for processor_name in self.frame_processor:
@@ -70,7 +70,7 @@ class BatchProcessingCore(Status):
                 if current_processor.state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {current_processor.state.processed_frames_count} frames processed, continue processing with {current_processor.state.processor_name}')
 
-                current_processor.process(desc=processor_name, set_progress=set_progress)
+                current_processor.process(desc=processor_name)
                 current_processor.release_resources()
             current_target_path = current_processor.state.path
             temp_resources.append(current_processor.state.path)

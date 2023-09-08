@@ -27,7 +27,6 @@ class BaseFrameProcessor(ABC, Status):
     max_memory: int
 
     statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
-    progress_callback: Callable[[int], None] | None = None
 
     parameters: Namespace
     state: State
@@ -98,8 +97,7 @@ class BaseFrameProcessor(ABC, Status):
         return '{:.2f}'.format(mem_rss).zfill(5) + 'MB [MAX:{:.2f}'.format(self.statistics['mem_rss_max']).zfill(5) + 'MB]' + '/' + '{:.2f}'.format(mem_vms).zfill(5) + 'MB [MAX:{:.2f}'.format(
             self.statistics['mem_vms_max']).zfill(5) + 'MB]'
 
-    def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
-        self.progress_callback = set_progress
+    def process(self, desc: str = 'Processing') -> None:
         self.handler.current_frame_index = self.state.processed_frames_count
         with tqdm(
                 total=self.state.frames_count,
@@ -148,8 +146,6 @@ class BaseFrameProcessor(ABC, Status):
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
             progress.update()
-            if self.progress_callback is not None:
-                self.progress_callback(progress.n)
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
