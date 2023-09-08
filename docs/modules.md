@@ -16,6 +16,7 @@
 * `--keep-frames`: keeps processed frames in the temp directory after finishing. Defaults to `false`.
 # Status: The status messaging module
 * `--logfile`, `--log`: optional path to a logfile where all status messages will be logged (if ignored, no logs will be stored).
+* `--enable-emoji`: enable modules emoji prefixes in their message statuses, if supported in the current console.
 * 
 # Preview: GUI module
 * `--preview-height-max`, `--preview-max-height`: maximum preview window height.
