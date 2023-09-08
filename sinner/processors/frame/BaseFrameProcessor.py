@@ -47,7 +47,7 @@ class BaseFrameProcessor(ABC, Status):
         return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
     def rules(self) -> Rules:
-        return [
+        return super().rules() + [
             {
                 'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
                 'default': suggest_max_memory(),
