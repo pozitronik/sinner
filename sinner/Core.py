@@ -43,7 +43,7 @@ class Core(Status):
     _stop_flag: bool = False
 
     def rules(self) -> Rules:
-        return [
+        return super().rules() + [
             {
                 'parameter': 'gui',
                 'default': False
