@@ -1,4 +1,5 @@
 import sys
+import time
 from argparse import Namespace
 from typing import List
 
@@ -52,9 +53,10 @@ class WebCam(Status):
     _camera_input: VideoCapture
     _processors: List[BaseFrameProcessor] = []
     _device: Camera
+    _fps_delay: float
 
     def rules(self) -> Rules:
-        return [
+        return super().rules() + [
             {
                 'parameter': {'frame-processor', 'processor', 'processors'},
                 'attribute': 'frame_processor',
@@ -123,10 +125,12 @@ class WebCam(Status):
 
         for processor_name in self.frame_processor:
             self._processors.append(BaseFrameProcessor.create(processor_name, self.parameters))
+        self._fps_delay = 1 / self.fps
 
     def run(self):
         with self._device as camera:
             while not self.stop:
+                frame_start_time = time.perf_counter()
                 ret, frame = self._camera_input.read()
                 if not ret:
                     self.update_status(f"Error reading input from camera", mood=Mood.BAD)
@@ -141,6 +145,11 @@ class WebCam(Status):
                     cv2.imshow('Frame', frame)
                 camera.send(frame)
                 camera.sleep_until_next_frame()
+                frame_end_time = time.perf_counter()
+                frame_render_time = frame_end_time - frame_start_time
+                if frame_render_time < self._fps_delay:
+                    time.sleep(self._fps_delay - frame_render_time)
+                self.update_status(f"Real fps is {(1 / frame_render_time):.2f}", position=(-1, 0))
 
     def open_camera(self) -> VideoCapture:
         if is_image(self.input_device):
