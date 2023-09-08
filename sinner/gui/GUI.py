@@ -11,8 +11,8 @@ from PIL.ImageTk import PhotoImage
 from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner import typing
-from sinner.Core import Core
 from sinner.Status import Status, Mood
+from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -44,7 +44,7 @@ class GUI(Status):
     ProgressBar: Progressbar = Progressbar(ProgressBarFrame, mode='indeterminate')
 
     # class attributes
-    core: Core
+    processing_core: GUIProcessingCore
     run_thread: threading.Thread | None
     current_position: StringVar = StringVar()
     source_path: str = ''
@@ -83,9 +83,9 @@ class GUI(Status):
             }
         ]
 
-    def __init__(self, core: Core):
-        self.core = core
-        super().__init__(self.core.parameters)
+    def __init__(self, core: GUIProcessingCore):
+        self.processing_core = core
+        super().__init__(self.processing_core.parameters)
         self.run_thread = None
         self.PreviewWindow.title('😈sinner')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
@@ -150,8 +150,8 @@ class GUI(Status):
         path = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.source_path))
         if path != '':
             self.source_path = path
-            self.core.parameters.source = self.source_path
-            self.core.load(self.core.parameters)
+            self.processing_core.parameters.source = self.source_path
+            self.processing_core.load(self.processing_core.parameters)
             self._previews.clear()
             self.update_preview(frame_number, True)
             self.SourcePathEntry.configure(state=NORMAL)
@@ -164,8 +164,8 @@ class GUI(Status):
         if path != '':
             self._previews.clear()
             self.target_path = path
-            self.core.parameters.target = self.target_path
-            self.core.load(self.core.parameters)
+            self.processing_core.parameters.target = self.target_path
+            self.processing_core.load(self.processing_core.parameters)
             self._extractor_handler = None
             self.update_preview(self.update_slider(), True)
             self.TargetPathEntry.configure(state=NORMAL)
@@ -181,8 +181,8 @@ class GUI(Status):
     def get_frames(self, frame_number: int = 0, processed: bool = False) -> List[Tuple[typing.Frame, str]]:
         saved_frames = self._previews.get(frame_number)
         if not saved_frames and processed:
-            self._previews[frame_number] = self.core.get_frame(frame_number, self.frame_handler, processed)
-        return [saved_frames[0]] if saved_frames else self.core.get_frame(frame_number, self.frame_handler, processed)
+            self._previews[frame_number] = self.processing_core.get_frame(frame_number, self.frame_handler, processed)
+        return [saved_frames[0]] if saved_frames else self.processing_core.get_frame(frame_number, self.frame_handler, processed)
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
         frames = self.get_frames(frame_number, processed)
@@ -225,15 +225,6 @@ class GUI(Status):
     def destroy() -> None:
         quit()
 
-    def run_processing(self) -> None:
-        if self.run_thread is None:
-            self.ProgressBar.configure(value=0, maximum=int(self.NavigateSlider.cget('to')))
-            self.run_thread = threading.Thread(target=self.core.run, args=(self.update_progress,))
-            self.run_thread.start()
-        else:
-            self.core.stop()
-            self.run_thread.join()
-
     def update_progress(self, value: int) -> None:
         self.ProgressBar['value'] = value
 
@@ -247,7 +238,7 @@ class GUI(Status):
     def frame_handler(self) -> BaseFrameHandler | None:
         if self._extractor_handler is None:
             try:
-                self._extractor_handler = BaseFrameProcessor.suggest_handler(self.target_path, self.core.parameters)
+                self._extractor_handler = BaseFrameProcessor.suggest_handler(self.target_path, self.processing_core.parameters)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
         return self._extractor_handler

@@ -1,35 +1,16 @@
-#!/usr/bin/env python3
 import shutil
-import warnings
 from argparse import Namespace
-from typing import List, Callable, Tuple
+from typing import List, Callable
 
 import os
-import sys
 
-from sinner.Status import Status, Mood
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.Status import Status
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path
 from sinner.validators.AttributeLoader import Rules
 
-# single thread doubles cuda performance - needs to be set before torch import
-if any(arg.startswith('--execution-provider') for arg in sys.argv):
-    os.environ['OMP_NUM_THREADS'] = '1'
-# reduce tensorflow log level
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-#
-# if 'ROCMExecutionProvider' in parameters.execution_providers:
-#     del torch
-
-warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
-warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
-
-
-class Core(Status):
-    gui: bool
+class BatchProcessingCore(Status):
     target_path: str
     output_path: str
     frame_processor: List[str]
@@ -38,21 +19,13 @@ class Core(Status):
     keep_frames: bool
 
     parameters: Namespace
-    preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
-    preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
-    _stop_flag: bool = False
 
     def rules(self) -> Rules:
         return super().rules() + [
             {
-                'parameter': 'gui',
-                'default': False
-            },
-            {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
                 'valid': lambda: os.path.exists(self.target_path),
-                'required': lambda: not self.gui,
                 'help': 'Path to the target file or directory (depends on used frame processors set)'
             },
             {
@@ -75,7 +48,7 @@ class Core(Status):
                 'help': 'Keep temporary frames after processing'
             },
             {
-                'module_help': 'The main handler for the processing modules'
+                'module_help': 'The batch processing handler'
             }
         ]
 
@@ -106,35 +79,6 @@ class Core(Status):
             self.update_status('Deleting temp resources')
             for dir_path in temp_resources:
                 shutil.rmtree(dir_path, ignore_errors=True)
-
-    #  returns list of all processed frames, starting from the original
-    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Tuple[Frame, str]]:
-        result: List[Tuple[Frame, str]] = []
-        try:
-            if extractor_handler is None:
-                extractor_handler = BaseFrameProcessor.suggest_handler(self.target_path, self.parameters)
-            _, frame, _ = extractor_handler.extract_frame(frame_number)
-            result.append((frame, 'Original'))
-        except Exception as exception:
-            self.update_status(message=str(exception), mood=Mood.BAD)
-            return result
-        if processed:  # return processed frame
-            try:
-                if 'ResultProcessor' in self.frame_processor:
-                    self.frame_processor.remove('ResultProcessor')
-                for processor_name in self.frame_processor:
-                    if processor_name not in self.preview_processors:
-                        self.preview_processors[processor_name] = BaseFrameProcessor.create(processor_name, self.parameters, target_path=self.target_path)
-                    self.preview_processors[processor_name].load(self.parameters)
-                    frame = self.preview_processors[processor_name].process_frame(frame)
-                    result.append((frame, processor_name))
-            except Exception as exception:  # skip, if parameters is not enough for processor
-                self.update_status(message=str(exception), mood=Mood.BAD)
-                pass
-        return result
-
-    def stop(self) -> None:
-        self._stop_flag = True
 
     def suggest_output_path(self) -> str:
         target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import signal
 import sys
 from argparse import Namespace
@@ -6,9 +7,10 @@ from argparse import Namespace
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
 from sinner.gui.GUI import GUI
-from sinner.Core import Core
+from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
 from sinner.WebCam import WebCam
+from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.utilities import limit_resources
 
 
@@ -31,8 +33,7 @@ class Sin(Sinner):
 
     def run(self) -> None:
         if self.gui:
-            core = Core(parameters=self.parameters)
-            preview = GUI(core)
+            preview = GUI(GUIProcessingCore(parameters=self.parameters))
             window = preview.show()
             window.mainloop()
         elif self.benchmark is True:
@@ -40,8 +41,13 @@ class Sin(Sinner):
         elif self.camera is True:
             WebCam(parameters=self.parameters).run()
         else:
-            Core(parameters=self.parameters).run()
+            BatchProcessingCore(parameters=self.parameters).run()
 
 
 if __name__ == '__main__':
+    # todo: remnants of roop code, needs to be checked
+    # single thread doubles cuda performance - needs to be set before torch import
+    if any(arg.startswith('--execution-provider') for arg in sys.argv):
+        os.environ['OMP_NUM_THREADS'] = '1'
+
     Sin().run()

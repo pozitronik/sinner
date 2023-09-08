@@ -3,7 +3,7 @@ from typing import Type, List, Dict, Any
 from colorama import Style, Fore
 
 from sinner.Benchmark import Benchmark
-from sinner.Core import Core
+from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.GUI import GUI
 from sinner.Sinner import Sinner
 from sinner.Status import Status
@@ -18,7 +18,7 @@ from sinner.validators.ValueValidator import ValueValidator
 
 DocumentedClasses: List[Type[AttributeLoader]] = [
     Sinner,
-    Core,
+    BatchProcessingCore,
     Status,
     # State,
     GUI,
