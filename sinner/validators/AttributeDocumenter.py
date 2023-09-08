@@ -4,7 +4,7 @@ from colorama import Style, Fore
 
 from sinner.Benchmark import Benchmark
 from sinner.Core import Core
-from sinner.GUI import GUI
+from sinner.gui.GUI import GUI
 from sinner.Sinner import Sinner
 from sinner.Status import Status
 from sinner.WebCam import WebCam

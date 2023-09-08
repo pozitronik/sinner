@@ -5,7 +5,7 @@ from argparse import Namespace
 
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
-from sinner.GUI import GUI
+from sinner.gui.GUI import GUI
 from sinner.Core import Core
 from sinner.Sinner import Sinner
 from sinner.WebCam import WebCam
