@@ -144,7 +144,7 @@ class AttributeLoader:
         return errors
 
     # return all class rules set + all inherited rules from superclass
-    # it is a very erratic approach, but currently i don't know how to make it better
+    # it is a very erratic approach, but currently I don't know how to make it better
     @staticmethod
     def list_rules(rules_class: type | object) -> Rules:
         rules = []
@@ -164,9 +164,10 @@ class AttributeLoader:
         return rules
 
     # returns the list of attributes names, which listed in the `rules` configuration
-    def validating_attributes(self) -> List[str]:
+    def validating_attributes(self, self_only: bool = False) -> List[str]:
         values: List[str] = []
-        for rule in self.list_rules(self):
+        collected_rules = self.rules() if self_only else self.list_rules(self)
+        for rule in collected_rules:
             if 'attribute' in rule:
                 values.append(rule['attribute'])
             elif 'parameter' in rule:

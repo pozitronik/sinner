@@ -50,7 +50,7 @@ class AttributeDocumenter:
         for doc_class in DocumentedClasses:
             class_doc: List[Dict[str, Any]] = []
             loaded_class: AttributeLoader = doc_class.__new__(doc_class)
-            loadable_attributes = loaded_class.validating_attributes()
+            loadable_attributes = loaded_class.validating_attributes(True)
             for attribute in loadable_attributes:
                 parameters: List[str] = loaded_class.get_attribute_parameters(attribute)
                 help_string: str | None = loaded_class.get_attribute_help(attribute)
