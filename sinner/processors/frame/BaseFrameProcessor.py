@@ -101,7 +101,6 @@ class BaseFrameProcessor(ABC, Status):
     def process(self, desc: str = 'Processing', set_progress: Callable[[int], None] | None = None) -> None:
         self.progress_callback = set_progress
         self.handler.current_frame_index = self.state.processed_frames_count
-        # todo: do not create on intermediate directory handler
         with tqdm(
                 total=self.state.frames_count,
                 desc=desc, unit='frame',
