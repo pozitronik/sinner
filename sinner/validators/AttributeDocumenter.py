@@ -4,7 +4,7 @@ from colorama import Style, Fore
 
 from sinner.Benchmark import Benchmark
 from sinner.Core import Core
-from sinner.Preview import Preview
+from sinner.GUI import GUI
 from sinner.Sinner import Sinner
 from sinner.Status import Status
 from sinner.WebCam import WebCam
@@ -21,7 +21,7 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     Core,
     Status,
     # State,
-    Preview,
+    GUI,
     WebCam,
     Benchmark,
     FaceSwapper,

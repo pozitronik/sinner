@@ -5,7 +5,7 @@ from argparse import Namespace
 
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
-from sinner.Preview import Preview
+from sinner.GUI import GUI
 from sinner.Core import Core
 from sinner.Sinner import Sinner
 from sinner.WebCam import WebCam
@@ -32,7 +32,7 @@ class Sin(Sinner):
     def run(self) -> None:
         if self.gui:
             core = Core(parameters=self.parameters)
-            preview = Preview(core)
+            preview = GUI(core)
             window = preview.show()
             window.mainloop()
         elif self.benchmark is True:
