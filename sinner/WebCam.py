@@ -152,7 +152,7 @@ class WebCam(Status):
                 self.update_status(f"Real fps is {(1 / frame_render_time):.2f}", position=(-1, 0))
 
     def open_camera(self) -> VideoCapture:
-        if is_image(self.input_device):
+        if isinstance(self.input_device, str) and is_image(self.input_device):
             self._camera_input = ImageCamera(self.input_device, self.width, self.height)
             self.update_status(f"Using image {self.input_device} as camera input")
             return self._camera_input
