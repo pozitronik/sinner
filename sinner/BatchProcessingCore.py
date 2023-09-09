@@ -1,7 +1,7 @@
 import shutil
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
-from typing import List, Any, Iterable
+from typing import List, Any, Iterable, Callable
 
 import os
 
@@ -14,6 +14,7 @@ from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
+from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY
 from sinner.validators.AttributeLoader import Rules
 
@@ -108,13 +109,12 @@ class BatchProcessingCore(Status):
             for dir_path in temp_resources:
                 shutil.rmtree(dir_path, ignore_errors=True)
 
-    @staticmethod
-    def process_frames(frame_num: int, processor: BaseFrameProcessor, handler: BaseFrameHandler, state: State) -> None:  # type: ignore[type-arg]
+    def process_frame(self, frame_num: int, extract: Callable[[int], Frame], process: Callable[[Frame], Frame], save: Callable[[Frame, int | str], None]) -> None:
         try:
-            frame_num, frame, frame_name = handler.extract_frame(frame_num)
-            state.save_temp_frame(processor.process_frame(frame), frame_name or frame_num)
+            frame_num, frame, frame_name = extract(frame_num)
+            save(process(frame), frame_name or frame_num)
         except Exception as exception:
-            processor.update_status(message=str(exception), mood=Mood.BAD)
+            self.update_status(message=str(exception), mood=Mood.BAD)
             quit()
 
     def process(self, processor: BaseFrameProcessor, handler: BaseFrameHandler, state: State) -> None:
@@ -126,7 +126,7 @@ class BatchProcessingCore(Status):
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                 initial=state.processed_frames_count,
         ) as progress:
-            self.multi_process_frame(frames_iterator=handler, state=state, processor=processor, progress=progress)
+            self.multi_process_frame(processor=processor, frames=handler, extract=handler.extract_frame, save=state.save_temp_frame, progress=progress)
         _, lost_frames = state.final_check()
         if lost_frames:
             with tqdm(
@@ -135,12 +135,12 @@ class BatchProcessingCore(Status):
                     dynamic_ncols=True,
                     bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
             ) as progress:
-                self.multi_process_frame(frames_iterator=lost_frames, state=state, processor=processor, progress=progress)
+                self.multi_process_frame(processor=processor, frames=lost_frames, extract=handler.extract_frame, save=state.save_temp_frame, progress=progress)
         is_ok, _ = state.final_check()
         if not is_ok:
             raise Exception("Something went wrong on processed frames check")
 
-    def multi_process_frame(self, processor: BaseFrameProcessor, frames_iterator: BaseFrameHandler | Iterable[int], state: State, progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], Frame], save: Callable[[Frame, int | str], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
@@ -148,8 +148,8 @@ class BatchProcessingCore(Status):
 
         with ThreadPoolExecutor(max_workers=processor.execution_threads) as executor:
             futures: list[Future[None]] = []
-            for frame in frames_iterator:
-                future: Future[None] = executor.submit(self.process_frames, frame, processor, frames_iterator, state)
+            for frame_num in frames:
+                future: Future[None] = executor.submit(self.process_frame, frame_num, extract, processor.process_frame, save)
                 future.add_done_callback(process_done)
                 futures.append(future)
                 progress.set_postfix(self.get_postfix(len(futures)))
