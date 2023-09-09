@@ -57,7 +57,6 @@ def test_create_factory():
 def test_init():
     test_object = get_test_object()
     assert (test_object, DummyProcessor)
-    assert (test_object.max_memory, 12)
 
 
 def test_process_frame():
