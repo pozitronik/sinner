@@ -59,7 +59,7 @@ class Status(AttributeLoader):
             sys.stdout.write(f"\033[{y};{x}H")
 
     @staticmethod
-    def restore_position(position: tuple[int, int] | None = None):
+    def restore_position(position: tuple[int, int] | None = None) -> None:
         if position is not None:
             sys.stdout.write("\033[u")
 
