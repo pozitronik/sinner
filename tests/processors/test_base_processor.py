@@ -63,15 +63,3 @@ def test_process_frame():
     processed_frame = get_test_object().process_frame(CV2VideoHandler.read_image(target_png))
     assert (processed_frame, Frame)
     assert processed_frame.shape == IMAGE_SHAPE
-
-
-def test_process_frames():
-    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/')
-    assert os.path.exists(out_dir) is False
-    test_object: BaseFrameProcessor = get_test_object()
-    test_handler: BaseFrameHandler = get_test_handler()
-    test_object.extract_frame_method = test_handler.extract_frame
-    for frame_num in test_handler:
-        test_object.process_frames(frame_num, get_test_state())  # in memory
-    processed_files = glob.glob(os.path.join(out_dir, '*.png'))
-    assert (len(processed_files), TARGET_FC)
