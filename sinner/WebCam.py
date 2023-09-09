@@ -127,7 +127,7 @@ class WebCam(Status):
             self._processors.append(BaseFrameProcessor.create(processor_name, self.parameters))
         self._fps_delay = 1 / self.fps
 
-    def run(self):
+    def run(self) -> None:
         with self._device as camera:
             while not self.stop:
                 frame_start_time = time.perf_counter()
