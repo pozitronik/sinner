@@ -37,7 +37,7 @@ class GUIProcessingCore(Status):
         super().__init__(parameters)
 
     #  returns list of all processed frames, starting from the original
-    def get_frame(self, frame_number: int = 0, extractor_handler: BaseFrameHandler | None = None, processed: bool = False) -> List[Tuple[Frame, str]]:
+    def get_frame(self, frame_number: int, extractor_handler: BaseFrameHandler, processed: bool = False) -> List[Tuple[Frame, str]]:
         result: List[Tuple[Frame, str]] = []
         try:
             _, frame, _ = extractor_handler.extract_frame(frame_number)
