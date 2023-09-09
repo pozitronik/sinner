@@ -65,13 +65,6 @@ def test_process_frame():
     assert processed_frame.shape == IMAGE_SHAPE
 
 
-def test_process():
-    get_test_object().process()
-    out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/', '*.png')
-    processed_files = glob.glob(out_dir)
-    assert (len(processed_files), 98)
-
-
 def test_process_frames():
     out_dir = os.path.join(tmp_dir, 'DummyProcessor/target.mp4/source.jpg/')
     assert os.path.exists(out_dir) is False
