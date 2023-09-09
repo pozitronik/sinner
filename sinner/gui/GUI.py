@@ -235,12 +235,9 @@ class GUI(Status):
             ImageTk.getimage(preview_label.cget('image')).save(save_file)
 
     @property
-    def frame_handler(self) -> BaseFrameHandler | None:
+    def frame_handler(self) -> BaseFrameHandler:
         if self._extractor_handler is None:
-            try:
-                self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.processing_core.parameters)
-            except Exception as exception:
-                self.update_status(message=str(exception), mood=Mood.BAD)
+            self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.processing_core.parameters)
         return self._extractor_handler
 
     def key_release(self, event: Event) -> None:  # type: ignore[type-arg]
