@@ -44,7 +44,7 @@ class Status(AttributeLoader):
         ]
 
     @staticmethod
-    def set_position(position: tuple[int, int] | None = None):
+    def set_position(position: tuple[int, int] | None = None) -> None:
         if position is not None:
             y = position[0]
             x = position[1]
