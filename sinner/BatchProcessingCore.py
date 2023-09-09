@@ -97,7 +97,7 @@ class BatchProcessingCore(Status):
             temp_resources.append(state.path)
 
         if current_target_path is not None:
-            handler = self.suggest_handler(current_target_path, self.parameters)
+            handler = self.suggest_handler(self.target_path, self.parameters)
             handler.result(from_dir=current_target_path, filename=self.output_path, audio_target=self.target_path)
         else:
             self.update_status('Target path is empty, ignoring', mood=Mood.BAD)
