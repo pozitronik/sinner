@@ -14,7 +14,7 @@ from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Frame
+from sinner.typing import Frame, NumeratedFrame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY
 from sinner.validators.AttributeLoader import Rules
 
@@ -109,7 +109,7 @@ class BatchProcessingCore(Status):
             for dir_path in temp_resources:
                 shutil.rmtree(dir_path, ignore_errors=True)
 
-    def process_frame(self, frame_num: int, extract: Callable[[int], Frame], process: Callable[[Frame], Frame], save: Callable[[Frame, int | str], None]) -> None:
+    def process_frame(self, frame_num: int, extract: Callable[[int], NumeratedFrame], process: Callable[[Frame], Frame], save: Callable[[Frame, int | str], None]) -> None:
         try:
             frame_num, frame, frame_name = extract(frame_num)
             save(process(frame), frame_name or frame_num)
@@ -140,7 +140,7 @@ class BatchProcessingCore(Status):
         if not is_ok:
             raise Exception("Something went wrong on processed frames check")
 
-    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], Frame], save: Callable[[Frame, int | str], None], progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], NumeratedFrame], save: Callable[[Frame, int | str], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
