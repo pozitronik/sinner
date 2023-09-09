@@ -76,7 +76,6 @@ class BatchProcessingCore(Status):
 
     def __init__(self, parameters: Namespace):
         self.parameters = parameters
-        self.preview_processors = {}
         super().__init__(parameters)
 
     def run(self) -> None:
