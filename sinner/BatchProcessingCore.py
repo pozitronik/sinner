@@ -41,6 +41,7 @@ class BatchProcessingCore(Status):
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
                 'valid': lambda: os.path.exists(self.target_path),
+                'required': True,
                 'help': 'Path to the target file or directory (depends on used frame processors set)'
             },
             {
