@@ -14,7 +14,7 @@ from pyvirtualcam import Camera
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Frame, NumeratedFrame
+from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video
 from sinner.validators.AttributeLoader import Rules
 
@@ -33,24 +33,24 @@ class ImageCamera(VideoCapture):
 
 class VideoCamera(VideoCapture):
     _video: str
-    _fps: int
+    _last_frame_render_time: float
+    _source_fps: float
     _width: int
     _height: int
     _frame: Frame
     _position: int
     _position_delta: int
 
-    def __init__(self, video: str, fps: int, width: int, height: int):
+    def __init__(self, video: str, last_frame_render_time: float, width: int, height: int):
         super().__init__()
         self._position = 0
         self._video = video
-        self._fps = fps
+        self._last_frame_render_time = last_frame_render_time
         self._width = width
         self._height = height
         capture = self.open()
-        source_fps = capture.get(cv2.CAP_PROP_FPS)
+        self._source_fps = capture.get(cv2.CAP_PROP_FPS)
         capture.release()
-        self._position_delta = self._fps / source_fps  # todo: needs to be adjusted, but ok for debugging
 
     def open(self) -> VideoCapture:
         cap = cv2.VideoCapture(self._video)
@@ -69,7 +69,10 @@ class VideoCamera(VideoCapture):
 
     def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:
         self._frame = self.extract_frame(self._position)
-        self._position += self._position_delta
+        if self._last_frame_render_time == 0:
+            self._position += 1
+        else:
+            self._position += int(self._source_fps * self._last_frame_render_time)
         self._frame = cv2.resize(self._frame, (self._width, self._height))
         return True, self._frame
 
@@ -106,6 +109,8 @@ class WebCam(Status):
     canvas: Canvas
     _processing_thread: threading.Thread
     _frames_queue: queue.Queue
+
+    _frame_render_time: float = 0
 
     def rules(self) -> Rules:
         return super().rules() + [
@@ -199,7 +204,7 @@ class WebCam(Status):
                 self.update_status(f"Using image {self.input_device} as camera input")
                 return self._camera_input
             if is_video(self.input_device):
-                self._camera_input = VideoCamera(self.input_device, self.fps, self.width, self.height)
+                self._camera_input = VideoCamera(self.input_device, self._frame_render_time, self.width, self.height)
                 self.update_status(f"Using video file {self.input_device} as camera input")
                 return self._camera_input
 
@@ -229,10 +234,12 @@ class WebCam(Status):
                 camera.send(frame)
                 camera.sleep_until_next_frame()
                 frame_end_time = time.perf_counter()
-                frame_render_time = frame_end_time - frame_start_time
-                if frame_render_time < self._fps_delay:
-                    time.sleep(self._fps_delay - frame_render_time)
-                self.update_status(f"Real fps is {(1 / frame_render_time):.2f}", position=(-1, 0))
+                self._frame_render_time = frame_end_time - frame_start_time
+                if self._frame_render_time < self._fps_delay:
+                    time.sleep(self._fps_delay - self._frame_render_time)
+                self.update_status(f"Real fps is {(1 / self._frame_render_time):.2f}", position=(-1, 0))
+                if hasattr(self._camera_input, '_last_frame_render_time'):
+                    setattr(self._camera_input, '_last_frame_render_time', self._frame_render_time)
 
     def run(self) -> None:
         if self.preview:
@@ -251,7 +258,7 @@ class WebCam(Status):
             self.canvas.photo = photo
         except queue.Empty:
             pass
-        self.PreviewWindow.after(1, self.preview_frames)
+        self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
 
     def show_preview(self):
         self.PreviewWindow = tk.Tk()
@@ -260,5 +267,5 @@ class WebCam(Status):
         self.canvas = Canvas(self.PreviewWindow, width=self.width, height=self.height)
         self.canvas.pack(fill='both', expand=True)
         self.start_processing_thread()
-        self.PreviewWindow.after(1, self.preview_frames)
+        self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
         self.PreviewWindow.mainloop()
