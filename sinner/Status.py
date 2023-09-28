@@ -88,9 +88,9 @@ class Status(AttributeLoader):
         if caller is None:
             caller = self.__class__.__name__
         self.set_position(position)
-        print(f'{emoji}{mood}{caller}: {message}{Back.RESET}{Fore.RESET}')
+        sys.stdout.write(f'{emoji}{mood}{caller}: {message}{Back.RESET}{Fore.RESET}')
         if position is None:
-            print("\n")
+            sys.stdout.write("\n")
         self.restore_position(position)
         self.log_write(f'{emoji}{caller}: {message}')
 
