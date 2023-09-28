@@ -3,9 +3,11 @@ import sys
 import threading
 import time
 from argparse import Namespace
+from tkinter import Canvas, NW
 from typing import List
-
+import tkinter as tk
 import cv2
+from PIL import Image, ImageTk
 from cv2 import VideoCapture
 from pyvirtualcam import Camera
 
@@ -56,6 +58,11 @@ class WebCam(Status):
     _processors: List[BaseFrameProcessor] = []
     _device: Camera
     _fps_delay: float
+
+    PreviewWindow: tk.Tk
+    canvas: Canvas
+    _processing_thread: threading.Thread
+    _frames_queue: queue.Queue
 
     def rules(self) -> Rules:
         return super().rules() + [
@@ -115,6 +122,17 @@ class WebCam(Status):
             }
         ]
 
+    @staticmethod
+    def list_available_output_devices() -> List[str]:
+        devices: List[str] = ['no']
+        if sys.platform == 'linux':
+            devices.append('v4l2loopback')
+        if sys.platform == 'win32':
+            devices.append('unitycapture')
+        if sys.platform == 'Darwin' or sys.platform == 'win32':
+            devices.append('obs')
+        return devices
+
     def __init__(self, parameters: Namespace):
         self.parameters = parameters
         super().__init__(parameters)
@@ -125,22 +143,25 @@ class WebCam(Status):
             self._device = Camera(width=self.width, height=self.height, fps=self.fps, device=self.output_device, backend=self.output_device, print_fps=self.print_fps)
             self.update_status(f"Virtual device camera is created as {self.output_device} with {self.width}x{self.height}@{self.fps}fps output")
 
+        self._frames_queue = queue.Queue()
+
         for processor_name in self.frame_processor:
             self._processors.append(BaseFrameProcessor.create(processor_name, self.parameters))
         self._fps_delay = 1 / self.fps
 
-    @staticmethod
-    def preview_frames(frame_queue: queue.Queue) -> None:
-        while True:
-            frame = frame_queue.get()
-            cv2.imshow('Frame', frame)
-            cv2.waitKey(1)
+    def open_camera(self) -> VideoCapture:
+        if isinstance(self.input_device, str) and is_image(self.input_device):
+            self._camera_input = ImageCamera(self.input_device, self.width, self.height)
+            self.update_status(f"Using image {self.input_device} as camera input")
+            return self._camera_input
 
-    def run(self) -> None:
-        if self.preview:
-            frame_queue = queue.Queue()
-            display_thread = threading.Thread(target=self.preview_frames, args=(frame_queue,))
-            display_thread.start()
+        self._camera_input = cv2.VideoCapture(self.input_device)
+        if not self._camera_input.isOpened():
+            raise Exception(f"Error opening camera {self.input_device}")
+        self.update_status(f"Camera input is opened at device={self.input_device}")
+        return self._camera_input
+
+    def process(self) -> None:
         with self._device as camera:
             while not self.stop:
                 frame_start_time = time.perf_counter()
@@ -155,7 +176,7 @@ class WebCam(Status):
                 for processor in self._processors:
                     frame = processor.process_frame(frame)
                 if self.preview:
-                    frame_queue.put(frame)
+                    self._frames_queue.put(frame)
 
                 camera.send(frame)
                 camera.sleep_until_next_frame()
@@ -164,28 +185,32 @@ class WebCam(Status):
                 if frame_render_time < self._fps_delay:
                     time.sleep(self._fps_delay - frame_render_time)
                 self.update_status(f"Real fps is {(1 / frame_render_time):.2f}", position=(-1, 0))
+
+    def run(self) -> None:
         if self.preview:
-            display_thread.join()
+            self.show_preview()
 
-    def open_camera(self) -> VideoCapture:
-        if isinstance(self.input_device, str) and is_image(self.input_device):
-            self._camera_input = ImageCamera(self.input_device, self.width, self.height)
-            self.update_status(f"Using image {self.input_device} as camera input")
-            return self._camera_input
+    def start_processing_thread(self):
+        self._processing_thread = threading.Thread(target=self.process)
+        self._processing_thread.daemon = True
+        self._processing_thread.start()
 
-        self._camera_input = cv2.VideoCapture(self.input_device)
-        if not self._camera_input.isOpened():
-            raise Exception(f"Error opening camera {self.input_device}")
-        self.update_status(f"Camera input is opened at device={self.input_device}")
-        return self._camera_input
+    def preview_frames(self) -> None:
+        try:
+            frame = self._frames_queue.get(timeout=1)
+            photo = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+            self.canvas.create_image(0, 0, image=photo, anchor=NW)
+            self.canvas.photo = photo
+        except queue.Empty:
+            pass
+        self.PreviewWindow.after(1, self.preview_frames)
 
-    @staticmethod
-    def list_available_output_devices() -> List[str]:
-        devices: List[str] = ['no']
-        if sys.platform == 'linux':
-            devices.append('v4l2loopback')
-        if sys.platform == 'win32':
-            devices.append('unitycapture')
-        if sys.platform == 'Darwin' or sys.platform == 'win32':
-            devices.append('obs')
-        return devices
+    def show_preview(self):
+        self.PreviewWindow = tk.Tk()
+        self.PreviewWindow.title('Camera Preview')
+        self.PreviewWindow.resizable(width=True, height=True)
+        self.canvas = Canvas(self.PreviewWindow, width=self.width, height=self.height)
+        self.canvas.pack(fill='both', expand=True)
+        self.start_processing_thread()
+        self.PreviewWindow.after(1, self.preview_frames)
+        self.PreviewWindow.mainloop()
