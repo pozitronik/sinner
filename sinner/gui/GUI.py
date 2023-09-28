@@ -21,32 +21,10 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class GUI(Status):
-    #  window controls
-    PreviewWindow: CTk = CTk()
-    PreviewFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    PreviewFrameLabel: CTkLabel = CTkLabel(PreviewWindow, text='')
-    PreviewFrames: ImageList = ImageList(parent=PreviewWindow)
-
-    NavigateSliderFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    NavigateSlider: CTkSlider = CTkSlider(NavigateSliderFrame, to=0)
-    NavigatePositionLabel: Label = Label(NavigateSliderFrame)
-    PreviewButton: Button = Button(NavigateSliderFrame, text="Preview", compound=LEFT)
-    SaveButton: Button = Button(NavigateSliderFrame, text="save", compound=LEFT)
-    SourcePathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    SourcePathEntry: Entry = Entry(SourcePathFrame)
-    SelectSourceDialog = filedialog
-    ChangeSourceButton: Button = Button(SourcePathFrame, text="Browse for source", width=20)
-    TargetPathFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    TargetPathEntry: Entry = Entry(TargetPathFrame)
-    SelectTargetDialog = filedialog
-    ChangeTargetButton: Button = Button(TargetPathFrame, text="Browse for target", width=20)
-    ProgressBarFrame: Frame = Frame(PreviewWindow, borderwidth=2)
-    ProgressBar: Progressbar = Progressbar(ProgressBarFrame, mode='indeterminate')
-
     # class attributes
     processing_core: GUIProcessingCore
     run_thread: threading.Thread | None
-    current_position: StringVar = StringVar()
+
     source_path: str = ''
     target_path: str = ''
     preview_max_width: float
@@ -87,11 +65,36 @@ class GUI(Status):
         self.processing_core = core
         super().__init__(self.processing_core.parameters)
         self.run_thread = None
+
+        #  window controls
+        self.PreviewWindow: CTk = CTk()
+        self.PreviewFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.PreviewFrameLabel: CTkLabel = CTkLabel(self.PreviewWindow, text='')
+        self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow)
+        self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.NavigateSlider: CTkSlider = CTkSlider(self.NavigateSliderFrame, to=0)
+        self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
+        self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="Preview", compound=LEFT)
+        self.SaveButton: Button = Button(self.NavigateSliderFrame, text="save", compound=LEFT)
+        self.SourcePathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.SourcePathEntry: Entry = Entry(self.SourcePathFrame)
+        self.SelectSourceDialog = filedialog
+        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20)
+        self.TargetPathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.TargetPathEntry: Entry = Entry(self.TargetPathFrame)
+        self.SelectTargetDialog = filedialog
+        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
+        self.ProgressBarFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.ProgressBar: Progressbar = Progressbar(self.ProgressBarFrame, mode='indeterminate')
+
         self.PreviewWindow.title('😈sinner')
         self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
         self.PreviewWindow.resizable(width=True, height=True)
         self.PreviewWindow.bind("<KeyRelease>", lambda event: self.key_release(event))
         self.PreviewWindow.bind("<KeyPress>", lambda event: self.key_press(event))
+        # class attributes
+        self.current_position: StringVar = StringVar()
+
         # init gui
         self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
