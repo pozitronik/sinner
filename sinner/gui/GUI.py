@@ -12,7 +12,7 @@ from customtkinter import CTkLabel, CTk, CTkSlider
 
 from sinner import typing
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.Status import Status, Mood
+from sinner.Status import Status
 from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
