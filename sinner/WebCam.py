@@ -1,4 +1,6 @@
+import queue
 import sys
+import threading
 import time
 from argparse import Namespace
 from typing import List
@@ -127,7 +129,18 @@ class WebCam(Status):
             self._processors.append(BaseFrameProcessor.create(processor_name, self.parameters))
         self._fps_delay = 1 / self.fps
 
+    @staticmethod
+    def preview_frames(frame_queue: queue.Queue) -> None:
+        while True:
+            frame = frame_queue.get()
+            cv2.imshow('Frame', frame)
+            cv2.waitKey(1)
+
     def run(self) -> None:
+        if self.preview:
+            frame_queue = queue.Queue()
+            display_thread = threading.Thread(target=self.preview_frames, args=(frame_queue,))
+            display_thread.start()
         with self._device as camera:
             while not self.stop:
                 frame_start_time = time.perf_counter()
@@ -142,7 +155,8 @@ class WebCam(Status):
                 for processor in self._processors:
                     frame = processor.process_frame(frame)
                 if self.preview:
-                    cv2.imshow('Frame', frame)
+                    frame_queue.put(frame)
+
                 camera.send(frame)
                 camera.sleep_until_next_frame()
                 frame_end_time = time.perf_counter()
@@ -150,6 +164,8 @@ class WebCam(Status):
                 if frame_render_time < self._fps_delay:
                     time.sleep(self._fps_delay - frame_render_time)
                 self.update_status(f"Real fps is {(1 / frame_render_time):.2f}", position=(-1, 0))
+        if self.preview:
+            display_thread.join()
 
     def open_camera(self) -> VideoCapture:
         if isinstance(self.input_device, str) and is_image(self.input_device):
