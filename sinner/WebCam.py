@@ -14,8 +14,8 @@ from pyvirtualcam import Camera
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Frame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image
+from sinner.typing import Frame, NumeratedFrame
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -28,6 +28,49 @@ class ImageCamera(VideoCapture):
         self._frame = cv2.resize(self._frame, (width, height))
 
     def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:
+        return True, self._frame
+
+
+class VideoCamera(VideoCapture):
+    _video: str
+    _fps: int
+    _width: int
+    _height: int
+    _frame: Frame
+    _position: int
+    _position_delta: int
+
+    def __init__(self, video: str, fps: int, width: int, height: int):
+        super().__init__()
+        self._position = 0
+        self._video = video
+        self._fps = fps
+        self._width = width
+        self._height = height
+        capture = self.open()
+        source_fps = capture.get(cv2.CAP_PROP_FPS)
+        capture.release()
+        self._position_delta = self._fps / source_fps  # todo: needs to be adjusted, but ok for debugging
+
+    def open(self) -> VideoCapture:
+        cap = cv2.VideoCapture(self._video)
+        if not cap.isOpened():
+            raise Exception("Error opening frame file")
+        return cap
+
+    def extract_frame(self, frame_number: int) -> Frame:
+        capture = self.open()
+        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
+        ret, frame = capture.read()
+        capture.release()
+        if not ret:
+            raise Exception(f"Error reading frame {frame_number}")
+        return frame
+
+    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:
+        self._frame = self.extract_frame(self._position)
+        self._position += self._position_delta
+        self._frame = cv2.resize(self._frame, (self._width, self._height))
         return True, self._frame
 
 
@@ -83,7 +126,7 @@ class WebCam(Status):
                 'parameter': ['input', 'input-device'],
                 'attribute': 'input_device',
                 'default': 0,
-                'help': 'Input camera index (ignore, if you have one camera). Pass a path to an image file to use it as input.'
+                'help': 'Input camera index (ignore, if you have one camera). Pass a path to an image/video file to use it as input.'
             },
             {
                 'parameter': ['device', 'output-device'],
@@ -150,10 +193,15 @@ class WebCam(Status):
         self._fps_delay = 1 / self.fps
 
     def open_camera(self) -> VideoCapture:
-        if isinstance(self.input_device, str) and is_image(self.input_device):
-            self._camera_input = ImageCamera(self.input_device, self.width, self.height)
-            self.update_status(f"Using image {self.input_device} as camera input")
-            return self._camera_input
+        if isinstance(self.input_device, str):
+            if is_image(self.input_device):
+                self._camera_input = ImageCamera(self.input_device, self.width, self.height)
+                self.update_status(f"Using image {self.input_device} as camera input")
+                return self._camera_input
+            if is_video(self.input_device):
+                self._camera_input = VideoCamera(self.input_device, self.fps, self.width, self.height)
+                self.update_status(f"Using video file {self.input_device} as camera input")
+                return self._camera_input
 
         self._camera_input = cv2.VideoCapture(self.input_device)
         if not self._camera_input.isOpened():
