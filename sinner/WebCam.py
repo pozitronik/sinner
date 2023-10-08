@@ -27,7 +27,7 @@ class ImageCamera(VideoCapture):
         self._frame = CV2VideoHandler.read_image(image)
         self._frame = cv2.resize(self._frame, (width, height))
 
-    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:
+    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:  # type: ignore[name-defined, override]
         return True, self._frame
 
 
@@ -52,7 +52,7 @@ class VideoCamera(VideoCapture):
         self._source_fps = capture.get(cv2.CAP_PROP_FPS)
         capture.release()
 
-    def open(self) -> VideoCapture:
+    def open(self) -> VideoCapture:  # type: ignore[override]
         cap = cv2.VideoCapture(self._video)
         if not cap.isOpened():
             raise Exception("Error opening frame file")
@@ -67,7 +67,7 @@ class VideoCamera(VideoCapture):
             raise Exception(f"Error reading frame {frame_number}")
         return frame
 
-    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:
+    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:  # type: ignore[name-defined, override]
         self._frame = self.extract_frame(self._position)
         if self._last_frame_render_time == 0:
             self._position += 1
