@@ -108,7 +108,7 @@ class WebCam(Status):
     PreviewWindow: tk.Tk
     canvas: Canvas
     _processing_thread: threading.Thread
-    _frames_queue: queue.Queue
+    _frames_queue: queue.Queue[Frame]
 
     _frame_render_time: float = 0
 
