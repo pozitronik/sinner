@@ -85,7 +85,7 @@ class BatchProcessingCore(Status):
             current_processor = BaseFrameProcessor.create(processor_name, self.parameters)
             handler = self.suggest_handler(current_target_path, self.parameters)
             state = State(parameters=self.parameters, target_path=current_target_path, temp_dir=self.temp_dir, frames_count=handler.fc, processor_name=processor_name)
-
+            current_processor.configure_state(state)
             if state.is_finished:
                 self.update_status(f'Processing with {processor_name} already done ({state.processed_frames_count}/{state.frames_count})')
             else:

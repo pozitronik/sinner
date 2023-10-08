@@ -4,6 +4,7 @@ from typing import List, Any
 
 from argparse import Namespace
 
+from sinner.State import State
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import Frame
@@ -52,6 +53,9 @@ class BaseFrameProcessor(ABC, Status):
         pass
 
     def release_resources(self) -> None:
+        pass
+
+    def configure_state(self, state: State) -> None:
         pass
 
     @property
