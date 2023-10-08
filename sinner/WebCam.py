@@ -256,7 +256,7 @@ class WebCam(Status):
             frame = self._frames_queue.get(timeout=1)
             photo = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
             self.canvas.create_image(0, 0, image=photo, anchor=NW)
-            self.canvas.photo = photo
+            self.canvas.photo = photo  # type: ignore[attr-defined]
         except queue.Empty:
             pass
         self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
