@@ -28,9 +28,24 @@ jobs:
         with:
           python-version: 3.11
       - run: df -h
-      - run: du -h /home/runner/.local/
       - run: python -m site --user-site
-      - run: pip install -r requirements-ci.txt --verbose
+      - run: |
+          pip install numpy>=1.24.3 --verbose
+          pip install opencv-python>=4.8.0.74 --verbose
+          pip install onnx==1.14.0 --verbose
+          pip install insightface==0.7.3 --verbose
+          pip install psutil==5.9.5 --verbose
+          pip install tk==0.1.0 --verbose
+          pip install customtkinter==5.2.0 --verbose
+          pip install torch==2.0.1 --verbose
+          pip install torchvision==0.15.2 --verbose
+          pip install onnxruntime==1.15.1 --verbose
+          pip install tensorflow~=2.13.0rc1 --verbose
+          pip install protobuf>=4.24.1 --verbose
+          pip install tqdm>=4.65.0 --verbose
+          pip install pytest==7.4.0 --verbose
+          pip install gfpgan==1.3.8 --verbose
+          pip install colorama~=0.4.6 --verbose
       - run: |
           export DISPLAY=:1:0
           Xvfb :1 -screen 0 1600x1200x16 &
