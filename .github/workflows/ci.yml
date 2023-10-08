@@ -28,9 +28,9 @@ jobs:
         with:
           python-version: 3.11
       - run: df -h
-      - run: df -h /home
+      - run: du -h /home
       - run: python -m site --user-site
-      - run: pip install -r requirements-ci.txt
+      - run: pip install -r requirements-ci.txt --verbose
       - run: |
           export DISPLAY=:1:0
           Xvfb :1 -screen 0 1600x1200x16 &
