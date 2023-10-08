@@ -113,7 +113,8 @@ class WebCam(Status):
     _frame_render_time: float = 0
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': {'frame-processor', 'processor', 'processors'},
                 'attribute': 'frame_processor',

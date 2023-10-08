@@ -22,7 +22,8 @@ class CV2VideoHandler(BaseFrameHandler):
     output_fps: float
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': 'output-fps',
                 'default': lambda: self.fps,

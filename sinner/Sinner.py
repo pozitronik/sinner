@@ -11,7 +11,8 @@ class Sinner(AttributeLoader):
 
     # the main module cannot be documented with AttributeDocumenter, because it causes a circular import
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': 'max-memory',
                 'attribute': 'max_memory',

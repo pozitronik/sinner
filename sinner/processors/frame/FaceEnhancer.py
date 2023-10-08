@@ -26,7 +26,8 @@ class FaceEnhancer(BaseFrameProcessor):
     _face_enhancer: GFPGANer | None = None
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': 'less-output',
                 'default': True,

@@ -33,7 +33,8 @@ class BatchProcessingCore(Status):
     _statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
                 'default': suggest_max_memory(),

@@ -14,7 +14,8 @@ class VideoHandler(CV2VideoHandler, FFmpegVideoHandler):
     current_frame_index: int = 0
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': 'keep-audio',
                 'default': False,

@@ -24,7 +24,8 @@ class Status(AttributeLoader):
     enable_emoji: bool
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': {'log', 'logfile'},
                 'attribute': 'logfile',

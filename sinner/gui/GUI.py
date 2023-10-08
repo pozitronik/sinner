@@ -33,7 +33,8 @@ class GUI(Status):
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path'

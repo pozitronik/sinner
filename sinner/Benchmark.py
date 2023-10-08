@@ -37,7 +37,8 @@ class Benchmark(Status):
     delta: int = 1000000000  # ns, if the run time between runs more that the delta, stop running
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path',

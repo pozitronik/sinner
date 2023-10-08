@@ -18,7 +18,8 @@ class BaseFrameHandler(Status, ABC):
     _fc: int | None = None
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
         ]
 
     @staticmethod

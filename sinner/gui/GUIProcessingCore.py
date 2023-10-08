@@ -17,7 +17,8 @@ class GUIProcessingCore(Status):
     preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        super().rules()
+        return [
             {
                 'parameter': {'frame-processor', 'processor', 'processors'},
                 'attribute': 'frame_processor',
