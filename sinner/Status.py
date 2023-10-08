@@ -35,7 +35,7 @@ class Status(AttributeLoader):
                 'parameter': {'enable-emoji'},
                 'attribute': 'enable_emoji',
                 'default': lambda: self.is_emoji_supported(),
-                'help': 'Path to the log file'
+                'help': 'Enable emojis in status messages'
             },
             {
                 'module_help': 'The status messaging module'
