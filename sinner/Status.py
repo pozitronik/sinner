@@ -37,7 +37,6 @@ class Status(AttributeLoader):
                 'default': lambda: self.is_emoji_supported(),
                 'help': 'Path to the log file'
             },
-
             {
                 'module_help': 'The status messaging module'
             }
