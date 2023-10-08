@@ -24,7 +24,7 @@ class FrameExtractor(BaseFrameProcessor):
         Status.__init__(self, self.parameters)
 
     def configure_state(self, state: State) -> None:
-        state.path = os.path.abspath(os.path.join(state.temp_dir, self.__class__.__name__, os.path.basename(state.target_path)))
+        state.path = os.path.abspath(os.path.join(state.temp_dir, self.__class__.__name__, str(os.path.basename(str(state.target_path)))))
 
     def process_frame(self, frame: Frame) -> Frame:
         return frame
