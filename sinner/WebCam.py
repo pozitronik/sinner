@@ -221,9 +221,9 @@ class WebCam(Status):
                 frame_start_time = time.perf_counter()
                 ret, frame = self._camera_input.read()
                 if not ret:
-                    self.update_status(f"Error reading input from camera", mood=Mood.BAD)
+                    self.update_status("Error reading input from camera", mood=Mood.BAD)
                     if self.auto_restart:
-                        self.update_status(f"Reopening camera device")
+                        self.update_status("Reopening camera device")
                         self._camera_input.release()
                         self.open_camera()
                     continue
