@@ -261,7 +261,7 @@ class WebCam(Status):
             pass
         self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
 
-    def show_preview(self):
+    def show_preview(self) -> None:
         self.PreviewWindow = tk.Tk()
         self.PreviewWindow.title('Camera Preview')
         self.PreviewWindow.resizable(width=True, height=True)
