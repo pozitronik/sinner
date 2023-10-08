@@ -28,6 +28,8 @@ jobs:
         with:
           python-version: 3.11
       - run: df -h
+      - run: df -h /
+      - run: python -m site --user-site
       - run: pip install -r requirements-ci.txt
       - run: |
           export DISPLAY=:1:0
