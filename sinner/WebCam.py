@@ -246,7 +246,7 @@ class WebCam(Status):
         if self.preview:
             self.show_preview()
 
-    def start_processing_thread(self):
+    def start_processing_thread(self) -> None:
         self._processing_thread = threading.Thread(target=self.process)
         self._processing_thread.daemon = True
         self._processing_thread.start()
