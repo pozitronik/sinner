@@ -144,27 +144,29 @@ class AttributeLoader:
         return errors
 
     # return all class rules set + all inherited rules from superclass
-    def list_rules(self) -> Rules:
+    # it is a very erratic approach, but currently i don't know how to make it better
+    @staticmethod
+    def list_rules(rules_class: type | object) -> Rules:
         rules = []
-        if isinstance(self, type):
-            rules = self.rules(self)
-            bases = self.__bases__
-        elif isinstance(self, object):
-            rules = self.rules()
-            bases = self.__class__.__bases__
+        if isinstance(rules_class, type):
+            rules = rules_class.rules(rules_class)  # type: ignore[attr-defined]
+            bases = rules_class.__bases__
+        elif isinstance(rules_class, object):
+            rules = rules_class.rules()  # type: ignore[attr-defined]
+            bases = rules_class.__class__.__bases__
         else:
             bases = []
 
         for base_class in bases:
             if hasattr(base_class, "rules") and callable(getattr(base_class, "rules")):
-                rules += base_class.list_rules(base_class)
+                rules += base_class.list_rules(base_class)  # type: ignore[attr-defined]
 
         return rules
 
     # returns the list of attributes names, which listed in the `rules` configuration
     def validating_attributes(self) -> List[str]:
         values: List[str] = []
-        for rule in self.list_rules():
+        for rule in self.list_rules(self):
             if 'attribute' in rule:
                 values.append(rule['attribute'])
             elif 'parameter' in rule:
@@ -178,7 +180,7 @@ class AttributeLoader:
     # return all rules configurations for attribute combined to one rule
     def get_attribute_rules(self, attribute: str) -> Rule:
         ruleset = {}
-        for rule in self.list_rules():
+        for rule in self.list_rules(self):
             if self.is_rule_attribute(rule, attribute):
                 rule = self.streamline_rule_order(rule)
                 ruleset.update(rule)
