@@ -24,7 +24,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
         return [
             {
                 'parameter': 'output-fps',
-                'default': lambda: self.fps,
+                'default': self.fps,
                 'help': 'FPS of resulting video'
             },
             {
