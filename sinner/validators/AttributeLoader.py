@@ -143,10 +143,28 @@ class AttributeLoader:
                 errors.append(error)
         return errors
 
+    # return all class rules set + all inherited rules from superclass
+    def list_rules(self) -> Rules:
+        rules = []
+        if isinstance(self, type):
+            rules = self.rules(self)
+            bases = self.__bases__
+        elif isinstance(self, object):
+            rules = self.rules()
+            bases = self.__class__.__bases__
+        else:
+            bases = []
+
+        for base_class in bases:
+            if hasattr(base_class, "rules") and callable(getattr(base_class, "rules")):
+                rules += base_class.list_rules(base_class)
+
+        return rules
+
     # returns the list of attributes names, which listed in the `rules` configuration
     def validating_attributes(self) -> List[str]:
         values: List[str] = []
-        for rule in self.rules():
+        for rule in self.list_rules():
             if 'attribute' in rule:
                 values.append(rule['attribute'])
             elif 'parameter' in rule:
@@ -160,7 +178,7 @@ class AttributeLoader:
     # return all rules configurations for attribute combined to one rule
     def get_attribute_rules(self, attribute: str) -> Rule:
         ruleset = {}
-        for rule in self.rules():
+        for rule in self.list_rules():
             if self.is_rule_attribute(rule, attribute):
                 rule = self.streamline_rule_order(rule)
                 ruleset.update(rule)
