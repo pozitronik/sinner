@@ -18,7 +18,6 @@ class FrameResizer(BaseFrameProcessor):
     width_min: int
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'parameter': {'scale'},

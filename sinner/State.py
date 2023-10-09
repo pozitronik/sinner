@@ -27,7 +27,6 @@ class State(Status):
     final_check_integrity: bool = True
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'parameter': {'source', 'source-path'},

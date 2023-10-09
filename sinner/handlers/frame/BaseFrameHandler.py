@@ -18,7 +18,6 @@ class BaseFrameHandler(Status, ABC):
     _fc: int | None = None
 
     def rules(self) -> Rules:
-        super().rules()
         return [
         ]
 

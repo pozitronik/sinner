@@ -28,7 +28,6 @@ class BaseFrameProcessor(ABC, Status):
             raise ValueError(f"Invalid processor name: {processor_name}")
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'parameter': 'execution-provider',

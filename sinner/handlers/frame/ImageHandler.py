@@ -15,7 +15,6 @@ class ImageHandler(BaseFrameHandler):
     emoji: str = '🖼️'
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'parameter': 'target-path',

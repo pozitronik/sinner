@@ -21,7 +21,6 @@ class FFmpegVideoHandler(BaseFrameHandler):
     ffmpeg_resulting_parameters: str
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'parameter': 'output-fps',

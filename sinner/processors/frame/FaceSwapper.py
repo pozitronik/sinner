@@ -26,7 +26,6 @@ class FaceSwapper(BaseFrameProcessor):
     _face_swapper: FaceSwapperType | None = None
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'parameter': {'source', 'source-path'},

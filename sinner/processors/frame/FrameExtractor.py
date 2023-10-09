@@ -12,7 +12,6 @@ class FrameExtractor(BaseFrameProcessor):
     emoji: str = '🏃'
 
     def rules(self) -> Rules:
-        super().rules()
         return [
             {
                 'module_help': 'This module extracts frames from video file as set of png images'
