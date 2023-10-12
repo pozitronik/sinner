@@ -99,6 +99,7 @@ class GUI(Status):
         self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
         self.PreviewFrameLabel.bind("<Button-3>", lambda event: self.change_target())
+        self.PreviewFrameLabel.bind("<Configure>", lambda event: self.resize_preview())
         self.PreviewFrameLabel.pack(fill='both', expand=True)
         # init generated frames list
         self.PreviewFrames.pack(fill='both', expand=True)
@@ -199,6 +200,15 @@ class GUI(Status):
         frames = self._previews.get(frame_number)
         if frames:
             self.show_frame(frames[thumbnail_index][0])
+
+    def resize_preview(self) -> None:
+        label_width = self.PreviewFrameLabel.winfo_width()
+        label_height = self.PreviewFrameLabel.winfo_height()
+        image: Image.Image = self.PreviewFrameLabel.image.cget("light_image")
+        image.thumbnail((label_width, label_height))
+        new_ctk_image = CTkImage(light_image=image, size=(label_width, label_height))
+        self.PreviewFrameLabel.configure(image=new_ctk_image)
+        self.PreviewFrameLabel.image = new_ctk_image
 
     def resize_frame(self, frame: typing.Frame) -> typing.Frame:
         current_height, current_width = frame.shape[:2]
