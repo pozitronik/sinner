@@ -86,7 +86,7 @@ class AttributeLoader:
 
     # by key name finds class parameter to load key value
     def find_rule_attribute(self, key: str) -> str | None:
-        for rule in self.rules():
+        for rule in self.list_rules(self):
             if 'parameter' in rule:
                 parameter = rule['parameter']
                 if isinstance(parameter, str):
@@ -101,7 +101,7 @@ class AttributeLoader:
 
     # by attribute name return all its parameters
     def get_attribute_parameters(self, attribute: str) -> List[str]:
-        for rule in self.rules():
+        for rule in self.list_rules(self):
             if 'attribute' in rule:
                 if rule['attribute'] == attribute.replace('-', '_'):
                     if isinstance(rule['parameter'], str):
