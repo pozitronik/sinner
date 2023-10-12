@@ -8,7 +8,7 @@ import cv2
 
 from PIL import Image, ImageTk
 from PIL.ImageTk import PhotoImage
-from customtkinter import CTkLabel, CTk, CTkSlider
+from customtkinter import CTkLabel, CTk, CTkSlider, CTkImage
 
 from sinner import typing
 from sinner.BatchProcessingCore import BatchProcessingCore
@@ -213,7 +213,7 @@ class GUI(Status):
     def show_frame(self, frame: typing.Frame | None = None) -> None:
         if frame is not None:
             frame = self.resize_frame(frame)
-            image = PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))  # when replaced to CTkImage, it looks wrong
+            image = CTkImage(light_image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), size=(frame.shape[1], frame.shape[0]))
             self.PreviewFrameLabel.configure(image=image)
             self.PreviewFrameLabel.image = image
         else:
