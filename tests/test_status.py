@@ -35,6 +35,16 @@ def test_status_log() -> None:
     assert actual_content.find('self: test') != -1
 
 
+def test_status_force_emoji() -> None:
+    parameters: Namespace = Parameters(f'--log="{test_logfile}" --enable_emoji=1').parameters
+    status = Status(parameters=parameters)
+
+    status.update_status('test', 'self', Mood.BAD)
+    with open(test_logfile, encoding=UTF8) as file:
+        actual_content = file.read()
+    assert actual_content.find('😈self: test') != -1
+
+
 def test_status_error() -> None:
     parameters: Namespace = Parameters(f'--log="/dev/random/incorrect:file\\path*?"').parameters
     with pytest.raises(LoadingException):
