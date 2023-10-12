@@ -177,10 +177,6 @@ class GUI(Status):
             self.TargetPathEntry.configure(state=DISABLED)
             self._previews.clear()
 
-    @staticmethod
-    def render_image_preview(frame: typing.Frame) -> PhotoImage:
-        return PhotoImage(Image.fromarray(frame))
-
     def get_frames(self, frame_number: int = 0, processed: bool = False) -> List[Tuple[typing.Frame, str]]:
         saved_frames = self._previews.get(frame_number)
         if not saved_frames and processed:
