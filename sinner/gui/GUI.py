@@ -214,7 +214,7 @@ class GUI(Status):
         self.PreviewCanvas.create_image(self.PreviewCanvas.winfo_width() // 2, self.PreviewCanvas.winfo_height() // 2, image=image)
         self.PreviewCanvas.photo = image  # type: ignore[attr-defined]
 
-    def resize_preview(self, event: Event) -> None:
+    def resize_preview(self, event: Event) -> None:  # type: ignore[type-arg]
         image = Image.fromarray(cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB))
         image = FrameThumbnail.resize_image(image, (event.width, event.height))
         self.show_image(ImageTk.PhotoImage(image))
