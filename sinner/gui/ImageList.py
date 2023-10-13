@@ -65,14 +65,16 @@ class ImageList(Frame):
                 self.canvas.pack(side=TOP, fill=X, expand=False)
                 self.scrollbar.pack(side=BOTTOM, fill=X)
 
+            photo = None
             for i, thumbnail in enumerate(thumbnails):
                 photo = thumbnail.photo((self.width, self.height))
-                self.config(height=photo.height())
-                self.canvas.config(height=photo.height())
                 image_label = Label(self.image_frame, text=thumbnail.caption, image=photo, compound=TOP)
                 image_label.image = photo  # type: ignore[attr-defined]
                 image_label.grid(row=0, column=i, padx=10)
                 image_label.bind("<Button-1>", lambda event, t=thumbnail, index=i: thumbnail.onclick(thumbnail.position, index))  # type: ignore[misc]
+            if photo is not None:
+                self.config(height=photo.height())
+                self.canvas.config(height=photo.height())
 
     def on_frame_configure(self, event: Event) -> None:  # type: ignore[type-arg] # IDK how to fix that :(
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
