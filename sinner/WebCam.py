@@ -125,13 +125,13 @@ class WebCam(Status):
             {
                 'parameter': 'preview',
                 'default': True,
-                'help': 'Show resulting picture in a separate window'
+                'help': 'Show virtual camera preview in a separate window'
             },
             {
                 'parameter': ['input', 'input-device'],
                 'attribute': 'input_device',
                 'default': 0,
-                'help': 'Input camera index (ignore, if you have one camera). Pass a path to an image/video file to use it as input.'
+                'help': 'Input camera index (ignore, if you have only one camera device). Pass a path to an image/video file to use it as the input'
             },
             {
                 'parameter': ['device', 'output-device'],

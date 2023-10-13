@@ -9,18 +9,32 @@
 * `--ini`: optional path to a custom configuration file, see the [Configuration file](../README.md#configuration-file) section.
 * `--h`, `--help`: show the help summary.
 
-# Core: The main handler for the processing modules
+# BatchProcessingCore:: The main handler for the processing modules
 * `--target-path`, `--target`: path to the target file or directory (depends on used frame processors set).
 * `--output`, `--output-path`: path to the resulting file or directory (depends on used frame processors set and target).
 * `--processors`, `--frame-processor`, `--processor`: the frame processor module or modules that you want to apply to your files. See the [Built-in frame processors](../README.md#built-in-frame-processors) documentation for the list of built-in modules and their possibilities.
 * `--keep-frames`: keeps processed frames in the temp directory after finishing. Defaults to `false`.
+
 # Status: The status messaging module
 * `--logfile`, `--log`: optional path to a logfile where all status messages will be logged (if ignored, no logs will be stored).
 * `--enable-emoji`: enable modules emoji prefixes in their message statuses, if supported in the current console.
 * 
-# Preview: GUI module
-* `--preview-height-max`, `--preview-max-height`: maximum preview window height.
-* `--preview-max-width`, `--preview-width-max`: maximum preview window width.
+# GUI: GUI module
+* `--frames-widget`, `--show-frames-widget`: show processed frames widget. It shows all stages of selected frame processing.
+* `--frames-widget-width`, `--fw-width`: processed widget maximum width, -1 to set as 10% of original image size.
+* `--frames-widget-height`, `--fw-height` : processed widget maximum height, -1 to set as 10% of original image size.
+
+# WebCam: The virtual camera module
+**Note**: You may need to install OBS drivers to create virtual camera device.
+* `--auto-restart`, `--restart`: try to restart input camera on error (may help with buggy drivers/hardware).
+* `--device`, `--output-device`: the output device name (e.g. virtual camera device to use). Ignore parameter to use the first available device or pass "no" to skip output at all.
+* `--fps`: The output virtual device fps.
+* `--width`: The output virtual device resolution width.
+* `--height`: The output virtual  device resolution height.
+* `--input`, `--input-device`: Input camera index (ignore, if you have only one camera device). Pass a path to an image/video file to use it as the input.
+* `--preview`: Show virtual camera preview in a separate window.
+* `--print-fps`: Print frame rate every second.
+* `--processors`, `--processor`, `--frame-processor`: the set of frame processors to handle the camera input. See the [Built-in frame processors](../README.md#built-in-frame-processors) documentation for the list of built-in modules and their possibilities.
 
 # Benchmark: The benchmarking module
 * `--source-path`, `--source`: the image file containing a face for `FaceSwapper` benchmarking.
