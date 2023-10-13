@@ -1,4 +1,4 @@
-from tkinter import Frame, Canvas, Scrollbar, Label, Event, TOP, NW, HORIZONTAL, BOTH, X, BOTTOM
+from tkinter import Frame, Canvas, Scrollbar, Label, Event, TOP, NW, HORIZONTAL, X, BOTTOM
 from typing import List, Optional, Callable, Tuple, Any
 
 import cv2
