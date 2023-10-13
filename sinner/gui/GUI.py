@@ -70,7 +70,6 @@ class GUI(Status):
 
         #  window controls
         self.PreviewWindow: CTk = CTk()
-        self.PreviewFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.PreviewCanvas: Canvas = Canvas(self.PreviewWindow)
         self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow)
         self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
