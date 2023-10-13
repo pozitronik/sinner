@@ -1,9 +1,10 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas
 from tkinter.ttk import Progressbar
 from typing import List, Tuple
 
+import PIL
 import cv2
 
 from PIL import Image, ImageTk
@@ -31,6 +32,7 @@ class GUI(Status):
     preview_max_height: float
     _extractor_handler: BaseFrameHandler | None = None
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
+    _tmp_image: PhotoImage
 
     def rules(self) -> Rules:
         return [
@@ -69,7 +71,8 @@ class GUI(Status):
         #  window controls
         self.PreviewWindow: CTk = CTk()
         self.PreviewFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
-        self.PreviewFrameLabel: CTkLabel = CTkLabel(self.PreviewWindow, text='')
+        # self.PreviewFrameLabel: CTkLabel = CTkLabel(self.PreviewWindow, text='')
+        self.canvas: Canvas = Canvas(self.PreviewWindow)
         self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow)
         self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.NavigateSlider: CTkSlider = CTkSlider(self.NavigateSliderFrame, to=0)
@@ -96,11 +99,11 @@ class GUI(Status):
         self.current_position: StringVar = StringVar()
 
         # init gui
-        self.PreviewFrameLabel.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
-        self.PreviewFrameLabel.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
-        self.PreviewFrameLabel.bind("<Button-3>", lambda event: self.change_target())
-        self.PreviewFrameLabel.bind("<Configure>", lambda event: self.resize_preview())
-        self.PreviewFrameLabel.pack(fill='both', expand=True)
+        self.canvas.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
+        self.canvas.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
+        self.canvas.bind("<Button-3>", lambda event: self.change_target())
+        self.canvas.bind("<Configure>", lambda event: self.resize_preview(event))
+        self.canvas.pack(fill='both', expand=True)
         # init generated frames list
         self.PreviewFrames.pack(fill='both', expand=True)
         # init slider
@@ -110,7 +113,7 @@ class GUI(Status):
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
         self.PreviewButton.configure(command=lambda: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewButton.pack(anchor=NE, side=LEFT)
-        self.SaveButton.configure(command=lambda: self.save_frame(self.PreviewFrameLabel))
+        self.SaveButton.configure(command=lambda: self.save_frame(self.canvas))
         self.SaveButton.pack(anchor=NE, side=LEFT)
         self.NavigateSliderFrame.pack(fill=X)
         # init source selection control set
@@ -201,14 +204,16 @@ class GUI(Status):
         if frames:
             self.show_frame(frames[thumbnail_index][0])
 
-    def resize_preview(self) -> None:
-        label_width = self.PreviewFrameLabel.winfo_width()
-        label_height = self.PreviewFrameLabel.winfo_height()
-        image: Image.Image = self.PreviewFrameLabel.image.cget("light_image")
-        image.thumbnail((label_width, label_height))
-        new_ctk_image = CTkImage(light_image=image, size=(label_width, label_height))
-        self.PreviewFrameLabel.configure(image=new_ctk_image)
-        self.PreviewFrameLabel.image = new_ctk_image
+    def resize_preview(self, event: Event) -> None:
+        # label_width = self.PreviewFrameLabel.winfo_width()
+        # label_height = self.PreviewFrameLabel.winfo_height()
+        image = self._tmp_image
+        img: PIL.Image = ImageTk.getimage(self._tmp_image)
+        img = img.resize((event.width, event.height))
+        # image.thumbnail((event.width, event.height))
+        self._tmp_image = ImageTk.PhotoImage(image=img)
+        self.canvas.create_image(0, 0, image=self._tmp_image, anchor=NW)
+        self.canvas.photo = image  # type: ignore[attr-defined]
 
     def resize_frame(self, frame: typing.Frame) -> typing.Frame:
         current_height, current_width = frame.shape[:2]
@@ -223,12 +228,17 @@ class GUI(Status):
     def show_frame(self, frame: typing.Frame | None = None) -> None:
         if frame is not None:
             frame = self.resize_frame(frame)
-            image = CTkImage(light_image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), size=(frame.shape[1], frame.shape[0]))
-            self.PreviewFrameLabel.configure(image=image)
-            self.PreviewFrameLabel.image = image
+
+            self._tmp_image = ImageTk.PhotoImage(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+            self.canvas.create_image(0, 0, image=self._tmp_image, anchor=NW)
+            self.canvas.photo = self._tmp_image  # type: ignore[attr-defined]
+
+            # image = CTkImage(light_image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), size=(frame.shape[1], frame.shape[0]))
+            # self.PreviewFrameLabel.configure(image=image)
+            # self.PreviewFrameLabel.image = image
         else:
-            self.PreviewFrameLabel.configure(image=None)
-            self.PreviewFrameLabel.image = None
+            self.canvas.create_image(0, 0, image=None, anchor=NW)
+            self.canvas.photo = None  # type: ignore[attr-defined]
 
     @staticmethod
     def destroy() -> None:
@@ -238,7 +248,7 @@ class GUI(Status):
         self.ProgressBar['value'] = value
 
     @staticmethod
-    def save_frame(preview_label: CTkLabel) -> None:
+    def save_frame(preview_label: Canvas) -> None:
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
             ImageTk.getimage(preview_label.cget('image')).save(save_file)
