@@ -33,7 +33,7 @@ class GUI(Status):
     fw_width: int
     _extractor_handler: BaseFrameHandler | None = None
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
-    _current_frame: typing.Frame
+    _current_frame: typing.Frame | None
 
     def rules(self) -> Rules:
         return [
