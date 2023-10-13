@@ -1,6 +1,6 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas, CENTER
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas, CENTER, BOTTOM, Y, NSEW
 from tkinter.ttk import Progressbar
 from typing import List, Tuple
 
@@ -102,9 +102,9 @@ class GUI(Status):
         self.PreviewCanvas.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
         self.PreviewCanvas.bind("<Button-3>", lambda event: self.change_target())
         self.PreviewCanvas.bind("<Configure>", lambda event: self.resize_preview(event))
-        self.PreviewCanvas.pack(fill='both', expand=True)
         # init generated frames list
-        self.PreviewCanvas.pack(fill='both', expand=True)
+        self.PreviewCanvas.pack(fill=BOTH, expand=True)
+        self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         # init slider
         self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
         self.update_slider()
