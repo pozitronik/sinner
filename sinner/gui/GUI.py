@@ -1,10 +1,9 @@
 import os.path
 import threading
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas, CENTER, BOTTOM, Y, NSEW
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas
 from tkinter.ttk import Progressbar
 from typing import List, Tuple
 
-import PIL
 import cv2
 
 from PIL import Image, ImageTk
@@ -28,8 +27,10 @@ class GUI(Status):
 
     source_path: str = ''
     target_path: str = ''
-    preview_max_width: float
-    preview_max_height: float
+    show_frames_widget: bool
+    processed_frames: float
+    fw_height: int
+    fw_width: int
     _extractor_handler: BaseFrameHandler | None = None
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
     _current_frame: typing.Frame
@@ -45,18 +46,24 @@ class GUI(Status):
                 'attribute': 'target_path'
             },
             {
-                'parameter': {'preview-max-height', 'preview-height-max'},
-                'attribute': 'preview_max_height',
-                'default': None,
-                'valid': lambda attribute, value: is_int(value),
-                'help': 'Maximum preview window height'
+                'parameter': {'show-frames-widget', 'frames-widget'},
+                'attribute': 'show_frames_widget',
+                'default': True,
+                'help': 'Show processed frames widget'
             },
             {
-                'parameter': {'preview-max-width', 'preview-width-max'},
-                'attribute': 'preview_max_width',
-                'default': None,
+                'parameter': {'frames-widget-width', 'fw-width'},
+                'attribute': 'fw_width',
+                'default': -1,
                 'valid': lambda attribute, value: is_int(value),
-                'help': 'Maximum preview window width'
+                'help': 'Processed widget maximum width, -1 to set as 10% of original image size'
+            },
+            {
+                'parameter': {'frames-widget-height', 'fw-height'},
+                'attribute': 'fw_height',
+                'default': -1,
+                'valid': lambda attribute, value: is_int(value),
+                'help': 'Processed widget maximum height, -1 to set as 10% of original image size'
             },
             {
                 'module_help': 'GUI module'
@@ -71,7 +78,7 @@ class GUI(Status):
         #  window controls
         self.PreviewWindow: CTk = CTk()
         self.PreviewCanvas: Canvas = Canvas(self.PreviewWindow)
-        self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow)
+        self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow, size=(self.fw_width, self.fw_height))
         self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.NavigateSlider: CTkSlider = CTkSlider(self.NavigateSliderFrame, to=0)
         self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
@@ -189,7 +196,8 @@ class GUI(Status):
         frames = self.get_frames(frame_number, processed)
         if frames:
             if processed:
-                self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames])
+                if self.show_frames_widget is True:
+                    self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames])
                 self.show_frame(frames[-1][0])
             else:
                 self.show_frame(frames[0][0])
@@ -208,21 +216,8 @@ class GUI(Status):
 
     def resize_preview(self, event: Event) -> None:
         image = Image.fromarray(cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB))
-        image = self.resize_image(image, (event.width, event.height))
+        image = FrameThumbnail.resize_image(image, (event.width, event.height))
         self.show_image(ImageTk.PhotoImage(image))
-
-    @staticmethod
-    def resize_image(image: PIL.Image, size: tuple[int, int]) -> Image:
-        aspect_ratio = image.size[0] / image.size[1]
-        new_width = size[0]
-        new_height = int(size[0] / aspect_ratio)
-        if new_height > size[1]:
-            new_height = size[1]
-            new_width = int(size[1] * aspect_ratio)
-
-        resized_image = image.resize((new_width, new_height)) if new_width > 0 and new_height > 0 else image
-
-        return resized_image
 
     def show_frame(self, frame: typing.Frame | None = None) -> None:
         self._current_frame = frame
@@ -230,7 +225,7 @@ class GUI(Status):
             self.show_image(None)
         else:
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            image = self.resize_image(image, (self.PreviewCanvas.winfo_width(), self.PreviewCanvas.winfo_height()))
+            image = FrameThumbnail.resize_image(image, (self.PreviewCanvas.winfo_width(), self.PreviewCanvas.winfo_height()))
             self.show_image(ImageTk.PhotoImage(image))
 
     @staticmethod
