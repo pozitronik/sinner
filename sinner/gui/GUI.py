@@ -238,7 +238,7 @@ class GUI(Status):
     def save_frame(self) -> None:
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
-            ImageTk.getimage(self._tmp_image).save(save_file)
+            Image.fromarray(cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB)).save(save_file)
 
     @property
     def frame_handler(self) -> BaseFrameHandler:
