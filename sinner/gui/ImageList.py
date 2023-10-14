@@ -74,7 +74,7 @@ class ImageList(Frame):
                 image_label.bind("<Button-1>", lambda event, t=thumbnail, index=i: thumbnail.onclick(thumbnail.position, index))  # type: ignore[misc]
             if photo is not None:
                 self.config(height=photo.height())
-                self.canvas.config(height=photo.height())
+                self.canvas.config(height=photo.height() + 20)
 
     def on_frame_configure(self, event: Event) -> None:  # type: ignore[type-arg] # IDK how to fix that :(
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
