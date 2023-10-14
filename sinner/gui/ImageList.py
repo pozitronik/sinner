@@ -48,10 +48,8 @@ class ImageList(Frame):
         self.canvas: Canvas = Canvas(self)
         self.scrollbar: Scrollbar = Scrollbar(self, orient=HORIZONTAL, command=self.canvas.xview)
         self.image_frame: Frame = Frame(self.canvas)
-        self.caption_frame: Frame = Frame(self.canvas)
         self.canvas.configure(xscrollcommand=self.scrollbar.set)
         self.canvas.create_window((0, 0), window=self.image_frame, anchor=NW, tags="image_frame")
-        self.canvas.create_window((0, 0), window=self.caption_frame, anchor=NW, tags="caption_frame")
         self.image_frame.bind("<Configure>", self.on_frame_configure)
 
         self.show(thumbnails)
