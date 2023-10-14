@@ -1,5 +1,10 @@
+import warnings
+
 from sinner.utilities import suggest_max_memory
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
+
+warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
+warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
 class Sinner(AttributeLoader):
@@ -22,6 +27,11 @@ class Sinner(AttributeLoader):
                 'parameter': 'benchmark',
                 'default': False,
                 'help': 'Run a benchmark on a selected frame processor'
+            },
+            {
+                'parameter': 'camera',
+                'default': False,
+                'help': 'Start a face-swapped web-camera'
             },
             {
                 'module_help': 'The main application'

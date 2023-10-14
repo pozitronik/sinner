@@ -3,10 +3,11 @@ from typing import Type, List, Dict, Any
 from colorama import Style, Fore
 
 from sinner.Benchmark import Benchmark
-from sinner.Core import Core
-from sinner.Preview import Preview
+from sinner.BatchProcessingCore import BatchProcessingCore
+from sinner.gui.GUI import GUI
 from sinner.Sinner import Sinner
 from sinner.Status import Status
+from sinner.WebCam import WebCam
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.processors.frame.FaceSwapper import FaceSwapper
@@ -17,10 +18,11 @@ from sinner.validators.ValueValidator import ValueValidator
 
 DocumentedClasses: List[Type[AttributeLoader]] = [
     Sinner,
-    Core,
+    BatchProcessingCore,
     Status,
     # State,
-    Preview,
+    GUI,
+    WebCam,
     Benchmark,
     FaceSwapper,
     FaceEnhancer,
@@ -48,7 +50,7 @@ class AttributeDocumenter:
         for doc_class in DocumentedClasses:
             class_doc: List[Dict[str, Any]] = []
             loaded_class: AttributeLoader = doc_class.__new__(doc_class)
-            loadable_attributes = loaded_class.validating_attributes()
+            loadable_attributes = loaded_class.validating_attributes(True)
             for attribute in loadable_attributes:
                 parameters: List[str] = loaded_class.get_attribute_parameters(attribute)
                 help_string: str | None = loaded_class.get_attribute_help(attribute)

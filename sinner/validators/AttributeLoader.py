@@ -86,7 +86,7 @@ class AttributeLoader:
 
     # by key name finds class parameter to load key value
     def find_rule_attribute(self, key: str) -> str | None:
-        for rule in self.rules():
+        for rule in self.list_rules(self):
             if 'parameter' in rule:
                 parameter = rule['parameter']
                 if isinstance(parameter, str):
@@ -101,7 +101,7 @@ class AttributeLoader:
 
     # by attribute name return all its parameters
     def get_attribute_parameters(self, attribute: str) -> List[str]:
-        for rule in self.rules():
+        for rule in self.list_rules(self):
             if 'attribute' in rule:
                 if rule['attribute'] == attribute.replace('-', '_'):
                     if isinstance(rule['parameter'], str):
@@ -143,10 +143,31 @@ class AttributeLoader:
                 errors.append(error)
         return errors
 
+    # return all class rules set + all inherited rules from superclass
+    # it is a very erratic approach, but currently I don't know how to make it better
+    @staticmethod
+    def list_rules(rules_class: type | object) -> Rules:
+        rules = []
+        if isinstance(rules_class, type):
+            rules = rules_class.rules(rules_class)  # type: ignore[attr-defined]
+            bases = rules_class.__bases__
+        elif isinstance(rules_class, object):
+            rules = rules_class.rules()  # type: ignore[attr-defined]
+            bases = rules_class.__class__.__bases__
+        else:
+            bases = []
+
+        for base_class in bases:
+            if hasattr(base_class, "rules") and callable(getattr(base_class, "rules")):
+                rules += base_class.list_rules(base_class)  # type: ignore[attr-defined]
+
+        return rules
+
     # returns the list of attributes names, which listed in the `rules` configuration
-    def validating_attributes(self) -> List[str]:
+    def validating_attributes(self, self_only: bool = False) -> List[str]:
         values: List[str] = []
-        for rule in self.rules():
+        collected_rules = self.rules() if self_only else self.list_rules(self)
+        for rule in collected_rules:
             if 'attribute' in rule:
                 values.append(rule['attribute'])
             elif 'parameter' in rule:
@@ -160,7 +181,7 @@ class AttributeLoader:
     # return all rules configurations for attribute combined to one rule
     def get_attribute_rules(self, attribute: str) -> Rule:
         ruleset = {}
-        for rule in self.rules():
+        for rule in self.list_rules(self):
             if self.is_rule_attribute(rule, attribute):
                 rule = self.streamline_rule_order(rule)
                 ruleset.update(rule)

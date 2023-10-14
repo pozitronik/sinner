@@ -1,5 +1,4 @@
 import contextlib
-import os
 import threading
 from argparse import Namespace
 
@@ -11,7 +10,7 @@ from sinner.FaceAnalyser import FaceAnalyser
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, is_absolute_path, is_float
+from sinner.utilities import conditional_download, get_app_dir, is_float
 
 
 class FaceEnhancer(BaseFrameProcessor):
@@ -27,21 +26,7 @@ class FaceEnhancer(BaseFrameProcessor):
     _face_enhancer: GFPGANer | None = None
 
     def rules(self) -> Rules:
-        return super().rules() + [
-            {
-                'parameter': {'target', 'target-path'},
-                'attribute': 'target_path',
-                'required': True,
-                'valid': lambda attribute_name, attribute_value: attribute_value is not None and (is_image(attribute_value) or is_video(attribute_value) or os.path.isdir(attribute_value)),
-                'help': 'Select the target file (image or video) or the directory'
-            },
-            {
-                'parameter': {'output', 'output-path'},
-                'attribute': 'output_path',
-                'default': lambda: self.suggest_output_path(),
-                'valid': lambda: is_absolute_path(self.output_path),
-                'help': 'Select an output file or a directory'
-            },
+        return [
             {
                 'parameter': 'less-output',
                 'default': True,
@@ -58,14 +43,6 @@ class FaceEnhancer(BaseFrameProcessor):
                 'module_help': 'This module enhances faces on images'
             }
         ]
-
-    def suggest_output_path(self) -> str:
-        target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
-        if self.output_path is None:
-            return os.path.join(os.path.dirname(self.target_path), 'enhanced-' + target_name + target_extension)
-        if os.path.isdir(self.output_path):
-            return os.path.join(self.output_path, 'enhanced-' + target_name + target_extension)
-        return self.output_path
 
     @property
     def face_analyser(self) -> FaceAnalyser:
@@ -85,10 +62,10 @@ class FaceEnhancer(BaseFrameProcessor):
                     self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
         return self._face_enhancer
 
-    def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
+    def __init__(self, parameters: Namespace) -> None:
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth'])
-        super().__init__(parameters, target_path)
+        super().__init__(parameters)
 
     def enhance_face(self, temp_frame: Frame) -> Frame:
         with self.thread_semaphore:

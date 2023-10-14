@@ -18,7 +18,7 @@ class DirectoryHandler(BaseFrameHandler):
     _frames_path: list[str] | None = None
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        return [
             {
                 'module_help': 'The module for processing image files in a directory'
             }

@@ -17,21 +17,32 @@ def setup_function():
 
 
 def test_status(capsys) -> None:
-    status = Status()
+    status = Status(Namespace())
 
     status.update_status('test', 'self', Mood.BAD)
     captured = capsys.readouterr()
-    assert f'😈{Fore.BLACK}{Back.RED}self: test{Back.RESET}{Fore.RESET}' == captured.out.strip()
+    captured = captured.out.strip()
+    assert captured.find(f'{Fore.BLACK}{Back.RED}self: test{Back.RESET}{Fore.RESET}') != -1
 
 
 def test_status_log() -> None:
-    parameters: Namespace = Parameters(f'--log="{test_logfile}"').parameters
+    parameters: Namespace = Parameters(f'--log="{test_logfile}" --enable_emoji=0').parameters
     status = Status(parameters=parameters)
 
     status.update_status('test', 'self', Mood.BAD)
     with open(test_logfile, encoding=UTF8) as file:
         actual_content = file.read()
-    assert '😈self: test' == actual_content
+    assert actual_content.find('self: test') != -1
+
+
+def test_status_force_emoji() -> None:
+    parameters: Namespace = Parameters(f'--log="{test_logfile}" --enable_emoji=1').parameters
+    status = Status(parameters=parameters)
+
+    status.update_status('test', 'self', Mood.BAD)
+    with open(test_logfile, encoding=UTF8) as file:
+        actual_content = file.read()
+    assert actual_content.find('😈self: test') != -1
 
 
 def test_status_error() -> None:

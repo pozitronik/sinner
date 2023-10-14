@@ -9,8 +9,8 @@ import onnxruntime
 import psutil
 import torch
 
+from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status
-from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import resolve_relative_path, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
 from sinner.validators.AttributeLoader import Rules
 
@@ -124,11 +124,8 @@ class Benchmark(Status):
         self.results.append({'processor': processor, 'provider': execution_provider, 'threads': threads, 'time': execution_time})
 
     def benchmark(self) -> int:
-        current_target_path = self.target_path
-        processor_name = self.frame_processors[0]
-        current_processor = BaseFrameProcessor.create(processor_name, self.parameters, target_path=current_target_path)
         start_time = time.time_ns()
-        current_processor.process(desc=processor_name)
+        BatchProcessingCore(self.parameters).run()
         end_time = time.time_ns()
         self.release_resources()
         return end_time - start_time

@@ -3,6 +3,7 @@ import os
 import shutil
 from argparse import Namespace
 
+from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Parameters import Parameters
 from sinner.State import State
 from sinner.handlers.frame.VideoHandler import VideoHandler
@@ -20,7 +21,10 @@ def setup():
 
 def test_extract() -> None:
     assert os.path.exists(tmp_dir) is False
-    test_extractor = FrameExtractor(parameters=parameters, target_path=target_mp4)
+    batch_processor = BatchProcessingCore(parameters=parameters)
+    handler = batch_processor.suggest_handler(batch_processor.target_path, batch_processor.parameters)
+
+    test_extractor = FrameExtractor(parameters=parameters)
     test_state = State(
         parameters=parameters,
         frames_count=TARGET_FC,
@@ -28,6 +32,6 @@ def test_extract() -> None:
         processor_name=test_extractor.__class__.__name__,
         target_path=target_mp4
     )
-    test_extractor.process()
+    batch_processor.process(test_extractor, handler, test_state)
     assert os.path.exists(tmp_dir) is True
     assert len(glob.glob(os.path.join(glob.escape(test_state.path), '*.png'))) == TARGET_FC

@@ -1,5 +1,4 @@
 import contextlib
-import os
 from argparse import Namespace
 from typing import List, Dict, Any
 
@@ -12,7 +11,7 @@ from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Face, Frame, FaceSwapperType
-from sinner.utilities import conditional_download, get_app_dir, is_image, is_video, get_file_name, is_absolute_path
+from sinner.utilities import conditional_download, get_app_dir, is_image
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -27,27 +26,13 @@ class FaceSwapper(BaseFrameProcessor):
     _face_swapper: FaceSwapperType | None = None
 
     def rules(self) -> Rules:
-        return super().rules() + [
+        return [
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path',
                 'required': True,
                 'valid': lambda attribute_name, attribute_value: is_image(attribute_value),
                 'help': 'Select an input image with the source face'
-            },
-            {
-                'parameter': {'target', 'target-path'},
-                'attribute': 'target_path',
-                'required': True,
-                'valid': lambda attribute_name, attribute_value: attribute_value is not None and (is_image(attribute_value) or is_video(attribute_value) or os.path.isdir(attribute_value)),
-                'help': 'Select the target file (image or video) or the directory'
-            },
-            {
-                'parameter': {'output', 'output-path'},
-                'attribute': 'output_path',
-                'default': lambda: self.suggest_output_path(),
-                'valid': lambda attribute_name, attribute_value: attribute_value is not None and is_absolute_path(attribute_value),
-                'help': 'Select an output file or a directory'
             },
             {
                 'parameter': 'many-faces',
@@ -68,15 +53,6 @@ class FaceSwapper(BaseFrameProcessor):
     def load(self, parameters: Namespace, validate: bool = True) -> bool:
         self._source_face = None
         return super().load(parameters, validate)
-
-    def suggest_output_path(self) -> str:
-        source_name = get_file_name(self.source_path)
-        target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
-        if self.output_path is None:
-            return os.path.join(os.path.dirname(self.target_path), source_name + '-' + target_name + target_extension)
-        if os.path.isdir(self.output_path):
-            return os.path.join(self.output_path, source_name + '-' + target_name + target_extension)
-        return self.output_path
 
     @property
     def source_face(self) -> Face | None:
@@ -110,10 +86,10 @@ class FaceSwapper(BaseFrameProcessor):
                 self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
         return self._face_swapper
 
-    def __init__(self, parameters: Namespace, target_path: str | None = None) -> None:
+    def __init__(self, parameters: Namespace) -> None:
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://github.com/pozitronik/sinner/releases/download/v200823/inswapper_128.onnx'])
-        super().__init__(parameters, target_path)
+        super().__init__(parameters)
 
     def process_frame(self, frame: Frame) -> Frame:
         if self.many_faces:
