@@ -141,6 +141,8 @@ class GUI(Status):
 
     def show(self) -> CTk:
         self.update_preview(int(self.NavigateSlider.get()))
+        if self._current_frame is not None:
+            self.PreviewCanvas.configure(width=self._current_frame.shape[0], height=self._current_frame.shape[0])
         return self.PreviewWindow
 
     def update_slider(self) -> int:
