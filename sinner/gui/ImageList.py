@@ -50,12 +50,9 @@ class ImageList(Frame):
         self.image_frame: Frame = Frame(self.canvas)
         self.caption_frame: Frame = Frame(self.canvas)
         self.canvas.configure(xscrollcommand=self.scrollbar.set)
-
         self.canvas.create_window((0, 0), window=self.image_frame, anchor=NW, tags="image_frame")
         self.canvas.create_window((0, 0), window=self.caption_frame, anchor=NW, tags="caption_frame")
         self.image_frame.bind("<Configure>", self.on_frame_configure)
-        self.image_widgets: List[Label] = []
-        self.caption_labels: List[Label] = []
 
         self.show(thumbnails)
 
