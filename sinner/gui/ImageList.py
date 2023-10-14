@@ -60,6 +60,9 @@ class ImageList(Frame):
                 self.canvas.pack(side=TOP, fill=X, expand=False)
                 self.scrollbar.pack(side=BOTTOM, fill=X)
 
+            for label in list(self.image_frame.children.values()):
+                label.destroy()
+
             photo = None
             for i, thumbnail in enumerate(thumbnails):
                 photo = thumbnail.photo((self.width, self.height))
