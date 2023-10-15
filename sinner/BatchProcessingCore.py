@@ -177,12 +177,12 @@ class BatchProcessingCore(Status):
             postfix['limit_reaches'] = self._statistics['limits_reaches']
         return postfix
 
-    def suggest_output_path(self) -> str:
+    def suggest_output_path(self, prefix: str = 'result') -> str:
         target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
         if self.output_path is None:
-            return os.path.join(os.path.dirname(self.target_path), 'result-' + target_name + target_extension)
+            return os.path.join(os.path.dirname(self.target_path), f'{prefix}-{target_name}{target_extension}')
         if os.path.isdir(self.output_path):
-            return os.path.join(self.output_path, 'result-' + target_name + target_extension)
+            return os.path.join(self.output_path, f'{prefix}-{target_name}{target_extension}')
         return self.output_path
 
     @staticmethod
