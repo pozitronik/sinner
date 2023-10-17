@@ -32,7 +32,7 @@ class BatchProcessingCore(Status):
     parameters: Namespace
 
     _statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
-    _output_file: str  # despite the output_path value, the output file name can be changed during the execution process
+    _output_file: str | None = None  # despite the output_path value, the output file name can be changed during the execution process
 
     def rules(self) -> Rules:
         return [
@@ -123,7 +123,7 @@ class BatchProcessingCore(Status):
 
         if current_target_path is not None:
             handler = self.suggest_handler(self.target_path, self.parameters)
-            handler.result(from_dir=current_target_path, filename=self._output_file, audio_target=self.target_path)
+            handler.result(from_dir=current_target_path, filename=str(self._output_file), audio_target=self.target_path)
         else:
             self.update_status('Target path is empty, ignoring', mood=Mood.BAD)
 
