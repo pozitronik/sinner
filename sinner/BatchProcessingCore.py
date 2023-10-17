@@ -81,19 +81,18 @@ class BatchProcessingCore(Status):
             }
         ]
 
-    def configure_output_filename(self, prefix: str = 'result', update: bool = False) -> None:
+    def configure_output_filename(self, prefix: str = 'result') -> None:
         if self.output_path is None:
             self._output_file = os.path.join(os.path.dirname(self.target_path), f'{prefix}-{os.path.basename(self.target_path)}')
+        elif self._output_file == self.output_path:  # fixed path was passed, and it should stay fixed
+            return
         else:
             try:
                 validate_filepath(self.output_path, "auto")
                 if os.path.isdir(self.output_path):
                     self._output_file = os.path.join(self.output_path, f'{prefix}-{os.path.basename(self.target_path)}')
                 else:
-                    if update:
-                        self._output_file = os.path.join(os.path.dirname(self.output_path), f'{prefix}-{os.path.basename(self.target_path)}')
-                    else:
-                        self._output_file = self.output_path
+                    self._output_file = self.output_path
             except ValidationError as e:
                 #  should never happen, output_path is validated in the rules
                 raise Exception(f'Output filename {self.output_path} is invalid, reason: {e.reason}')

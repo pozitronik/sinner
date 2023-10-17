@@ -62,5 +62,5 @@ class BaseFrameProcessor(ABC, Status):
     def execution_providers(self) -> List[str]:
         return decode_execution_providers(self.execution_provider)
 
-    def configure_output_filename(self, callback: Callable[[str, bool], None]) -> None:
+    def configure_output_filename(self, callback: Callable[[str], None]) -> None:
         pass

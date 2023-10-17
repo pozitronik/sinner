@@ -108,6 +108,6 @@ class FaceSwapper(BaseFrameProcessor):
         if 'CUDAExecutionProvider' in self.execution_providers:
             torch.cuda.empty_cache()
 
-    def configure_output_filename(self, callback: Callable[[str, bool], None]) -> None:
+    def configure_output_filename(self, callback: Callable[[str], None]) -> None:
         source_name, _ = os.path.splitext(os.path.basename(self.source_path))
-        callback(source_name, True)
+        callback(source_name)
