@@ -1,5 +1,4 @@
 import shutil
-import sys
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 from typing import List, Any, Iterable, Callable
@@ -33,7 +32,7 @@ class BatchProcessingCore(Status):
     parameters: Namespace
 
     _statistics: dict[str, int] = {'mem_rss_max': 0, 'mem_vms_max': 0, 'limits_reaches': 0}
-    _output_file: str | None = None  # despite the output_path value, the output file name can be changed during the execution process
+    _output_file: str  # despite the output_path value, the output file name can be changed during the execution process
 
     def rules(self) -> Rules:
         return [
