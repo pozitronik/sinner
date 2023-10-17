@@ -48,7 +48,7 @@ class BatchProcessingCore(Status):
             {
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
-                'default': lambda: self.suggest_output_path(),
+                'default': lambda: os.path.join(os.path.dirname(self.target_path), 'result-' + os.path.basename(self.target_path)),
                 'help': 'Path to the resulting file or directory (depends on used frame processors set and target)'
             },
             {
@@ -176,14 +176,6 @@ class BatchProcessingCore(Status):
         if self._statistics['limits_reaches'] > 0:
             postfix['limit_reaches'] = self._statistics['limits_reaches']
         return postfix
-
-    def suggest_output_path(self) -> str:
-        target_name, target_extension = os.path.splitext(os.path.basename(self.target_path))
-        if self.output_path is None:
-            return os.path.join(os.path.dirname(self.target_path), 'result-' + target_name + target_extension)
-        if os.path.isdir(self.output_path):
-            return os.path.join(self.output_path, 'result-' + target_name + target_extension)
-        return self.output_path
 
     @staticmethod
     def suggest_handler(target_path: str | None, parameters: Namespace) -> BaseFrameHandler:  # todo: refactor this
