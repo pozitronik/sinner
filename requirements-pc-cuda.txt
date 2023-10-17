@@ -22,3 +22,4 @@ torchvision==0.15.2+cu118
 onnxruntime==1.15.1
 onnxruntime-gpu==1.15.1
 pyvirtualcam
+pathvalidate

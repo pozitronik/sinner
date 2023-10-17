@@ -22,3 +22,4 @@ torchvision==0.15.2
 onnxruntime
 pytest
 pyvirtualcam
+pathvalidate
