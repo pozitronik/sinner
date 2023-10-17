@@ -1,6 +1,7 @@
 import contextlib
+import os
 from argparse import Namespace
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Callable
 
 import insightface
 import torch
@@ -106,3 +107,7 @@ class FaceSwapper(BaseFrameProcessor):
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.execution_providers:
             torch.cuda.empty_cache()
+
+    def configure_output_filename(self, callback: Callable[[str], None]) -> None:
+        source_name, _ = os.path.splitext(os.path.basename(self.source_path))
+        callback(source_name)
