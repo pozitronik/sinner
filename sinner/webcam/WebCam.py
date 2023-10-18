@@ -12,77 +12,13 @@ from cv2 import VideoCapture
 from pyvirtualcam import Camera
 
 from sinner.Status import Status, Mood
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video
 from sinner.validators.AttributeLoader import Rules
-
-
-class ImageCamera(VideoCapture):
-    _frame: Frame
-
-    def __init__(self, image: str, width: int, height: int):
-        super().__init__()
-        self._frame = CV2VideoHandler.read_image(image)
-        self._frame = cv2.resize(self._frame, (width, height))
-
-    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:  # type: ignore[name-defined, override]
-        return True, self._frame
-
-
-class VideoCamera(VideoCapture):
-    _video: str
-    _last_frame_render_time: float
-    _source_fps: float
-    _width: int
-    _height: int
-    _frame: Frame
-    _position: int
-    _position_delta: int
-
-    def __init__(self, video: str, last_frame_render_time: float, width: int, height: int):
-        super().__init__()
-        self._position = 0
-        self._video = video
-        self._last_frame_render_time = last_frame_render_time
-        self._width = width
-        self._height = height
-        capture = self.open()
-        self._source_fps = capture.get(cv2.CAP_PROP_FPS)
-        capture.release()
-
-    def open(self) -> VideoCapture:  # type: ignore[override]
-        cap = cv2.VideoCapture(self._video)
-        if not cap.isOpened():
-            raise Exception("Error opening frame file")
-        return cap
-
-    def extract_frame(self, frame_number: int) -> Frame:
-        capture = self.open()
-        capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
-        ret, frame = capture.read()
-        capture.release()
-        if not ret:
-            raise Exception(f"Error reading frame {frame_number}")
-        return frame
-
-    def read(self, image: cv2.typing.MatLike | None = None) -> tuple[bool, Frame]:  # type: ignore[name-defined, override]
-        self._frame = self.extract_frame(self._position)
-        if self._last_frame_render_time == 0:
-            self._position += 1
-        else:
-            self._position += int(self._source_fps * self._last_frame_render_time)
-        self._frame = cv2.resize(self._frame, (self._width, self._height))
-        return True, self._frame
-
-
-class NoDevice(Camera):
-    def send(self, frame: Frame) -> None:
-        return None
-
-    def sleep_until_next_frame(self) -> None:
-        return None
+from sinner.webcam.ImageCamera import ImageCamera
+from sinner.webcam.NoDevice import NoDevice
+from sinner.webcam.VideoCamera import VideoCamera
 
 
 class WebCam(Status):
@@ -119,7 +55,7 @@ class WebCam(Status):
                 'attribute': 'frame_processor',
                 'default': ['FaceSwapper'],
                 'required': True,
-                'choices': list_class_descendants(resolve_relative_path('processors/frame'), 'BaseFrameProcessor'),
+                'choices': list_class_descendants(resolve_relative_path('../processors/frame'), 'BaseFrameProcessor'),
                 'help': 'The set of frame processors to handle the camera input'
             },
             {

@@ -9,7 +9,7 @@ from sinner.Parameters import Parameters
 from sinner.gui.GUI import GUI
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
-from sinner.WebCam import WebCam
+from sinner.webcam.WebCam import WebCam
 from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.utilities import limit_resources
 
