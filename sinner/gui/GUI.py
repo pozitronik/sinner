@@ -211,11 +211,12 @@ class GUI(Status):
         fc = self.frame_handler.fc
         while current_frame_index < fc:
             frame_start_time = time.perf_counter()
-            frames = self.get_frames(frame_number, processed)
+            frames = self.get_frames(current_frame_index, processed)
             frame_end_time = time.perf_counter()
             self._frame_render_time = frame_end_time - frame_start_time
             self._frames_queue.put(frames[-1][0])
-            self.current_position.set(f'{frame_number}/{self.NavigateSlider.cget("to")}')
+            self.NavigateSlider.set(current_frame_index)
+            current_frame_index += 1
 
     def preview_frames(self) -> None:
         try:
@@ -227,6 +228,7 @@ class GUI(Status):
 
     def play(self, frame_number: int = 0, processed: bool = False) -> None:
         self.start_processing_thread(frame_number, processed)
+        self.preview_frames()
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
         frames = self.get_frames(frame_number, processed)
@@ -247,8 +249,11 @@ class GUI(Status):
             self.show_frame(frames[thumbnail_index][0])
 
     def show_image(self, image: PhotoImage | None) -> None:
-        self.PreviewCanvas.create_image(self.PreviewCanvas.winfo_width() // 2, self.PreviewCanvas.winfo_height() // 2, image=image)
-        self.PreviewCanvas.photo = image  # type: ignore[attr-defined]
+        try:  # todo
+            self.PreviewCanvas.create_image(self.PreviewCanvas.winfo_width() // 2, self.PreviewCanvas.winfo_height() // 2, image=image)
+            self.PreviewCanvas.photo = image  # type: ignore[attr-defined]
+        except Exception as e:
+            pass
 
     def resize_preview(self, event: Event) -> None:  # type: ignore[type-arg]
         image = Image.fromarray(cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB))
