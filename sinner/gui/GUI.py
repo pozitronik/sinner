@@ -1,5 +1,4 @@
 import os.path
-import threading
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas
 from tkinter.ttk import Progressbar
 from typing import List, Tuple
@@ -23,7 +22,6 @@ from sinner.validators.AttributeLoader import Rules
 class GUI(Status):
     # class attributes
     processing_core: GUIProcessingCore
-    run_thread: threading.Thread | None
 
     source_path: str = ''
     target_path: str = ''
@@ -73,7 +71,6 @@ class GUI(Status):
     def __init__(self, core: GUIProcessingCore):
         self.processing_core = core
         super().__init__(self.processing_core.parameters)
-        self.run_thread = None
 
         #  window controls
         self.PreviewWindow: CTk = CTk()
