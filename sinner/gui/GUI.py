@@ -18,7 +18,8 @@ from sinner.Status import Status
 from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.utilities import is_image, is_video, is_int
+from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
+from sinner.utilities import is_image, is_video, is_int, list_class_descendants, resolve_relative_path
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -36,11 +37,23 @@ class GUI(Status):
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
     _current_frame: typing.Frame | None
     _processing_thread: threading.Thread
+    _viewing_thread: threading.Thread
     _frames_queue: queue.Queue[typing.Frame]
     _frame_render_time: float = 0
+    _processors: List[BaseFrameProcessor] = []
+    _is_playing: bool = False
+
+    frame_processor: List[str]
 
     def rules(self) -> Rules:
         return [
+            {
+                'parameter': {'frame-processor', 'processor', 'processors'},
+                'attribute': 'frame_processor',
+                'default': ['FaceSwapper'],
+                'choices': list_class_descendants(resolve_relative_path('../processors/frame'), 'BaseFrameProcessor'),
+                'help': 'The set of frame processors to handle the camera input'
+            },
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path'
@@ -201,34 +214,56 @@ class GUI(Status):
             self._previews[frame_number] = self.processing_core.get_frame(frame_number, self.frame_handler, processed)
         return [saved_frames[0]] if saved_frames else self.processing_core.get_frame(frame_number, self.frame_handler, processed)
 
-    def start_processing_thread(self, frame_number: int = 0, processed: bool = False) -> None:
-        self._processing_thread = threading.Thread(target=self.process, kwargs={'frame_number': frame_number, 'processed': processed})
-        self._processing_thread.daemon = True
-        self._processing_thread.start()
+    def resize_frame(self, frame: typing.Frame, scale: float = 0.2) -> typing.Frame:
+        current_height, current_width = frame.shape[:2]
+        return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
 
-    def process(self, frame_number: int = 0, processed: bool = False) -> None:
-        current_frame_index = frame_number
-        fc = self.frame_handler.fc
-        while current_frame_index < fc:
+    def process(self, frame_number: int = 0) -> None:
+        self.frame_handler.current_frame_index = frame_number
+
+        while self.frame_handler.current_frame_index < self.frame_handler.fc:
+            if not self._is_playing:
+                break
             frame_start_time = time.perf_counter()
-            frames = self.get_frames(current_frame_index, processed)
+            _, frame, _ = self.frame_handler.extract_frame(self.frame_handler.current_frame_index)
+            frame = self.resize_frame(frame)
+            for processor in self._processors:
+                frame = processor.process_frame(frame)
             frame_end_time = time.perf_counter()
             self._frame_render_time = frame_end_time - frame_start_time
-            self._frames_queue.put(frames[-1][0])
-            self.NavigateSlider.set(current_frame_index)
-            current_frame_index += 1
+            self._frames_queue.put(frame)
+            fps = 1 // self._frame_render_time
+            self.update_status(f"fps: {fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
+            self.NavigateSlider.set(self.frame_handler.current_frame_index)
+            self.frame_handler.current_frame_index += self.frame_handler.fps // (fps if fps > 0 else 1)
 
     def preview_frames(self) -> None:
-        try:
-            frame = self._frames_queue.get(timeout=1)
-            self.show_frame(frame)
-        except queue.Empty:
-            pass
-        self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
+        if self._is_playing:
+            try:
+                frame = self._frames_queue.get(timeout=1)
+
+                self.show_frame(frame)
+                self.PreviewWindow.after(int(self._frame_render_time * 100), self.preview_frames)
+            except queue.Empty:
+                self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
 
     def play(self, frame_number: int = 0, processed: bool = False) -> None:
-        self.start_processing_thread(frame_number, processed)
-        self.preview_frames()
+        self._is_playing = not self._is_playing
+        if not self._is_playing:
+            self._processing_thread.join()
+            self._viewing_thread.join()
+        else:
+            self._processors.clear()
+            for processor_name in self.frame_processor:
+                self._processors.append(BaseFrameProcessor.create(processor_name, self.processing_core.parameters))
+
+            self._processing_thread = threading.Thread(target=self.process, kwargs={'frame_number': frame_number})
+            self._processing_thread.daemon = True
+            self._processing_thread.start()
+
+            self._viewing_thread = threading.Thread(target=self.preview_frames)
+            self._viewing_thread.daemon = True
+            self._viewing_thread.start()
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
         frames = self.get_frames(frame_number, processed)
