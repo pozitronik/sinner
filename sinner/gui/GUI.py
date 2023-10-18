@@ -1,4 +1,7 @@
 import os.path
+import queue
+import threading
+import time
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas
 from tkinter.ttk import Progressbar
 from typing import List, Tuple
@@ -32,6 +35,9 @@ class GUI(Status):
     _extractor_handler: BaseFrameHandler | None = None
     _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
     _current_frame: typing.Frame | None
+    _processing_thread: threading.Thread
+    _frames_queue: queue.Queue[typing.Frame]
+    _frame_render_time: float = 0
 
     def rules(self) -> Rules:
         return [
@@ -71,6 +77,7 @@ class GUI(Status):
     def __init__(self, core: GUIProcessingCore):
         self.processing_core = core
         super().__init__(self.processing_core.parameters)
+        self._frames_queue = queue.Queue()
 
         #  window controls
         self.PreviewWindow: CTk = CTk()
@@ -79,8 +86,9 @@ class GUI(Status):
         self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.NavigateSlider: CTkSlider = CTkSlider(self.NavigateSliderFrame, to=0)
         self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
-        self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="Preview", compound=LEFT)
-        self.SaveButton: Button = Button(self.NavigateSliderFrame, text="save", compound=LEFT)
+        self.RunButton: Button = Button(self.NavigateSliderFrame, text="▶️", compound=LEFT)
+        self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="😈", compound=LEFT)
+        self.SaveButton: Button = Button(self.NavigateSliderFrame, text="💾", compound=LEFT)
         self.SourcePathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.SourcePathEntry: Entry = Entry(self.SourcePathFrame)
         self.SelectSourceDialog = filedialog
@@ -113,6 +121,8 @@ class GUI(Status):
         self.update_slider()
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
+        self.RunButton.configure(command=lambda: self.play(int(self.NavigateSlider.get()), True))
+        self.RunButton.pack(anchor=NE, side=LEFT)
         self.PreviewButton.configure(command=lambda: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewButton.pack(anchor=NE, side=LEFT)
         self.SaveButton.configure(command=lambda: self.save_frame())
@@ -190,6 +200,33 @@ class GUI(Status):
         if not saved_frames and processed:
             self._previews[frame_number] = self.processing_core.get_frame(frame_number, self.frame_handler, processed)
         return [saved_frames[0]] if saved_frames else self.processing_core.get_frame(frame_number, self.frame_handler, processed)
+
+    def start_processing_thread(self, frame_number: int = 0, processed: bool = False) -> None:
+        self._processing_thread = threading.Thread(target=self.process, kwargs={'frame_number': frame_number, 'processed': processed})
+        self._processing_thread.daemon = True
+        self._processing_thread.start()
+
+    def process(self, frame_number: int = 0, processed: bool = False) -> None:
+        current_frame_index = frame_number
+        fc = self.frame_handler.fc
+        while current_frame_index < fc:
+            frame_start_time = time.perf_counter()
+            frames = self.get_frames(frame_number, processed)
+            frame_end_time = time.perf_counter()
+            self._frame_render_time = frame_end_time - frame_start_time
+            self._frames_queue.put(frames[-1][0])
+            self.current_position.set(f'{frame_number}/{self.NavigateSlider.cget("to")}')
+
+    def preview_frames(self) -> None:
+        try:
+            frame = self._frames_queue.get(timeout=1)
+            self.show_frame(frame)
+        except queue.Empty:
+            pass
+        self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
+
+    def play(self, frame_number: int = 0, processed: bool = False) -> None:
+        self.start_processing_thread(frame_number, processed)
 
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
         frames = self.get_frames(frame_number, processed)
