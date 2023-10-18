@@ -1,5 +1,7 @@
 import contextlib
+import io
 import os
+import threading
 from argparse import Namespace
 from typing import List, Dict, Any, Callable
 
@@ -80,11 +82,12 @@ class FaceSwapper(BaseFrameProcessor):
     @property
     def face_swapper(self) -> FaceSwapperType:
         if self._face_swapper is None:
-            if self.less_output:
-                with contextlib.redirect_stdout(None):
+            with threading.Lock():
+                if self.less_output:
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
+                else:
                     self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
-            else:
-                self._face_swapper = insightface.model_zoo.get_model(get_app_dir('models/inswapper_128.onnx'), providers=self.execution_providers)
         return self._face_swapper
 
     def __init__(self, parameters: Namespace) -> None:
