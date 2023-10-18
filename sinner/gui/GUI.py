@@ -21,6 +21,7 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import is_image, is_video, is_int, list_class_descendants, resolve_relative_path
 from sinner.validators.AttributeLoader import Rules
+from concurrent.futures import ThreadPoolExecutor, Future
 
 
 class GUI(Status):
@@ -38,10 +39,11 @@ class GUI(Status):
     _current_frame: typing.Frame | None
     _processing_thread: threading.Thread
     _viewing_thread: threading.Thread
-    _frames_queue: queue.Queue[typing.Frame]
-    _frame_render_time: float = 0
+    _frames_queue: queue.PriorityQueue[(int, typing.Frame)]
+    _frame_wait_time: float = 0
     _processors: List[BaseFrameProcessor] = []
     _is_playing: bool = False
+    _fps: float  # playing fps
 
     frame_processor: List[str]
 
@@ -90,7 +92,7 @@ class GUI(Status):
     def __init__(self, core: GUIProcessingCore):
         self.processing_core = core
         super().__init__(self.processing_core.parameters)
-        self._frames_queue = queue.Queue()
+        self._frames_queue = queue.PriorityQueue()
 
         #  window controls
         self.PreviewWindow: CTk = CTk()
@@ -134,7 +136,7 @@ class GUI(Status):
         self.update_slider()
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
-        self.RunButton.configure(command=lambda: self.play(int(self.NavigateSlider.get()), True))
+        self.RunButton.configure(command=lambda: self.play(int(self.NavigateSlider.get())))
         self.RunButton.pack(anchor=NE, side=LEFT)
         self.PreviewButton.configure(command=lambda: self.update_preview(int(self.NavigateSlider.get()), True))
         self.PreviewButton.pack(anchor=NE, side=LEFT)
@@ -218,36 +220,36 @@ class GUI(Status):
         current_height, current_width = frame.shape[:2]
         return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
 
+    def process_frame(self, frame_index: int) -> None:
+        index, frame, _ = self.frame_handler.extract_frame(frame_index)
+        frame = self.resize_frame(frame)
+        for processor in self._processors:
+            frame = processor.process_frame(frame)
+        self._frames_queue.put((index, frame))
+
     def process(self, frame_number: int = 0) -> None:
         self.frame_handler.current_frame_index = frame_number
-
-        while self.frame_handler.current_frame_index < self.frame_handler.fc:
-            if not self._is_playing:
-                break
-            frame_start_time = time.perf_counter()
-            _, frame, _ = self.frame_handler.extract_frame(self.frame_handler.current_frame_index)
-            frame = self.resize_frame(frame)
-            for processor in self._processors:
-                frame = processor.process_frame(frame)
-            frame_end_time = time.perf_counter()
-            self._frame_render_time = frame_end_time - frame_start_time
-            self._frames_queue.put(frame)
-            fps = 1 // self._frame_render_time
-            self.update_status(f"fps: {fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
-            self.NavigateSlider.set(self.frame_handler.current_frame_index)
-            self.frame_handler.current_frame_index += self.frame_handler.fps // (fps if fps > 0 else 1)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            while self.frame_handler.current_frame_index < self.frame_handler.fc:
+                if not self._is_playing:
+                    break
+                future: Future[None] = executor.submit(self.process_frame, self.frame_handler.current_frame_index)
+                self.frame_handler.current_frame_index += 1
 
     def preview_frames(self) -> None:
         if self._is_playing:
-            try:
-                frame = self._frames_queue.get(timeout=1)
+            frame_wait_start = time.perf_counter()
+            index, frame = self._frames_queue.get()
+            frame_wait_end = time.perf_counter()
+            self._frame_wait_time = frame_wait_end - frame_wait_start
+            self.show_frame(frame)
+            self.NavigateSlider.set(index)
+            self._fps = 1 / self._frame_wait_time
+            self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
+            self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
+            self.PreviewWindow.after(int(self._frame_wait_time * 100), self.preview_frames)
 
-                self.show_frame(frame)
-                self.PreviewWindow.after(int(self._frame_render_time * 100), self.preview_frames)
-            except queue.Empty:
-                self.PreviewWindow.after(int(self._frame_render_time * 1000), self.preview_frames)
-
-    def play(self, frame_number: int = 0, processed: bool = False) -> None:
+    def play(self, frame_number: int) -> None:
         self._is_playing = not self._is_playing
         if not self._is_playing:
             self._processing_thread.join()
