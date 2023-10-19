@@ -65,7 +65,7 @@ class GUIModel(Status):
 
     def reload_parameters(self) -> None:
         self.clear_previews()
-        AttributeLoader().__init__(self.parameters)
+        super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
 
