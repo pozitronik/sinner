@@ -203,7 +203,7 @@ class GUIForm(Status):
                     ) for frame in frames])
                 self.PreviewCanvas.show_frame(frames[-1][0])
             else:
-                self.PreviewCanvas.show_frame(frames[-1][0])
+                self.PreviewCanvas.show_frame(frames[0][0])
         else:
             self.PreviewCanvas.photo_image = None
         self.current_position.set(f'{frame_number}/{self.NavigateSlider.to}')
@@ -212,7 +212,6 @@ class GUIForm(Status):
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
             self.GUIModel.source_path = selected_file
-            self.GUIModel.clear_previews()
 
             self.SourcePathEntry.configure(state=NORMAL)
             self.SourcePathEntry.delete(0, END)
@@ -230,7 +229,6 @@ class GUIForm(Status):
             self.TargetPathEntry.delete(0, END)
             self.TargetPathEntry.insert(END, selected_file)
             self.TargetPathEntry.configure(state="readonly")
-            self.GUIModel.clear_previews()
 
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
