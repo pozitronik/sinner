@@ -113,10 +113,10 @@ class GUIForm(Status):
         self.PreviewCanvas.pack(fill=BOTH, expand=True)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()  # also draws slider, if necessary
-        self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
         self.SaveButton.pack(anchor=NE, side=RIGHT)
         self.PreviewButton.pack(anchor=NE, side=RIGHT)
         self.RunButton.pack(anchor=NE, side=RIGHT)
+        self.NavigatePositionLabel.pack(anchor=NE, side=RIGHT)
         self.NavigateSliderFrame.pack(fill=X)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
