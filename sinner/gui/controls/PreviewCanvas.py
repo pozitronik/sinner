@@ -46,4 +46,4 @@ class PreviewCanvas(Canvas):
 
     def adjust_size(self):
         if self._last_frame is not None:
-            self.configure(width=self._last_frame.shape[0], height=self._last_frame.shape[1])
+            self.configure(width=self._last_frame.shape[1], height=self._last_frame.shape[0])
