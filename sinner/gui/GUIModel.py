@@ -1,3 +1,5 @@
+import queue
+import threading
 from argparse import Namespace
 from typing import List, Tuple
 
@@ -11,10 +13,25 @@ from sinner.validators.AttributeLoader import Rules
 
 class GUIModel(Status):
     frame_processor: List[str]
+    source_path: str
+    target_path: str
 
     parameters: Namespace
     preview_processors: dict[str, BaseFrameProcessor]  # cached processors for gui
     preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
+
+    _extractor_handler: BaseFrameHandler | None = None
+    _previews: dict[int, List[Tuple[Frame, str]]] = {}  # position: [frame, caption]
+    _current_frame: Frame | None
+    _processing_thread: threading.Thread
+    _viewing_thread: threading.Thread
+    _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
+    _frame_wait_time: float = 0
+    _processors: List[BaseFrameProcessor] = []
+    _is_playing: bool = False
+    _fps: float  # playing fps
+
+    frame_processor: List[str]
 
     def rules(self) -> Rules:
         return [
@@ -27,6 +44,14 @@ class GUIModel(Status):
                 'help': 'The set of frame processors to handle the target'
             },
             {
+                'parameter': {'source', 'source-path'},
+                'attribute': 'source_path'
+            },
+            {
+                'parameter': {'target', 'target-path'},
+                'attribute': 'target_path'
+            },
+            {
                 'module_help': 'The GUI processing handler'
             }
         ]
@@ -35,6 +60,7 @@ class GUIModel(Status):
         self.parameters = parameters
         self.preview_processors = {}
         super().__init__(parameters)
+        self._frames_queue = queue.PriorityQueue()
 
     #  returns list of all processed frames, starting from the original
     def get_frame(self, frame_number: int, extractor_handler: BaseFrameHandler, processed: bool = False) -> List[Tuple[Frame, str]]:
