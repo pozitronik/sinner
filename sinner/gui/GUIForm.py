@@ -167,8 +167,7 @@ class GUIForm(Status):
         self.update_preview(int(frame_value))
 
     def on_self_run_button_press(self):
-        pass
-        # self.GUIModel.play(self.NavigateSlider.position)
+        self.GUIModel.play(self.NavigateSlider.position, self.PreviewCanvas)
 
     def on_preview_button_press(self):
         self.update_preview(self.NavigateSlider.position, True)

@@ -1,11 +1,16 @@
 import os
 import queue
 import threading
+import time
 from argparse import Namespace
+from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List
+
+import cv2
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
+from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
@@ -25,6 +30,7 @@ class GUIModel(Status):
     _extractor_handler: BaseFrameHandler | None = None
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     _current_frame: Frame | None
+    _scale_quality: float  # the processed frame size scale from 0 to 1
     _processing_thread: threading.Thread
     _viewing_thread: threading.Thread
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
@@ -58,6 +64,7 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+        self._scale_quality = 0.3
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -146,57 +153,50 @@ class GUIModel(Status):
     def clear_previews(self):
         self._previews.clear()
 
-
-"""
-    @staticmethod
-    def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
-        current_height, current_width = frame.shape[:2]
-        return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
-
-    def process_frame(self, frame_index: int) -> None:
-        index, frame, _ = self.frame_handler.extract_frame(frame_index)
-        frame = self.resize_frame(frame)
-        for processor in self._processors:
-            frame = processor.process_frame(frame)
-        self._frames_queue.put((index, frame))
-
-    def process(self, frame_number: int = 0) -> None:
-        self.frame_handler.current_frame_index = frame_number
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            while self.frame_handler.current_frame_index < self.frame_handler.fc:
-                if not self._is_playing:
-                    break
-                executor.submit(self.process_frame, self.frame_handler.current_frame_index)
-                self.frame_handler.current_frame_index += 1
-
-    def preview_frames(self) -> None:
-        if self._is_playing:
-            frame_wait_start = time.perf_counter()
-            index, frame = self._frames_queue.get()
-            frame_wait_end = time.perf_counter()
-            self._frame_wait_time = frame_wait_end - frame_wait_start
-            self.show_frame(frame)
-            self.NavigateSlider.set(index)
-            self._fps = 1 / self._frame_wait_time
-            self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
-            self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
-            self.PreviewWindow.after(int(self._frame_wait_time * 100), self.preview_frames)
-
-    def play(self, frame_number: int) -> None:
+    def play(self, start_from: int, canvas: PreviewCanvas) -> None:
         self._is_playing = not self._is_playing
         if not self._is_playing:
             self._processing_thread.join()
             self._viewing_thread.join()
         else:
-            self._processors.clear()
-            for processor_name in self.frame_processor:
-                self._processors.append(BaseFrameProcessor.create(processor_name, self.processing_core.parameters))
-
-            self._processing_thread = threading.Thread(target=self.process, kwargs={'frame_number': frame_number})
+            self._processing_thread = threading.Thread(target=self.multi_process_frames, kwargs={'start_from': start_from})
             self._processing_thread.daemon = True
             self._processing_thread.start()
 
-            self._viewing_thread = threading.Thread(target=self.preview_frames)
+            self._viewing_thread = threading.Thread(target=self.show_frames, kwargs={'canvas': canvas})
             self._viewing_thread.daemon = True
             self._viewing_thread.start()
-"""
+
+    def multi_process_frames(self, start_from: int = 0) -> None:
+        self.frame_handler.current_frame_index = start_from
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            while self.frame_handler.current_frame_index < self.frame_handler.fc:
+                if not self._is_playing:
+                    break
+                executor.submit(self.process_frame_to_queue, self.frame_handler.current_frame_index)
+                self.frame_handler.current_frame_index += 1
+
+    def process_frame_to_queue(self, frame_index: int) -> None:
+        index, frame, _ = self.frame_handler.extract_frame(frame_index)
+        frame = self.resize_frame(frame, self._scale_quality)
+        for _, processor in self.processors.items():
+            frame = processor.process_frame(frame)
+        self._frames_queue.put((index, frame))  # todo: queue needs to be cleared on source/target reload
+
+    @staticmethod
+    def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
+        current_height, current_width = frame.shape[:2]
+        return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
+
+    def show_frames(self, canvas: PreviewCanvas) -> None:
+        if self._is_playing:
+            frame_wait_start = time.perf_counter()
+            index, frame = self._frames_queue.get()
+            frame_wait_end = time.perf_counter()
+            self._frame_wait_time = frame_wait_end - frame_wait_start
+            canvas.show_frame(frame)
+            # self.NavigateSlider.set(index)
+            # self._fps = 1 / self._frame_wait_time
+            # self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
+            # self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
+            canvas.after(int(self._frame_wait_time * 100), self.show_frames, canvas)
