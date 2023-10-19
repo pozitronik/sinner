@@ -145,10 +145,9 @@ class GUIForm(Status):
 
     def on_preview_window_key_press(self, event: Event) -> None:  # type: ignore[type-arg]
         if event.keycode == 37:
-            self.NavigateSlider.set(max(1, self.NavigateSlider.position - 1))
+            self.set_navigation_position(max(1, self.NavigateSlider.position - 1))
         if event.keycode == 39:
-            self.NavigateSlider.set(min(self.NavigateSlider.to, self.NavigateSlider.position + 1))
-        self.current_position.set(f'{self.NavigateSlider.position}/{self.NavigateSlider.to}')
+            self.set_navigation_position(min(self.NavigateSlider.to, self.NavigateSlider.position + 1))
 
     def on_preview_canvas_double_button_1_click(self):
         self.update_preview(self.NavigateSlider.position)
@@ -167,7 +166,7 @@ class GUIForm(Status):
         self.update_preview(int(frame_value))
 
     def on_self_run_button_press(self):
-        self.GUIModel.play(self.NavigateSlider.position, self.PreviewCanvas)
+        self.GUIModel.play(self.NavigateSlider.position, self.PreviewCanvas, self.set_navigation_position)
 
     def on_preview_button_press(self):
         self.update_preview(self.NavigateSlider.position)
@@ -226,10 +225,14 @@ class GUIForm(Status):
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
             self.NavigateSlider.configure(to=1)
-            self.NavigateSlider.set(1)
+            self.set_navigation_position(1)
             self.NavigateSlider.pack_forget()
         if is_video(self.GUIModel.target_path):
             self.NavigateSlider.configure(to=self.GUIModel.frame_handler.fc)
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-            self.NavigateSlider.set(self.GUIModel.frame_handler.fc / 2)
+            self.set_navigation_position(0)
+
+    # just a macro, to update slider and indicators
+    def set_navigation_position(self, position: int) -> None:
+        self.NavigateSlider.set(position)
         self.current_position.set(f'{self.NavigateSlider.position}/{self.NavigateSlider.to}')

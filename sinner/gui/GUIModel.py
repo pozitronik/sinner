@@ -4,7 +4,7 @@ import threading
 import time
 from argparse import Namespace
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import List
+from typing import List, Callable
 
 import cv2
 
@@ -65,13 +65,15 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace):
-        self._scale_quality = 0.3
+        self._scale_quality = 0.4
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
         self._frames_queue = queue.PriorityQueue()
         self._stop_event = threading.Event()
         self._stop_event.set()
+        for _ in self.processors:  # heat up
+            pass
 
     def reload_parameters(self) -> None:
         self.clear_previews()
@@ -156,7 +158,7 @@ class GUIModel(Status):
     def clear_previews(self):
         self._previews.clear()
 
-    def play(self, start_from: int, canvas: PreviewCanvas) -> None:
+    def play(self, start_from: int, canvas: PreviewCanvas, set_progress: Callable[[int], None]) -> None:
         if not self._stop_event.is_set():  # stop playing
             self._stop_event.set()
             if self._processing_thread:
@@ -169,7 +171,7 @@ class GUIModel(Status):
             self._processing_thread.daemon = True
             self._processing_thread.start()
 
-            self._viewing_thread = threading.Thread(target=self.show_frames, kwargs={'canvas': canvas})
+            self._viewing_thread = threading.Thread(target=self.show_frames, args=(canvas, set_progress))
             self._viewing_thread.daemon = True
             self._viewing_thread.start()
 
@@ -197,19 +199,20 @@ class GUIModel(Status):
         current_height, current_width = frame.shape[:2]
         return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
 
-    def show_frames(self, canvas: PreviewCanvas) -> None:
+    def show_frames(self, canvas: PreviewCanvas, set_progress: Callable[[int], None]) -> None:
         if not self._stop_event.is_set():
             frame_wait_start = time.perf_counter()
             try:
-                index, frame = self._frames_queue.get(timeout=10)
+                index, frame = self._frames_queue.get()
             except queue.Empty:
-                canvas.after(1, self.show_frames, canvas)
+                canvas.after(1, self.show_frames, canvas, set_progress)
                 return
             frame_wait_end = time.perf_counter()
             self._frame_wait_time = frame_wait_end - frame_wait_start
             canvas.show_frame(frame)
+            set_progress(index)
             # self.NavigateSlider.set(index)
             self._fps = 1 / self._frame_wait_time
             # self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
             # self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
-            canvas.after(int(self._frame_wait_time * 100), self.show_frames, canvas)
+            canvas.after(int(self._frame_wait_time * 100), self.show_frames, canvas, set_progress)
