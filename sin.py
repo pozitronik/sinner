@@ -33,7 +33,7 @@ class Sin(Sinner):
 
     def run(self) -> None:
         if self.gui:
-            preview = GUIForm(GUIModel(parameters=self.parameters))
+            preview = GUIForm(parameters=self.parameters)
             window = preview.show()
             window.mainloop()
         elif self.benchmark is True:
