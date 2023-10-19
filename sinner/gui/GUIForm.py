@@ -151,11 +151,11 @@ class GUIForm(Status):
         self.current_position.set(f'{self.NavigateSlider.position}/{self.NavigateSlider.to}')
 
     def on_preview_canvas_double_button_1_click(self):
-        self.update_preview(int(self.NavigateSlider.get()), True)
+        self.update_preview(self.NavigateSlider.position)
 
     def on_preview_canvas_button_2_click(self):
         self.change_source()
-        self.update_preview(self.NavigateSlider.position, True)
+        self.update_preview(self.NavigateSlider.position)
 
     def on_preview_canvas_button_3_click(self):
         self.change_target()
@@ -170,7 +170,7 @@ class GUIForm(Status):
         self.GUIModel.play(self.NavigateSlider.position, self.PreviewCanvas)
 
     def on_preview_button_press(self):
-        self.update_preview(self.NavigateSlider.position, True)
+        self.update_preview(self.NavigateSlider.position)
 
     def on_save_button_press(self):
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
@@ -179,7 +179,7 @@ class GUIForm(Status):
 
     def on_change_source_button_press(self):
         self.change_source()
-        self.update_preview(self.NavigateSlider.position, True)
+        self.update_preview(self.NavigateSlider.position)
 
     def on_change_target_button_press(self):
         self.change_target()
@@ -220,7 +220,7 @@ class GUIForm(Status):
             self.GUIModel.target_path = selected_file
             # self._extractor_handler = None
             self.update_slider_bounds()
-            self.update_preview(self.NavigateSlider.position, True)
+            self.update_preview(self.NavigateSlider.position)
             self.TargetPathEntry.set_text(selected_file)
 
     def update_slider_bounds(self) -> None:
