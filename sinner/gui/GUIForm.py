@@ -1,31 +1,22 @@
-import os.path
-import threading
-import time
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas
-from typing import List, Tuple
+from argparse import Namespace
+from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event, NORMAL
 
-import cv2
+from customtkinter import CTk
 
-from PIL import Image, ImageTk
-from PIL.ImageTk import PhotoImage
-from customtkinter import CTk, CTkSlider
-
-from sinner import typing
-from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
-from sinner.gui.ImageList import ImageList, FrameThumbnail
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.utilities import is_image, is_video, is_int, list_class_descendants, resolve_relative_path
+from sinner.gui.controls.FrameThumbnail import FrameThumbnail
+from sinner.gui.controls.ImageList import ImageList
+from sinner.gui.controls.NavigateSlider import NavigateSlider
+from sinner.gui.controls.PreviewCanvas import PreviewCanvas
+from sinner.utilities import is_int, is_image, is_video
 from sinner.validators.AttributeLoader import Rules
-from concurrent.futures import ThreadPoolExecutor, Future
 
 
 # GUI View
 class GUIForm(Status):
     # class attributes
-    processing_core: GUIModel
+    GUIModel: GUIModel
     current_position: StringVar  # current position variable
 
     show_frames_widget: bool
@@ -59,16 +50,16 @@ class GUIForm(Status):
             }
         ]
 
-    def __init__(self, core: GUIModel):
-        self.processing_core = core
-        super().__init__(self.processing_core.parameters)
+    def __init__(self, parameters: Namespace):
+        super().__init__(parameters)
+        self.GUIModel = GUIModel(parameters)
 
         #  window controls
         self.PreviewWindow: CTk = CTk()  # the main window
-        self.PreviewCanvas: Canvas = Canvas(self.PreviewWindow)  # the main preview
+        self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.PreviewWindow)  # the main preview
         self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
         self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
-        self.NavigateSlider: CTkSlider = CTkSlider(self.NavigateSliderFrame, to=0)
+        self.NavigateSlider: NavigateSlider = NavigateSlider(self.NavigateSliderFrame, to=0)
         self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
         # button controls
         self.RunButton: Button = Button(self.NavigateSliderFrame, text="PLAY", compound=LEFT)
@@ -95,7 +86,7 @@ class GUIForm(Status):
         self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.on_preview_canvas_double_button_1_click())
         self.PreviewCanvas.bind("<Button-2>", lambda event: self.on_preview_canvas_button_2_click())
         self.PreviewCanvas.bind("<Button-3>", lambda event: self.on_preview_canvas_button_3_click())
-        self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_configure(event))
+        self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_resize(event))
 
         # init generated frames list
         self.PreviewCanvas.pack(fill=BOTH, expand=True)
@@ -103,7 +94,7 @@ class GUIForm(Status):
 
         # init slider
         self.current_position: StringVar = StringVar()
-        self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_configure(frame_value))
+        self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_change(frame_value))
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
         self.RunButton.configure(command=lambda: self.on_self_run_button_press())
@@ -115,7 +106,7 @@ class GUIForm(Status):
         self.NavigateSliderFrame.pack(fill=X)
 
         # init source selection control set
-        self.SourcePathEntry.insert(END, "self.source_path")  # todo
+        self.SourcePathEntry.insert(END, self.GUIModel.source_path)
         self.SourcePathEntry.configure(state="readonly")
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
@@ -123,7 +114,7 @@ class GUIForm(Status):
         self.SourcePathFrame.pack(fill=X)
 
         # init target selection control set
-        self.TargetPathEntry.insert(END, "self.target_path")  # todo
+        self.TargetPathEntry.insert(END, self.GUIModel.target_path)
         self.TargetPathEntry.configure(state="readonly")
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
@@ -131,10 +122,8 @@ class GUIForm(Status):
         self.TargetPathFrame.pack(fill=X)
 
     def show(self) -> CTk:
-        # todo
-        # self.update_preview(int(self.NavigateSlider.get()))
-        # if self._current_frame is not None:
-        #     self.PreviewCanvas.configure(width=self._current_frame.shape[0], height=self._current_frame.shape[0])
+        self.update_preview(self.NavigateSlider.position)
+        self.PreviewCanvas.adjust_size()
         return self.PreviewWindow
 
     # Control events handlers
@@ -145,193 +134,104 @@ class GUIForm(Status):
 
     def on_preview_window_key_release(self, event: Event) -> None:  # type: ignore[type-arg]
         if event.keycode == 37 or event.keycode == 39:
-            self.update_preview(int(self.NavigateSlider.get()))
+            self.update_preview(self.NavigateSlider.position)
 
     def on_preview_window_key_press(self, event: Event) -> None:  # type: ignore[type-arg]
         if event.keycode == 37:
-            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
+            self.NavigateSlider.set(max(1, self.NavigateSlider.position - 1))
         if event.keycode == 39:
-            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
-        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
+            self.NavigateSlider.set(min(self.NavigateSlider.to, self.NavigateSlider.position + 1))
+        self.current_position.set(f'{self.NavigateSlider.position}/{self.NavigateSlider.to}')
 
     def on_preview_canvas_double_button_1_click(self):
         self.update_preview(int(self.NavigateSlider.get()), True)
 
     def on_preview_canvas_button_2_click(self):
-        self.change_source(int(self.NavigateSlider.get()))
+        self.change_source()
+        self.update_preview(self.NavigateSlider.position, True)
 
     def on_preview_canvas_button_3_click(self):
         self.change_target()
 
-    def on_preview_canvas_configure(self, event):
-        self.resize_preview(event)
+    def on_preview_canvas_resize(self, event):
+        self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
-    def on_navigate_slider_configure(self, frame_value):
+    def on_navigate_slider_change(self, frame_value):
         self.update_preview(int(frame_value))
 
     def on_self_run_button_press(self):
-        self.play(int(self.NavigateSlider.get()))
+        self.GUIModel.play(self.NavigateSlider.position)
 
     def on_preview_button_press(self):
-        self.update_preview(int(self.NavigateSlider.get()), True)
+        self.update_preview(self.NavigateSlider.position, True)
 
     def on_save_button_press(self):
-        self.save_frame()
+        save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
+        if save_file != ' ':
+            self.PreviewCanvas.save_to_file(save_file)
 
     def on_change_source_button_press(self):
-        self.change_source(int(self.NavigateSlider.get()))
+        self.change_source()
+        self.update_preview(self.NavigateSlider.position, True)
 
     def on_change_target_button_press(self):
         self.change_target()
 
-    def update_slider(self) -> int:
-        if is_image(self.target_path):
-            self.NavigateSlider.configure(to=1)
-            self.NavigateSlider.set(1)
-            self.NavigateSlider.pack_forget()
-        if is_video(self.target_path):
-            video_frame_total = 1
-            if self.frame_handler is not None:
-                video_frame_total = self.frame_handler.fc
-            self.NavigateSlider.configure(to=video_frame_total)
-            self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-            self.NavigateSlider.set(video_frame_total / 2)
-        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')  # todo
-        return int(self.NavigateSlider.get())
+    def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int):
+        frames = self.GUIModel.get_previews(frame_number)
+        if frames:
+            self.PreviewCanvas.show_frame(frames[thumbnail_index][0])
 
-    def change_source(self, frame_number: int = 0) -> None:
-        path = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=os.path.dirname(self.source_path))
-        if path != '':
-            self.source_path = path
-            self.processing_core.parameters.source = self.source_path
-            self.processing_core.load(self.processing_core.parameters)
-            self._previews.clear()
-            self.update_preview(frame_number, True)
-            self.SourcePathEntry.configure(state=NORMAL)
-            self.SourcePathEntry.delete(0, END)
-            self.SourcePathEntry.insert(END, self.source_path)
-            self.SourcePathEntry.configure(state=DISABLED)
-
-    def change_target(self) -> None:
-        path = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=os.path.dirname(self.target_path))
-        if path != '':
-            self._previews.clear()
-            self.target_path = path
-            self.processing_core.parameters.target = self.target_path
-            self.processing_core.load(self.processing_core.parameters)
-            self._extractor_handler = None
-            self.update_preview(self.update_slider(), True)
-            self.TargetPathEntry.configure(state=NORMAL)
-            self.TargetPathEntry.delete(0, END)
-            self.TargetPathEntry.insert(END, self.target_path)
-            self.TargetPathEntry.configure(state=DISABLED)
-            self._previews.clear()
-
-    def get_frames(self, frame_number: int = 0, processed: bool = False) -> List[Tuple[typing.Frame, str]]:
-        saved_frames = self._previews.get(frame_number)
-        if not saved_frames and processed:
-            self._previews[frame_number] = self.processing_core.get_frame(frame_number, self.frame_handler, processed)
-        return [saved_frames[0]] if saved_frames else self.processing_core.get_frame(frame_number, self.frame_handler, processed)
-
-    def resize_frame(self, frame: typing.Frame, scale: float = 0.2) -> typing.Frame:
-        current_height, current_width = frame.shape[:2]
-        return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
-
-    def process_frame(self, frame_index: int) -> None:
-        index, frame, _ = self.frame_handler.extract_frame(frame_index)
-        frame = self.resize_frame(frame)
-        for processor in self._processors:
-            frame = processor.process_frame(frame)
-        self._frames_queue.put((index, frame))
-
-    def process(self, frame_number: int = 0) -> None:
-        self.frame_handler.current_frame_index = frame_number
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            while self.frame_handler.current_frame_index < self.frame_handler.fc:
-                if not self._is_playing:
-                    break
-                future: Future[None] = executor.submit(self.process_frame, self.frame_handler.current_frame_index)
-                self.frame_handler.current_frame_index += 1
-
-    def preview_frames(self) -> None:
-        if self._is_playing:
-            frame_wait_start = time.perf_counter()
-            index, frame = self._frames_queue.get()
-            frame_wait_end = time.perf_counter()
-            self._frame_wait_time = frame_wait_end - frame_wait_start
-            self.show_frame(frame)
-            self.NavigateSlider.set(index)
-            self._fps = 1 / self._frame_wait_time
-            self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
-            self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
-            self.PreviewWindow.after(int(self._frame_wait_time * 100), self.preview_frames)
-
-    def play(self, frame_number: int) -> None:
-        self._is_playing = not self._is_playing
-        if not self._is_playing:
-            self._processing_thread.join()
-            self._viewing_thread.join()
-        else:
-            self._processors.clear()
-            for processor_name in self.frame_processor:
-                self._processors.append(BaseFrameProcessor.create(processor_name, self.processing_core.parameters))
-
-            self._processing_thread = threading.Thread(target=self.process, kwargs={'frame_number': frame_number})
-            self._processing_thread.daemon = True
-            self._processing_thread.start()
-
-            self._viewing_thread = threading.Thread(target=self.preview_frames)
-            self._viewing_thread.daemon = True
-            self._viewing_thread.start()
-
+    # controls manipulation methods
     def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
-        frames = self.get_frames(frame_number, processed)
+        frames = self.GUIModel.get_frames(frame_number, processed)
         if frames:
             if processed:
                 if self.show_frames_widget is True:
-                    self.PreviewFrames.show([FrameThumbnail(frame=frame[0], caption=frame[1], position=frame_number, onclick=self.show_saved) for frame in frames])
-                self.show_frame(frames[-1][0])
+                    self.PreviewFrames.show([FrameThumbnail(
+                        frame=frame[0],
+                        caption=frame[1],
+                        position=frame_number,
+                        onclick=self.on_preview_frames_thumbnail_click
+                    ) for frame in frames])
+                self.PreviewCanvas.show_frame(frames[-1][0])
             else:
-                self.show_frame(frames[0][0])
+                self.PreviewCanvas.show_frame(frames[-1][0])
         else:
-            self.show_frame()
-        self.current_position.set(f'{frame_number}/{self.NavigateSlider.cget("to")}')
+            self.PreviewCanvas.photo_image = None
+        self.current_position.set(f'{frame_number}/{self.NavigateSlider.to}')
 
-    def show_saved(self, frame_number: int, thumbnail_index: int) -> None:
-        frames = self._previews.get(frame_number)
-        if frames:
-            self.show_frame(frames[thumbnail_index][0])
+    def change_source(self) -> None:
+        selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
+        if selected_file != '':
+            self.GUIModel.source_path = selected_file
+            self.GUIModel.clear_previews()
 
-    def show_image(self, image: PhotoImage | None) -> None:
-        try:  # todo
-            self.PreviewCanvas.create_image(self.PreviewCanvas.winfo_width() // 2, self.PreviewCanvas.winfo_height() // 2, image=image)
-            self.PreviewCanvas.photo = image  # type: ignore[attr-defined]
-        except Exception as e:
-            pass
+            self.SourcePathEntry.configure(state=NORMAL)
+            self.SourcePathEntry.delete(0, END)
+            self.SourcePathEntry.insert(END, selected_file)
+            self.SourcePathEntry.configure(state="readonly")
 
-    def resize_preview(self, event: Event) -> None:  # type: ignore[type-arg]
-        image = Image.fromarray(cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB))
-        image = FrameThumbnail.resize_image(image, (event.width, event.height))
-        self.show_image(ImageTk.PhotoImage(image))
+    def change_target(self) -> None:
+        selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
+        if selected_file != '':
+            self.GUIModel.target_path = selected_file
+            # self._extractor_handler = None
+            self.update_slider_bounds()
+            self.update_preview(self.NavigateSlider.position, True)
+            self.TargetPathEntry.configure(state=NORMAL)
+            self.TargetPathEntry.delete(0, END)
+            self.TargetPathEntry.insert(END, selected_file)
+            self.TargetPathEntry.configure(state="readonly")
+            self.GUIModel.clear_previews()
 
-    def show_frame(self, frame: typing.Frame | None = None) -> None:
-        self._current_frame = frame
-        if frame is None:
-            self.show_image(None)
-        else:
-            image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-            image = FrameThumbnail.resize_image(image, (self.PreviewCanvas.winfo_width(), self.PreviewCanvas.winfo_height()))
-            self.show_image(ImageTk.PhotoImage(image))
-
-    def save_frame(self) -> None:
-        save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
-        if save_file != ' ':
-            Image.fromarray(cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB)).save(save_file)
-
-    @property
-    def frame_handler(self) -> BaseFrameHandler:
-        if self._extractor_handler is None:
-            self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.processing_core.parameters)
-        return self._extractor_handler
-
-
+    def update_slider_bounds(self) -> None:
+        if is_image(self.GUIModel.target_path):
+            self.NavigateSlider.configure(to=1)
+            self.NavigateSlider.set(1)
+            self.NavigateSlider.pack_forget()
+        if is_video(self.GUIModel.target_path):
+            self.NavigateSlider.configure(to=self.GUIModel.frame_handler.fc)
+            self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
+            self.NavigateSlider.set(self.GUIModel.frame_handler.fc / 2)
+        self.current_position.set(f'{self.NavigateSlider.position}/{self.NavigateSlider.to}')
