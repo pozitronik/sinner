@@ -4,9 +4,9 @@ from colorama import Style, Fore
 
 from sinner.Benchmark import Benchmark
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.GUI import GUI
 from sinner.Sinner import Sinner
 from sinner.Status import Status
+from sinner.gui.GUIModel import GUIModel
 from sinner.webcam.WebCam import WebCam
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
@@ -21,7 +21,7 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     BatchProcessingCore,
     Status,
     # State,
-    GUI,
+    GUIModel,
     WebCam,
     Benchmark,
     FaceSwapper,

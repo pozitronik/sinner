@@ -9,7 +9,7 @@ from sinner.utilities import list_class_descendants, resolve_relative_path
 from sinner.validators.AttributeLoader import Rules
 
 
-class GUIProcessingCore(Status):
+class GUIModel(Status):
     frame_processor: List[str]
 
     parameters: Namespace

@@ -6,11 +6,11 @@ from argparse import Namespace
 
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
-from sinner.gui.GUI import GUI
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
+from sinner.gui.GUIForm import GUIForm
+from sinner.gui.GUIModel import GUIModel
 from sinner.webcam.WebCam import WebCam
-from sinner.gui.GUIProcessingCore import GUIProcessingCore
 from sinner.utilities import limit_resources
 
 
@@ -33,7 +33,7 @@ class Sin(Sinner):
 
     def run(self) -> None:
         if self.gui:
-            preview = GUI(GUIProcessingCore(parameters=self.parameters))
+            preview = GUIForm(GUIModel(parameters=self.parameters))
             window = preview.show()
             window.mainloop()
         elif self.benchmark is True:

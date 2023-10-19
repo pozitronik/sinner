@@ -15,7 +15,7 @@ from customtkinter import CTk, CTkSlider
 from sinner import typing
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status
-from sinner.gui.GUIProcessingCore import GUIProcessingCore
+from sinner.gui.GUIModel import GUIModel
 from sinner.gui.ImageList import ImageList, FrameThumbnail
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -23,10 +23,10 @@ from sinner.utilities import is_image, is_video, is_int, list_class_descendants,
 from sinner.validators.AttributeLoader import Rules
 from concurrent.futures import ThreadPoolExecutor, Future
 
-
-class GUI(Status):
+# GUI View
+class GUIForm(Status):
     # class attributes
-    processing_core: GUIProcessingCore
+    processing_core: GUIModel
 
     source_path: str = ''
     target_path: str = ''
@@ -39,7 +39,7 @@ class GUI(Status):
     _current_frame: typing.Frame | None
     _processing_thread: threading.Thread
     _viewing_thread: threading.Thread
-    _frames_queue: queue.PriorityQueue[(int, typing.Frame)]
+    _frames_queue: queue.PriorityQueue[tuple[int, typing.Frame]]
     _frame_wait_time: float = 0
     _processors: List[BaseFrameProcessor] = []
     _is_playing: bool = False
@@ -89,7 +89,7 @@ class GUI(Status):
             }
         ]
 
-    def __init__(self, core: GUIProcessingCore):
+    def __init__(self, core: GUIModel):
         self.processing_core = core
         super().__init__(self.processing_core.parameters)
         self._frames_queue = queue.PriorityQueue()
