@@ -122,6 +122,7 @@ class GUIForm(Status):
         self.TargetPathFrame.pack(fill=X)
 
     def show(self) -> CTk:
+        self.update_slider_bounds()
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
         return self.PreviewWindow
