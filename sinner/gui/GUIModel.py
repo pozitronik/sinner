@@ -31,8 +31,9 @@ class GUIModel(Status):
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     _current_frame: Frame | None
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    _processing_thread: threading.Thread
-    _viewing_thread: threading.Thread
+    _processing_thread: threading.Thread | None = None
+    _viewing_thread: threading.Thread | None = None
+    _stop_event: threading.Event  # the event to stop live player
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
     _frame_wait_time: float = 0
     _is_playing: bool = False
@@ -69,6 +70,8 @@ class GUIModel(Status):
         super().__init__(parameters)
         self._processors = {}
         self._frames_queue = queue.PriorityQueue()
+        self._stop_event = threading.Event()
+        self._stop_event.set()
 
     def reload_parameters(self) -> None:
         self.clear_previews()
@@ -154,11 +157,14 @@ class GUIModel(Status):
         self._previews.clear()
 
     def play(self, start_from: int, canvas: PreviewCanvas) -> None:
-        self._is_playing = not self._is_playing
-        if not self._is_playing:
-            self._processing_thread.join()
-            self._viewing_thread.join()
-        else:
+        if not self._stop_event.is_set():  # stop playing
+            self._stop_event.set()
+            if self._processing_thread:
+                self._processing_thread.join()
+            if self._viewing_thread:
+                self._viewing_thread.join()
+        else:  # start playing
+            self._stop_event.clear()
             self._processing_thread = threading.Thread(target=self.multi_process_frames, kwargs={'start_from': start_from})
             self._processing_thread.daemon = True
             self._processing_thread.start()
@@ -167,21 +173,24 @@ class GUIModel(Status):
             self._viewing_thread.daemon = True
             self._viewing_thread.start()
 
-    def multi_process_frames(self, start_from: int = 0) -> None:
+    def multi_process_frames(self, start_from: int = 0, ) -> None:
         self.frame_handler.current_frame_index = start_from
         with ThreadPoolExecutor(max_workers=2) as executor:
-            while self.frame_handler.current_frame_index < self.frame_handler.fc:
-                if not self._is_playing:
-                    break
+            while self.frame_handler.current_frame_index < self.frame_handler.fc or self._stop_event.is_set():
                 executor.submit(self.process_frame_to_queue, self.frame_handler.current_frame_index)
                 self.frame_handler.current_frame_index += 1
+                if self._stop_event.is_set():
+                    executor.shutdown(wait=False, cancel_futures=True)
 
     def process_frame_to_queue(self, frame_index: int) -> None:
+        if self._stop_event.is_set():
+            return
         index, frame, _ = self.frame_handler.extract_frame(frame_index)
         frame = self.resize_frame(frame, self._scale_quality)
         for _, processor in self.processors.items():
             frame = processor.process_frame(frame)
         self._frames_queue.put((index, frame))  # todo: queue needs to be cleared on source/target reload
+        self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, event: {self._stop_event}")
 
     @staticmethod
     def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
@@ -189,14 +198,18 @@ class GUIModel(Status):
         return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
 
     def show_frames(self, canvas: PreviewCanvas) -> None:
-        if self._is_playing:
+        if not self._stop_event.is_set():
             frame_wait_start = time.perf_counter()
-            index, frame = self._frames_queue.get()
+            try:
+                index, frame = self._frames_queue.get(timeout=10)
+            except queue.Empty:
+                canvas.after(1, self.show_frames, canvas)
+                return
             frame_wait_end = time.perf_counter()
             self._frame_wait_time = frame_wait_end - frame_wait_start
             canvas.show_frame(frame)
             # self.NavigateSlider.set(index)
-            # self._fps = 1 / self._frame_wait_time
+            self._fps = 1 / self._frame_wait_time
             # self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
             # self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, frame: {frame.shape}")
             canvas.after(int(self._frame_wait_time * 100), self.show_frames, canvas)
