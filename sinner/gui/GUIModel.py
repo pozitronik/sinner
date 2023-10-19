@@ -180,7 +180,7 @@ class GUIModel(Status):
         with ThreadPoolExecutor(max_workers=2) as executor:
             while self.frame_handler.current_frame_index < self.frame_handler.fc or self.stop_event.is_set():
                 executor.submit(self.process_frame_to_queue, self.frame_handler.current_frame_index)
-                self.frame_handler.current_frame_index += 4
+                self.frame_handler.current_frame_index += 4  # todo: implement the speed selection: 1) frame by frame 2) try to match original (auto skip) 3) user set skip
                 if self.stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
 
