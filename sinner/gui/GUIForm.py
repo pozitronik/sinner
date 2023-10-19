@@ -1,9 +1,7 @@
 import os.path
-import queue
 import threading
 import time
 from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, DISABLED, NORMAL, Event, Canvas
-from tkinter.ttk import Progressbar
 from typing import List, Tuple
 
 import cv2
@@ -23,47 +21,19 @@ from sinner.utilities import is_image, is_video, is_int, list_class_descendants,
 from sinner.validators.AttributeLoader import Rules
 from concurrent.futures import ThreadPoolExecutor, Future
 
+
 # GUI View
 class GUIForm(Status):
     # class attributes
     processing_core: GUIModel
+    current_position: StringVar  # current position variable
 
-    source_path: str = ''
-    target_path: str = ''
     show_frames_widget: bool
-    processed_frames: float
     fw_height: int
     fw_width: int
-    _extractor_handler: BaseFrameHandler | None = None
-    _previews: dict[int, List[Tuple[typing.Frame, str]]] = {}  # position: [frame, caption]
-    _current_frame: typing.Frame | None
-    _processing_thread: threading.Thread
-    _viewing_thread: threading.Thread
-    _frames_queue: queue.PriorityQueue[tuple[int, typing.Frame]]
-    _frame_wait_time: float = 0
-    _processors: List[BaseFrameProcessor] = []
-    _is_playing: bool = False
-    _fps: float  # playing fps
-
-    frame_processor: List[str]
 
     def rules(self) -> Rules:
         return [
-            {
-                'parameter': {'frame-processor', 'processor', 'processors'},
-                'attribute': 'frame_processor',
-                'default': ['FaceSwapper'],
-                'choices': list_class_descendants(resolve_relative_path('../processors/frame'), 'BaseFrameProcessor'),
-                'help': 'The set of frame processors to handle the camera input'
-            },
-            {
-                'parameter': {'source', 'source-path'},
-                'attribute': 'source_path'
-            },
-            {
-                'parameter': {'target', 'target-path'},
-                'attribute': 'target_path'
-            },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
                 'attribute': 'show_frames_widget',
@@ -85,25 +55,26 @@ class GUIForm(Status):
                 'help': 'Processed widget maximum height, -1 to set as 10% of original image size'
             },
             {
-                'module_help': 'GUI module'
+                'module_help': 'GUI Form'
             }
         ]
 
     def __init__(self, core: GUIModel):
         self.processing_core = core
         super().__init__(self.processing_core.parameters)
-        self._frames_queue = queue.PriorityQueue()
 
         #  window controls
-        self.PreviewWindow: CTk = CTk()
-        self.PreviewCanvas: Canvas = Canvas(self.PreviewWindow)
-        self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow, size=(self.fw_width, self.fw_height))
+        self.PreviewWindow: CTk = CTk()  # the main window
+        self.PreviewCanvas: Canvas = Canvas(self.PreviewWindow)  # the main preview
+        self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
         self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.NavigateSlider: CTkSlider = CTkSlider(self.NavigateSliderFrame, to=0)
         self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
-        self.RunButton: Button = Button(self.NavigateSliderFrame, text="▶️", compound=LEFT)
-        self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="😈", compound=LEFT)
-        self.SaveButton: Button = Button(self.NavigateSliderFrame, text="💾", compound=LEFT)
+        # button controls
+        self.RunButton: Button = Button(self.NavigateSliderFrame, text="PLAY", compound=LEFT)
+        self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="TEST", compound=LEFT)
+        self.SaveButton: Button = Button(self.NavigateSliderFrame, text="SAVE", compound=LEFT)
+        # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
         self.SourcePathEntry: Entry = Entry(self.SourcePathFrame)
         self.SelectSourceDialog = filedialog
@@ -112,60 +83,106 @@ class GUIForm(Status):
         self.TargetPathEntry: Entry = Entry(self.TargetPathFrame)
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
-        self.ProgressBarFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
-        self.ProgressBar: Progressbar = Progressbar(self.ProgressBarFrame, mode='indeterminate')
 
+        # init main window
         self.PreviewWindow.title('😈sinner')
-        self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.destroy())
+        self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.on_preview_window_close())
         self.PreviewWindow.resizable(width=True, height=True)
-        self.PreviewWindow.bind("<KeyRelease>", lambda event: self.key_release(event))
-        self.PreviewWindow.bind("<KeyPress>", lambda event: self.key_press(event))
-        # class attributes
-        self.current_position: StringVar = StringVar()
+        self.PreviewWindow.bind("<KeyRelease>", lambda event: self.on_preview_window_key_release(event))
+        self.PreviewWindow.bind("<KeyPress>", lambda event: self.on_preview_window_key_press(event))
 
-        # init gui
-        self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.update_preview(int(self.NavigateSlider.get()), True))
-        self.PreviewCanvas.bind("<Button-2>", lambda event: self.change_source(int(self.NavigateSlider.get())))
-        self.PreviewCanvas.bind("<Button-3>", lambda event: self.change_target())
-        self.PreviewCanvas.bind("<Configure>", lambda event: self.resize_preview(event))
+        # init preview
+        self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.on_preview_canvas_double_button_1_click())
+        self.PreviewCanvas.bind("<Button-2>", lambda event: self.on_preview_canvas_button_2_click())
+        self.PreviewCanvas.bind("<Button-3>", lambda event: self.on_preview_canvas_button_3_click())
+        self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_configure(event))
+
         # init generated frames list
         self.PreviewCanvas.pack(fill=BOTH, expand=True)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
+
         # init slider
-        self.NavigateSlider.configure(command=lambda frame_value: self.update_preview(int(frame_value)))
-        self.update_slider()
+        self.current_position: StringVar = StringVar()
+        self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_configure(frame_value))
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
         self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
-        self.RunButton.configure(command=lambda: self.play(int(self.NavigateSlider.get())))
+        self.RunButton.configure(command=lambda: self.on_self_run_button_press())
         self.RunButton.pack(anchor=NE, side=LEFT)
-        self.PreviewButton.configure(command=lambda: self.update_preview(int(self.NavigateSlider.get()), True))
+        self.PreviewButton.configure(command=lambda: self.on_preview_button_press())
         self.PreviewButton.pack(anchor=NE, side=LEFT)
-        self.SaveButton.configure(command=lambda: self.save_frame())
+        self.SaveButton.configure(command=lambda: self.on_save_button_press())
         self.SaveButton.pack(anchor=NE, side=LEFT)
         self.NavigateSliderFrame.pack(fill=X)
+
         # init source selection control set
-        self.SourcePathEntry.insert(END, self.source_path)
-        self.SourcePathEntry.configure(state=DISABLED)
+        self.SourcePathEntry.insert(END, "self.source_path")  # todo
+        self.SourcePathEntry.configure(state="readonly")
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
-        self.ChangeSourceButton.configure(command=lambda: self.change_source(int(self.NavigateSlider.get())))
+        self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X)
+
         # init target selection control set
-        self.TargetPathEntry.insert(END, self.target_path)
-        self.TargetPathEntry.configure(state=DISABLED)
+        self.TargetPathEntry.insert(END, "self.target_path")  # todo
+        self.TargetPathEntry.configure(state="readonly")
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
-        self.ChangeTargetButton.configure(command=lambda: self.change_target())
+        self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
         self.ChangeTargetButton.pack(side=LEFT)
         self.TargetPathFrame.pack(fill=X)
-        # init progress bar
-        self.ProgressBar.pack(pady=10, fill=X)
-        # self.ProgressBarFrame.pack(fill=X) # hide for now
 
     def show(self) -> CTk:
-        self.update_preview(int(self.NavigateSlider.get()))
-        if self._current_frame is not None:
-            self.PreviewCanvas.configure(width=self._current_frame.shape[0], height=self._current_frame.shape[0])
+        # todo
+        # self.update_preview(int(self.NavigateSlider.get()))
+        # if self._current_frame is not None:
+        #     self.PreviewCanvas.configure(width=self._current_frame.shape[0], height=self._current_frame.shape[0])
         return self.PreviewWindow
+
+    # Control events handlers
+
+    @staticmethod
+    def on_preview_window_close() -> None:
+        quit()
+
+    def on_preview_window_key_release(self, event: Event) -> None:  # type: ignore[type-arg]
+        if event.keycode == 37 or event.keycode == 39:
+            self.update_preview(int(self.NavigateSlider.get()))
+
+    def on_preview_window_key_press(self, event: Event) -> None:  # type: ignore[type-arg]
+        if event.keycode == 37:
+            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
+        if event.keycode == 39:
+            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
+        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
+
+    def on_preview_canvas_double_button_1_click(self):
+        self.update_preview(int(self.NavigateSlider.get()), True)
+
+    def on_preview_canvas_button_2_click(self):
+        self.change_source(int(self.NavigateSlider.get()))
+
+    def on_preview_canvas_button_3_click(self):
+        self.change_target()
+
+    def on_preview_canvas_configure(self, event):
+        self.resize_preview(event)
+
+    def on_navigate_slider_configure(self, frame_value):
+        self.update_preview(int(frame_value))
+
+    def on_self_run_button_press(self):
+        self.play(int(self.NavigateSlider.get()))
+
+    def on_preview_button_press(self):
+        self.update_preview(int(self.NavigateSlider.get()), True)
+
+    def on_save_button_press(self):
+        self.save_frame()
+
+    def on_change_source_button_press(self):
+        self.change_source(int(self.NavigateSlider.get()))
+
+    def on_change_target_button_press(self):
+        self.change_target()
 
     def update_slider(self) -> int:
         if is_image(self.target_path):
@@ -306,13 +323,6 @@ class GUIForm(Status):
             image = FrameThumbnail.resize_image(image, (self.PreviewCanvas.winfo_width(), self.PreviewCanvas.winfo_height()))
             self.show_image(ImageTk.PhotoImage(image))
 
-    @staticmethod
-    def destroy() -> None:
-        quit()
-
-    def update_progress(self, value: int) -> None:
-        self.ProgressBar['value'] = value
-
     def save_frame(self) -> None:
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
@@ -324,13 +334,4 @@ class GUIForm(Status):
             self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.processing_core.parameters)
         return self._extractor_handler
 
-    def key_release(self, event: Event) -> None:  # type: ignore[type-arg]
-        if event.keycode == 37 or event.keycode == 39:
-            self.update_preview(int(self.NavigateSlider.get()))
 
-    def key_press(self, event: Event) -> None:  # type: ignore[type-arg]
-        if event.keycode == 37:
-            self.NavigateSlider.set(max(1, int(self.NavigateSlider.get() - 1)))
-        if event.keycode == 39:
-            self.NavigateSlider.set(min(self.NavigateSlider.cget("to"), self.NavigateSlider.get() + 1))
-        self.current_position.set(f'{int(self.NavigateSlider.get())}/{self.NavigateSlider.cget("to")}')
