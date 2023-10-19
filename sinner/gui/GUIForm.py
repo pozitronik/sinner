@@ -93,6 +93,7 @@ class GUIForm(Status):
         self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_change(frame_value))
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
 
+        # buttons
         self.RunButton.configure(command=lambda: self.on_self_run_button_press())
         self.PreviewButton.configure(command=lambda: self.on_preview_button_press())
         self.SaveButton.configure(command=lambda: self.on_save_button_press())
@@ -105,7 +106,6 @@ class GUIForm(Status):
         # init target selection control set
         self.TargetPathEntry.insert(END, self.GUIModel.target_path)
         self.TargetPathEntry.configure(state="readonly")
-
         self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
 
     # maintain the order of window controls
