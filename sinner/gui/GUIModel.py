@@ -125,7 +125,7 @@ class GUIModel(Status):
     def get_frames(self, frame_number: int = 0, processed: bool = False) -> FramesList:
         saved_frames = self.get_previews(frame_number)
         if saved_frames:  # frame already in the cache
-            return [saved_frames[0]]  # todo: check this, mb saved_frames?
+            return saved_frames
         frame_steps = self.get_frame_steps(frame_number, self.frame_handler, processed)
         if processed:
             self.set_previews(frame_number, frame_steps)  # cache, if processing has requested
