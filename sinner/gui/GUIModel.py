@@ -10,13 +10,13 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
 class GUIModel(Status):
     frame_processor: List[str]
-    source_path: str
-    target_path: str
+    _source_path: str
+    _target_path: str
 
     parameters: Namespace
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -46,11 +46,11 @@ class GUIModel(Status):
             },
             {
                 'parameter': {'source', 'source-path'},
-                'attribute': 'source_path'
+                'attribute': '_source_path'
             },
             {
                 'parameter': {'target', 'target-path'},
-                'attribute': 'target_path'
+                'attribute': '_target_path'
             },
             {
                 'module_help': 'The GUI processing handler'
@@ -59,17 +59,40 @@ class GUIModel(Status):
 
     def __init__(self, parameters: Namespace):
         self.parameters = parameters
-        self._processors = {}
         super().__init__(parameters)
+        self._processors = {}
         self._frames_queue = queue.PriorityQueue()
+
+    def reload_parameters(self) -> None:
+        AttributeLoader().__init__(self.parameters)
+        for _, processor in self.processors.items():
+            processor.load(self.parameters)
+
+    @property
+    def source_path(self) -> str | None:
+        return self._source_path
+
+    @source_path.setter
+    def source_path(self, value: str | None) -> None:
+        self.parameters.source = value
+        self.reload_parameters()
+
+    @property
+    def target_path(self) -> str | None:
+        return self._target_path
+
+    @target_path.setter
+    def target_path(self, value: str | None) -> None:
+        self.parameters.target = value
+        self.reload_parameters()
 
     @property
     def source_dir(self) -> str:
-        return os.path.dirname(self.source_path)
+        return os.path.dirname(self._source_path)
 
     @property
     def target_dir(self) -> str:
-        return os.path.dirname(self.target_path)
+        return os.path.dirname(self._target_path)
 
     @property
     def processors(self) -> dict[str, BaseFrameProcessor]:
@@ -77,7 +100,6 @@ class GUIModel(Status):
             for processor_name in self.frame_processor:
                 if processor_name not in self._processors:
                     self._processors[processor_name] = BaseFrameProcessor.create(processor_name, self.parameters)
-                self._processors[processor_name].load(self.parameters)
         except Exception as exception:  # skip, if parameters is not enough for processor
             self.update_status(message=str(exception), mood=Mood.BAD)
             pass
