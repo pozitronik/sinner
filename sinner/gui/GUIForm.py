@@ -169,7 +169,7 @@ class GUIForm(Status):
         self.GUIModel.play(self.NavigateSlider.position, self.PreviewCanvas, self.set_navigation_position)
 
     def on_preview_button_press(self):
-        self.update_preview(self.NavigateSlider.position)
+        self.update_preview(self.NavigateSlider.position, True)
 
     def on_save_button_press(self):
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
