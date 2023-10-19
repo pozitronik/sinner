@@ -135,8 +135,8 @@ class GUIForm(Status):
 
     # Control events handlers
 
-    @staticmethod
-    def on_preview_window_close() -> None:
+    def on_preview_window_close(self) -> None:
+        self.GUIModel.stop_event.set()
         quit()
 
     def on_preview_window_key_release(self, event: Event) -> None:  # type: ignore[type-arg]
@@ -221,6 +221,7 @@ class GUIForm(Status):
             self.update_slider_bounds()
             self.update_preview(self.NavigateSlider.position)
             self.TargetPathEntry.set_text(selected_file)
+            self.PreviewCanvas.adjust_size()
 
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
