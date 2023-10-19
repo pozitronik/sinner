@@ -88,41 +88,46 @@ class GUIForm(Status):
         self.PreviewCanvas.bind("<Button-3>", lambda event: self.on_preview_canvas_button_3_click())
         self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_resize(event))
 
-        # init generated frames list
-        self.PreviewCanvas.pack(fill=BOTH, expand=True)
-        self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
-
         # init slider
         self.current_position: StringVar = StringVar()
         self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_change(frame_value))
         self.NavigatePositionLabel.configure(textvariable=self.current_position)
-        self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
+
         self.RunButton.configure(command=lambda: self.on_self_run_button_press())
-        self.RunButton.pack(anchor=NE, side=LEFT)
         self.PreviewButton.configure(command=lambda: self.on_preview_button_press())
-        self.PreviewButton.pack(anchor=NE, side=LEFT)
         self.SaveButton.configure(command=lambda: self.on_save_button_press())
-        self.SaveButton.pack(anchor=NE, side=LEFT)
-        self.NavigateSliderFrame.pack(fill=X)
 
         # init source selection control set
         self.SourcePathEntry.insert(END, self.GUIModel.source_path)
         self.SourcePathEntry.configure(state="readonly")
-        self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
-        self.ChangeSourceButton.pack(side=RIGHT)
-        self.SourcePathFrame.pack(fill=X)
 
         # init target selection control set
         self.TargetPathEntry.insert(END, self.GUIModel.target_path)
         self.TargetPathEntry.configure(state="readonly")
-        self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
+
         self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
+
+    # maintain the order of window controls
+    def draw_controls(self) -> None:
+        self.PreviewCanvas.pack(fill=BOTH, expand=True)
+        self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
+        self.update_slider_bounds()  # also draws slider, if necessary
+        self.NavigatePositionLabel.pack(anchor=NE, side=LEFT)
+        self.SaveButton.pack(anchor=NE, side=RIGHT)
+        self.PreviewButton.pack(anchor=NE, side=RIGHT)
+        self.RunButton.pack(anchor=NE, side=RIGHT)
+        self.NavigateSliderFrame.pack(fill=X)
+        self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
+        self.ChangeSourceButton.pack(side=RIGHT)
+        self.SourcePathFrame.pack(fill=X)
+        self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.pack(side=LEFT)
         self.TargetPathFrame.pack(fill=X)
 
     def show(self) -> CTk:
-        self.update_slider_bounds()
+        self.draw_controls()
+
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
         return self.PreviewWindow
