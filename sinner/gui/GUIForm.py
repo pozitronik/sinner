@@ -9,6 +9,7 @@ from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
+from sinner.gui.controls.TextBox import TextBox, READONLY
 from sinner.utilities import is_int, is_image, is_video
 from sinner.validators.AttributeLoader import Rules
 
@@ -67,11 +68,11 @@ class GUIForm(Status):
         self.SaveButton: Button = Button(self.NavigateSliderFrame, text="SAVE", compound=LEFT)
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
-        self.SourcePathEntry: Entry = Entry(self.SourcePathFrame)
+        self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame)
         self.SelectSourceDialog = filedialog
         self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20)
         self.TargetPathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
-        self.TargetPathEntry: Entry = Entry(self.TargetPathFrame)
+        self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame)
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
 
@@ -100,12 +101,12 @@ class GUIForm(Status):
 
         # init source selection control set
         self.SourcePathEntry.insert(END, self.GUIModel.source_path)
-        self.SourcePathEntry.configure(state="readonly")
+        self.SourcePathEntry.configure(state=READONLY)
         self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
 
         # init target selection control set
         self.TargetPathEntry.insert(END, self.GUIModel.target_path)
-        self.TargetPathEntry.configure(state="readonly")
+        self.TargetPathEntry.configure(state=READONLY)
         self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
 
     # maintain the order of window controls
@@ -212,11 +213,7 @@ class GUIForm(Status):
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
             self.GUIModel.source_path = selected_file
-
-            self.SourcePathEntry.configure(state=NORMAL)
-            self.SourcePathEntry.delete(0, END)
-            self.SourcePathEntry.insert(END, selected_file)
-            self.SourcePathEntry.configure(state="readonly")
+            self.SourcePathEntry.set_text(selected_file)
 
     def change_target(self) -> None:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
@@ -225,10 +222,7 @@ class GUIForm(Status):
             # self._extractor_handler = None
             self.update_slider_bounds()
             self.update_preview(self.NavigateSlider.position, True)
-            self.TargetPathEntry.configure(state=NORMAL)
-            self.TargetPathEntry.delete(0, END)
-            self.TargetPathEntry.insert(END, selected_file)
-            self.TargetPathEntry.configure(state="readonly")
+            self.TargetPathEntry.set_text(selected_file)
 
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
