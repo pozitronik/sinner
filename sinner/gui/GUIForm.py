@@ -181,9 +181,11 @@ class GUIForm(Status):
     def on_change_source_button_press(self):
         self.change_source()
         self.update_preview(self.NavigateSlider.position)
+        self.GUIModel.update_frame_position(self.NavigateSlider.position)
 
     def on_change_target_button_press(self):
         self.change_target()
+        self.GUIModel.update_frame_position(self.NavigateSlider.position)
 
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int):
         frames = self.GUIModel.get_previews(frame_number)
