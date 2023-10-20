@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, Entry, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event, NORMAL
+from tkinter import filedialog, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event
 
 from customtkinter import CTk
 
@@ -84,6 +84,7 @@ class GUIForm(Status):
         self.PreviewWindow.bind("<KeyPress>", lambda event: self.on_preview_window_key_press(event))
 
         # init preview
+        self.PreviewCanvas.configure(width=100, height=100)  # set the default canvas size
         self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.on_preview_canvas_double_button_1_click())
         self.PreviewCanvas.bind("<Button-2>", lambda event: self.on_preview_canvas_button_2_click())
         self.PreviewCanvas.bind("<Button-3>", lambda event: self.on_preview_canvas_button_3_click())
@@ -159,7 +160,7 @@ class GUIForm(Status):
     def on_preview_canvas_button_3_click(self):
         self.change_target()
 
-    def on_preview_canvas_resize(self, event):
+    def on_preview_canvas_resize(self, event: Event):
         self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
     def on_navigate_slider_change(self, frame_value):
