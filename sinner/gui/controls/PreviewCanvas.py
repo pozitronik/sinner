@@ -36,6 +36,8 @@ class PreviewCanvas(Canvas):
         image = Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB))
         if resize is True:  # resize to the current canvas size
             image = FrameThumbnail.resize_image(image, (self.winfo_width(), self.winfo_height()))
+        elif resize is False:  # resize the canvas to the image size
+            self.adjust_size()
         elif isinstance(resize, tuple):
             image = FrameThumbnail.resize_image(image, resize)
         self.photo_image = PhotoImage(image)
