@@ -163,11 +163,12 @@ class GUIForm(Status):
     def on_preview_canvas_resize(self, event: Event):
         self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
-    def on_navigate_slider_change(self, frame_value):
+    def on_navigate_slider_change(self, frame_value: float):
+        self.GUIModel.update_frame_position(int(frame_value))
         self.update_preview(int(frame_value))
 
     def on_self_run_button_press(self):
-        self.GUIModel.play(self.NavigateSlider.position, self.PreviewCanvas, self.set_navigation_position)
+        self.GUIModel.play(self.PreviewCanvas, self.set_navigation_position)
 
     def on_preview_button_press(self):
         self.update_preview(self.NavigateSlider.position, True)
