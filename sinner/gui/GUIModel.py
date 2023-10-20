@@ -4,13 +4,13 @@ import threading
 import time
 from argparse import Namespace
 from concurrent.futures.thread import ThreadPoolExecutor
+from tkinter import Canvas
 from typing import List, Callable
 
 import cv2
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
-from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
@@ -38,7 +38,7 @@ class GUIModel(Status):
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
     _frame_wait_time: float = 0
     _fps: float = 1  # playing fps
-    _player_canvas: PreviewCanvas | None = None
+    _player_canvas: Canvas | None = None
     _progress_callback: Callable[[int], None] | None = None
 
     frame_processor: List[str]
@@ -115,11 +115,11 @@ class GUIModel(Status):
         return os.path.dirname(self._target_path)
 
     @property
-    def canvas(self) -> PreviewCanvas | None:
+    def canvas(self) -> Canvas | None:
         return self._player_canvas
 
     @canvas.setter
-    def canvas(self, value: PreviewCanvas | None) -> None:
+    def canvas(self, value: Canvas | None) -> None:
         self._player_canvas = value
 
     @property
@@ -180,7 +180,7 @@ class GUIModel(Status):
     def clear_previews(self):
         self._previews.clear()
 
-    def play(self, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
+    def play(self, canvas: Canvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
         if progress_callback:
