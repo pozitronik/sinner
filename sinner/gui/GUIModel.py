@@ -78,6 +78,7 @@ class GUIModel(Status):
     def reload_parameters(self) -> None:
         self.clear_previews()
         self._extractor_handler = None
+        self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
@@ -191,7 +192,7 @@ class GUIModel(Status):
         frame = self.resize_frame(frame, self._scale_quality)
         for _, processor in self.processors.items():
             frame = processor.process_frame(frame)
-        self._frames_queue.put((index, frame))  # todo: queue needs to be cleared on source/target reload
+        self._frames_queue.put((index, frame))
         self.update_status(f"index: {index}, fps: {self._fps}, qsize: {self._frames_queue.qsize()}, event: {self.stop_event}")
 
     @staticmethod
