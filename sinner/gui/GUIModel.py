@@ -147,6 +147,8 @@ class GUIModel(Status):
     # returns list of all processed steps for a frame, starting from the original
     def get_frame_steps(self, frame_number: int, extractor_handler: BaseFrameHandler, processed: bool = False) -> FramesList:
         result: FramesList = []
+        if extractor_handler is None:
+            return result
         try:
             _, frame, _ = extractor_handler.extract_frame(frame_number)
             result.append((frame, 'Original'))  # add an original frame
@@ -169,7 +171,9 @@ class GUIModel(Status):
         return frame_steps
 
     @property
-    def frame_handler(self) -> BaseFrameHandler:
+    def frame_handler(self) -> BaseFrameHandler | None:
+        if self.target_path is None:
+            return None
         if self._extractor_handler is None:
             self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._extractor_handler
