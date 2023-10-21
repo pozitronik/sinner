@@ -102,8 +102,8 @@ class GUIForm(Status):
         self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
         self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
 
-        self.SourcePathEntry.configure(state=READONLY)
-        self.TargetPathEntry.configure(state=READONLY)
+        self.SourcePathEntry.configure(state=READONLY)  # type: ignore[call-overload]
+        self.TargetPathEntry.configure(state=READONLY)  # type: ignore[call-overload]
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
