@@ -11,7 +11,7 @@ from sinner.typing import Frame
 class PreviewCanvas(Canvas):
     photo: PhotoImage | None = None
 
-    _last_frame: Frame | None  # the last viewed frame
+    _last_frame: Frame | None = None  # the last viewed frame
 
     @property
     def photo_image(self) -> PhotoImage | None:
@@ -32,15 +32,15 @@ class PreviewCanvas(Canvas):
         :param resize: True to resize the current canvas size, False to no resize, tuple(w,h) to set WxH size (proportional)
         """
         if frame is not None:
-            self._last_frame = frame  # todo check on a empty last frame
-        image = Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB))
-        if resize is True:  # resize to the current canvas size
-            image = FrameThumbnail.resize_image(image, (self.winfo_width(), self.winfo_height()))
-        elif resize is False:  # resize the canvas to the image size
-            self.adjust_size()
-        elif isinstance(resize, tuple):
-            image = FrameThumbnail.resize_image(image, resize)
-        self.photo_image = PhotoImage(image)
+            self._last_frame = frame
+            image = Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB))
+            if resize is True:  # resize to the current canvas size
+                image = FrameThumbnail.resize_image(image, (self.winfo_width(), self.winfo_height()))
+            elif resize is False:  # resize the canvas to the image size
+                self.adjust_size()
+            elif isinstance(resize, tuple):
+                image = FrameThumbnail.resize_image(image, resize)
+            self.photo_image = PhotoImage(image)
 
     def save_to_file(self, filename: str) -> None:
         if self._last_frame is not None:
