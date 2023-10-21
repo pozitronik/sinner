@@ -13,7 +13,6 @@ from sinner.utilities import load_class, suggest_execution_threads, suggest_exec
 
 class BaseFrameProcessor(ABC, Status):
     execution_provider: List[str]
-    execution_threads: int
 
     parameters: Namespace
 
@@ -35,13 +34,7 @@ class BaseFrameProcessor(ABC, Status):
                 'default': ['cpu'],
                 'choices': suggest_execution_providers(),
                 'help': 'The execution provider, from available on your hardware/software'
-            },
-            {
-                'parameter': 'execution-threads',
-                'type': int,
-                'default': suggest_execution_threads(),
-                'help': 'The count of simultaneous processing threads'
-            },
+            }
         ]
 
     def __init__(self, parameters: Namespace) -> None:

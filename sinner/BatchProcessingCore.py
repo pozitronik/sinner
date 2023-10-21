@@ -16,7 +16,7 @@ from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, NumeratedFrame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, suggest_execution_threads
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -28,6 +28,7 @@ class BatchProcessingCore(Status):
     extract_frames: bool
     keep_frames: bool
     max_memory: int
+    execution_threads: int
 
     parameters: Namespace
 
@@ -39,6 +40,12 @@ class BatchProcessingCore(Status):
             {
                 'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
                 'default': suggest_max_memory(),
+            },
+            {
+                'parameter': 'execution-threads',
+                'type': int,
+                'default': suggest_execution_threads(),
+                'help': 'The count of simultaneous processing threads'
             },
             {
                 'parameter': {'target', 'target-path'},
@@ -169,7 +176,7 @@ class BatchProcessingCore(Status):
             progress.set_postfix(self.get_postfix(len(futures)))
             progress.update()
 
-        with ThreadPoolExecutor(max_workers=processor.execution_threads) as executor:
+        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
             for frame_num in frames:
                 future: Future[None] = executor.submit(self.process_frame, frame_num, extract, processor.process_frame, save)
