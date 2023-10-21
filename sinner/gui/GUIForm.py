@@ -137,7 +137,7 @@ class GUIForm(Status):
     # Control events handlers
 
     def on_preview_window_close(self) -> None:
-        self.GUIModel.player_stop()
+        self.GUIModel.player_stop(True)
         quit()
 
     def on_preview_window_key_release(self, event: Event) -> None:  # type: ignore[type-arg]
@@ -186,10 +186,19 @@ class GUIForm(Status):
 
     def on_change_source_button_press(self):
         self.change_source()
-        self.update_preview(self.NavigateSlider.position)
+        if self.GUIModel.player_is_playing:
+            self.GUIModel.player_stop()
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+        else:
+            self.update_preview(self.NavigateSlider.position)
 
     def on_change_target_button_press(self):
         self.change_target()
+        if self.GUIModel.player_is_playing:
+            self.GUIModel.player_stop()
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+        else:
+            self.update_preview(self.NavigateSlider.position)
 
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int):
         frames = self.GUIModel.get_previews(frame_number)
@@ -227,7 +236,6 @@ class GUIForm(Status):
             self.GUIModel.target_path = selected_file
             # self._extractor_handler = None
             self.update_slider_bounds()
-            self.update_preview(self.NavigateSlider.position)
             self.TargetPathEntry.set_text(selected_file)
             self.PreviewCanvas.adjust_size()
 
