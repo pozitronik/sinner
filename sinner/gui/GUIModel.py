@@ -35,7 +35,7 @@ class GUIModel(Status):
 
     _player_stop_event: threading.Event  # the event to stop live player
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
-    _frame_wait_time: float = 0
+    _frame_render_time: float = 0
     _fps: float = 1  # playing fps
     _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
@@ -72,6 +72,7 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+
         self._scale_quality = 0.4
         self.parameters = parameters
         super().__init__(parameters)
@@ -109,12 +110,12 @@ class GUIModel(Status):
         self.reload_parameters()
 
     @property
-    def source_dir(self) -> str:
-        return os.path.dirname(self._source_path)
+    def source_dir(self) -> str | None:
+        return os.path.dirname(self._source_path) if self._source_path else None
 
     @property
-    def target_dir(self) -> str:
-        return os.path.dirname(self._target_path)
+    def target_dir(self) -> str | None:
+        return os.path.dirname(self._target_path) if self._target_path else None
 
     @property
     def canvas(self) -> PreviewCanvas | None:
@@ -218,20 +219,24 @@ class GUIModel(Status):
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame < end_frame:
                 executor.submit(self.process_frame_to_queue, start_frame)
-                start_frame += frame_step
+                start_frame += 5
                 if self._player_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
 
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._player_stop_event.is_set():
+            frame_start_time = time.perf_counter()
             index, frame, _ = self.frame_handler.extract_frame(frame_index)
             frame = resize_frame(frame, self._scale_quality)
             for _, processor in self.processors.items():
                 frame = processor.process_frame(frame)
             self._frames_queue.put((index, frame))
+            frame_render_time = time.perf_counter() - frame_start_time
+            self.update_processing_fps(frame_render_time)
 
     def show_frames(self) -> None:
+        _frame_wait_time = 0.1 / self.frame_handler.fps
         if self.canvas:
             while not self._player_stop_event.is_set():
                 try:
@@ -241,6 +246,12 @@ class GUIModel(Status):
                         self.progress_callback(index)
                 except queue.Empty:  # there are no frames processed
                     if not self._player_stop_event.is_set():
-                        time.sleep(0.5)
+                        time.sleep(_frame_wait_time)
                 if not self._player_stop_event.is_set():
-                    time.sleep(0.5)
+                    time.sleep(_frame_wait_time)
+
+    # method computes the current processing fps based on the median time of all processed frames timings
+    def update_processing_fps(self, frame_render_ns: float):
+        self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
+        self._fps = 1 / self._frame_render_time
+        self.update_status(f"frt:{self._frame_render_time}, fps: {self._fps}, queue: {self._frames_queue.qsize()}")

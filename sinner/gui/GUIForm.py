@@ -99,16 +99,11 @@ class GUIForm(Status):
         self.RunButton.configure(command=lambda: self.on_self_run_button_press())
         self.PreviewButton.configure(command=lambda: self.on_preview_button_press())
         self.SaveButton.configure(command=lambda: self.on_save_button_press())
-
-        # init source selection control set
-        self.SourcePathEntry.insert(END, self.GUIModel.source_path)
-        self.SourcePathEntry.configure(state=READONLY)
         self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
-
-        # init target selection control set
-        self.TargetPathEntry.insert(END, self.GUIModel.target_path)
-        self.TargetPathEntry.configure(state=READONLY)
         self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
+
+        self.SourcePathEntry.configure(state=READONLY)
+        self.TargetPathEntry.configure(state=READONLY)
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
@@ -129,7 +124,8 @@ class GUIForm(Status):
 
     def show(self) -> CTk:
         self.draw_controls()
-
+        self.SourcePathEntry.set_text(self.GUIModel.source_path)
+        self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
         return self.PreviewWindow
