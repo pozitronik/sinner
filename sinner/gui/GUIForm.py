@@ -156,7 +156,7 @@ class GUIForm(Status):
     def on_preview_canvas_button_3_click(self) -> None:
         self.change_target()
 
-    def on_preview_canvas_resize(self, event: Event) -> None:
+    def on_preview_canvas_resize(self, event: Event) -> None:  # type: ignore[type-arg]
         self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
     def on_navigate_slider_change(self, frame_value: float) -> None:
