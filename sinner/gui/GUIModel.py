@@ -81,8 +81,6 @@ class GUIModel(Status):
         self.processing_thread_stop_event = threading.Event()
         self.viewing_thread_stop_event = threading.Event()
         self._player_stop_event.set()
-        for _ in self.processors:  # heat up
-            pass
 
     def reload_parameters(self) -> None:
         self.clear_previews()
