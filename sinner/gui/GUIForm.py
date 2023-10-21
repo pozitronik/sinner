@@ -137,7 +137,7 @@ class GUIForm(Status):
     # Control events handlers
 
     def on_preview_window_close(self) -> None:
-        self.GUIModel.stop_event.set()
+        self.GUIModel.player_stop()
         quit()
 
     def on_preview_window_key_release(self, event: Event) -> None:  # type: ignore[type-arg]
@@ -164,10 +164,17 @@ class GUIForm(Status):
         self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
     def on_navigate_slider_change(self, frame_value: float):
-        self.update_preview(int(frame_value))
+        if self.GUIModel.player_is_playing:
+            self.GUIModel.player_stop()
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+        else:
+            self.update_preview(int(frame_value))
 
     def on_self_run_button_press(self):
-        self.GUIModel.play(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+        if self.GUIModel.player_is_playing:
+            self.GUIModel.player_stop()
+        else:
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
 
     def on_preview_button_press(self):
         self.update_preview(self.NavigateSlider.position, True)

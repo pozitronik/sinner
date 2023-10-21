@@ -33,7 +33,7 @@ class GUIModel(Status):
     _multi_process_frames_thread: threading.Thread | None = None
     _show_frames_thread: threading.Thread | None = None
 
-    stop_event: threading.Event  # the event to stop live player
+    _player_stop_event: threading.Event  # the event to stop live player
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
     _frame_wait_time: float = 0
     _fps: float = 1  # playing fps
@@ -76,18 +76,16 @@ class GUIModel(Status):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
-        self._frames_queue = queue.PriorityQueue()
-        self.stop_event = threading.Event()
+        self._player_stop_event = threading.Event()
         self.processing_thread_stop_event = threading.Event()
         self.viewing_thread_stop_event = threading.Event()
-        self.stop_event.set()
+        self._player_stop_event.set()
         for _ in self.processors:  # heat up
             pass
 
     def reload_parameters(self) -> None:
         self.clear_previews()
         self._extractor_handler = None
-        self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
@@ -184,42 +182,47 @@ class GUIModel(Status):
     def clear_previews(self):
         self._previews.clear()
 
-    def play(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
+    @property
+    def player_is_playing(self) -> bool:
+        return not self._player_stop_event.is_set()
+
+    def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
-        if not self.stop_event.is_set():  # stop playing
-            self.stop_event.set()
-            if self._multi_process_frames_thread:
-                self._multi_process_frames_thread.join()
-            if self._show_frames_thread:
-                self._show_frames_thread.join()
-        else:  # start playing
-            self.stop_event.clear()
-            self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, kwargs={
-                'start_frame': start_frame,
-                'end_frame': self.frame_handler.fc,
-                'frame_step': frame_step
-            })
-            self._multi_process_frames_thread.daemon = False
-            self._multi_process_frames_thread.start()
+        self._player_stop_event.clear()
+        self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, kwargs={
+            'start_frame': start_frame,
+            'end_frame': self.frame_handler.fc,
+            'frame_step': frame_step
+        })
+        self._multi_process_frames_thread.daemon = False
+        self._multi_process_frames_thread.start()
 
-            self._show_frames_thread = threading.Thread(target=self.show_frames)
-            self._show_frames_thread.daemon = False
-            self._show_frames_thread.start()
+        self._show_frames_thread = threading.Thread(target=self.show_frames)
+        self._show_frames_thread.daemon = False
+        self._show_frames_thread.start()
+
+    def player_stop(self) -> None:
+        self._player_stop_event.set()
+        if self._multi_process_frames_thread:
+            self._multi_process_frames_thread.join()
+        if self._show_frames_thread:
+            self._show_frames_thread.join()
 
     def multi_process_frames(self, start_frame: int, end_frame: int, frame_step: int = 1) -> None:
+        self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame < end_frame:
                 executor.submit(self.process_frame_to_queue, start_frame)
                 start_frame += frame_step
-                if self.stop_event.is_set():
+                if self._player_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
 
     def process_frame_to_queue(self, frame_index: int) -> None:
-        if not self.stop_event.is_set():
+        if not self._player_stop_event.is_set():
             index, frame, _ = self.frame_handler.extract_frame(frame_index)
             frame = resize_frame(frame, self._scale_quality)
             for _, processor in self.processors.items():
@@ -227,7 +230,7 @@ class GUIModel(Status):
             self._frames_queue.put((index, frame))
 
     def show_frames(self) -> None:
-        if not self.stop_event.is_set() and self.canvas:
+        if not self._player_stop_event.is_set() and self.canvas:
             frame_wait_start = time.perf_counter()
             try:
                 index, frame = self._frames_queue.get()
