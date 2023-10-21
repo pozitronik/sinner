@@ -14,7 +14,7 @@ from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
@@ -22,6 +22,7 @@ class GUIModel(Status):
     frame_processor: List[str]
     _source_path: str
     _target_path: str
+    execution_threads: int
 
     parameters: Namespace
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -52,6 +53,12 @@ class GUIModel(Status):
                 'required': True,
                 'choices': list_class_descendants(resolve_relative_path('../processors/frame'), 'BaseFrameProcessor'),
                 'help': 'The set of frame processors to handle the target'
+            },
+            {
+                'parameter': 'execution-threads',
+                'type': int,
+                'default': suggest_execution_threads(),
+                'help': 'The count of simultaneous processing threads'
             },
             {
                 'parameter': {'source', 'source-path'},
@@ -202,7 +209,7 @@ class GUIModel(Status):
             self._viewing_thread.start()
 
     def multi_process_frames(self) -> None:
-        with ThreadPoolExecutor(max_workers=2) as executor:
+        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             while self.frame_handler.current_frame_index < self.frame_handler.fc or self.stop_event.is_set():
                 executor.submit(self.process_frame_to_queue, self.frame_handler.current_frame_index)
                 self.frame_handler.current_frame_index += 4  # todo: implement the speed selection: 1) frame by frame 2) try to match original (auto skip) 3) user set skip
