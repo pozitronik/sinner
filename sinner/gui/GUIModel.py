@@ -207,9 +207,9 @@ class GUIModel(Status):
     def player_stop(self) -> None:
         self._player_stop_event.set()
         if self._multi_process_frames_thread:
-            self._multi_process_frames_thread.join()
+            self._multi_process_frames_thread.join(1)
         if self._show_frames_thread:
-            self._show_frames_thread.join()
+            self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
 
     def multi_process_frames(self, start_frame: int, end_frame: int, frame_step: int = 1) -> None:
         self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
@@ -230,17 +230,13 @@ class GUIModel(Status):
             self._frames_queue.put((index, frame))
 
     def show_frames(self) -> None:
-        if not self._player_stop_event.is_set() and self.canvas:
-            frame_wait_start = time.perf_counter()
-            try:
-                index, frame = self._frames_queue.get()
-            except queue.Empty:
-                self.canvas.after(1, self.show_frames)
-                return
-            frame_wait_end = time.perf_counter()
-            self._frame_wait_time = frame_wait_end - frame_wait_start
-            self.canvas.show_frame(frame)
-            if self.progress_callback:
-                self.progress_callback(index)
-            self._fps = 1 / self._frame_wait_time
-            self.canvas.after(int(self._frame_wait_time * 100), self.show_frames)
+        if self.canvas:
+            while not self._player_stop_event.is_set():
+                try:
+                    index, frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
+                    self.canvas.show_frame(frame)
+                    if self.progress_callback:
+                        self.progress_callback(index)
+                except queue.Empty:  # there are no frames processed
+                    time.sleep(0.1)
+                time.sleep(0.1)
