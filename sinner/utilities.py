@@ -9,10 +9,13 @@ import sys
 import urllib
 from typing import List, Literal, Any, get_type_hints
 
+import cv2
 import onnxruntime
 import psutil
 import tensorflow
 from tqdm import tqdm
+
+from sinner.typing import Frame
 
 TEMP_DIRECTORY = 'temp'
 
@@ -226,3 +229,8 @@ def format_sequences(sorted_list: List[int]) -> str:
 
     sequences.append(format_sequence(start, end))
     return ", ".join(sequences)
+
+
+def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
+    current_height, current_width = frame.shape[:2]
+    return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))

@@ -4,18 +4,16 @@ import threading
 import time
 from argparse import Namespace
 from concurrent.futures.thread import ThreadPoolExecutor
-from tkinter import Canvas
 from typing import List, Callable
-
-import cv2
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
+from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads
-from sinner.validators.AttributeLoader import Rules, AttributeLoader
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame
+from sinner.validators.AttributeLoader import Rules
 
 
 class GUIModel(Status):
@@ -32,14 +30,14 @@ class GUIModel(Status):
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     _current_frame: Frame | None
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    _processing_thread: threading.Thread | None = None
-    _viewing_thread: threading.Thread | None = None
+    _multi_process_frames_thread: threading.Thread | None = None
+    _show_frames_thread: threading.Thread | None = None
 
     stop_event: threading.Event  # the event to stop live player
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
     _frame_wait_time: float = 0
     _fps: float = 1  # playing fps
-    _player_canvas: Canvas | None = None
+    _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
 
     frame_processor: List[str]
@@ -93,7 +91,6 @@ class GUIModel(Status):
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
-        self.update_frame_position()
 
     @property
     def source_path(self) -> str | None:
@@ -122,11 +119,11 @@ class GUIModel(Status):
         return os.path.dirname(self._target_path)
 
     @property
-    def canvas(self) -> Canvas | None:
+    def canvas(self) -> PreviewCanvas | None:
         return self._player_canvas
 
     @canvas.setter
-    def canvas(self, value: Canvas | None) -> None:
+    def canvas(self, value: PreviewCanvas | None) -> None:
         self._player_canvas = value
 
     @property
@@ -187,52 +184,47 @@ class GUIModel(Status):
     def clear_previews(self):
         self._previews.clear()
 
-    def play(self, canvas: Canvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
+    def play(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
         if not self.stop_event.is_set():  # stop playing
             self.stop_event.set()
-            if self._processing_thread:
-                self._processing_thread.join()
-            if self._viewing_thread:
-                self._viewing_thread.join()
+            if self._multi_process_frames_thread:
+                self._multi_process_frames_thread.join()
+            if self._show_frames_thread:
+                self._show_frames_thread.join()
         else:  # start playing
             self.stop_event.clear()
-            self._processing_thread = threading.Thread(target=self.multi_process_frames)
-            self._processing_thread.daemon = False
-            self._processing_thread.start()
+            self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, kwargs={
+                'start_frame': start_frame,
+                'end_frame': self.frame_handler.fc,
+                'frame_step': frame_step
+            })
+            self._multi_process_frames_thread.daemon = False
+            self._multi_process_frames_thread.start()
 
-            self._viewing_thread = threading.Thread(target=self.show_frames)
-            self._viewing_thread.daemon = False
-            self._viewing_thread.start()
+            self._show_frames_thread = threading.Thread(target=self.show_frames)
+            self._show_frames_thread.daemon = False
+            self._show_frames_thread.start()
 
-    def multi_process_frames(self) -> None:
-        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
-            while self.frame_handler.current_frame_index < self.frame_handler.fc or self.stop_event.is_set():
-                executor.submit(self.process_frame_to_queue, self.frame_handler.current_frame_index)
-                self.frame_handler.current_frame_index += 4  # todo: implement the speed selection: 1) frame by frame 2) try to match original (auto skip) 3) user set skip
-                self.update_status(f"index: {self.frame_handler.current_frame_index}")
+    def multi_process_frames(self, start_frame: int, end_frame: int, frame_step: int = 1) -> None:
+        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
+            while start_frame < end_frame:
+                executor.submit(self.process_frame_to_queue, start_frame)
+                start_frame += frame_step
                 if self.stop_event.is_set():
-                    try:
-                        executor.shutdown(wait=False, cancel_futures=True)
-                    except Exception:
-                        pass  # todo
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    break
 
     def process_frame_to_queue(self, frame_index: int) -> None:
-        if self.stop_event.is_set():
-            return
-        index, frame, _ = self.frame_handler.extract_frame(frame_index)
-        frame = self.resize_frame(frame, self._scale_quality)
-        for _, processor in self.processors.items():
-            frame = processor.process_frame(frame)
-        self._frames_queue.put((index, frame))
-
-    @staticmethod
-    def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
-        current_height, current_width = frame.shape[:2]
-        return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
+        if not self.stop_event.is_set():
+            index, frame, _ = self.frame_handler.extract_frame(frame_index)
+            frame = resize_frame(frame, self._scale_quality)
+            for _, processor in self.processors.items():
+                frame = processor.process_frame(frame)
+            self._frames_queue.put((index, frame))
 
     def show_frames(self) -> None:
         if not self.stop_event.is_set() and self.canvas:
@@ -249,17 +241,3 @@ class GUIModel(Status):
                 self.progress_callback(index)
             self._fps = 1 / self._frame_wait_time
             self.canvas.after(int(self._frame_wait_time * 100), self.show_frames)
-
-    def update_frame_position(self, position: int = 0) -> bool:
-        """
-        Updates handler position, makes all additional stuff, like player rewind
-        :param position: the current position
-        :return:
-        """
-        if not self.stop_event.is_set():  # play in progress
-            self.play()  # stop player
-
-            self.frame_handler.current_frame_index = position  # rewind position
-            self.play()  # start player
-        else:
-            self.frame_handler.current_frame_index = position  # rewind position
