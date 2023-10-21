@@ -146,41 +146,41 @@ class GUIForm(Status):
         if event.keycode == 39:
             self.set_navigation_position(min(self.NavigateSlider.to, self.NavigateSlider.position + 1))
 
-    def on_preview_canvas_double_button_1_click(self):
+    def on_preview_canvas_double_button_1_click(self) -> None:
         self.update_preview(self.NavigateSlider.position)
 
-    def on_preview_canvas_button_2_click(self):
+    def on_preview_canvas_button_2_click(self) -> None:
         self.change_source()
         self.update_preview(self.NavigateSlider.position)
 
-    def on_preview_canvas_button_3_click(self):
+    def on_preview_canvas_button_3_click(self) -> None:
         self.change_target()
 
-    def on_preview_canvas_resize(self, event: Event):
+    def on_preview_canvas_resize(self, event: Event) -> None:
         self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
-    def on_navigate_slider_change(self, frame_value: float):
+    def on_navigate_slider_change(self, frame_value: float) -> None:
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
             self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
         else:
             self.update_preview(int(frame_value))
 
-    def on_self_run_button_press(self):
+    def on_self_run_button_press(self) -> None:
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
         else:
             self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
 
-    def on_preview_button_press(self):
+    def on_preview_button_press(self) -> None:
         self.update_preview(self.NavigateSlider.position, True)
 
-    def on_save_button_press(self):
+    def on_save_button_press(self) -> None:
         save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
         if save_file != ' ':
             self.PreviewCanvas.save_to_file(save_file)
 
-    def on_change_source_button_press(self):
+    def on_change_source_button_press(self) -> None:
         self.change_source()
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
@@ -188,7 +188,7 @@ class GUIForm(Status):
         else:
             self.update_preview(self.NavigateSlider.position)
 
-    def on_change_target_button_press(self):
+    def on_change_target_button_press(self) -> None:
         self.change_target()
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
@@ -196,7 +196,7 @@ class GUIForm(Status):
         else:
             self.update_preview(self.NavigateSlider.position)
 
-    def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int):
+    def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self.GUIModel.get_previews(frame_number)
         if frames:
             self.PreviewCanvas.show_frame(frames[thumbnail_index][0])

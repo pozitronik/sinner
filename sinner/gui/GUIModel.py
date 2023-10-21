@@ -40,8 +40,6 @@ class GUIModel(Status):
     _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
 
-    frame_processor: List[str]
-
     def rules(self) -> Rules:
         return [
             {
@@ -182,7 +180,7 @@ class GUIModel(Status):
     def set_previews(self, position: int, previews: FramesList) -> None:
         self._previews[position] = previews
 
-    def clear_previews(self):
+    def clear_previews(self) -> None:
         self._previews.clear()
 
     @property
@@ -253,7 +251,7 @@ class GUIModel(Status):
                     time.sleep(_frame_wait_time)
 
     # method computes the current processing fps based on the median time of all processed frames timings
-    def update_processing_fps(self, frame_render_ns: float):
+    def update_processing_fps(self, frame_render_ns: float) -> None:
         self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
         self._fps = 1 / self._frame_render_time
         self.update_status(f"frt:{self._frame_render_time}, fps: {self._fps}, queue: {self._frames_queue.qsize()}")
