@@ -141,7 +141,7 @@ class GUIModel(Status):
         return self._processors
 
     # returns list of all processed steps for a frame, starting from the original
-    def get_frame_steps(self, frame_number: int, extractor_handler: BaseFrameHandler, processed: bool = False) -> FramesList:
+    def get_frame_steps(self, frame_number: int, extractor_handler: BaseFrameHandler | None, processed: bool = False) -> FramesList:
         result: FramesList = []
         if extractor_handler is None:
             return result
