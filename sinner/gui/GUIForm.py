@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Label, END, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event
+from tkinter import filedialog, LEFT, Button, Label, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event
 
 from customtkinter import CTk
 
