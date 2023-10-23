@@ -13,9 +13,10 @@ jobs:
         with:
           python-version: 3.9
       - run: |
-          output=$(python sin.py 2>&1)
-          echo "Script Output: $output"
-          if [[ $output == *"Python version is not supported"* ]]; then
+          output_file=$(mktemp)
+          python sin.py 2>&1 > "$output_file"
+          cat $output_file
+          if grep -q "Python version is not supported" "$output_file" ; then
             echo "Warn is here!"
             exit 0  # Success status code
           else
