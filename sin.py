@@ -4,6 +4,9 @@ import signal
 import sys
 from argparse import Namespace
 
+if sys.version_info < (3, 10):
+    raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
+
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
 from sinner.gui.GUI import GUI
@@ -43,9 +46,6 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
-    if sys.version_info < (3, 10):
-        raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
-
     # todo: remnants of roop code, needs to be checked
     # single thread doubles cuda performance - needs to be set before torch import
     if any(arg.startswith('--execution-provider') for arg in sys.argv):
