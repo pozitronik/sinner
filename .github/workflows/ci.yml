@@ -3,6 +3,23 @@ name: ci
 on: [ push, pull_request ]
 
 jobs:
+  not_supported_warn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - run: output=$(your_command)
+          if [[ $output == *"Python version is not supported - please upgrade to 3.10 or higher."* ]]; then
+            echo "Warn is here!"
+            exit 0  # Success status code
+          else
+            echo "No warn found"
+            exit 1  # Failure status code
+          fi
   inspection:
     runs-on: ubuntu-latest
     steps:
