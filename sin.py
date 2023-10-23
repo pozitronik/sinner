@@ -5,7 +5,8 @@ import sys
 from argparse import Namespace
 
 if sys.version_info < (3, 10):
-    raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
+    print('Python version is not supported - please upgrade to 3.10 or higher.')
+    quit()
 
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
