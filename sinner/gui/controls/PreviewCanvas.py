@@ -31,6 +31,8 @@ class PreviewCanvas(Canvas):
         :param frame: frame or None to use the last drawn frame. If last frame is used, it can be only resized
         :param resize: True to resize the current canvas size, False to no resize, tuple(w,h) to set WxH size (proportional)
         """
+        if frame is None and self._last_frame is not None:
+            frame = self._last_frame
         if frame is not None:
             self._last_frame = frame
             image = Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB))
