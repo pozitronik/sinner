@@ -9,6 +9,7 @@ from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
+from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
 from sinner.utilities import is_int, is_image, is_video
 from sinner.validators.AttributeLoader import Rules
@@ -75,6 +76,7 @@ class GUIForm(Status):
         self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame)
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
+        self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.PreviewWindow)
 
         # init main window
         self.PreviewWindow.title('😈sinner')
@@ -121,6 +123,7 @@ class GUIForm(Status):
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.pack(side=LEFT)
         self.TargetPathFrame.pack(fill=X)
+        self.StatusBar.pack()
 
     def show(self) -> CTk:
         self.draw_controls()
@@ -128,6 +131,7 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
+        self.StatusBar.set_item('test', 'done')
         return self.PreviewWindow
 
     # Control events handlers
