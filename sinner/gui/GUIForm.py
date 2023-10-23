@@ -206,7 +206,9 @@ class GUIForm(Status):
             self.PreviewCanvas.show_frame(frames[thumbnail_index][0])
 
     # controls manipulation methods
-    def update_preview(self, frame_number: int = 0, processed: bool = False) -> None:
+    def update_preview(self, frame_number: int = 0, processed: bool | None = None) -> None:
+        if processed is None:
+            processed = self.GUIModel.is_processors_loaded
         frames = self.GUIModel.get_frames(frame_number, processed)
         if frames:
             if processed:

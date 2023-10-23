@@ -140,6 +140,10 @@ class GUIModel(Status):
             pass
         return self._processors
 
+    @property
+    def is_processors_loaded(self) -> bool:
+        return self._processors != {}
+
     # returns list of all processed steps for a frame, starting from the original
     def get_frame_steps(self, frame_number: int, extractor_handler: BaseFrameHandler | None, processed: bool = False) -> FramesList:
         result: FramesList = []
