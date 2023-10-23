@@ -13,8 +13,8 @@ jobs:
         with:
           python-version: 3.9
       - run: |
-          output=$(python sin.py 2>&1)  # Replace with the actual path to your command
-          if echo "$output" | grep -q "Python version is not supported - please upgrade to 3.10 or higher." ; then
+          output=$(python sin.py 2>&1)
+          if [[ $output == *"Python version is not supported"* ]]; then
             echo "Warn is here!"
             exit 0  # Success status code
           else
