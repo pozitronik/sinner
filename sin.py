@@ -23,8 +23,6 @@ class Sin(Sinner):
     parameters: Namespace
 
     def __init__(self) -> None:
-        if sys.version_info < (3, 10):
-            raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
         signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
         self.parameters = Parameters().parameters
         super().__init__(parameters=self.parameters)
@@ -45,6 +43,9 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
+    if sys.version_info < (3, 10):
+        raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
+
     # todo: remnants of roop code, needs to be checked
     # single thread doubles cuda performance - needs to be set before torch import
     if any(arg.startswith('--execution-provider') for arg in sys.argv):
