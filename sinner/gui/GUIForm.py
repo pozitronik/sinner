@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Label, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event
 
 from customtkinter import CTk
 
@@ -61,8 +61,7 @@ class GUIForm(Status):
         self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow)  # the main preview
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
         self.NavigateSliderFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.NavigateSlider: NavigateSlider = NavigateSlider(self.NavigateSliderFrame, to=0)
-        self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
+        self.NavigateSlider: NavigateSlider = NavigateSlider(self.NavigateSliderFrame)
         # button controls
         self.RunButton: Button = Button(self.NavigateSliderFrame, text="PLAY", compound=LEFT)
         self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="TEST", compound=LEFT)
@@ -99,9 +98,7 @@ class GUIForm(Status):
         self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_resize(event))
 
         # init slider
-        self.current_position: StringVar = StringVar()
         self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_change(frame_value))
-        self.NavigatePositionLabel.configure(textvariable=self.current_position)
 
         # buttons
         self.RunButton.configure(command=lambda: self.on_self_run_button_press())
@@ -125,7 +122,6 @@ class GUIForm(Status):
         self.PreviewButton.pack(anchor=NE, side=RIGHT)
         self.RunButton.pack(anchor=NE, side=RIGHT)
         self.PlayerFrame.pack(fill=X)
-        self.NavigatePositionLabel.pack(anchor=NE, side=RIGHT)
         self.NavigateSliderFrame.pack(fill=X)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
@@ -156,9 +152,9 @@ class GUIForm(Status):
 
     def on_preview_window_key_press(self, event: Event) -> None:  # type: ignore[type-arg]
         if event.keycode == 37:
-            self.set_navigation_position(max(1, self.NavigateSlider.position - 1))
+            self.NavigateSlider.position = max(1, self.NavigateSlider.position - 1)
         if event.keycode == 39:
-            self.set_navigation_position(min(self.NavigateSlider.to, self.NavigateSlider.position + 1))
+            self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + 1)
 
     def on_preview_canvas_double_button_1_click(self) -> None:
         self.update_preview(self.NavigateSlider.position)
@@ -177,7 +173,7 @@ class GUIForm(Status):
     def on_navigate_slider_change(self, frame_value: float) -> None:
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
         else:
             self.update_preview(int(frame_value))
 
@@ -186,7 +182,7 @@ class GUIForm(Status):
             self.GUIModel.player_stop()
             self.RunButton.configure(text="PLAY")
         else:
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
             self.RunButton.configure(text="STOP")
 
     def on_preview_button_press(self) -> None:
@@ -201,7 +197,7 @@ class GUIForm(Status):
         self.change_source()
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
         else:
             self.update_preview(self.NavigateSlider.position)
 
@@ -209,7 +205,7 @@ class GUIForm(Status):
         self.change_target()
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
         else:
             self.update_preview(self.NavigateSlider.position)
 
@@ -241,7 +237,6 @@ class GUIForm(Status):
                 self.PreviewCanvas.show_frame(frames[0][0])
         else:
             self.PreviewCanvas.photo_image = None
-        self.current_position.set(f'{frame_number}/{self.NavigateSlider.to}')
 
     def change_source(self) -> None:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
@@ -266,9 +261,4 @@ class GUIForm(Status):
         if is_video(self.GUIModel.target_path):
             self.NavigateSlider.to = self.GUIModel.frame_handler.fc
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-            self.set_navigation_position(0)
-
-    # just a macro, to update slider and indicators
-    def set_navigation_position(self, position: int) -> None:
-        self.NavigateSlider.set(position)
-        self.current_position.set(f'{self.NavigateSlider.position}/{self.NavigateSlider.to}')
+            self.NavigateSlider.position = 0
