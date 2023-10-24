@@ -261,11 +261,10 @@ class GUIForm(Status):
 
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
-            self.NavigateSlider.configure(to=1)
-            self.set_navigation_position(1)
+            self.NavigateSlider.configure.to = 1
             self.NavigateSlider.pack_forget()
         if is_video(self.GUIModel.target_path):
-            self.NavigateSlider.configure(to=self.GUIModel.frame_handler.fc)
+            self.NavigateSlider.to = self.GUIModel.frame_handler.fc
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.set_navigation_position(0)
 
