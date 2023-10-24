@@ -7,7 +7,7 @@ from typing import List
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import load_class, get_file_name, is_file
+from sinner.utilities import load_class, get_file_name, is_file, normalize_path
 
 
 class BaseFrameHandler(Status, ABC):
@@ -39,7 +39,7 @@ class BaseFrameHandler(Status, ABC):
         return True
 
     def __init__(self, target_path: str, parameters: Namespace):
-        self._target_path = target_path
+        self._target_path = normalize_path(target_path)
         super().__init__(parameters)
         self.update_status(f"Handle frames for {self._target_path} ({self.fc} frame(s)/{self.fps} FPS)")
 
