@@ -216,4 +216,10 @@ class BatchProcessingCore(Status):
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def suggest_temp_dir(self) -> str:
-        return normalize_path(self.temp_dir) if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
+        if self.temp_dir:
+            norm_path = normalize_path(self.temp_dir)
+            if norm_path:
+                return norm_path
+            else:
+                raise Exception(f"{self.temp_dir} is not a valid path")
+        return os.path.join(get_app_dir(), TEMP_DIRECTORY)

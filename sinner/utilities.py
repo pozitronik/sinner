@@ -37,15 +37,18 @@ def limit_resources(max_memory: int) -> None:
 
 
 def path_exists(path: str) -> bool:
-    return os.path.exists(normalize_path(path))
+    norm_path = normalize_path(path)
+    return os.path.exists(norm_path) if norm_path else False
 
 
 def is_file(path: str) -> bool:
-    return os.path.isfile(normalize_path(path))
+    norm_path = normalize_path(path)
+    return os.path.isfile(norm_path) if norm_path else False
 
 
 def is_dir(path: str) -> bool:
-    return os.path.isdir(normalize_path(path))
+    norm_path = normalize_path(path)
+    return os.path.isdir(norm_path) if norm_path else False
 
 
 def is_image(image_path: str | None) -> bool:
