@@ -28,6 +28,10 @@ class NavigateSlider(CTkSlider):
         super()._clicked(event)
         self.update_position()
 
+    def set(self, output_value: int, from_variable_callback: bool = False) -> None:
+        super().set(output_value, from_variable_callback)
+        self.update_position()
+
     def update_position(self):
         if self._position_label:
             self._current_position.set(f'{self.position}/{self._to}')
