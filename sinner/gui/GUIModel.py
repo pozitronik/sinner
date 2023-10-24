@@ -126,7 +126,7 @@ class GUIModel(Status):
 
     @quality.setter
     def quality(self, value: int) -> None:
-        self._scale_quality = value // 100
+        self._scale_quality = value / 100
 
     @property
     def progress_callback(self) -> Callable[[int], None] | None:

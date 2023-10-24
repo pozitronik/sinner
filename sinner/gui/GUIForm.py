@@ -67,6 +67,12 @@ class GUIForm(Status):
         self.RunButton: Button = Button(self.NavigateSliderFrame, text="PLAY", compound=LEFT)
         self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="TEST", compound=LEFT)
         self.SaveButton: Button = Button(self.NavigateSliderFrame, text="SAVE", compound=LEFT)
+        # player controls - will be moved to a separate sub-window
+        self.PlayerFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.QualitySlider: NavigateSlider = NavigateSlider(self.PlayerFrame, to=100)
+        self.QualitySlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
+        self.QualitySlider.set(self.GUIModel.quality)
+
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame)
@@ -107,6 +113,9 @@ class GUIForm(Status):
         self.SourcePathEntry.configure(state=READONLY)  # type: ignore[call-overload]
         self.TargetPathEntry.configure(state=READONLY)  # type: ignore[call-overload]
 
+        # player controls
+        self.QualitySlider.configure(command=lambda frame_value: self.on_quality_slider_change(frame_value))
+
     # maintain the order of window controls
     def draw_controls(self) -> None:
         self.PreviewCanvas.pack(fill=BOTH, expand=True)
@@ -115,6 +124,7 @@ class GUIForm(Status):
         self.SaveButton.pack(anchor=NE, side=RIGHT)
         self.PreviewButton.pack(anchor=NE, side=RIGHT)
         self.RunButton.pack(anchor=NE, side=RIGHT)
+        self.PlayerFrame.pack(fill=X)
         self.NavigatePositionLabel.pack(anchor=NE, side=RIGHT)
         self.NavigateSliderFrame.pack(fill=X)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
@@ -202,6 +212,10 @@ class GUIForm(Status):
             self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
         else:
             self.update_preview(self.NavigateSlider.position)
+
+    def on_quality_slider_change(self, frame_value: float) -> None:
+        self.GUIModel.quality = int(frame_value)
+        #  the quality applies only when playing, the preview always renders with 100% resolution
 
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self.GUIModel.get_previews(frame_number)
