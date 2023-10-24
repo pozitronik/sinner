@@ -16,7 +16,7 @@ from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, NumeratedFrame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, path_exists, is_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -43,7 +43,7 @@ class BatchProcessingCore(Status):
             {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
-                'valid': lambda: os.path.exists(self.target_path),
+                'valid': lambda: path_exists(self.target_path),
                 'required': True,
                 'help': 'Path to the target file or directory (depends on used frame processors set)'
             },
@@ -88,7 +88,7 @@ class BatchProcessingCore(Status):
         else:
             try:
                 validate_filepath(self.output_path, "auto")
-                if os.path.isdir(self.output_path):
+                if is_dir(self.output_path):
                     self._output_file = os.path.join(self.output_path, f'{prefix}-{os.path.basename(self.target_path)}')
                 else:
                     self._output_file = self.output_path
@@ -205,7 +205,7 @@ class BatchProcessingCore(Status):
     def suggest_handler(target_path: str | None, parameters: Namespace) -> BaseFrameHandler:  # todo: refactor this
         if target_path is None:
             raise Exception("The target path is not set")
-        if os.path.isdir(target_path):
+        if is_dir(target_path):
             return DirectoryHandler(target_path, parameters)
         if is_image(target_path):
             return ImageHandler(target_path, parameters)

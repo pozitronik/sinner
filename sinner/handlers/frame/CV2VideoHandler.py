@@ -12,7 +12,7 @@ from tqdm import tqdm
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath, Frame
-from sinner.utilities import get_file_name
+from sinner.utilities import get_file_name, is_file
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -107,7 +107,7 @@ class CV2VideoHandler(BaseFrameHandler):
                 start += 1
             capture.release()
             frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-            return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)]
+            return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_file(file_path)]
 
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
         capture = self.open()

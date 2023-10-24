@@ -7,7 +7,7 @@ from typing import List
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import is_image, get_file_name
+from sinner.utilities import is_image, get_file_name, path_exists, is_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -25,7 +25,7 @@ class DirectoryHandler(BaseFrameHandler):
         ]
 
     def __init__(self, target_path: str, parameters: Namespace):
-        if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
+        if not path_exists(target_path) or not is_dir(target_path):  # todo: move to validator
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
 

@@ -7,7 +7,7 @@ from typing import List
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import load_class, get_file_name
+from sinner.utilities import load_class, get_file_name, is_file
 
 
 class BaseFrameHandler(Status, ABC):
@@ -61,7 +61,7 @@ class BaseFrameHandler(Status, ABC):
         :return: list of requested frames
         """
         frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)][frames_range[0]:frames_range[1]]
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_file(file_path)][frames_range[0]:frames_range[1]]
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> NumeratedFrame:
