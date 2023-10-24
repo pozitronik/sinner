@@ -16,6 +16,7 @@ class BaseFrameHandler(Status, ABC):
     _target_path: str
     _fps: float | None = None
     _fc: int | None = None
+    _resolution: tuple[int, int] | None = None
 
     def rules(self) -> Rules:
         return [
@@ -51,6 +52,14 @@ class BaseFrameHandler(Status, ABC):
     @property
     @abstractmethod
     def fc(self) -> int:
+        pass
+
+    @property
+    @abstractmethod
+    def resolution(self) -> tuple[int, int] | None:
+        """
+        Returns the target dimension resolution (WxH) if present, else None
+        """
         pass
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:

@@ -8,7 +8,7 @@ from numpy import ndarray
 
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.utilities import resolve_relative_path
-from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE
+from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE, TARGET_RESOLUTION
 
 target_mp4: str = resolve_relative_path('../data/targets/target.mp4', __file__)
 tmp_dir: str = resolve_relative_path('../data/temp', __file__)
@@ -40,6 +40,10 @@ def test_detect_fps() -> None:
 
 def test_detect_fc() -> None:
     assert TARGET_FC == get_test_object().fc
+
+
+def test_detect_resolution() -> None:
+    assert TARGET_RESOLUTION == get_test_object().resolution
 
 
 def test_get_frames_paths() -> None:

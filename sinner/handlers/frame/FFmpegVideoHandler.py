@@ -86,6 +86,21 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._fc = 0
         return self._fc
 
+    @property
+    def resolution(self) -> tuple[int, int] | None:
+        if self._resolution is None:
+            try:
+                command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', self._target_path]
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
+                if 'N/A' == output:
+                    self._resolution = None  # non-frame files, still processable
+                w, h = output.split('x')
+                self._resolution = int(w), int(h)
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                self._fc = 0
+        return self._resolution
+
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(path).mkdir(parents=True, exist_ok=True)

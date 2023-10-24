@@ -46,6 +46,10 @@ def test_detect_fc() -> None:
     assert TARGET_FC == get_test_object().fc
 
 
+def test_detect_resolution() -> None:
+    assert get_test_object().resolution is None
+
+
 def test_get_frames_paths() -> None:
     frames_paths = get_test_object().get_frames_paths(path=tmp_dir)
     assert TARGET_FC == len(frames_paths)

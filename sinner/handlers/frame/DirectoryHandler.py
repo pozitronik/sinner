@@ -39,6 +39,10 @@ class DirectoryHandler(BaseFrameHandler):
             self._fc = len(list(filter(is_image, glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))))
         return self._fc
 
+    @property
+    def resolution(self) -> tuple[int, int] | None:
+        return None
+
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         if self._frames_path is None:
             self._frames_path = sorted((file_path for file_path in glob.glob(os.path.join(glob.escape(self._target_path), '*.*')) if is_image(file_path)))

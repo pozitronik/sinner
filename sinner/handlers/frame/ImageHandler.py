@@ -35,6 +35,13 @@ class ImageHandler(BaseFrameHandler):
     def fc(self) -> int:
         return 1
 
+    @property
+    def resolution(self) -> tuple[int, int] | None:
+        if self._resolution is None:
+            image = CV2VideoHandler.read_image(self._target_path)
+            self._resolution = image.shape[1], image.shape[0]
+        return self._resolution
+
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         return [(0, self._target_path)]
 

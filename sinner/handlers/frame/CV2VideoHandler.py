@@ -17,6 +17,7 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class CV2VideoHandler(BaseFrameHandler):
+
     emoji: str = '📹'
 
     output_fps: float
@@ -78,6 +79,14 @@ class CV2VideoHandler(BaseFrameHandler):
             capture.release()
             self._fc = last_good_position
         return self._fc
+
+    @property
+    def resolution(self) -> tuple[int, int] | None:
+        if self._resolution is None:
+            capture = self.open()
+            self._resolution = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            capture.release()
+        return self._resolution
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         start = frames_range[0] if frames_range[0] is not None else 0
