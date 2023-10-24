@@ -10,3 +10,13 @@ class NavigateSlider(CTkSlider):
     @property
     def position(self) -> int:
         return int(self.get())
+
+    @position.setter
+    def position(self, value: int):
+        self.set(value)
+
+    @to.setter
+    def to(self, value: int) -> None:
+        if value > self.position:
+            self.position = value
+        self.configure(to=value)
