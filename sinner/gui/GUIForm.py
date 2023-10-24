@@ -129,9 +129,9 @@ class GUIForm(Status):
         self.draw_controls()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
+        self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}")
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
-        self.StatusBar.set_item('test', 'done')
         return self.PreviewWindow
 
     # Control events handlers
@@ -161,6 +161,7 @@ class GUIForm(Status):
         self.change_target()
 
     def on_preview_canvas_resize(self, event: Event) -> None:  # type: ignore[type-arg]
+        self.StatusBar.set_item('view_res', f"{(event.width, event.height)}")
         self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
     def on_navigate_slider_change(self, frame_value: float) -> None:
@@ -240,6 +241,7 @@ class GUIForm(Status):
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
             self.PreviewCanvas.adjust_size()
+            self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}")
 
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
