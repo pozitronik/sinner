@@ -57,10 +57,10 @@ class GUIForm(Status):
         self.GUIModel = GUIModel(parameters)
 
         #  window controls
-        self.PreviewWindow: CTk = CTk()  # the main window
-        self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.PreviewWindow)  # the main preview
-        self.PreviewFrames: ImageList = ImageList(parent=self.PreviewWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
-        self.NavigateSliderFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.GUIWindow: CTk = CTk()  # the main window
+        self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow)  # the main preview
+        self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
+        self.NavigateSliderFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.NavigateSlider: NavigateSlider = NavigateSlider(self.NavigateSliderFrame, to=0)
         self.NavigatePositionLabel: Label = Label(self.NavigateSliderFrame)
         # button controls
@@ -68,22 +68,22 @@ class GUIForm(Status):
         self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="TEST", compound=LEFT)
         self.SaveButton: Button = Button(self.NavigateSliderFrame, text="SAVE", compound=LEFT)
         # source/target selection controls
-        self.SourcePathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame)
         self.SelectSourceDialog = filedialog
         self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20)
-        self.TargetPathFrame: Frame = Frame(self.PreviewWindow, borderwidth=2)
+        self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame)
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
-        self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.PreviewWindow)
+        self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
 
         # init main window
-        self.PreviewWindow.title('😈sinner')
-        self.PreviewWindow.protocol('WM_DELETE_WINDOW', lambda: self.on_preview_window_close())
-        self.PreviewWindow.resizable(width=True, height=True)
-        self.PreviewWindow.bind("<KeyRelease>", lambda event: self.on_preview_window_key_release(event))
-        self.PreviewWindow.bind("<KeyPress>", lambda event: self.on_preview_window_key_press(event))
+        self.GUIWindow.title('😈sinner')
+        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: self.on_preview_window_close())
+        self.GUIWindow.resizable(width=True, height=True)
+        self.GUIWindow.bind("<KeyRelease>", lambda event: self.on_preview_window_key_release(event))
+        self.GUIWindow.bind("<KeyPress>", lambda event: self.on_preview_window_key_press(event))
 
         # init preview
         self.PreviewCanvas.configure(width=100, height=100)  # set the default canvas size
@@ -132,7 +132,7 @@ class GUIForm(Status):
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}")
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
-        return self.PreviewWindow
+        return self.GUIWindow
 
     # Control events handlers
 
