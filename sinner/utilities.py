@@ -37,15 +37,15 @@ def limit_resources(max_memory: int) -> None:
 
 
 def path_exists(path: str) -> bool:
-    return os.path.exists(os.path.expanduser(path))
+    return os.path.exists(normalize_path(path))
 
 
 def is_file(path: str) -> bool:
-    return os.path.isfile(os.path.expanduser(path))
+    return os.path.isfile(normalize_path(path))
 
 
 def is_dir(path: str) -> bool:
-    return os.path.isdir(os.path.expanduser(path))
+    return os.path.isdir(normalize_path(path))
 
 
 def is_image(image_path: str | None) -> bool:
@@ -60,6 +60,10 @@ def is_video(video_path: str | None) -> bool:
         mimetype, _ = mimetypes.guess_type(video_path)
         return bool(mimetype and (mimetype.startswith('frame/') or mimetype.startswith('video/')))
     return False
+
+
+def normalize_path(path: Any) -> str:
+    return os.path.normpath(os.path.expandvars(os.path.expanduser(path)))
 
 
 def conditional_download(download_directory_path: str, urls: List[str], desc: str = 'Downloading') -> None:
