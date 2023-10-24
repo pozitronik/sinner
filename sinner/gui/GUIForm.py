@@ -174,8 +174,10 @@ class GUIForm(Status):
     def on_self_run_button_press(self) -> None:
         if self.GUIModel.player_is_playing:
             self.GUIModel.player_stop()
+            self.RunButton.configure(text="PLAY")
         else:
             self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.set_navigation_position)
+            self.RunButton.configure(text="STOP")
 
     def on_preview_button_press(self) -> None:
         self.update_preview(self.NavigateSlider.position, True)
