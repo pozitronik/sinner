@@ -70,8 +70,7 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace):
-
-        self._scale_quality = 0.4
+        self._scale_quality = 1
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -120,6 +119,14 @@ class GUIModel(Status):
     @canvas.setter
     def canvas(self, value: PreviewCanvas | None) -> None:
         self._player_canvas = value
+
+    @property
+    def quality(self) -> int:
+        return int(self._scale_quality * 100)
+
+    @quality.setter
+    def quality(self, value: int) -> None:
+        self._scale_quality = value // 100
 
     @property
     def progress_callback(self) -> Callable[[int], None] | None:
