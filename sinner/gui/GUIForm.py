@@ -81,6 +81,7 @@ class GUIForm(Status):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
+        self.GUIModel.status_bar = self.StatusBar
 
         # init main window
         self.GUIWindow.title('😈sinner')

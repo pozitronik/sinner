@@ -6,9 +6,11 @@ from argparse import Namespace
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, Callable
 
+
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
+from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
@@ -27,6 +29,7 @@ class GUIModel(Status):
     preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
 
     _extractor_handler: BaseFrameHandler | None = None
+    _status_bar: SimpleStatusBar | None = None
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     _current_frame: Frame | None
     _scale_quality: float  # the processed frame size scale from 0 to 1
@@ -141,7 +144,9 @@ class GUIModel(Status):
         try:
             for processor_name in self.frame_processor:
                 if processor_name not in self._processors:
+                    self.status_bar.set_item(processor_name, 'loading...')
                     self._processors[processor_name] = BaseFrameProcessor.create(processor_name, self.parameters)
+                    self.status_bar.set_item(processor_name, 'Ready')
         except Exception as exception:  # skip, if parameters is not enough for processor
             self.update_status(message=str(exception), mood=Mood.BAD)
             pass
@@ -240,6 +245,7 @@ class GUIModel(Status):
             frame_start_time = time.perf_counter()
             index, frame, _ = self.frame_handler.extract_frame(frame_index)
             frame = resize_frame(frame, self._scale_quality)
+            self.status_bar.set_item('Render size', (frame.shape[1], frame.shape[0]))
             for _, processor in self.processors.items():
                 frame = processor.process_frame(frame)
             self._frames_queue.put((index, frame))
@@ -265,4 +271,13 @@ class GUIModel(Status):
     def update_processing_fps(self, frame_render_ns: float) -> None:
         self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
         self._fps = 1 / self._frame_render_time
-        self.update_status(f"frt:{self._frame_render_time}, fps: {self._fps}, queue: {self._frames_queue.qsize()}")
+        self.status_bar.set_item('FPS', self._fps)
+        self.status_bar.set_item('queue', self._frames_queue.qsize())
+
+    @property
+    def status_bar(self) -> SimpleStatusBar | None:
+        return self._status_bar
+
+    @status_bar.setter
+    def status_bar(self, status_bar: SimpleStatusBar | None) -> None:
+        self._status_bar = status_bar
