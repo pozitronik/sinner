@@ -60,12 +60,11 @@ class GUIForm(Status):
         self.GUIWindow: CTk = CTk()  # the main window
         self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow)  # the main preview
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
-        self.NavigateSliderFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.NavigateSlider: NavigateSlider = NavigateSlider(self.NavigateSliderFrame)
+        self.NavigateSlider: NavigateSlider = NavigateSlider(self.GUIWindow)
         # button controls
-        self.RunButton: Button = Button(self.NavigateSliderFrame, text="PLAY", compound=LEFT)
-        self.PreviewButton: Button = Button(self.NavigateSliderFrame, text="TEST", compound=LEFT)
-        self.SaveButton: Button = Button(self.NavigateSliderFrame, text="SAVE", compound=LEFT)
+        self.RunButton: Button = Button(self.GUIWindow, text="PLAY", compound=LEFT)
+        self.PreviewButton: Button = Button(self.GUIWindow, text="TEST", compound=LEFT)
+        self.SaveButton: Button = Button(self.GUIWindow, text="SAVE", compound=LEFT)
         # player controls - will be moved to a separate sub-window
         self.PlayerFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.QualitySlider: NavigateSlider = NavigateSlider(self.PlayerFrame, to=100)
@@ -122,7 +121,6 @@ class GUIForm(Status):
         self.PreviewButton.pack(anchor=NE, side=RIGHT)
         self.RunButton.pack(anchor=NE, side=RIGHT)
         self.PlayerFrame.pack(fill=X)
-        self.NavigateSliderFrame.pack(fill=X)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X)
