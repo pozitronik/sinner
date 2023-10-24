@@ -3,9 +3,8 @@ from argparse import Namespace
 import pytest
 
 from sinner.Parameters import Parameters
-from sinner.validators.ErrorDTO import ErrorDTO
 from sinner.validators.LoaderException import LoaderException
-from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped, TestRequiredValidationLambda
+from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped, TestRequiredValidationLambda, TestFilterValidation
 
 
 def test_default_validator() -> None:
@@ -26,6 +25,19 @@ def test_default_validator() -> None:
     assert test_object.load(parameters) is True
     assert test_object.default_parameter == 14
     assert test_object.parameter_name == 88
+    assert test_object.errors == []
+
+
+def test_filter_validator() -> None:
+    parameters: Namespace = Parameters.command_line_to_namespace('--filtered_parameter=" unfiltered string " --filtered_parameter_2=142')
+    test_object = TestFilterValidation()
+
+    assert test_object.filtered_parameter is None
+    assert test_object.filtered_parameter_2 is None
+
+    assert test_object.load(parameters) is True
+    assert test_object.filtered_parameter == "unfiltered string"
+    assert test_object.filtered_parameter_2 == 100
     assert test_object.errors == []
 
 

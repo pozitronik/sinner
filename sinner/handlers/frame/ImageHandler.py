@@ -7,7 +7,7 @@ from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import is_image
+from sinner.utilities import is_image, path_exists, is_file
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -19,7 +19,7 @@ class ImageHandler(BaseFrameHandler):
             {
                 'parameter': 'target-path',
                 'attribute': '_target_path',
-                'valid': lambda: os.path.exists(self._target_path) and os.path.isfile(self._target_path) and is_image(self._target_path),
+                'valid': lambda: path_exists(self._target_path) and is_file(self._target_path) and is_image(self._target_path),
                 'help': 'Select an image file'
             },
             {
