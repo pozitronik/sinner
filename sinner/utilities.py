@@ -62,7 +62,9 @@ def is_video(video_path: str | None) -> bool:
     return False
 
 
-def normalize_path(path: Any) -> str:
+def normalize_path(path: Any) -> str | None:
+    if path is None:
+        return None
     return os.path.normpath(os.path.expandvars(os.path.expanduser(path)))
 
 
