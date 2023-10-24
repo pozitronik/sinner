@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.typing import Frame
-from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file
+from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -30,11 +30,13 @@ class State(Status):
         return [
             {
                 'parameter': {'source', 'source-path'},
-                'attribute': 'source_path'
+                'attribute': 'source_path',
+                'filter': lambda: normalize_path(self.source_path)
             },
             {
                 'parameter': {'target', 'target-path'},
-                'attribute': 'initial_target_path'  # issue 29: need to know this parameter to avoid names collisions
+                'attribute': 'initial_target_path',  # issue 29: need to know this parameter to avoid names collisions
+                'filter': lambda: normalize_path(self.initial_target_path)
             },
             {
                 'module_help': 'The state control module'

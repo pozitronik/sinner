@@ -16,7 +16,7 @@ from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, NumeratedFrame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, path_exists, is_dir
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, path_exists, is_dir, normalize_path
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -44,6 +44,7 @@ class BatchProcessingCore(Status):
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
                 'valid': lambda: path_exists(self.target_path),
+                'filter': lambda: normalize_path(self.target_path),
                 'required': True,
                 'help': 'Path to the target file or directory (depends on used frame processors set)'
             },
@@ -55,6 +56,7 @@ class BatchProcessingCore(Status):
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
                 'valid': lambda: self.output_path is None or is_valid_filepath(self.output_path, "auto"),
+                'filter': lambda: None if self.output_path is None else normalize_path(self.output_path),
                 'help': 'Path to the resulting file or directory (depends on used frame processors set and target)'
             },
             {
@@ -214,4 +216,4 @@ class BatchProcessingCore(Status):
         raise NotImplementedError("The handler for current target type is not implemented")
 
     def suggest_temp_dir(self) -> str:
-        return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
+        return normalize_path(self.temp_dir) if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)

@@ -14,7 +14,7 @@ from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Face, Frame, FaceSwapperType
-from sinner.utilities import conditional_download, get_app_dir, is_image
+from sinner.utilities import conditional_download, get_app_dir, is_image, normalize_path
 
 
 class FaceSwapper(BaseFrameProcessor):
@@ -35,6 +35,7 @@ class FaceSwapper(BaseFrameProcessor):
                 'attribute': 'source_path',
                 'required': True,
                 'valid': lambda attribute_name, attribute_value: is_image(attribute_value),
+                'filter': lambda: normalize_path(self.source_path),
                 'help': 'Select an input image with the source face'
             },
             {
