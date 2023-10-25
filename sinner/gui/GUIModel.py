@@ -245,7 +245,6 @@ class GUIModel(Status):
             frame_start_time = time.perf_counter()
             index, frame, _ = self.frame_handler.extract_frame(frame_index)
             frame = resize_frame(frame, self._scale_quality)
-            self.status_bar.set_item('Render size', (frame.shape[1], frame.shape[0]))
             for _, processor in self.processors.items():
                 frame = processor.process_frame(frame)
             self._frames_queue.put((index, frame))

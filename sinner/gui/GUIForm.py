@@ -210,6 +210,7 @@ class GUIForm(Status):
 
     def on_quality_slider_change(self, frame_value: float) -> None:
         self.GUIModel.quality = int(frame_value)
+        self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
         #  the quality applies only when playing, the preview always renders with 100% resolution
 
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
