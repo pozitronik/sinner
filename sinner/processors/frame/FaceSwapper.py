@@ -33,7 +33,7 @@ class FaceSwapper(BaseFrameProcessor):
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path',
-                'required': True,
+                'required': False,
                 'valid': lambda attribute_name, attribute_value: is_image(attribute_value),
                 'help': 'Select an input image with the source face'
             },
@@ -94,6 +94,10 @@ class FaceSwapper(BaseFrameProcessor):
         download_directory_path = get_app_dir('models')
         conditional_download(download_directory_path, ['https://github.com/pozitronik/sinner/releases/download/v200823/inswapper_128.onnx'])
         super().__init__(parameters)
+
+        if self.source_path is None:
+            self.update_status(f"No source path is set, assuming GUI mode bootstrap", mood=Mood.NEUTRAL)
+            _, _ = self.face_analyser, self.face_swapper
 
     def process_frame(self, frame: Frame) -> Frame:
         if self.many_faces:
