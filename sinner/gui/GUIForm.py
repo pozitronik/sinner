@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event, Scale, E, TOP, HORIZONTAL, CENTER
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, OptionMenu
 
 from customtkinter import CTk
 
@@ -84,6 +84,8 @@ class GUIForm(Status):
         self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: self.on_save_button_press())
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_slider_change(frame_value))
         self.QualityScale.set(self.GUIModel.quality)
+        self.FramerateModeVar = StringVar(value="All")
+        self.FramerateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.FramerateModeVar, "All", *['Auto', 'Fixed'], command=self.on_framerate_mode_select)
 
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
@@ -108,7 +110,7 @@ class GUIForm(Status):
         self.PreviewButton.pack(anchor=NE, side=LEFT)
         self.SaveButton.pack(anchor=NE, side=LEFT)
         self.QualityScale.pack(anchor=NE, expand=True, side=LEFT)
-
+        self.FramerateModeSelect.pack(expand=False, side=RIGHT)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X, side=TOP)
@@ -249,3 +251,6 @@ class GUIForm(Status):
             self.NavigateSlider.to = self.GUIModel.frame_handler.fc
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.position = 0
+
+    def on_framerate_mode_select(self, val: str) -> None:
+        self.GUIModel.frame_mode = val
