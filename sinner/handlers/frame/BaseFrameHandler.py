@@ -17,6 +17,7 @@ class BaseFrameHandler(Status, ABC):
     _fps: float | None = None
     _fc: int | None = None
     _resolution: tuple[int, int] | None = None
+    _length: float | None = None
 
     def rules(self) -> Rules:
         return [
@@ -61,6 +62,15 @@ class BaseFrameHandler(Status, ABC):
         Returns the target dimension resolution (WxH) if present, else None
         """
         pass
+
+    @property
+    def length(self) -> float:
+        """
+        Returns the target play length in seconds if it can be determined, else None
+        """
+        if self._length is None:
+            self._length = self.fc / self.fps
+        return self._length
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         """
