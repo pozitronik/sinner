@@ -85,7 +85,7 @@ class GUIForm(Status):
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_slider_change(frame_value))
         self.QualityScale.set(self.GUIModel.quality)
         self.FramerateModeVar = StringVar(value="All")
-        self.FramerateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.FramerateModeVar, "All", *['Auto', 'Fixed'], command=self.on_framerate_mode_select)
+        self.FramerateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.FramerateModeVar, "All", *['Auto', 'Fixed'], command=lambda value: self.on_framerate_mode_select(val=value))
 
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
