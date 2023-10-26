@@ -149,6 +149,8 @@ class GUIForm(Status):
         def on_framerate_mode_select(val: str) -> None:
             self.GUIModel.frame_mode = val
 
+        self.FramerateModeVar.set(self.GUIModel.frame_mode.value)
+
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state=READONLY)
