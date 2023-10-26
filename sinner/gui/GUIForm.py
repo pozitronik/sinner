@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, OptionMenu
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, OptionMenu
 
 from customtkinter import CTk
 
@@ -185,12 +185,12 @@ class GUIForm(Status):
         self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()  # also draws slider, if necessary
-        self.ControlsFrame.pack(anchor="center", expand=False, fill="x", side="top")
-        self.RunButton.pack(anchor=NE, side=LEFT)
-        self.PreviewButton.pack(anchor=NE, side=LEFT)
-        self.SaveButton.pack(anchor=NE, side=LEFT)
-        self.QualityScale.pack(anchor=NE, expand=True, side=LEFT)
-        self.FramerateModeSelect.pack(expand=False, side=RIGHT)
+        self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
+        self.RunButton.pack(anchor=CENTER, side=LEFT)
+        self.PreviewButton.pack(anchor=CENTER, side=LEFT)
+        self.SaveButton.pack(anchor=CENTER, side=LEFT)
+        self.FramerateModeSelect.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
+        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X, side=TOP)
