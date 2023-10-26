@@ -5,8 +5,8 @@ import time
 from argparse import Namespace
 from asyncio import Future
 from concurrent.futures.thread import ThreadPoolExecutor
+from enum import Enum
 from typing import List, Callable
-
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
@@ -16,6 +16,12 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame
 from sinner.validators.AttributeLoader import Rules
+
+
+class FrameMode(Enum):
+    ALL = "All"
+    AUTO = "Auto"
+    FIXED = "Fixed"
 
 
 class GUIModel(Status):
@@ -41,6 +47,7 @@ class GUIModel(Status):
     _fps: float = 1  # playing fps
     _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
+    _frame_mode: FrameMode
 
     def rules(self) -> Rules:
         return [
@@ -72,6 +79,7 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+        self._frame_mode: FrameMode = FrameMode.ALL
         self._scale_quality = 1
         self.parameters = parameters
         super().__init__(parameters)
@@ -200,6 +208,25 @@ class GUIModel(Status):
     def player_is_playing(self) -> bool:
         return not self._player_stop_event.is_set()
 
+    @property
+    def frame_mode(self) -> FrameMode:
+        return self._frame_mode
+
+    @frame_mode.setter
+    def frame_mode(self, value: str) -> None:
+        frame_mode_mapping = {mode.value: mode for mode in FrameMode}
+        if value in frame_mode_mapping:
+            self._frame_mode = frame_mode_mapping[value]
+
+    @property
+    def frame_step(self) -> int:
+        if self._frame_mode is FrameMode.ALL:
+            return 1
+        if self._frame_mode is FrameMode.AUTO:
+            return 5
+        if self._frame_mode is FrameMode.FIXED:
+            return 3
+
     def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
@@ -240,7 +267,7 @@ class GUIModel(Status):
                 futures.append(future)
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
-                    start_frame += 5
+                    start_frame += self.frame_step
 
                 if self._player_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
