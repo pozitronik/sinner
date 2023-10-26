@@ -1,4 +1,4 @@
-from tkinter import Frame, BOTH, LEFT, X
+from tkinter import Frame, BOTH, LEFT, X, BOTTOM
 from typing import Dict, Any
 
 from sinner.gui.controls.TextBox import TextBox, READONLY
@@ -18,7 +18,7 @@ class SimpleStatusBar(Frame):
 
     def pack(self) -> None:
         super().pack(fill=X)
-        self.text_box.pack(side=LEFT, expand=True, fill=BOTH)
+        self.text_box.pack(side=BOTTOM, expand=True, fill=BOTH)
 
     def update_text(self) -> None:
         self.text_box.set_text(self.get_status_text())

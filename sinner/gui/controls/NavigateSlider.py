@@ -1,4 +1,4 @@
-from tkinter import Label, StringVar, NE, RIGHT, Frame, X
+from tkinter import Label, StringVar, NE, RIGHT, Frame, X, CENTER, TOP, NW
 from typing import Union, Callable, Any
 
 from customtkinter import CTkSlider
@@ -21,7 +21,7 @@ class NavigateSlider(CTkSlider):
     def pack(self, **kwargs) -> Any:
         self._container.pack(fill=X)
         result = super().pack(**kwargs)
-        self._position_label.pack(anchor=NE, side=RIGHT, after=self)
+        self._position_label.pack(anchor=NW, side=TOP, expand=False, fill=X, after=self)
         return result
 
     def _clicked(self, event=None) -> None:

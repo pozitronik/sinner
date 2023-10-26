@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NE, NW, X, Event, Scale, E, TOP, HORIZONTAL, CENTER
 
 from customtkinter import CTk
 
@@ -56,78 +56,65 @@ class GUIForm(Status):
         super().__init__(parameters)
         self.GUIModel = GUIModel(parameters)
 
-        #  window controls
+        #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
-        self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow)  # the main preview
-        self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
-        self.NavigateSlider: NavigateSlider = NavigateSlider(self.GUIWindow)
-        # button controls
-        self.RunButton: Button = Button(self.GUIWindow, text="PLAY", compound=LEFT)
-        self.PreviewButton: Button = Button(self.GUIWindow, text="TEST", compound=LEFT)
-        self.SaveButton: Button = Button(self.GUIWindow, text="SAVE", compound=LEFT)
-        # player controls - will be moved to a separate sub-window
-        self.PlayerFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.QualitySlider: NavigateSlider = NavigateSlider(self.PlayerFrame, to=100)
-        self.QualitySlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-        self.QualitySlider.set(self.GUIModel.quality)
-
-        # source/target selection controls
-        self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame)
-        self.SelectSourceDialog = filedialog
-        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20)
-        self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame)
-        self.SelectTargetDialog = filedialog
-        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20)
-        self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
-        self.GUIModel.status_bar = self.StatusBar
-
-        # init main window
         self.GUIWindow.title('😈sinner')
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: self.on_preview_window_close())
         self.GUIWindow.resizable(width=True, height=True)
         self.GUIWindow.bind("<KeyRelease>", lambda event: self.on_preview_window_key_release(event))
         self.GUIWindow.bind("<KeyPress>", lambda event: self.on_preview_window_key_press(event))
 
-        # init preview
-        self.PreviewCanvas.configure(width=100, height=100)  # set the default canvas size
+        # Main canvas
+        self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow, width=100, height=100)  # the main preview
         self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.on_preview_canvas_double_button_1_click())
         self.PreviewCanvas.bind("<Button-2>", lambda event: self.on_preview_canvas_button_2_click())
         self.PreviewCanvas.bind("<Button-3>", lambda event: self.on_preview_canvas_button_3_click())
         self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_resize(event))
 
-        # init slider
-        self.NavigateSlider.configure(command=lambda frame_value: self.on_navigate_slider_change(frame_value))
+        # todo: move to a separate window
+        self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
-        # buttons
-        self.RunButton.configure(command=lambda: self.on_self_run_button_press())
-        self.PreviewButton.configure(command=lambda: self.on_preview_button_press())
-        self.SaveButton.configure(command=lambda: self.on_save_button_press())
-        self.ChangeSourceButton.configure(command=lambda: self.on_change_source_button_press())
-        self.ChangeTargetButton.configure(command=lambda: self.on_change_target_button_press())
+        # Navigation slider
+        self.NavigateSlider: NavigateSlider = NavigateSlider(self.GUIWindow, command=lambda frame_value: self.on_navigate_slider_change(frame_value))
 
-        self.SourcePathEntry.configure(state=READONLY)  # type: ignore[call-overload]
-        self.TargetPathEntry.configure(state=READONLY)  # type: ignore[call-overload]
+        # Controls frame and contents
+        self.ControlsFrame = Frame(self.GUIWindow)
+        self.RunButton: Button = Button(self.ControlsFrame, text="PLAY", compound=LEFT, command=lambda: self.on_self_run_button_press())
+        self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: self.on_preview_button_press())
+        self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: self.on_save_button_press())
+        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_slider_change(frame_value))
+        self.QualityScale.set(self.GUIModel.quality)
 
-        # player controls
-        self.QualitySlider.configure(command=lambda frame_value: self.on_quality_slider_change(frame_value))
+        # source/target selection controls
+        self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state=READONLY)
+        self.SelectSourceDialog = filedialog
+        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.on_change_source_button_press())
+        self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state=READONLY)
+        self.SelectTargetDialog = filedialog
+        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.on_change_target_button_press())
+        self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
+        self.GUIModel.status_bar = self.StatusBar
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
-        self.PreviewCanvas.pack(fill=BOTH, expand=True)
+        self.PreviewCanvas.pack(fill=BOTH, expand=True, side=TOP)
+        self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()  # also draws slider, if necessary
-        self.SaveButton.pack(anchor=NE, side=RIGHT)
-        self.PreviewButton.pack(anchor=NE, side=RIGHT)
-        self.RunButton.pack(anchor=NE, side=RIGHT)
-        self.PlayerFrame.pack(fill=X)
+        self.ControlsFrame.pack(anchor="center", expand=False, fill="x", side="top")
+        self.RunButton.pack(anchor=NE, side=LEFT)
+        self.PreviewButton.pack(anchor=NE, side=LEFT)
+        self.SaveButton.pack(anchor=NE, side=LEFT)
+        self.QualityScale.pack(anchor=NE, expand=True, side=LEFT)
+
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
-        self.SourcePathFrame.pack(fill=X)
+        self.SourcePathFrame.pack(fill=X, side=TOP)
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.pack(side=LEFT)
-        self.TargetPathFrame.pack(fill=X)
+        self.TargetPathFrame.pack(fill=X, side=TOP)
         self.StatusBar.pack()
 
     def show(self) -> CTk:
