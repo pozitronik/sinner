@@ -59,43 +59,123 @@ class GUIForm(Status):
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
         self.GUIWindow.title('😈sinner')
-        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: self.on_preview_window_close())
+        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_preview_window_close())
+
+        def on_preview_window_close() -> None:
+            self.GUIModel.player_stop(True)
+            quit()
+
         self.GUIWindow.resizable(width=True, height=True)
-        self.GUIWindow.bind("<KeyRelease>", lambda event: self.on_preview_window_key_release(event))
-        self.GUIWindow.bind("<KeyPress>", lambda event: self.on_preview_window_key_press(event))
+        self.GUIWindow.bind("<KeyRelease>", lambda event: on_preview_window_key_release(event))
+
+        def on_preview_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
+            if event.keycode == 37 or event.keycode == 39:
+                self.update_preview(self.NavigateSlider.position)
+
+        def on_preview_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
+            if event.keycode == 37:
+                self.NavigateSlider.position = max(1, self.NavigateSlider.position - 1)
+            if event.keycode == 39:
+                self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + 1)
+
+        self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
         # Main canvas
         self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow, width=100, height=100)  # the main preview
-        self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.on_preview_canvas_double_button_1_click())
-        self.PreviewCanvas.bind("<Button-2>", lambda event: self.on_preview_canvas_button_2_click())
-        self.PreviewCanvas.bind("<Button-3>", lambda event: self.on_preview_canvas_button_3_click())
-        self.PreviewCanvas.bind("<Configure>", lambda event: self.on_preview_canvas_resize(event))
+        self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.update_preview(self.NavigateSlider.position))
+
+        self.PreviewCanvas.bind("<Button-2>", lambda event: on_preview_canvas_button_2_click())
+
+        def on_preview_canvas_button_2_click() -> None:
+            self.change_source()
+            self.update_preview(self.NavigateSlider.position)
+
+        self.PreviewCanvas.bind("<Button-3>", lambda event: self.change_target())
+
+        self.PreviewCanvas.bind("<Configure>", lambda event: on_preview_canvas_resize(event))
+
+        def on_preview_canvas_resize(event: Event) -> None:  # type: ignore[type-arg]
+            self.StatusBar.set_item('view_res', f"{(event.width, event.height)}")
+            self.PreviewCanvas.show_frame(resize=(event.width, event.height))
 
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
         # Navigation slider
-        self.NavigateSlider: NavigateSlider = NavigateSlider(self.GUIWindow, command=lambda frame_value: self.on_navigate_slider_change(frame_value))
+        self.NavigateSlider: NavigateSlider = NavigateSlider(self.GUIWindow, command=lambda frame_value: on_navigate_slider_change(frame_value))
+
+        def on_navigate_slider_change(frame_value: float) -> None:
+            if self.GUIModel.player_is_playing:
+                self.GUIModel.player_stop()
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+            else:
+                self.update_preview(int(frame_value))
 
         # Controls frame and contents
         self.ControlsFrame = Frame(self.GUIWindow)
-        self.RunButton: Button = Button(self.ControlsFrame, text="PLAY", compound=LEFT, command=lambda: self.on_self_run_button_press())
-        self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: self.on_preview_button_press())
-        self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: self.on_save_button_press())
-        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_slider_change(frame_value))
+        self.RunButton: Button = Button(self.ControlsFrame, text="PLAY", compound=LEFT, command=lambda: on_self_run_button_press())
+
+        def on_self_run_button_press() -> None:
+            if self.GUIModel.player_is_playing:
+                self.GUIModel.player_stop()
+                self.RunButton.configure(text="PLAY")
+            else:
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+                self.RunButton.configure(text="STOP")
+
+        self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: on_preview_button_press())
+
+        def on_preview_button_press() -> None:
+            self.update_preview(self.NavigateSlider.position, True)
+
+        self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: on_save_button_press())
+
+        def on_save_button_press() -> None:
+            save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
+            if save_file != ' ':
+                self.PreviewCanvas.save_to_file(save_file)
+
+        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
+
+        def on_quality_scale_change(frame_value: float) -> None:
+            self.GUIModel.quality = int(frame_value)
+            self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
+            #  the quality applies only when playing, the preview always renders with 100% resolution
+
         self.QualityScale.set(self.GUIModel.quality)
         self.FramerateModeVar = StringVar(value="All")
-        self.FramerateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.FramerateModeVar, "All", *['Auto', 'Fixed'], command=lambda value: self.on_framerate_mode_select(val=value))
+        self.FramerateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.FramerateModeVar, "All", *['Auto', 'Fixed'], command=lambda value: on_framerate_mode_select(val=value))
+
+        def on_framerate_mode_select(val: str) -> None:
+            self.GUIModel.frame_mode = val
 
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state=READONLY)
         self.SelectSourceDialog = filedialog
-        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.on_change_source_button_press())
+        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: on_change_source_button_press())
+
+        def on_change_source_button_press() -> None:
+            self.change_source()
+            if self.GUIModel.player_is_playing:
+                self.GUIModel.player_stop()
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+            else:
+                self.update_preview(self.NavigateSlider.position)
+
         self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state=READONLY)
         self.SelectTargetDialog = filedialog
-        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.on_change_target_button_press())
+        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: on_change_target_button_press())
+
+        def on_change_target_button_press() -> None:
+            self.change_target()
+            if self.GUIModel.player_is_playing:
+                self.GUIModel.player_stop()
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+            else:
+                self.update_preview(self.NavigateSlider.position)
+
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
         self.GUIModel.status_bar = self.StatusBar
 
@@ -128,85 +208,6 @@ class GUIForm(Status):
         self.PreviewCanvas.adjust_size()
         return self.GUIWindow
 
-    # Control events handlers
-
-    def on_preview_window_close(self) -> None:
-        self.GUIModel.player_stop(True)
-        quit()
-
-    def on_preview_window_key_release(self, event: Event) -> None:  # type: ignore[type-arg]
-        if event.keycode == 37 or event.keycode == 39:
-            self.update_preview(self.NavigateSlider.position)
-
-    def on_preview_window_key_press(self, event: Event) -> None:  # type: ignore[type-arg]
-        if event.keycode == 37:
-            self.NavigateSlider.position = max(1, self.NavigateSlider.position - 1)
-        if event.keycode == 39:
-            self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + 1)
-
-    def on_preview_canvas_double_button_1_click(self) -> None:
-        self.update_preview(self.NavigateSlider.position)
-
-    def on_preview_canvas_button_2_click(self) -> None:
-        self.change_source()
-        self.update_preview(self.NavigateSlider.position)
-
-    def on_preview_canvas_button_3_click(self) -> None:
-        self.change_target()
-
-    def on_preview_canvas_resize(self, event: Event) -> None:  # type: ignore[type-arg]
-        self.StatusBar.set_item('view_res', f"{(event.width, event.height)}")
-        self.PreviewCanvas.show_frame(resize=(event.width, event.height))
-
-    def on_navigate_slider_change(self, frame_value: float) -> None:
-        if self.GUIModel.player_is_playing:
-            self.GUIModel.player_stop()
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
-        else:
-            self.update_preview(int(frame_value))
-
-    def on_self_run_button_press(self) -> None:
-        if self.GUIModel.player_is_playing:
-            self.GUIModel.player_stop()
-            self.RunButton.configure(text="PLAY")
-        else:
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
-            self.RunButton.configure(text="STOP")
-
-    def on_preview_button_press(self) -> None:
-        self.update_preview(self.NavigateSlider.position, True)
-
-    def on_save_button_press(self) -> None:
-        save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
-        if save_file != ' ':
-            self.PreviewCanvas.save_to_file(save_file)
-
-    def on_change_source_button_press(self) -> None:
-        self.change_source()
-        if self.GUIModel.player_is_playing:
-            self.GUIModel.player_stop()
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
-        else:
-            self.update_preview(self.NavigateSlider.position)
-
-    def on_change_target_button_press(self) -> None:
-        self.change_target()
-        if self.GUIModel.player_is_playing:
-            self.GUIModel.player_stop()
-            self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
-        else:
-            self.update_preview(self.NavigateSlider.position)
-
-    def on_quality_slider_change(self, frame_value: float) -> None:
-        self.GUIModel.quality = int(frame_value)
-        self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
-        #  the quality applies only when playing, the preview always renders with 100% resolution
-
-    def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
-        frames = self.GUIModel.get_previews(frame_number)
-        if frames:
-            self.PreviewCanvas.show_frame(frames[thumbnail_index][0])
-
     # controls manipulation methods
     def update_preview(self, frame_number: int = 0, processed: bool | None = None) -> None:
         if processed is None:
@@ -226,6 +227,11 @@ class GUIForm(Status):
                 self.PreviewCanvas.show_frame(frames[0][0])
         else:
             self.PreviewCanvas.photo_image = None
+
+    def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
+        frames = self.GUIModel.get_previews(frame_number)
+        if frames:
+            self.PreviewCanvas.show_frame(frames[thumbnail_index][0])
 
     def change_source(self) -> None:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
@@ -251,6 +257,3 @@ class GUIForm(Status):
             self.NavigateSlider.to = self.GUIModel.frame_handler.fc
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.position = 0
-
-    def on_framerate_mode_select(self, val: str) -> None:
-        self.GUIModel.frame_mode = val
