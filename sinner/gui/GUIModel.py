@@ -3,6 +3,7 @@ import queue
 import threading
 import time
 from argparse import Namespace
+from asyncio import Future
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import List, Callable
 
@@ -227,11 +228,20 @@ class GUIModel(Status):
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
 
     def multi_process_frames(self, start_frame: int, end_frame: int, frame_step: int = 1) -> None:
+        def process_done(future_: Future[None]) -> None:
+            futures.remove(future_)
+
         self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
+        futures: list[Future[None]] = []
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame < end_frame:
-                executor.submit(self.process_frame_to_queue, start_frame)
-                start_frame += 5
+                future: Future[None] = executor.submit(self.process_frame_to_queue, start_frame)
+                future.add_done_callback(process_done)
+                futures.append(future)
+                if len(futures) >= self.execution_threads:
+                    futures[:1][0].result()
+                    start_frame += 5
+
                 if self._player_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
