@@ -29,6 +29,7 @@ class GUIModel(Status):
     _source_path: str
     _target_path: str
     execution_threads: int
+    bootstrap: bool
 
     parameters: Namespace
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -62,7 +63,6 @@ class GUIModel(Status):
             },
             {
                 'parameter': 'execution-threads',
-                'type': int,
                 'default': suggest_execution_threads(),
                 'help': 'The count of simultaneous processing threads'
             },
@@ -75,6 +75,12 @@ class GUIModel(Status):
                 'attribute': '_target_path'
             },
             {
+                'parameter': 'bootstrap',
+                'attribute': 'bootstrap',
+                'default': True,
+                'help': 'Bootstrap frame processors on startup'
+            },
+            {
                 'module_help': 'The GUI processing handler'
             }
         ]
@@ -85,6 +91,9 @@ class GUIModel(Status):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
+        # if self.bootstrap: todo
+        #     self._processors = self.processors
+
         self._player_stop_event = threading.Event()
         self.processing_thread_stop_event = threading.Event()
         self.viewing_thread_stop_event = threading.Event()
