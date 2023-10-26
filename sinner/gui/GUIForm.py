@@ -123,7 +123,7 @@ class GUIForm(Status):
         self.draw_controls()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
-        self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}")
+        self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
         return self.GUIWindow
@@ -241,7 +241,7 @@ class GUIForm(Status):
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
             self.PreviewCanvas.adjust_size()
-            self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}")
+            self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
 
     def update_slider_bounds(self) -> None:
         if is_image(self.GUIModel.target_path):
