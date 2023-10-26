@@ -226,7 +226,7 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.AUTO:
             return self.calculate_framedrop()
         if self._frame_mode is FrameMode.FIXED:
-            return 3
+            return 3  # todo an editable value, I suppose
 
     def calculate_framedrop(self) -> int:
         frame_drop = int(self.frame_handler.fps / self._fps / self.execution_threads)
