@@ -45,6 +45,7 @@ class GUIModel(Status):
     _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
+
     _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
     _frame_mode: FrameMode
@@ -79,7 +80,7 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace):
-        self._frame_mode: FrameMode = FrameMode.ALL
+        self._frame_mode: FrameMode = FrameMode.AUTO
         self._scale_quality = 1
         self.parameters = parameters
         super().__init__(parameters)
@@ -223,9 +224,14 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.ALL:
             return 1
         if self._frame_mode is FrameMode.AUTO:
-            return 5
+            return self.calculate_framedrop()
         if self._frame_mode is FrameMode.FIXED:
             return 3
+
+    def calculate_framedrop(self) -> int:
+        frame_drop = int(self.frame_handler.fps / self._fps / self.execution_threads)
+        self.update_status(f"FPS: {self._fps}, Framedrop: {frame_drop}")
+        return frame_drop
 
     def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
