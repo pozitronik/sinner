@@ -301,7 +301,7 @@ class GUIModel(Status):
             self.update_processing_fps(frame_render_time)
 
     def show_frames(self) -> None:
-        _frame_wait_time = 0.1 / self.frame_handler.fps
+        _frame_wait_time = 0.1 / self.frame_handler.fps  # todo: frame wait time should be configured
         if self.canvas:
             while not self._player_stop_event.is_set():
                 try:
