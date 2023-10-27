@@ -3,6 +3,8 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List
 
+import numpy
+
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.models.NumberedFrame import NumberedFrame
@@ -174,8 +176,8 @@ class State(Status):
 
     def check_integrity(self) -> List[int]:
         result: List[int] = []
-        for frame in range(self.frames_count):
-            f_name = self.get_frame_processed_name(frame)
+        for frame_index in range(self.frames_count):
+            f_name = self.get_frame_processed_name(NumberedFrame(frame_index, numpy.zeros(3)))
             if not os.path.exists(f_name):
-                result.append(frame)
+                result.append(frame_index)
         return result
