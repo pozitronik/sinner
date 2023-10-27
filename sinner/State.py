@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
-from sinner.typing import Frame
+from sinner.models.NumberedFrame import NumberedFrame
 from sinner.utilities import is_absolute_path, format_sequences
 from sinner.validators.AttributeLoader import Rules
 
@@ -102,8 +102,8 @@ class State(Status):
         self._path = path
         self.make_path(self._path)
 
-    def save_temp_frame(self, frame: Frame, index_name: int | str) -> None:
-        if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(index_name)):
+    def save_temp_frame(self, frame: NumberedFrame) -> None:
+        if not CV2VideoHandler.write_image(frame.frame, self.get_frame_processed_name(index_name)):
             raise Exception(f"Error saving frame: {self.get_frame_processed_name(index_name)}")
 
     #  Checks if some frame already processed
@@ -135,11 +135,11 @@ class State(Status):
         return self.frames_count - self.processed_frames_count
 
     #  Returns a processed file name for an unprocessed frame index
-    def get_frame_processed_name(self, frame_index: int | str) -> str:
-        if isinstance(frame_index, str):
-            filename = frame_index + '.png'
+    def get_frame_processed_name(self, frame: NumberedFrame) -> str:
+        if frame.name:
+            filename = frame.name + '.png'
         else:
-            filename = str(frame_index).zfill(self.zfill_length) + '.png'
+            filename = str(frame.number).zfill(self.zfill_length) + '.png'
         return str(os.path.join(self.path, filename))
 
     @property

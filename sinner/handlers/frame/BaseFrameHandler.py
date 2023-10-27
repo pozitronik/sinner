@@ -5,8 +5,9 @@ from argparse import Namespace
 from typing import List
 
 from sinner.Status import Status
+from sinner.models.NumberedFrame import NumberedFrame
 from sinner.validators.AttributeLoader import Rules
-from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.typing import NumeratedFramePath
 from sinner.utilities import load_class, get_file_name
 
 
@@ -83,7 +84,7 @@ class BaseFrameHandler(Status, ABC):
         return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)][frames_range[0]:frames_range[1]]
 
     @abstractmethod
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
         """
         Return the certain frame from the target
         """

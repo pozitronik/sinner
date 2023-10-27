@@ -6,7 +6,8 @@ from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
-from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.models.NumberedFrame import NumberedFrame
+from sinner.typing import NumeratedFramePath
 from sinner.utilities import is_image, get_file_name
 from sinner.validators.AttributeLoader import Rules
 
@@ -50,7 +51,7 @@ class DirectoryHandler(BaseFrameHandler):
         stop_frame = frames_range[1] + 1 if frames_range[1] is not None else len(self._frames_path)
         return [(frames_index, file_path) for frames_index, file_path in enumerate(self._frames_path)][start_frame:stop_frame]
 
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
         frame_path = self.get_frames_paths(self._target_path, (frame_number, frame_number))[0][1]
         return frame_number, CV2VideoHandler.read_image(frame_path), get_file_name(frame_path)  # zero-based sorted frames list
 

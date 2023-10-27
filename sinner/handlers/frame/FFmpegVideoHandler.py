@@ -10,7 +10,8 @@ from numpy import uint8, frombuffer
 
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.models.NumberedFrame import NumberedFrame
+from sinner.typing import NumeratedFramePath
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -109,10 +110,10 @@ class FFmpegVideoHandler(BaseFrameHandler):
         self.run(['-i', self._target_path, '-vf', f"select='between(n,{start_frame},{stop_frame})'", '-vsync', '0', '-pix_fmt', 'rgb24', '-frame_pts', '1', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select='eq(n,{frame_number})',setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
-        return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), None
+        return NumberedFrame(frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR))
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")
