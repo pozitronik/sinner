@@ -47,6 +47,7 @@ class GUIModel(Status):
     _frames_queue: queue.PriorityQueue[NumberedFrame]
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
+    _frame_drop_reminder: float = 0
 
     _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
@@ -239,8 +240,10 @@ class GUIModel(Status):
             return 3  # todo an editable value, I suppose
 
     def calculate_framedrop(self) -> int:
-        frame_drop = int(self.frame_handler.fps / self._fps / self.execution_threads)
-        self.update_status(f"FPS: {self._fps}, Framedrop: {frame_drop}")
+        real_frame_drop = (self.frame_handler.fps / self._fps / self.execution_threads) + self._frame_drop_reminder
+        frame_drop = int(real_frame_drop)
+        self._frame_drop_reminder = real_frame_drop % 1  # save fraction part for the next iteration, make calculation more accurate
+        self.update_status(f"FPS: {self._fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
     def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
