@@ -172,7 +172,7 @@ class BatchProcessingCore(Status):
         if not is_ok:
             raise Exception("Something went wrong on processed frames check")
 
-    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], NumeratedFrame], save: Callable[[NumeratedFrame], None], progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], NumberedFrame], save: Callable[[NumeratedFrame], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
