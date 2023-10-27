@@ -1,4 +1,4 @@
 .idea
-models
-temp
-__pycache__
+.models
+.temp
+.__pycache__
