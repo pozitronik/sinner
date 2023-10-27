@@ -12,6 +12,7 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame
@@ -43,7 +44,7 @@ class GUIModel(Status):
     _show_frames_thread: threading.Thread | None = None
 
     _player_stop_event: threading.Event  # the event to stop live player
-    _frames_queue: queue.PriorityQueue[tuple[int, Frame]]
+    _frames_queue: queue.PriorityQueue[NumberedFrame]
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
 
@@ -177,14 +178,14 @@ class GUIModel(Status):
         if extractor_handler is None:
             return result
         try:
-            _, frame, _ = extractor_handler.extract_frame(frame_number)
-            result.append((frame, 'Original'))  # add an original frame
+            n_frame = extractor_handler.extract_frame(frame_number)
+            result.append((n_frame.frame, 'Original'))  # add an original frame
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
             return result
         if processed:  # return all processed frames
             for processor_name, processor in self.processors.items():
-                frame = processor.process_frame(frame)
+                frame = processor.process_frame(n_frame.frame)
                 result.append((frame, processor_name))
         return result
 
@@ -291,11 +292,11 @@ class GUIModel(Status):
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._player_stop_event.is_set():
             frame_start_time = time.perf_counter()
-            index, frame, _ = self.frame_handler.extract_frame(frame_index)
-            frame = resize_frame(frame, self._scale_quality)
+            n_frame = self.frame_handler.extract_frame(frame_index)
+            n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
             for _, processor in self.processors.items():
-                frame = processor.process_frame(frame)
-            self._frames_queue.put((index, frame))
+                n_frame.frame = processor.process_frame(n_frame.frame)
+            self._frames_queue.put(n_frame)
             frame_render_time = time.perf_counter() - frame_start_time
             self.update_processing_fps(frame_render_time)
 
@@ -304,10 +305,10 @@ class GUIModel(Status):
         if self.canvas:
             while not self._player_stop_event.is_set():
                 try:
-                    index, frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
-                    self.canvas.show_frame(frame)
+                    n_frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
+                    self.canvas.show_frame(n_frame.frame)
                     if self.progress_callback:
-                        self.progress_callback(index)
+                        self.progress_callback(n_frame.number)
                 except queue.Empty:  # there are no frames processed
                     if not self._player_stop_event.is_set():
                         time.sleep(_frame_wait_time)
