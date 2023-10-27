@@ -8,7 +8,7 @@ from sinner.State import State
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import Frame
-from sinner.utilities import load_class, suggest_execution_threads, suggest_execution_providers, decode_execution_providers
+from sinner.utilities import load_class, suggest_execution_providers, decode_execution_providers
 
 
 class BaseFrameProcessor(ABC, Status):

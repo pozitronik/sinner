@@ -1,4 +1,4 @@
-from tkinter import Label, StringVar, NE, RIGHT, Frame, X, CENTER, TOP, NW
+from tkinter import Label, StringVar,  Frame, X, TOP, NW
 from typing import Union, Callable, Any
 
 from customtkinter import CTkSlider

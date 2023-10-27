@@ -1,4 +1,4 @@
-from tkinter import Frame, BOTH, LEFT, X, BOTTOM
+from tkinter import Frame, BOTH, X, BOTTOM
 from typing import Dict, Any
 
 from sinner.gui.controls.TextBox import TextBox, READONLY

@@ -1,7 +1,7 @@
 from tkinter import Canvas
 
 import cv2
-from PIL import ImageTk, Image
+from PIL import Image
 from PIL.ImageTk import PhotoImage
 
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
