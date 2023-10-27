@@ -105,8 +105,8 @@ class State(Status):
         self.make_path(self._path)
 
     def save_temp_frame(self, frame: NumberedFrame) -> None:
-        if not CV2VideoHandler.write_image(frame.frame, self.get_frame_processed_name(index_name)):
-            raise Exception(f"Error saving frame: {self.get_frame_processed_name(index_name)}")
+        if not CV2VideoHandler.write_image(frame.frame, self.get_frame_processed_name(frame)):
+            raise Exception(f"Error saving frame: {self.get_frame_processed_name(frame)}")
 
     #  Checks if some frame already processed
     @property
