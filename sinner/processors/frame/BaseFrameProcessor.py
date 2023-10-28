@@ -4,7 +4,7 @@ from typing import List, Any, Callable
 
 from argparse import Namespace
 
-from sinner.State import State
+from sinner.models.State import State
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import Frame

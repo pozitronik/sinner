@@ -6,7 +6,7 @@ from typing import List
 import pytest
 
 from sinner.Parameters import Parameters
-from sinner.State import State
+from sinner.models.State import State
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import EmptyFrame
 from tests.constants import tmp_dir, target_mp4, source_jpg, target_png, TARGET_FC, state_frames_dir

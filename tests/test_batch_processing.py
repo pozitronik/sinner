@@ -8,7 +8,7 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.State import State
+from sinner.models.State import State
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.utilities import limit_resources, suggest_max_memory, get_file_name, get_app_dir, resolve_relative_path
 from sinner.validators.LoaderException import LoadingException

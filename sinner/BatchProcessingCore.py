@@ -8,7 +8,7 @@ import os
 from pathvalidate import is_valid_filepath, ValidationError, validate_filepath
 from tqdm import tqdm
 
-from sinner.State import State
+from sinner.models.State import State
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler

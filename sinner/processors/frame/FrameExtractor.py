@@ -1,7 +1,7 @@
 import os
 from argparse import Namespace
 
-from sinner.State import State
+from sinner.models.State import State
 from sinner.Status import Status
 from sinner.typing import Frame
 from sinner.validators.AttributeLoader import Rules

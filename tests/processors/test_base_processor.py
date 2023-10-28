@@ -1,4 +1,3 @@
-import glob
 import multiprocessing
 import os.path
 import shutil
@@ -12,7 +11,7 @@ from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.DummyProcessor import DummyProcessor
-from sinner.State import State
+from sinner.models.State import State
 from sinner.typing import Frame
 from tests.constants import source_jpg, target_png, IMAGE_SHAPE, target_mp4, tmp_dir, TARGET_FC
 

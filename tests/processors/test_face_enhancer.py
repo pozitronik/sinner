@@ -7,7 +7,7 @@ from sinner.Parameters import Parameters
 from sinner.FaceAnalyser import FaceAnalyser
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
-from sinner.State import State
+from sinner.models.State import State
 from sinner.typing import Frame
 from tests.constants import target_png, IMAGE_SHAPE, tmp_dir
 
