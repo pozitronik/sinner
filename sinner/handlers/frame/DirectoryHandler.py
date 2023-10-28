@@ -15,7 +15,9 @@ from sinner.validators.AttributeLoader import Rules
 class DirectoryHandler(BaseFrameHandler):
     emoji: str = '📂'
 
-    _fc: int | None = None
+    _fps: float | None
+    _fc: int | None
+    _resolution: tuple[int, int] | None
     _frames_path: list[str] | None = None
 
     def rules(self) -> Rules:
@@ -25,14 +27,21 @@ class DirectoryHandler(BaseFrameHandler):
             }
         ]
 
-    def __init__(self, target_path: str, parameters: Namespace):
+    def __init__(self, target_path: str, parameters: Namespace, fps: float | None = None, fc: int | None = None, resolution: tuple[int, int] | None = None):
         if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
+        self._fps = fps
+        self._fc = fc
+        self.resolution = resolution
 
     @property
     def fps(self) -> float:
-        return 1  # todo
+        return self._fps
+
+    @fps.setter
+    def fps(self, value: float | None) -> None:
+        self._fps = value
 
     @property
     def fc(self) -> int:
@@ -40,9 +49,17 @@ class DirectoryHandler(BaseFrameHandler):
             self._fc = len(list(filter(is_image, glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))))
         return self._fc
 
+    @fc.setter
+    def fc(self, value: int | None) -> None:
+        self._fc = value
+
     @property
     def resolution(self) -> tuple[int, int] | None:
-        return None
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, value: tuple[int, int] | None) -> None:
+        self._resolution = value
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         if self._frames_path is None:
