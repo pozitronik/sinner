@@ -139,8 +139,9 @@ class GUIForm(Status):
 
         def on_quality_scale_change(frame_value: float) -> None:
             self.GUIModel.quality = int(frame_value)
-            self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
-            #  the quality applies only when playing, the preview always renders with 100% resolution
+            if self.GUIModel.frame_handler.resolution:
+                self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
+                #  the quality applies only when playing, the preview always renders with 100% resolution
 
         self.QualityScale.set(self.GUIModel.quality)
         self.FramerateModeVar = StringVar(value="All")

@@ -12,6 +12,7 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FramesList
@@ -98,8 +99,8 @@ class GUIModel(Status):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
-        # if self.bootstrap: todo
-        #     self._processors = self.processors
+        if self.bootstrap:
+            self._processors = self.processors
 
         self._player_stop_event = threading.Event()
         self.processing_thread_stop_event = threading.Event()
@@ -207,7 +208,7 @@ class GUIModel(Status):
     @property
     def frame_handler(self) -> BaseFrameHandler | None:
         if self.target_path is None:
-            return None
+            return NoneHandler()
         if self._extractor_handler is None:
             self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._extractor_handler
