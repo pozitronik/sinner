@@ -4,12 +4,12 @@ import cv2
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
-from sinner.gui.controls.FrameThumbnail import FrameThumbnail
+from sinner.gui.controls.BasePlayer import BasePlayer
 from sinner.typing import Frame
-from sinner.utilities import resize_frame, set_frame_size
+from sinner.utilities import set_frame_size
 
 
-class PreviewCanvas(Canvas):
+class PreviewCanvas(Canvas, BasePlayer):
     photo: PhotoImage | None = None
 
     _last_frame: Frame | None = None  # the last viewed frame
