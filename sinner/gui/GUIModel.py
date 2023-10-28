@@ -1,5 +1,6 @@
 import os
 import queue
+import sys
 import threading
 import time
 from argparse import Namespace
@@ -332,7 +333,7 @@ class GUIModel(Status):
                 if self._player_thread_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
-            self._frames_queue.put(NumberedFrame(-1, EmptyFrame))
+            self._frames_queue.put(NumberedFrame(sys.maxsize, EmptyFrame))
 
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._player_thread_stop_event.is_set():
@@ -352,7 +353,7 @@ class GUIModel(Status):
                 display_time_start = time.perf_counter()
                 try:
                     n_frame = self._frames_queue.get(block=False)
-                    if n_frame.number == -1:  # use as the stop marker
+                    if n_frame.number == sys.maxsize:  # use as the stop marker
                         self._player_thread_stop_event.set()
                         continue
 
@@ -364,16 +365,18 @@ class GUIModel(Status):
                     self.update_status("frame skipped")
                     display_time = time.perf_counter() - display_time_start
                     next_frame_wait_time = _frame_wait_time - display_time
-                    if next_frame_wait_time > 0:
-                        time.sleep(next_frame_wait_time)
+                    # if next_frame_wait_time > 0:
+                    #     time.sleep(next_frame_wait_time)
+                    time.sleep(_frame_wait_time)
                     continue
 
                 display_time = time.perf_counter() - display_time_start
                 next_frame_wait_time = _frame_wait_time - display_time
 
                 self.update_status(f"display FPS: {1 / display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time if show_time else 'none'}")
-                if next_frame_wait_time > 0:
-                    time.sleep(next_frame_wait_time)
+                # if next_frame_wait_time > 0:
+                #     time.sleep(next_frame_wait_time)
+                time.sleep(_frame_wait_time)
 
     # method computes the current processing fps based on the median time of all processed frames timings
     def update_processing_fps(self, frame_render_ns: float) -> None:
