@@ -21,7 +21,7 @@ from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
-from sinner.typing import Frame, FramesList
+from sinner.typing import Frame, FramesList, EmptyFrame
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
@@ -317,8 +317,6 @@ class GUIModel(Status):
     def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            # if len(futures) == 0:
-            #     self._processing_thread_stop_event.set()
 
         self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         futures: list[Future[None]] = []
@@ -334,6 +332,7 @@ class GUIModel(Status):
                 if self._player_thread_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
+            self._frames_queue.put(NumberedFrame(-1, EmptyFrame))
 
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._player_thread_stop_event.is_set():
@@ -353,8 +352,12 @@ class GUIModel(Status):
                 display_time_start = time.perf_counter()
                 try:
                     n_frame = self._frames_queue.get(block=False)
+                    if n_frame.number == -1:  # use as the stop marker
+                        self._player_thread_stop_event.set()
+                        continue
+
                     with PerfCounter() as show_time:
-                        # self.canvas.show_frame(n_frame.frame)
+                        self.canvas.show_frame(n_frame.frame)
                         if self.progress_callback:
                             self.progress_callback(n_frame.number)
                 except queue.Empty:
@@ -368,7 +371,7 @@ class GUIModel(Status):
                 display_time = time.perf_counter() - display_time_start
                 next_frame_wait_time = _frame_wait_time - display_time
 
-                self.update_status(f"display FPS: {1/display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time if show_time else 'none'}")
+                self.update_status(f"display FPS: {1 / display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time if show_time else 'none'}")
                 if next_frame_wait_time > 0:
                     time.sleep(next_frame_wait_time)
 
