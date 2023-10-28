@@ -279,7 +279,7 @@ class GUIModel(Status):
         # self.update_status(f"Median FPS: {current_median_fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
-    def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
+    def player_start(self, start_frame: int, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
         if progress_callback:
@@ -342,6 +342,7 @@ class GUIModel(Status):
         _frame_wait_time = 1 / self.frame_handler.fps  # todo: frame wait time should be configured
         if self.canvas:
             while not self._player_stop_event.is_set():
+                start_time = time.perf_counter()
                 try:
                     n_frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
                     self.canvas.show_frame(n_frame.frame)
@@ -352,6 +353,7 @@ class GUIModel(Status):
                         time.sleep(_frame_wait_time)
                 if not self._player_stop_event.is_set():
                     time.sleep(_frame_wait_time)
+                self.update_status(f"Show time: {time.perf_counter() - start_time}")
 
     # method computes the current processing fps based on the median time of all processed frames timings
     def update_processing_fps(self, frame_render_ns: float) -> None:
