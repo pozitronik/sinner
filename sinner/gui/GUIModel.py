@@ -52,7 +52,8 @@ class GUIModel(Status):
     _multi_process_frames_thread: threading.Thread | None = None
     _show_frames_thread: threading.Thread | None = None
 
-    _player_stop_event: threading.Event  # the event to stop live player
+    _player_thread_stop_event: threading.Event  # the event to stop live player
+    # _processing_thread_stop_event: threading.Event  # the event to stop processing
     _frames_queue: queue.PriorityQueue[NumberedFrame]
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
@@ -122,10 +123,12 @@ class GUIModel(Status):
             self._processors = self.processors
 
         self._frames_queue = queue.PriorityQueue()
-        self._player_stop_event = threading.Event()
-        self.processing_thread_stop_event = threading.Event()
-        self.viewing_thread_stop_event = threading.Event()
-        self._player_stop_event.set()
+
+        self._player_thread_stop_event = threading.Event()
+        # self._processing_thread_stop_event = threading.Event()
+
+        self._player_thread_stop_event.set()
+        # self._processing_thread_stop_event.set()
 
     def reload_parameters(self) -> None:
         self.clear_previews()
@@ -245,7 +248,7 @@ class GUIModel(Status):
 
     @property
     def player_is_playing(self) -> bool:
-        return not self._player_stop_event.is_set()
+        return not self._player_thread_stop_event.is_set()
 
     @property
     def frame_mode(self) -> FrameMode:
@@ -288,7 +291,8 @@ class GUIModel(Status):
         if self.bootstrap_frames:
             self.bootstrap_frames()
 
-        self._player_stop_event.clear()
+        self._player_thread_stop_event.clear()
+        # self._processing_thread_stop_event.clear()
         self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, kwargs={
             'start_frame': start_frame,
             'end_frame': self.frame_handler.fc
@@ -301,7 +305,8 @@ class GUIModel(Status):
         self._show_frames_thread.start()
 
     def player_stop(self, wait: bool = False) -> None:
-        self._player_stop_event.set()
+        self._player_thread_stop_event.set()
+        # self._processing_thread_stop_event.set()
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
         if self._multi_process_frames_thread:
@@ -312,6 +317,8 @@ class GUIModel(Status):
     def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
+            # if len(futures) == 0:
+            #     self._processing_thread_stop_event.set()
 
         self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         futures: list[Future[None]] = []
@@ -324,12 +331,12 @@ class GUIModel(Status):
                     futures[:1][0].result()
                     start_frame += self.frame_step
 
-                if self._player_stop_event.is_set():
+                if self._player_thread_stop_event.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
 
     def process_frame_to_queue(self, frame_index: int) -> None:
-        if not self._player_stop_event.is_set():
+        if not self._player_thread_stop_event.is_set():
             with PerfCounter() as frame_render_time:
                 n_frame = self.frame_handler.extract_frame(frame_index)
                 n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
@@ -341,27 +348,34 @@ class GUIModel(Status):
     def show_frames(self) -> None:
         _frame_wait_time = 1 / self.frame_handler.fps
         if self.canvas:
-            while not self._player_stop_event.is_set():  # todo: need two different events, one for the render thread, and other one for the player
+            show_time = None
+            while not self._player_thread_stop_event.is_set():  # todo: need two different events, one for the render thread, and other one for the player
                 display_time_start = time.perf_counter()
                 try:
-                    n_frame = self._frames_queue.get(block=False, timeout=_frame_wait_time)
+                    n_frame = self._frames_queue.get(block=False)
+                    with PerfCounter() as show_time:
+                        # self.canvas.show_frame(n_frame.frame)
+                        if self.progress_callback:
+                            self.progress_callback(n_frame.number)
                 except queue.Empty:
                     self.update_status("frame skipped")
+                    display_time = time.perf_counter() - display_time_start
+                    next_frame_wait_time = _frame_wait_time - display_time
+                    if next_frame_wait_time > 0:
+                        time.sleep(next_frame_wait_time)
                     continue
-                with PerfCounter() as show_time:
-                    self.canvas.show_frame(n_frame.frame)
 
                 display_time = time.perf_counter() - display_time_start
                 next_frame_wait_time = _frame_wait_time - display_time
-                if self.progress_callback:
-                    self.progress_callback(n_frame.number)
-                self.update_status(f"display_time: {display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time}")
+
+                self.update_status(f"display FPS: {1/display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time if show_time else 'none'}")
                 if next_frame_wait_time > 0:
                     time.sleep(next_frame_wait_time)
 
     # method computes the current processing fps based on the median time of all processed frames timings
     def update_processing_fps(self, frame_render_ns: float) -> None:
         self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
+        # self._frame_render_time = frame_render_ns / self.execution_threads
         self._fps = 1 / self._frame_render_time
 
     def bootstrap_frames(self):
