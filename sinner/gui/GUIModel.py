@@ -301,13 +301,20 @@ class GUIModel(Status):
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._player_stop_event.is_set():
             frame_start_time = time.perf_counter()
+            extraction_start_time = time.perf_counter()
             n_frame = self.frame_handler.extract_frame(frame_index)
+            extraction_time = time.perf_counter() - extraction_start_time
+            resize_start_time = time.perf_counter()
             n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
+            resize_time = time.perf_counter() - resize_start_time
+            processing_start_time = time.perf_counter()
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
+            processing_time = time.perf_counter() - processing_start_time
             self._frames_queue.put(n_frame)
             frame_render_time = time.perf_counter() - frame_start_time
             self.update_processing_fps(frame_render_time)
+            self.update_status(f"Frame {frame_index} render time: {frame_render_time} (extraction: {extraction_time}, resize: {resize_time}, processing: {processing_time})")
 
     def show_frames(self) -> None:
         _frame_wait_time = 0.1 / self.frame_handler.fps  # todo: frame wait time should be configured
