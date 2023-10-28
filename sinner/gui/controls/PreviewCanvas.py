@@ -6,6 +6,7 @@ from PIL.ImageTk import PhotoImage
 
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.typing import Frame
+from sinner.utilities import resize_frame, set_frame_size
 
 
 class PreviewCanvas(Canvas):
@@ -25,7 +26,7 @@ class PreviewCanvas(Canvas):
         except Exception as e:
             pass
 
-    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] = True) -> None:
+    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
         """
         Draws an image from the frame, with resize if necessary
         :param frame: frame or None to use the last drawn frame. If last frame is used, it can be only resized
@@ -35,13 +36,13 @@ class PreviewCanvas(Canvas):
             frame = self._last_frame
         if frame is not None:
             self._last_frame = frame
-            image = Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB))
             if resize is True:  # resize to the current canvas size
-                image = FrameThumbnail.resize_image(image, (self.winfo_width(), self.winfo_height()))
+                frame = set_frame_size(frame, (self.winfo_width(), self.winfo_height()))
+            elif isinstance(resize, tuple):
+                frame = set_frame_size(frame, resize)
             elif resize is False:  # resize the canvas to the image size
                 self.adjust_size()
-            elif isinstance(resize, tuple):
-                image = FrameThumbnail.resize_image(image, resize)
+            image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             self.photo_image = PhotoImage(image)
 
     def save_to_file(self, filename: str) -> None:
