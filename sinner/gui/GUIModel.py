@@ -14,6 +14,7 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.PerfCounter import PerfCounter
@@ -44,7 +45,7 @@ class GUIModel(Status):
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
 
-    _extractor_handler: BaseFrameHandler | None = None
+    _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     _current_frame: Frame | None
     _scale_quality: float  # the processed frame size scale from 0 to 1
@@ -128,7 +129,8 @@ class GUIModel(Status):
 
     def reload_parameters(self) -> None:
         self.clear_previews()
-        self._extractor_handler = None
+        self._target_handler = None
+        self._processing_handler = None
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
@@ -226,12 +228,12 @@ class GUIModel(Status):
 
     @property
     def frame_handler(self) -> BaseFrameHandler | None:
-        if self._extractor_handler is None:
+        if self._target_handler is None:
             if self.target_path is None:
-                self._extractor_handler = NoneHandler()
+                self._target_handler = NoneHandler()
             else:
-                self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
-        return self._extractor_handler
+                self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
+        return self._target_handler
 
     def get_previews(self, position: int) -> FramesList | None:
         return self._previews.get(position)
@@ -268,10 +270,10 @@ class GUIModel(Status):
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
         current_median_fps = self._fps * self.execution_threads
-        if self.frame_handler.fps <= current_median_fps:  # render is faster than video
+        if self._target_handler.fps <= current_median_fps:  # render is faster than video
             frame_drop = 0  # no frame skip
         else:  # render is slower than video
-            fps_divergence = self.frame_handler.fps - current_median_fps + self._frame_drop_reminder
+            fps_divergence = self._target_handler.fps - current_median_fps + self._frame_drop_reminder
             frame_drop = int(fps_divergence)  # skip frames
             self._frame_drop_reminder = fps_divergence % 1  # do not lose reminder, use it in the next iteration
 
@@ -383,5 +385,4 @@ class GUIModel(Status):
                     progress.update()
 
         frame_extractor.release_resources()
-        self._target_path = state.path
-        self._extractor_handler = None
+        self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)

@@ -246,7 +246,7 @@ class GUIForm(Status):
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
             self.GUIModel.target_path = selected_file
-            # self._extractor_handler = None
+            # self._target_handler = None
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
             self.PreviewCanvas.adjust_size()
