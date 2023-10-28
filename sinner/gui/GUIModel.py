@@ -58,7 +58,7 @@ class GUIModel(Status):
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
     _frame_drop_reminder: float = 0
-    _player_buffer_length: int = 300  # frames needs to be rendered before player start
+    _player_buffer_length: int = 30  # frames needs to be rendered before player start
 
     _player_canvas: BasePlayer | None = None
     _progress_callback: Callable[[int], None] | None = None
