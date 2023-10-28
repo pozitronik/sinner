@@ -280,7 +280,7 @@ class GUIModel(Status):
         if self._show_frames_thread:
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
 
-    def multi_process_frames(self, start_frame: int, end_frame: int, frame_step: int = 1) -> None:
+    def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
 
