@@ -8,15 +8,19 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from enum import Enum
 from typing import List, Callable
 
+from tqdm import tqdm
+
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.NumberedFrame import NumberedFrame
+from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
+from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import Frame, FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -32,6 +36,8 @@ class GUIModel(Status):
     _target_path: str
     execution_threads: int
     bootstrap: bool
+    bootstrap_frames: bool
+    temp_dir: str
 
     parameters: Namespace
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -84,10 +90,21 @@ class GUIModel(Status):
                 'help': 'Initial processing scale quality'
             },
             {
+                'parameter': {'bootstrap-frames'},
+                'attribute': 'bootstrap_frames',
+                'default': True,
+                'help': 'Extract target frames to files to make realtime player run smoother'
+            },
+            {
                 'parameter': 'bootstrap',
                 'attribute': 'bootstrap',
                 'default': True,
                 'help': 'Bootstrap frame processors on startup'
+            },
+            {
+                'parameter': 'temp-dir',
+                'default': lambda: suggest_temp_dir(self.temp_dir),
+                'help': 'Select the directory for temporary files'
             },
             {
                 'module_help': 'The GUI processing handler'
@@ -102,6 +119,7 @@ class GUIModel(Status):
         if self.bootstrap:
             self._processors = self.processors
 
+        self._frames_queue = queue.PriorityQueue()
         self._player_stop_event = threading.Event()
         self.processing_thread_stop_event = threading.Event()
         self.viewing_thread_stop_event = threading.Event()
@@ -258,6 +276,10 @@ class GUIModel(Status):
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
+
+        if self.bootstrap_frames:
+            self.bootstrap_frames()
+
         self._player_stop_event.clear()
         self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, kwargs={
             'start_frame': start_frame,
@@ -335,3 +357,31 @@ class GUIModel(Status):
     def update_processing_fps(self, frame_render_ns: float) -> None:
         self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
         self._fps = 1 / self._frame_render_time
+
+    def bootstrap_frames(self):
+        frame_extractor = FrameExtractor(self.parameters)
+        state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
+        frame_extractor.configure_state(state)
+
+        if state.is_finished:
+            self.update_status(f'Bootstrapping frames already done ({state.processed_frames_count}/{state.frames_count})')
+        else:
+            if state.is_started:
+                self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames bootstrapped, continue with {state.processor_name}')
+
+            with tqdm(
+                    total=state.frames_count,
+                    desc=state.processor_name, unit='frame',
+                    dynamic_ncols=True,
+                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+                    initial=state.processed_frames_count,
+            ) as progress:
+                self.frame_handler.current_frame_index = state.processed_frames_count
+                for frame_num in self.frame_handler:
+                    n_frame = self.frame_handler.extract_frame(frame_num)
+                    state.save_temp_frame(n_frame)
+                    progress.update()
+
+        frame_extractor.release_resources()
+        self._target_path = state.path
+        self._extractor_handler = None
