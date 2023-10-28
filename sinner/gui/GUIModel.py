@@ -277,7 +277,7 @@ class GUIModel(Status):
             frame_drop = int(fps_divergence)  # skip frames
             self._frame_drop_reminder = fps_divergence % 1  # do not lose reminder, use it in the next iteration
 
-        self.update_status(f"Median FPS: {current_median_fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
+        # self.update_status(f"Median FPS: {current_median_fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
     def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
@@ -340,13 +340,12 @@ class GUIModel(Status):
             self.update_processing_fps(frame_render_time.execution_time)
 
     def show_frames(self) -> None:
-        _frame_wait_time = 0.01 / self.frame_handler.fps  # todo: frame wait time should be configured
+        _frame_wait_time = 1 / self.frame_handler.fps  # todo: frame wait time should be configured
         if self.canvas:
             while not self._player_stop_event.is_set():
                 try:
                     n_frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
                     self.canvas.show_frame(n_frame.frame)
-                    self.update_status(f"Frame: {n_frame.number}, QL: {self._frames_queue.qsize()}")
                     if self.progress_callback:
                         self.progress_callback(n_frame.number)
                 except queue.Empty:  # there are no frames processed
