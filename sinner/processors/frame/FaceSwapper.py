@@ -7,13 +7,14 @@ from typing import List, Dict, Any, Callable
 
 import insightface
 import torch
+from insightface.app.common import Face
 
 from sinner.FaceAnalyser import FaceAnalyser
 from sinner.Status import Mood
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Face, Frame, FaceSwapperType
+from sinner.typing import Frame, FaceSwapperType
 from sinner.utilities import conditional_download, get_app_dir, is_image
 
 
