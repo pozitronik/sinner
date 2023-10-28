@@ -346,13 +346,16 @@ class GUIModel(Status):
                 try:
                     n_frame = self._frames_queue.get(block=False, timeout=_frame_wait_time)
                 except queue.Empty:
+                    self.update_status("frame skipped")
                     continue
-                self.canvas.show_frame(n_frame.frame)
+                with PerfCounter() as show_time:
+                    self.canvas.show_frame(n_frame.frame)
+
                 display_time = time.perf_counter() - display_time_start
                 next_frame_wait_time = _frame_wait_time - display_time
                 if self.progress_callback:
                     self.progress_callback(n_frame.number)
-                self.update_status(f"display_time: {display_time}, next_frame_wait_time {next_frame_wait_time}")
+                self.update_status(f"display_time: {display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time}")
                 if next_frame_wait_time > 0:
                     time.sleep(next_frame_wait_time)
 
