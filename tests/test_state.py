@@ -3,12 +3,12 @@ import shutil
 from argparse import Namespace
 from typing import List
 
-import numpy
 import pytest
 
 from sinner.Parameters import Parameters
 from sinner.State import State
 from sinner.models.NumberedFrame import NumberedFrame
+from sinner.typing import EmptyFrame
 from tests.constants import tmp_dir, target_mp4, source_jpg, target_png, TARGET_FC, state_frames_dir
 
 parameters: Namespace = Parameters(f'--frame-processor=DummyProcessor --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"').parameters
@@ -53,7 +53,7 @@ def test_basic() -> None:
 
     assert state.processed_frames_count == 0
     assert state.zfill_length == 1
-    assert state.get_frame_processed_name(NumberedFrame(100, numpy.zeros(3))) == os.path.abspath(os.path.join(tmp_dir, '100.png'))
+    assert state.get_frame_processed_name(NumberedFrame(100, EmptyFrame)) == os.path.abspath(os.path.join(tmp_dir, '100.png'))
 
 
 def test_state_names_generation() -> None:
