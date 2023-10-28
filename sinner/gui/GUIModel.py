@@ -207,10 +207,11 @@ class GUIModel(Status):
 
     @property
     def frame_handler(self) -> BaseFrameHandler | None:
-        if self.target_path is None:
-            return NoneHandler()
         if self._extractor_handler is None:
-            self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
+            if self.target_path is None:
+                self._extractor_handler = NoneHandler()
+            else:
+                self._extractor_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._extractor_handler
 
     def get_previews(self, position: int) -> FramesList | None:
