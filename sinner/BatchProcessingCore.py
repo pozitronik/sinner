@@ -17,7 +17,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, suggest_execution_threads
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -80,7 +80,7 @@ class BatchProcessingCore(Status):
             },
             {
                 'parameter': 'temp-dir',
-                'default': lambda: self.suggest_temp_dir(),
+                'default': lambda: suggest_temp_dir(self.temp_dir),
                 'help': 'Select the directory for temporary files'
             },
             {
@@ -222,5 +222,3 @@ class BatchProcessingCore(Status):
             return VideoHandler(target_path, parameters)
         raise NotImplementedError("The handler for current target type is not implemented")
 
-    def suggest_temp_dir(self) -> str:
-        return self.temp_dir if self.temp_dir is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)

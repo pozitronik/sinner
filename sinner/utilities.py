@@ -234,3 +234,7 @@ def format_sequences(sorted_list: List[int]) -> str:
 def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
     current_height, current_width = frame.shape[:2]
     return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
+
+
+def suggest_temp_dir(initial: str | None) -> str:
+    return initial if initial is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
