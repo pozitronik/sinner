@@ -5,6 +5,7 @@ from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
+from sinner.gui.controls.FastPlayer import FastPlayer
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider
@@ -19,6 +20,7 @@ from sinner.validators.AttributeLoader import Rules
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
+    Player: FastPlayer
     current_position: StringVar  # current position variable
 
     show_frames_widget: bool
@@ -107,7 +109,7 @@ class GUIForm(Status):
         def on_navigate_slider_change(frame_value: float) -> None:
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(int(frame_value))
 
@@ -120,7 +122,7 @@ class GUIForm(Status):
                 self.GUIModel.player_stop()
                 self.RunButton.configure(text="PLAY")
             else:
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
                 self.RunButton.configure(text="STOP")
 
         self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: on_preview_button_press())
@@ -162,7 +164,7 @@ class GUIForm(Status):
             self.change_source()
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(self.NavigateSlider.position)
 
@@ -175,7 +177,7 @@ class GUIForm(Status):
             self.change_target()
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.PreviewCanvas, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(self.NavigateSlider.position)
 
@@ -209,6 +211,7 @@ class GUIForm(Status):
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.update_preview(self.NavigateSlider.position)
         self.PreviewCanvas.adjust_size()
+        self.Player = FastPlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption=self.GUIModel.target_path)
         return self.GUIWindow
 
     # controls manipulation methods
