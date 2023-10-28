@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
-from sinner.gui.controls.PreviewCanvas import PreviewCanvas
+from sinner.gui.controls.BasePlayer import BasePlayer
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
@@ -60,7 +60,7 @@ class GUIModel(Status):
     _frame_drop_reminder: float = 0
     _player_buffer_length: int = 300  # frames needs to be rendered before player start
 
-    _player_canvas: PreviewCanvas | None = None
+    _player_canvas: BasePlayer | None = None
     _progress_callback: Callable[[int], None] | None = None
     _frame_mode: FrameMode
 
@@ -165,11 +165,11 @@ class GUIModel(Status):
         return os.path.dirname(self._target_path) if self._target_path else None
 
     @property
-    def canvas(self) -> PreviewCanvas | None:
+    def canvas(self) -> BasePlayer | None:
         return self._player_canvas
 
     @canvas.setter
-    def canvas(self, value: PreviewCanvas | None) -> None:
+    def canvas(self, value: BasePlayer | None) -> None:
         self._player_canvas = value
 
     @property
@@ -283,7 +283,7 @@ class GUIModel(Status):
         # self.update_status(f"Median FPS: {current_median_fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
-    def player_start(self, start_frame: int, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
+    def player_start(self, start_frame: int, canvas: BasePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
         if progress_callback:
