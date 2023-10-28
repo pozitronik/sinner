@@ -54,9 +54,11 @@ class GUIModel(Status):
     _player_thread_stop_event: threading.Event  # the event to stop live player
     # _processing_thread_stop_event: threading.Event  # the event to stop processing
     _frames_queue: queue.PriorityQueue[NumberedFrame]
+
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
     _frame_drop_reminder: float = 0
+    _player_buffer_length: int = 300  # frames needs to be rendered before player start
 
     _player_canvas: PreviewCanvas | None = None
     _progress_callback: Callable[[int], None] | None = None
@@ -301,7 +303,6 @@ class GUIModel(Status):
 
         self._show_frames_thread = threading.Thread(target=self.show_frames)
         self._show_frames_thread.daemon = False
-        self._show_frames_thread.start()
 
     def player_stop(self, wait: bool = False) -> None:
         self._player_thread_stop_event.set()
@@ -316,6 +317,10 @@ class GUIModel(Status):
     def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
+            if self._frames_queue.qsize() >= self._player_buffer_length and not self._show_frames_thread.is_alive():
+                self._show_frames_thread.start()
+            elif not self._show_frames_thread.is_alive():
+                self.update_status(f"Waiting to fill the buffer: {self._frames_queue.qsize()} of {self._player_buffer_length}")
 
         self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         futures: list[Future[None]] = []
