@@ -22,7 +22,7 @@ from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
-from sinner.typing import Frame, FramesList, EmptyFrame
+from sinner.typing import FramesList, EmptyFrame
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
@@ -47,7 +47,6 @@ class GUIModel(Status):
 
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
-    _current_frame: Frame | None
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _multi_process_frames_thread: threading.Thread | None = None
     _show_frames_thread: threading.Thread | None = None
