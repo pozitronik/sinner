@@ -339,21 +339,22 @@ class GUIModel(Status):
             self.update_processing_fps(frame_render_time.execution_time)
 
     def show_frames(self) -> None:
-        _frame_wait_time = 1 / self.frame_handler.fps  # todo: frame wait time should be configured
+        _frame_wait_time = 1 / self.frame_handler.fps
         if self.canvas:
-            while not self._player_stop_event.is_set():
-                start_time = time.perf_counter()
+            while not self._player_stop_event.is_set():  # todo: need two different events, one for the render thread, and other one for the player
+                display_time_start = time.perf_counter()
                 try:
-                    n_frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
-                    self.canvas.show_frame(n_frame.frame)
-                    if self.progress_callback:
-                        self.progress_callback(n_frame.number)
-                except queue.Empty:  # there are no frames processed
-                    if not self._player_stop_event.is_set():
-                        time.sleep(_frame_wait_time)
-                if not self._player_stop_event.is_set():
-                    time.sleep(_frame_wait_time)
-                self.update_status(f"Show time: {time.perf_counter() - start_time}")
+                    n_frame = self._frames_queue.get(block=False, timeout=_frame_wait_time)
+                except queue.Empty:
+                    continue
+                self.canvas.show_frame(n_frame.frame)
+                display_time = time.perf_counter() - display_time_start
+                next_frame_wait_time = _frame_wait_time - display_time
+                if self.progress_callback:
+                    self.progress_callback(n_frame.number)
+                self.update_status(f"display_time: {display_time}, next_frame_wait_time {next_frame_wait_time}")
+                if next_frame_wait_time > 0:
+                    time.sleep(next_frame_wait_time)
 
     # method computes the current processing fps based on the median time of all processed frames timings
     def update_processing_fps(self, frame_render_ns: float) -> None:
