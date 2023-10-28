@@ -261,8 +261,7 @@ class GUIModel(Status):
         self._player_stop_event.clear()
         self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, kwargs={
             'start_frame': start_frame,
-            'end_frame': self.frame_handler.fc,
-            'frame_step': frame_step
+            'end_frame': self.frame_handler.fc
         })
         self._multi_process_frames_thread.daemon = False
         self._multi_process_frames_thread.start()
