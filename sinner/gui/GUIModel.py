@@ -261,16 +261,22 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.ALL:
             return 1
         if self._frame_mode is FrameMode.AUTO:
-            return self.calculate_framedrop()
+            return self.calculate_framedrop() + 1
         if self._frame_mode is FrameMode.FIXED:
             return 3  # todo an editable value, I suppose
 
+    # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
-        real_frame_drop = (self.frame_handler.fps / self._fps / self.execution_threads) + self._frame_drop_reminder
-        frame_drop = int(real_frame_drop)
-        self._frame_drop_reminder = real_frame_drop % 1  # save fraction part for the next iteration, make calculation more accurate
-        self.update_status(f"FPS: {self._fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
-        return frame_drop + 1
+        current_median_fps = self._fps * self.execution_threads
+        if self.frame_handler.fps <= current_median_fps:  # render is faster than video
+            frame_drop = 0  # no frame skip
+        else:  # render is slower than video
+            fps_divergence = self.frame_handler.fps - current_median_fps + self._frame_drop_reminder
+            frame_drop = int(fps_divergence)  # skip frames
+            self._frame_drop_reminder = fps_divergence % 1  # do not lose reminder, use it in the next iteration
+
+        self.update_status(f"Median FPS: {current_median_fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
+        return frame_drop
 
     def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
