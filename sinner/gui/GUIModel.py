@@ -77,6 +77,12 @@ class GUIModel(Status):
                 'attribute': '_target_path'
             },
             {
+                'parameter': {'quality', 'scale-quality'},
+                'attribute': '_scale_quality',
+                'default': 0.75,
+                'help': 'Initial processing scale quality'
+            },
+            {
                 'parameter': 'bootstrap',
                 'attribute': 'bootstrap',
                 'default': True,
@@ -89,7 +95,6 @@ class GUIModel(Status):
 
     def __init__(self, parameters: Namespace):
         self._frame_mode: FrameMode = FrameMode.AUTO
-        self._scale_quality = 1
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
