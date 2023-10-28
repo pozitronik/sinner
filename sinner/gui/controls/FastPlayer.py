@@ -1,3 +1,5 @@
+import cv2
+import numpy
 import pygame
 from pygame import Surface
 
@@ -18,6 +20,7 @@ class FastPlayer(BasePlayer):
         if frame is None and self._last_frame is not None:
             frame = self._last_frame
         if frame is not None:
+            frame = numpy.rot90(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             self._last_frame = frame
             if resize is True:  # resize to the current canvas size
                 frame = set_frame_size(frame, self.screen.get_size())
