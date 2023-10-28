@@ -12,6 +12,7 @@ from cv2 import VideoCapture
 from pyvirtualcam import Camera
 
 from sinner.Status import Status, Mood
+from sinner.models.PerfCounter import PerfCounter
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video
@@ -153,24 +154,23 @@ class WebCam(Status):
     def process(self) -> None:
         with self._device as camera:
             while not self.stop:
-                frame_start_time = time.perf_counter()
-                ret, frame = self._camera_input.read()
-                if not ret:
-                    self.update_status("Error reading input from camera", mood=Mood.BAD)
-                    if self.auto_restart:
-                        self.update_status("Reopening camera device")
-                        self._camera_input.release()
-                        self.open_camera()
-                    continue
-                for processor in self._processors:
-                    frame = processor.process_frame(frame)
-                if self.preview:
-                    self._frames_queue.put(frame)
+                with PerfCounter() as render_time:
+                    ret, frame = self._camera_input.read()
+                    if not ret:
+                        self.update_status("Error reading input from camera", mood=Mood.BAD)
+                        if self.auto_restart:
+                            self.update_status("Reopening camera device")
+                            self._camera_input.release()
+                            self.open_camera()
+                        continue
+                    for processor in self._processors:
+                        frame = processor.process_frame(frame)
+                    if self.preview:
+                        self._frames_queue.put(frame)
 
-                camera.send(frame)
-                camera.sleep_until_next_frame()
-                frame_end_time = time.perf_counter()
-                self._frame_render_time = frame_end_time - frame_start_time
+                    camera.send(frame)
+                    camera.sleep_until_next_frame()
+                self._frame_render_time = render_time.execution_time
                 if self._frame_render_time < self._fps_delay:
                     time.sleep(self._fps_delay - self._frame_render_time)
                 self.update_status(f"Real fps is {(1 / self._frame_render_time):.2f}", position=(-1, 0))

@@ -16,6 +16,7 @@ from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.NumberedFrame import NumberedFrame
+from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
@@ -269,7 +270,7 @@ class GUIModel(Status):
         frame_drop = int(real_frame_drop)
         self._frame_drop_reminder = real_frame_drop % 1  # save fraction part for the next iteration, make calculation more accurate
         self.update_status(f"FPS: {self._fps}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
-        return frame_drop
+        return frame_drop + 1
 
     def player_start(self, start_frame: int, frame_step: int = 1, canvas: PreviewCanvas | None = None, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
@@ -322,29 +323,22 @@ class GUIModel(Status):
 
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._player_stop_event.is_set():
-            frame_start_time = time.perf_counter()
-            extraction_start_time = time.perf_counter()
-            n_frame = self.frame_handler.extract_frame(frame_index)
-            extraction_time = time.perf_counter() - extraction_start_time
-            resize_start_time = time.perf_counter()
-            n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
-            resize_time = time.perf_counter() - resize_start_time
-            processing_start_time = time.perf_counter()
-            for _, processor in self.processors.items():
-                n_frame.frame = processor.process_frame(n_frame.frame)
-            processing_time = time.perf_counter() - processing_start_time
-            self._frames_queue.put(n_frame)
-            frame_render_time = time.perf_counter() - frame_start_time
-            self.update_processing_fps(frame_render_time)
-            self.update_status(f"Frame {frame_index} render time: {frame_render_time} (extraction: {extraction_time}, resize: {resize_time}, processing: {processing_time})")
+            with PerfCounter() as frame_render_time:
+                n_frame = self.frame_handler.extract_frame(frame_index)
+                n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
+                for _, processor in self.processors.items():
+                    n_frame.frame = processor.process_frame(n_frame.frame)
+                self._frames_queue.put(n_frame)
+            self.update_processing_fps(frame_render_time.execution_time)
 
     def show_frames(self) -> None:
-        _frame_wait_time = 0.1 / self.frame_handler.fps  # todo: frame wait time should be configured
+        _frame_wait_time = 0.01 / self.frame_handler.fps  # todo: frame wait time should be configured
         if self.canvas:
             while not self._player_stop_event.is_set():
                 try:
                     n_frame = self._frames_queue.get(block=False)  # non-blocking reading, raises queue.Empty if no frames there
                     self.canvas.show_frame(n_frame.frame)
+                    self.update_status(f"Frame: {n_frame.number}, QL: {self._frames_queue.qsize()}")
                     if self.progress_callback:
                         self.progress_callback(n_frame.number)
                 except queue.Empty:  # there are no frames processed
