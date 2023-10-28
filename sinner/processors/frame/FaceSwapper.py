@@ -61,6 +61,9 @@ class FaceSwapper(BaseFrameProcessor):
     @property
     def source_face(self) -> Face | None:
         if self._source_face is None:
+            if self.source_path is None:
+                # self.update_status(f"There is no source path is provided, ignoring", mood=Mood.BAD)
+                return self._source_face
             self._source_face = self.face_analyser.get_one_face(CV2VideoHandler.read_image(self.source_path))
             if self._source_face is None:
                 self.update_status(f"There is no face found on {self.source_path}", mood=Mood.BAD)
@@ -98,18 +101,19 @@ class FaceSwapper(BaseFrameProcessor):
 
         if self.source_path is None:
             self.update_status(f"No source path is set, assuming GUI mode bootstrap", mood=Mood.NEUTRAL)
-            _, _ = self.face_analyser, self.face_swapper
+            _, _, _ = self.face_analyser, self.face_swapper, self.face_analyser.face_analyser
 
     def process_frame(self, frame: Frame) -> Frame:
-        if self.many_faces:
-            many_faces = self.face_analyser.get_many_faces(frame)
-            if many_faces:
-                for target_face in many_faces:
+        if self.source_face is not None:
+            if self.many_faces:
+                many_faces = self.face_analyser.get_many_faces(frame)
+                if many_faces:
+                    for target_face in many_faces:
+                        frame = self.face_swapper.get(frame, target_face, self.source_face)
+            else:
+                target_face = self.face_analyser.get_one_face(frame)
+                if target_face:
                     frame = self.face_swapper.get(frame, target_face, self.source_face)
-        else:
-            target_face = self.face_analyser.get_one_face(frame)
-            if target_face:
-                frame = self.face_swapper.get(frame, target_face, self.source_face)
         return frame
 
     def release_resources(self) -> None:
