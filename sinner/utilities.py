@@ -236,5 +236,17 @@ def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
     return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
 
 
+def set_frame_size(frame: Frame, size: tuple[int, int]) -> Frame:
+    aspect_ratio = frame.shape[1] / frame.shape[0]
+    new_width = size[0]
+    new_height = int(size[0] / aspect_ratio)
+    if new_height > size[1]:
+        new_height = size[1]
+        new_width = int(size[1] * aspect_ratio)
+
+    resized_frame = cv2.resize(frame, (new_width, new_height)) if new_width > 0 and new_height > 0 else frame
+    return resized_frame
+
+
 def suggest_temp_dir(initial: str | None) -> str:
     return initial if initial is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
