@@ -44,7 +44,6 @@ class GUIModel(Status):
 
     parameters: Namespace
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
-    preview_handlers: dict[str, BaseFrameHandler]  # cached handlers for gui
 
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
