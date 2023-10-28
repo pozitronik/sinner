@@ -7,9 +7,7 @@ from sinner.typing import Frame
 class NumberedFrame:
     number: int
     frame: Frame = field(compare=False)
-    name: str | None = None
+    name: str | None = field(compare=False, default=None)
 
     def __eq__(self, o: 'NumberedFrame') -> bool:
-        if self.name and o.name:
-            return self.name is o.name
         return self.number == o.number
