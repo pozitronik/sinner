@@ -362,7 +362,7 @@ class GUIModel(Status):
                         if self.progress_callback:
                             self.progress_callback(n_frame.number)
                 except queue.Empty:
-                    self.update_status("frame skipped")
+                    self.update_status("Waiting for a frame")
                     display_time = time.perf_counter() - display_time_start
                     next_frame_wait_time = _frame_wait_time - display_time
                     # if next_frame_wait_time > 0:
