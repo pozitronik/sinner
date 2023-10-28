@@ -130,7 +130,6 @@ class GUIModel(Status):
     def reload_parameters(self) -> None:
         self.clear_previews()
         self._target_handler = None
-        self._processing_handler = None
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
