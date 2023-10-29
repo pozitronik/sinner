@@ -236,6 +236,7 @@ def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
     return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
 
 
+#  todo need test!
 def set_frame_size(frame: Frame, size: tuple[int, int]) -> Frame:
     aspect_ratio = frame.shape[1] / frame.shape[0]
     new_width = size[0]
