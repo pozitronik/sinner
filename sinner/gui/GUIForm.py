@@ -5,11 +5,11 @@ from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
+from sinner.gui.controls.BasePlayer import BasePlayer
 from sinner.gui.controls.FastPlayer import FastPlayer
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider
-from sinner.gui.controls.PreviewCanvas import PreviewCanvas
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
 from sinner.utilities import is_int, is_image, is_video
@@ -20,7 +20,8 @@ from sinner.validators.AttributeLoader import Rules
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
-    Player: FastPlayer
+    Player: BasePlayer
+
     current_position: StringVar  # current position variable
 
     show_frames_widget: bool
@@ -82,23 +83,7 @@ class GUIForm(Status):
 
         self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
-        # Main canvas
-        self.PreviewCanvas: PreviewCanvas = PreviewCanvas(self.GUIWindow, width=100, height=100)  # the main preview
-        self.PreviewCanvas.bind("<Double-Button-1>", lambda event: self.update_preview(self.NavigateSlider.position))
-
-        self.PreviewCanvas.bind("<Button-2>", lambda event: on_preview_canvas_button_2_click())
-
-        def on_preview_canvas_button_2_click() -> None:
-            self.change_source()
-            self.update_preview(self.NavigateSlider.position)
-
-        self.PreviewCanvas.bind("<Button-3>", lambda event: self.change_target())
-
-        self.PreviewCanvas.bind("<Configure>", lambda event: on_preview_canvas_resize(event))
-
-        def on_preview_canvas_resize(event: Event) -> None:  # type: ignore[type-arg]
-            self.StatusBar.set_item('view_res', f"{(event.width, event.height)}")
-            self.PreviewCanvas.show_frame(resize=(event.width, event.height))
+        self.Player: BasePlayer = FastPlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption=self.GUIModel.target_path)
 
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
@@ -133,9 +118,10 @@ class GUIForm(Status):
         self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: on_save_button_press())
 
         def on_save_button_press() -> None:
-            save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
-            if save_file != ' ':
-                self.PreviewCanvas.save_to_file(save_file)
+            pass
+            # save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
+            # if save_file != ' ':
+            #     self.Player.save_to_file(save_file)
 
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
 
@@ -186,7 +172,6 @@ class GUIForm(Status):
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
-        self.PreviewCanvas.pack(fill=BOTH, expand=True, side=TOP)
         self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()  # also draws slider, if necessary
@@ -210,8 +195,7 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.update_preview(self.NavigateSlider.position)
-        self.PreviewCanvas.adjust_size()
-        self.Player = FastPlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption=self.GUIModel.target_path)
+        # self.Player.adjust_size()
         return self.GUIWindow
 
     # controls manipulation methods
@@ -228,16 +212,16 @@ class GUIForm(Status):
                         position=frame_number,
                         onclick=self.on_preview_frames_thumbnail_click
                     ) for frame in frames])
-                self.PreviewCanvas.show_frame(frames[-1][0])
+                self.Player.show_frame(frames[-1][0])
             else:
-                self.PreviewCanvas.show_frame(frames[0][0])
+                self.Player.show_frame(frames[0][0])
         else:
-            self.PreviewCanvas.photo_image = None
+            self.Player.photo_image = None
 
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self.GUIModel.get_previews(frame_number)
         if frames:
-            self.PreviewCanvas.show_frame(frames[thumbnail_index][0])
+            self.Player.show_frame(frames[thumbnail_index][0])
 
     def change_source(self) -> None:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
@@ -252,7 +236,7 @@ class GUIForm(Status):
             # self._target_handler = None
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
-            self.PreviewCanvas.adjust_size()
+            self.Player.adjust_size()
             self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
 
     def update_slider_bounds(self) -> None:
