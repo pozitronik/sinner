@@ -35,4 +35,4 @@ class FastPlayer(BasePlayer):
 
     def adjust_size(self) -> None:
         if self._last_frame is not None:
-            self.screen = pygame.display.set_mode((self._last_frame.shape[1], self._last_frame.shape[0]))
+            self.screen = pygame.display.set_mode((self._last_frame.shape[0], self._last_frame.shape[1]))

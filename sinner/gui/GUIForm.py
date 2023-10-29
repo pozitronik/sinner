@@ -195,7 +195,7 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.update_preview(self.NavigateSlider.position)
-        # self.Player.adjust_size()
+        self.Player.adjust_size()
         return self.GUIWindow
 
     # controls manipulation methods
