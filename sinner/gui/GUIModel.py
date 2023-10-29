@@ -56,6 +56,7 @@ class GUIModel(Status):
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
     _frame_drop_reminder: float = 0
+    _frame_wait_coefficient: float = 0
     _player_buffer_length: int = 10  # frames needs to be rendered before player start
 
     _player_canvas: BasePlayer | None = None
@@ -287,6 +288,8 @@ class GUIModel(Status):
         self._event_stop_player.set()
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
+        self.__stop_display()
+        self.__stop_buffering()
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
@@ -318,18 +321,20 @@ class GUIModel(Status):
     def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            # if self._frames_queue.qsize() >= self._player_buffer_length and not self._event_displaying.is_set():
-            #     self.__start_display()
-            # elif not self._event_displaying.is_set():
-            #     self.update_status(f"Waiting to fill the buffer: {self._frames_queue.qsize()} of {self._player_buffer_length}")
+            if processed_frames_count >= self._player_buffer_length and not self._event_displaying.is_set():
+                self.__start_display()
+            elif not self._event_displaying.is_set():
+                self.update_status(f"Waiting to fill the buffer: {processed_frames_count} of {self._player_buffer_length}")
 
         self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         futures: list[Future[None]] = []
+        processed_frames_count = 0
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame < end_frame:
                 future: Future[None] = executor.submit(self.process_frame_to_queue, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
+                processed_frames_count += 1
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
                     start_frame += self.frame_step
@@ -338,11 +343,10 @@ class GUIModel(Status):
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
             self._frames_queue.put(NumberedFrame(sys.maxsize, EmptyFrame))
-        b_length = self._frames_queue.qsize()
-        fc_coeff = self.frame_handler.fc / b_length
+        fc_coeff = self.frame_handler.fc / processed_frames_count
         frame_render_time = (1 / self.frame_handler.fps) * fc_coeff
-        buffer_play_length = frame_render_time * b_length
-        self.update_status(f"Rendered buffer has {b_length} frames ({fc_coeff} slower that the target)", mood=Mood.BAD)
+        buffer_play_length = frame_render_time * processed_frames_count
+        self.update_status(f"Rendered buffer has {processed_frames_count} frames ({fc_coeff} slower that the target)", mood=Mood.BAD)
         self.update_status(f"Render frame time is {frame_render_time} so it plays {buffer_play_length} seconds", mood=Mood.BAD)
 
     def process_frame_to_queue(self, frame_index: int) -> None:
@@ -352,44 +356,38 @@ class GUIModel(Status):
                 n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
-                self._frames_queue.put(n_frame)
+            n_frame.frame_time = frame_render_time.execution_time
+            self._frames_queue.put(n_frame)
             self.update_processing_fps(frame_render_time.execution_time)
 
     def show_frames(self) -> None:
         _frame_time = 1 / self.frame_handler.fps
+        timer = 0
         if self.canvas:
             while not self._event_stop_player.is_set():  # todo: need two different events, one for the render thread, and other one for the player
-                display_time_start = time.perf_counter()
                 try:
                     n_frame = self._frames_queue.get(block=False)
                     if n_frame.number == sys.maxsize:  # use as the stop marker
                         self._event_stop_player.set()
                         continue
 
-                    self.canvas.show_frame(n_frame.frame)
+                    fps = 1 / n_frame.frame_time
+                    expected_frame_time = _frame_time * (self.frame_handler.fps / fps)
+
+                    expected_timer = time.perf_counter()
+                    self.canvas.show_frame_wait(n_frame.frame, duration=expected_frame_time)
+                    self.update_status(f"Frame time: {time.perf_counter() - expected_timer}, expected: {expected_frame_time}")
+                    timer += expected_frame_time
                     if self.progress_callback:
                         self.progress_callback(n_frame.number)
                 except queue.Empty:
-                    self.update_status("Waiting for a frame")
-                    display_time = time.perf_counter() - display_time_start
-                    next_frame_wait_time = _frame_time - display_time
-                    if next_frame_wait_time > 0:
-                        time.sleep(next_frame_wait_time)
-                    # time.sleep(_frame_wait_time)
+                    # self.update_status("Waiting for a frame")
                     continue
-
-                display_time = time.perf_counter() - display_time_start
-                next_frame_wait_time = _frame_time - display_time
-
-                # self.update_status(f"display FPS: {1 / display_time}, next_frame_wait_time {next_frame_wait_time}, show_time: {show_time.execution_time if show_time else 'none'}")
-                if next_frame_wait_time > 0:
-                    time.sleep(next_frame_wait_time)
-                # time.sleep(_frame_wait_time)
+            self.update_status(f"Playing time: {timer}", mood=Mood.BAD)
 
     # method computes the current processing fps based on the median time of all processed frames timings
     def update_processing_fps(self, frame_render_ns: float) -> None:
         self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
-        # self._frame_render_time = frame_render_ns / self.execution_threads
         self._fps = 1 / self._frame_render_time
 
     # return the count of the skipped frames for the next iteration
@@ -397,10 +395,10 @@ class GUIModel(Status):
         if self._fps >= self.frame_handler.fps:  # render is faster than video
             frame_drop = 0  # no frame skip
         else:  # render is slower than video
-            fps_coefficient = (self.frame_handler.fps / self._fps) + self._frame_drop_reminder
-            frame_drop = int(fps_coefficient) - 1
-            self._frame_drop_reminder = fps_coefficient % 1  # do not lose reminder, use it in the next iteration
-            self.update_status(f"fps_coefficient: {fps_coefficient}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
+            self._frame_wait_coefficient = ((self.frame_handler.fps / self._fps) + self._frame_drop_reminder)
+            frame_drop = int(self._frame_wait_coefficient) - 1
+            self._frame_drop_reminder = self._frame_wait_coefficient % 1  # do not lose reminder, use it in the next iteration
+            # self.update_status(f"fps_coefficient: {fps_coefficient}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
     def bootstrap_frames(self):
