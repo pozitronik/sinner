@@ -23,7 +23,7 @@ class FastPlayer(BasePlayer):
             frame = numpy.rot90(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             self._last_frame = frame
             if resize is True:  # resize to the current canvas size
-                frame = set_frame_size(frame, self.screen.get_size())
+                frame = set_frame_size(frame, (self.screen.get_height(), self.screen.get_width()))  # todo: need test
             elif isinstance(resize, tuple):
                 frame = set_frame_size(frame, resize)
             elif resize is False:  # resize the canvas to the image size
