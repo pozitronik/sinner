@@ -309,9 +309,9 @@ class GUIModel(Status):
         # self._processing_thread_stop_event.set()
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
-        if self._multi_process_frames_thread:
+        if self._multi_process_frames_thread and self._multi_process_frames_thread.is_alive():
             self._multi_process_frames_thread.join(1)
-        if self._show_frames_thread:
+        if self._show_frames_thread and self._show_frames_thread.is_alive():
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
 
     def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
