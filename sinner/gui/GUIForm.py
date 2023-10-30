@@ -61,7 +61,7 @@ class GUIForm(Status):
 
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
-        self.GUIWindow.title('😈sinner')
+        self.GUIWindow.title('😈sinner controls')
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_preview_window_close())
 
         def on_preview_window_close() -> None:
@@ -83,7 +83,7 @@ class GUIForm(Status):
 
         self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
-        self.Player: BaseFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption=self.GUIModel.target_path)
+        self.Player: BaseFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='😈sinner player')
 
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
