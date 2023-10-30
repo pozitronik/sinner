@@ -37,4 +37,4 @@ class PygameFramePlayer(BaseFramePlayer):
     def adjust_size(self) -> None:
         if self._last_frame is not None:
             # note: set_mode size parameter has the WIDTH, HEIGHT dimensions order
-            self.screen = pygame.display.set_mode((self._last_frame.shape[1], self._last_frame.shape[0]))
+            self.screen = pygame.display.set_mode((self._last_frame.shape[1], self._last_frame.shape[0]), pygame.RESIZABLE)
