@@ -29,9 +29,10 @@ class PygameFramePlayer(BaseFramePlayer):
                 self.adjust_size()
 
         frame = numpy.flip(numpy.rot90((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))), 0)
+        # note: now the frame has the flipped shape (WIDTH, HEIGHT)
 
         image_surface = pygame.surfarray.make_surface(frame)
-        self.screen.blit(image_surface, (0, 0))
+        self.screen.blit(image_surface, ((self.screen.get_width() - frame.shape[0]) // 2, (self.screen.get_height() - frame.shape[1]) // 2))
         pygame.display.flip()
 
     def adjust_size(self) -> None:
