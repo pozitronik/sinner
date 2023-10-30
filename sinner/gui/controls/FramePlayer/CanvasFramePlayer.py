@@ -4,7 +4,7 @@ import cv2
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
-from sinner.gui.controls.BasePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
 from sinner.typing import Frame
 from sinner.utilities import set_frame_size
 

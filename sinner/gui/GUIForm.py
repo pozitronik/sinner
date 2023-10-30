@@ -5,8 +5,8 @@ from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
-from sinner.gui.controls.BasePlayer import BasePlayer
-from sinner.gui.controls.FastPlayer import FastPlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.PygameFramePlayer import FastPlayer
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider

@@ -1,4 +1,4 @@
-from sinner.gui.controls.BasePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
 from sinner.typing import Frame
 
 

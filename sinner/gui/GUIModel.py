@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
-from sinner.gui.controls.BasePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
