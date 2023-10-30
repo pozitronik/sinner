@@ -1,4 +1,4 @@
-from tkinter import Canvas, BOTH, TOP
+from tkinter import Canvas
 
 import cv2
 from PIL import Image
@@ -41,7 +41,7 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
             elif isinstance(resize, tuple):
                 frame = resize_proportionally(frame, resize)
             elif resize is False:  # resize the canvas to the image size
-                self.adjust_size()
+                self.adjust_size(False)
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             self.photo_image = PhotoImage(image)
 
@@ -49,6 +49,9 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
         if self._last_frame is not None:
             Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB)).save(filename)
 
-    def adjust_size(self) -> None:
+    def adjust_size(self, redraw: bool = True) -> None:
         if self._last_frame is not None:
             self.configure(width=self._last_frame.shape[1], height=self._last_frame.shape[0])
+            # it is required to redraw the frame after resize, if it is not be intended after
+            if redraw:
+                self.show_frame()
