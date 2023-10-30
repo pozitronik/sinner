@@ -19,12 +19,13 @@ class PygameFramePlayer(BaseFramePlayer):
         self.height = height
         self.caption = caption
 
-    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
+    def show(self) -> None:
         if self.screen is None:
-            # pygame.init()
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
             pygame.display.set_caption(self.caption)
 
+    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
+        self.show()
         if frame is None and self._last_frame is not None:
             frame = self._last_frame
         if frame is not None:
