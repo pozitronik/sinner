@@ -1,4 +1,4 @@
-from tkinter import Canvas
+from tkinter import Canvas, BOTH, TOP
 
 import cv2
 from PIL import Image
@@ -9,8 +9,15 @@ from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
 
 
+# Note: because this player based on a tkinter.canvas, it should be packed and configured after initialization
 class CanvasFramePlayer(Canvas, BaseFramePlayer):
     photo: PhotoImage | None = None
+
+    def __init__(self, master=None, cnf=None, **kw):
+        if cnf is None:
+            cnf = {}
+        Canvas.__init__(self, master=master, cnf=cnf, **kw)
+        BaseFramePlayer.__init__(self)
 
     @property
     def photo_image(self) -> PhotoImage | None:
@@ -25,17 +32,12 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
             pass
 
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
-        """
-        Draws an image from the frame, with resize if necessary
-        :param frame: frame or None to use the last drawn frame. If last frame is used, it can be only resized
-        :param resize: True to resize the current canvas size, False to no resize, tuple(w,h) to set WxH size (proportional)
-        """
         if frame is None and self._last_frame is not None:
             frame = self._last_frame
         if frame is not None:
             self._last_frame = frame
             if resize is True:  # resize to the current canvas size
-                frame = resize_proportionally(frame, (self.winfo_width(), self.winfo_height()))
+                frame = resize_proportionally(frame, (self.winfo_height(), self.winfo_width()))
             elif isinstance(resize, tuple):
                 frame = resize_proportionally(frame, resize)
             elif resize is False:  # resize the canvas to the image size
