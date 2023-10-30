@@ -7,15 +7,13 @@ import platform
 import shutil
 import sys
 import urllib
+from pathlib import Path
 from typing import List, Literal, Any, get_type_hints
 
-import cv2
 import onnxruntime
 import psutil
 import tensorflow
 from tqdm import tqdm
-
-from sinner.typing import Frame
 
 TEMP_DIRECTORY = 'temp'
 
@@ -54,8 +52,7 @@ def is_video(video_path: str | None) -> bool:
 
 
 def conditional_download(download_directory_path: str, urls: List[str], desc: str = 'Downloading') -> None:
-    if not os.path.exists(download_directory_path):
-        os.makedirs(download_directory_path)
+    Path(download_directory_path).mkdir(parents=True, exist_ok=True)
     for url in urls:
         download_file_path = os.path.join(download_directory_path, os.path.basename(url))
         if not os.path.exists(download_file_path):
@@ -229,24 +226,6 @@ def format_sequences(sorted_list: List[int]) -> str:
 
     sequences.append(format_sequence(start, end))
     return ", ".join(sequences)
-
-
-def resize_frame(frame: Frame, scale: float = 0.2) -> Frame:
-    current_height, current_width = frame.shape[:2]
-    return cv2.resize(frame, (int(current_width * scale), int(current_height * scale)))
-
-
-#  todo need test!
-def set_frame_size(frame: Frame, size: tuple[int, int]) -> Frame:
-    aspect_ratio = frame.shape[1] / frame.shape[0]
-    new_width = size[0]
-    new_height = int(size[0] / aspect_ratio)
-    if new_height > size[1]:
-        new_height = size[1]
-        new_width = int(size[1] * aspect_ratio)
-
-    resized_frame = cv2.resize(frame, (new_width, new_height)) if new_width > 0 and new_height > 0 else frame
-    return resized_frame
 
 
 def suggest_temp_dir(initial: str | None) -> str:
