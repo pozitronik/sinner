@@ -58,9 +58,9 @@ class BaseFrameHandler(Status, ABC):
 
     @property
     @abstractmethod
-    def resolution(self) -> tuple[int, int] | None:
+    def resolution(self) -> tuple[int, int]:
         """
-        Returns the target dimension resolution (WxH) if present, else None
+        Returns the target dimension resolution (WxH) if present, else (0, 0)
         """
         pass
 

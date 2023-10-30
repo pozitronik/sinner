@@ -19,8 +19,8 @@ class NoneHandler(BaseFrameHandler):
         return 0
 
     @property
-    def resolution(self) -> tuple[int, int] | None:
-        return None
+    def resolution(self) -> tuple[int, int]:
+        return 0, 0
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
         return NumberedFrame(0, EmptyFrame)
