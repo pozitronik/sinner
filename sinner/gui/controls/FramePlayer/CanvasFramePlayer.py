@@ -12,8 +12,6 @@ from sinner.typing import Frame
 class CanvasFramePlayer(Canvas, BaseFramePlayer):
     photo: PhotoImage | None = None
 
-    _last_frame: Frame | None = None  # the last viewed frame
-
     @property
     def photo_image(self) -> PhotoImage | None:
         return self.photo
