@@ -57,6 +57,8 @@ def resize_proportionally(frame: Frame, new_shape: tuple[int, int]) -> Frame:
     scale_height = new_height / original_height
     scale_width = new_width / original_width
     scale_ = min(scale_height, scale_width)
+    if scale_ == 1:
+        return frame
     new_height = int(original_height * scale_)
     if new_height == 0:
         new_height = 1
