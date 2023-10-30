@@ -6,9 +6,9 @@ from typing import List
 import pytest
 
 from sinner.Parameters import Parameters
+from sinner.helpers.FrameHelper import EmptyFrame
 from sinner.models.State import State
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.typing import EmptyFrame
 from tests.constants import tmp_dir, target_mp4, source_jpg, target_png, TARGET_FC, state_frames_dir
 
 parameters: Namespace = Parameters(f'--frame-processor=DummyProcessor --source-path="{source_jpg}" --target-path="{target_mp4}" --output-path="{tmp_dir}"').parameters

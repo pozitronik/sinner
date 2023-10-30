@@ -4,12 +4,12 @@ import cv2
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
-from sinner.utilities import set_frame_size
 
 
-class PreviewCanvas(Canvas, BasePlayer):
+class CanvasFramePlayer(Canvas, BaseFramePlayer):
     photo: PhotoImage | None = None
 
     _last_frame: Frame | None = None  # the last viewed frame
@@ -37,9 +37,9 @@ class PreviewCanvas(Canvas, BasePlayer):
         if frame is not None:
             self._last_frame = frame
             if resize is True:  # resize to the current canvas size
-                frame = set_frame_size(frame, (self.winfo_width(), self.winfo_height()))
+                frame = resize_proportionally(frame, (self.winfo_width(), self.winfo_height()))
             elif isinstance(resize, tuple):
-                frame = set_frame_size(frame, resize)
+                frame = resize_proportionally(frame, resize)
             elif resize is False:  # resize the canvas to the image size
                 self.adjust_size()
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))

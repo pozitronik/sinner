@@ -11,7 +11,7 @@ from insightface.app.common import Face
 
 from sinner.FaceAnalyser import FaceAnalyser
 from sinner.Status import Mood
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from sinner.helpers.FrameHelper import read_from_image
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame, FaceSwapperType
@@ -64,7 +64,7 @@ class FaceSwapper(BaseFrameProcessor):
             if self.source_path is None:
                 # self.update_status(f"There is no source path is provided, ignoring", mood=Mood.BAD)
                 return self._source_face
-            self._source_face = self.face_analyser.get_one_face(CV2VideoHandler.read_image(self.source_path))
+            self._source_face = self.face_analyser.get_one_face(read_from_image(self.source_path))
             if self._source_face is None:
                 self.update_status(f"There is no face found on {self.source_path}", mood=Mood.BAD)
             else:

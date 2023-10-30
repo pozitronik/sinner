@@ -9,4 +9,3 @@ NumeratedFramePath = tuple[int, str]  # the enumerated path to a frame -> number
 FramesList = List[Tuple[Frame, str]]  # list of tuples [frame, frame caption]
 
 UTF8 = "utf-8"
-EmptyFrame = numpy.full([1, 1, 3], 255, dtype=numpy.uint8)

@@ -5,8 +5,8 @@ from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
-from sinner.gui.controls.FramePlayer.PygameFramePlayer import FastPlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider
@@ -20,7 +20,7 @@ from sinner.validators.AttributeLoader import Rules
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
-    Player: BasePlayer
+    Player: BaseFramePlayer
 
     current_position: StringVar  # current position variable
 
@@ -83,7 +83,7 @@ class GUIForm(Status):
 
         self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
-        self.Player: BasePlayer = FastPlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption=self.GUIModel.target_path)
+        self.Player: BaseFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption=self.GUIModel.target_path)
 
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames

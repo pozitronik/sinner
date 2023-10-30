@@ -3,7 +3,6 @@ from argparse import Namespace
 import pytest
 
 from sinner.Parameters import Parameters
-from sinner.validators.ErrorDTO import ErrorDTO
 from sinner.validators.LoaderException import LoaderException
 from tests.validators.TestValidatedClass import DEFAULT_VALUE, TestDefaultValidation, TestRequiredValidation, TestUntypedAttribute, TestEqualValueAttribute, TestInValueAttribute, TestLambdaValueAttribute, TestInitAttribute, TestListAttribute, TestInitAttributeTyped, TestRequiredValidationLambda
 

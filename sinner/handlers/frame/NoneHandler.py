@@ -1,8 +1,6 @@
-import numpy
-
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.helpers.FrameHelper import EmptyFrame
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.typing import EmptyFrame
 
 
 # Empty handler for empty targets

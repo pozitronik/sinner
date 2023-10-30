@@ -5,7 +5,7 @@ from argparse import Namespace
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from sinner.helpers.FrameHelper import read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath
 from sinner.utilities import is_image, get_file_name
@@ -70,7 +70,7 @@ class DirectoryHandler(BaseFrameHandler):
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
         frame_path = self.get_frames_paths(self._target_path, (frame_number, frame_number))[0][1]
-        return NumberedFrame(frame_number, CV2VideoHandler.read_image(frame_path), get_file_name(frame_path))  # zero-based sorted frames list
+        return NumberedFrame(frame_number, read_from_image(frame_path), get_file_name(frame_path))  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Copying results from {from_dir} to {filename}")

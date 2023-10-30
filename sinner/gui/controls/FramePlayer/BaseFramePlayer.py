@@ -5,7 +5,7 @@ from sinner.models.PerfCounter import PerfCounter
 from sinner.typing import Frame
 
 
-class BasePlayer:
+class BaseFramePlayer:
     _last_frame: Frame | None = None  # the last viewed frame
 
     @abstractmethod

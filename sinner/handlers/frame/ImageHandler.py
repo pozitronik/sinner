@@ -5,7 +5,7 @@ from typing import List
 
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from sinner.helpers.FrameHelper import read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath
 from sinner.utilities import is_image
@@ -39,7 +39,7 @@ class ImageHandler(BaseFrameHandler):
     @property
     def resolution(self) -> tuple[int, int] | None:
         if self._resolution is None:
-            image = CV2VideoHandler.read_image(self._target_path)
+            image = read_from_image(self._target_path)
             self._resolution = image.shape[1], image.shape[0]
         return self._resolution
 
@@ -47,7 +47,7 @@ class ImageHandler(BaseFrameHandler):
         return [(0, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
-        return NumberedFrame(frame_number, CV2VideoHandler.read_image(self._target_path))
+        return NumberedFrame(frame_number, read_from_image(self._target_path))
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         try:

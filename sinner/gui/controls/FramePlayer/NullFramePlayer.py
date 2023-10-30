@@ -1,8 +1,8 @@
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.typing import Frame
 
 
-class NullPlayer(BasePlayer):
+class NullFramePlayer(BaseFramePlayer):
 
     def __init__(self, **kwargs):
         pass

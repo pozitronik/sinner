@@ -5,7 +5,7 @@ from gfpgan import GFPGANer  # type: ignore[attr-defined]
 from sinner.Parameters import Parameters
 
 from sinner.FaceAnalyser import FaceAnalyser
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from sinner.helpers.FrameHelper import read_from_image
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
 from sinner.models.State import State
 from sinner.typing import Frame
@@ -36,14 +36,14 @@ def test_init():
 
 
 def test_process_frame():
-    processed_frame = get_test_object().process_frame(CV2VideoHandler.read_image(target_png))
+    processed_frame = get_test_object().process_frame(read_from_image(target_png))
     assert (processed_frame, Frame)
     assert processed_frame.shape == IMAGE_SHAPE
 
 
 def test_process_frame_upscale():
-    assert (1080, 861) == CV2VideoHandler.read_image(target_png).shape[:2]
+    assert (1080, 861) == read_from_image(target_png).shape[:2]
     test_object = FaceEnhancer(parameters=Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --target-path="{target_png}" --output-path="{tmp_dir}" --upscale=2').parameters)
-    processed_frame = test_object.process_frame(CV2VideoHandler.read_image(target_png))
+    processed_frame = test_object.process_frame(read_from_image(target_png))
     assert (processed_frame, Frame)
     assert processed_frame.shape[:2] == (2160, 1722)

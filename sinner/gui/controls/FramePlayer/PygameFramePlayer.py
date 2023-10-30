@@ -3,12 +3,12 @@ import numpy
 import pygame
 from pygame import Surface
 
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
-from sinner.utilities import set_frame_size
 
 
-class FastPlayer(BasePlayer):
+class PygameFramePlayer(BaseFramePlayer):
     screen: Surface = None
 
     def __init__(self, width: int, height: int, caption: str = '😈'):
@@ -23,9 +23,9 @@ class FastPlayer(BasePlayer):
             frame = numpy.flip(numpy.rot90((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))), 0)
             self._last_frame = frame
             if resize is True:  # resize to the current canvas size
-                frame = set_frame_size(frame, (self.screen.get_height(), self.screen.get_width()))  # todo: need test
+                frame = resize_proportionally(frame, (self.screen.get_height(), self.screen.get_width()))
             elif isinstance(resize, tuple):
-                frame = set_frame_size(frame, resize)
+                frame = resize_proportionally(frame, resize)
             elif resize is False:  # resize the canvas to the image size
                 self.adjust_size()
 

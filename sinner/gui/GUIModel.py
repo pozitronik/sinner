@@ -13,17 +13,18 @@ from tqdm import tqdm
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BasePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
+from sinner.helpers.FrameHelper import EmptyFrame, scale
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
-from sinner.typing import FramesList, EmptyFrame
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, resize_frame, suggest_temp_dir
+from sinner.typing import FramesList
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -59,7 +60,7 @@ class GUIModel(Status):
     _frame_wait_coefficient: float = 0
     _player_buffer_length: int = 10  # frames needs to be rendered before player start
 
-    _player_canvas: BasePlayer | None = None
+    _player_canvas: BaseFramePlayer | None = None
     _progress_callback: Callable[[int], None] | None = None
     _frame_mode: FrameMode
 
@@ -168,11 +169,11 @@ class GUIModel(Status):
         return os.path.dirname(self._target_path) if self._target_path else None
 
     @property
-    def canvas(self) -> BasePlayer | None:
+    def canvas(self) -> BaseFramePlayer | None:
         return self._player_canvas
 
     @canvas.setter
-    def canvas(self, value: BasePlayer | None) -> None:
+    def canvas(self, value: BaseFramePlayer | None) -> None:
         self._player_canvas = value
 
     @property
@@ -273,7 +274,7 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.FIXED:
             return 3  # todo an editable value, I suppose
 
-    def player_start(self, start_frame: int, canvas: BasePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
+    def player_start(self, start_frame: int, canvas: BaseFramePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:
             self.canvas = canvas
         if progress_callback:
@@ -353,7 +354,7 @@ class GUIModel(Status):
         if not self._event_stop_player.is_set():
             with PerfCounter() as frame_render_time:
                 n_frame = self.frame_handler.extract_frame(frame_index)
-                n_frame.frame = resize_frame(n_frame.frame, self._scale_quality)
+                n_frame.frame = scale(n_frame.frame, self._scale_quality)
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
             n_frame.frame_time = frame_render_time.execution_time

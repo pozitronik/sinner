@@ -2,12 +2,13 @@ import multiprocessing
 from argparse import Namespace
 
 from colorama import Fore, Back
+from insightface.app.common import Face
 
 from sinner.Parameters import Parameters
 from sinner.FaceAnalyser import FaceAnalyser
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from sinner.helpers.FrameHelper import read_from_image
 from sinner.processors.frame.FaceSwapper import FaceSwapper
-from sinner.typing import Frame, FaceSwapperType, Face
+from sinner.typing import Frame, FaceSwapperType
 from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir, no_face_jpg
 
 parameters: Namespace = Parameters(f'--execution-provider=cpu --execution-threads={multiprocessing.cpu_count()} --max-memory=12 --source-path="{source_jpg}" --target-path="{target_png}" --output-path="{tmp_dir}"').parameters
@@ -40,6 +41,6 @@ def test_no_face_found(capsys):
 
 
 def test_process_frame():
-    processed_frame = get_test_object().process_frame(CV2VideoHandler.read_image(target_png))
+    processed_frame = get_test_object().process_frame(read_from_image(target_png))
     assert (processed_frame, Frame)
     assert processed_frame.shape == IMAGE_SHAPE
