@@ -10,6 +10,14 @@ class BaseFramePlayer:
 
     @abstractmethod
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
+        """
+        Display frame in the player
+        :param frame: the frame
+        :param resize: True: resize the frame proportionally to fit the current player,
+                       False: resize the player to the frame size,
+                       tuple[HEIGHT, WIDTH]: resize the frame proportionally to fit in the height and the width,
+                       None: do not resize the frame or the player
+        """
         pass
 
     def show_frame_wait(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, duration: float = 0) -> float:
