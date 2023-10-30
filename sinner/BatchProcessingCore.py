@@ -17,7 +17,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, suggest_execution_threads, suggest_temp_dir
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
 
