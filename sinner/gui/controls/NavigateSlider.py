@@ -24,6 +24,9 @@ class NavigateSlider(CTkSlider):
         self._position_label.pack(anchor=NW, side=TOP, expand=False, fill=X, after=self)
         return result
 
+    def pack_forget(self) -> Any:
+        self._container.pack_forget()
+
     def _clicked(self, event=None) -> None:
         super()._clicked(event)
         self.update_position()

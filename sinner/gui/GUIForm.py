@@ -12,7 +12,7 @@ from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.NavigateSlider import NavigateSlider
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
-from sinner.utilities import is_int, is_image, is_video
+from sinner.utilities import is_int, is_video
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -240,10 +240,9 @@ class GUIForm(Status):
             self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
 
     def update_slider_bounds(self) -> None:
-        if is_image(self.GUIModel.target_path):
-            self.NavigateSlider.configure.to = 1
-            self.NavigateSlider.pack_forget()
         if is_video(self.GUIModel.target_path):
             self.NavigateSlider.to = self.GUIModel.frame_handler.fc
             self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
             self.NavigateSlider.position = 0
+        else:  # hide navigation, if no frames to navigate
+            self.NavigateSlider.pack_forget()
