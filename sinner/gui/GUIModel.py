@@ -409,10 +409,10 @@ class GUIModel(Status):
         frame_extractor.configure_state(state)
 
         if state.is_finished:
-            self.update_status(f'Bootstrapping frames already done ({state.processed_frames_count}/{state.frames_count})')
+            self.update_status(f'Extracting frames already done ({state.processed_frames_count}/{state.frames_count})')
         else:
             if state.is_started:
-                self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames bootstrapped, continue with {state.processor_name}')
+                self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
 
             with tqdm(
                     total=state.frames_count,
