@@ -41,7 +41,7 @@ class GUIModel(Status):
     _target_path: str
     execution_threads: int
     bootstrap: bool
-    _prepare_frames: bool
+    _prepare_frames: bool | None
     temp_dir: str
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _player_buffer_length: int = 10  # frames needs to be rendered before player start
@@ -107,7 +107,7 @@ class GUIModel(Status):
             {
                 'parameter': {'prepare-frames'},
                 'attribute': '_prepare_frames',
-                'default': False,
+                'default': None,
                 'help': 'Extract target frames to files to make realtime player run smoother'
             },
             {
@@ -283,7 +283,7 @@ class GUIModel(Status):
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
-        if self._prepare_frames and not self._is_target_frames_prepared:
+        if self._prepare_frames is not False and not self._is_target_frames_prepared:
             self._is_target_frames_prepared = self.prepare_frames()
 
         self._event_stop_player.clear()
@@ -416,19 +416,21 @@ class GUIModel(Status):
             if state.is_started:
                 self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
 
-            with tqdm(
-                    total=state.frames_count,
-                    desc=state.processor_name, unit='frame',
-                    dynamic_ncols=True,
-                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                    initial=state.processed_frames_count,
-            ) as progress:
-                self.frame_handler.current_frame_index = state.processed_frames_count
-                for frame_num in self.frame_handler:
-                    n_frame = self.frame_handler.extract_frame(frame_num)
-                    state.save_temp_frame(n_frame)
-                    progress.update()
+            if self._prepare_frames is True:
+                with tqdm(
+                        total=state.frames_count,
+                        desc=state.processor_name, unit='frame',
+                        dynamic_ncols=True,
+                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+                        initial=state.processed_frames_count,
+                ) as progress:
+                    self.frame_handler.current_frame_index = state.processed_frames_count
+                    for frame_num in self.frame_handler:
+                        n_frame = self.frame_handler.extract_frame(frame_num)
+                        state.save_temp_frame(n_frame)
+                        progress.update()
 
         frame_extractor.release_resources()
-        self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
-        return True
+        if state.is_finished:
+            self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
+        return state.is_finished
