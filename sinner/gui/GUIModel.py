@@ -409,28 +409,27 @@ class GUIModel(Status):
         frame_extractor = FrameExtractor(self.parameters)
         state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
         frame_extractor.configure_state(state)
+        state_is_finished = state.is_finished
 
-        if state.is_finished:
+        if state_is_finished:
             self.update_status(f'Extracting frames already done ({state.processed_frames_count}/{state.frames_count})')
-        else:
+        elif self._prepare_frames is True:
             if state.is_started:
                 self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-
-            if self._prepare_frames is True:
-                with tqdm(
-                        total=state.frames_count,
-                        desc=state.processor_name, unit='frame',
-                        dynamic_ncols=True,
-                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                        initial=state.processed_frames_count,
-                ) as progress:
-                    self.frame_handler.current_frame_index = state.processed_frames_count
-                    for frame_num in self.frame_handler:
-                        n_frame = self.frame_handler.extract_frame(frame_num)
-                        state.save_temp_frame(n_frame)
-                        progress.update()
+            with tqdm(
+                    total=state.frames_count,
+                    desc=state.processor_name, unit='frame',
+                    dynamic_ncols=True,
+                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+                    initial=state.processed_frames_count,
+            ) as progress:
+                self.frame_handler.current_frame_index = state.processed_frames_count
+                for frame_num in self.frame_handler:
+                    n_frame = self.frame_handler.extract_frame(frame_num)
+                    state.save_temp_frame(n_frame)
+                    progress.update()
 
         frame_extractor.release_resources()
-        if state.is_finished:
+        if state_is_finished:
             self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
-        return state.is_finished
+        return state_is_finished
