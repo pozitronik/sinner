@@ -30,11 +30,11 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
         self._container.pack_forget()
 
     def _clicked(self, event=None) -> None:
-        super()._clicked(event)
+        CTkSlider._clicked(self, event)
         self.update_position()
 
     def set(self, output_value: int, from_variable_callback: bool = False) -> None:
-        super().set(output_value, from_variable_callback)
+        CTkSlider.set(self, output_value, from_variable_callback)
         self.update_position()
 
     def update_position(self):
