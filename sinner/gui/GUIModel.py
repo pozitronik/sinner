@@ -350,11 +350,6 @@ class GUIModel(Status):
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
             self._frames_queue.put(NumberedFrame(sys.maxsize, EmptyFrame))
-        fc_coeff = self.frame_handler.fc / processed_frames_count
-        frame_render_time = (1 / self.frame_handler.fps) * fc_coeff
-        buffer_play_length = frame_render_time * processed_frames_count
-        self.update_status(f"Rendered buffer has {processed_frames_count} frames ({fc_coeff} slower that the target)", mood=Mood.BAD)
-        self.update_status(f"Render frame time is {frame_render_time} so it plays {buffer_play_length} seconds", mood=Mood.BAD)
 
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._event_stop_player.is_set():
