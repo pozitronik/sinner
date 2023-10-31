@@ -1,13 +1,27 @@
 import time
 from abc import abstractmethod
+from enum import Enum
+
+import numpy
 
 from sinner.helpers import FrameHelper
 from sinner.models.PerfCounter import PerfCounter
 from sinner.typing import Frame
 
 
+class RotateMode(Enum):
+    ROTATE_0 = "0"
+    ROTATE_90 = "90"
+    ROTATE_180 = "180"
+    ROTATE_270 = "270"
+
+    def __str__(self) -> str:
+        return self.value[1]
+
+
 class BaseFramePlayer:
     _last_frame: Frame | None = None  # the last viewed frame
+    _rotate: RotateMode = RotateMode.ROTATE_0
 
     @abstractmethod
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
@@ -35,7 +49,7 @@ class BaseFramePlayer:
         return await_time
 
     @abstractmethod
-    def adjust_size(self) -> None:
+    def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
         pass
 
     def save_to_file(self, save_file: str) -> None:
@@ -45,3 +59,21 @@ class BaseFramePlayer:
     @abstractmethod
     def clear(self) -> None:
         pass
+
+    @property
+    def rotate(self) -> RotateMode:
+        return self._rotate
+
+    @rotate.setter
+    def rotate(self, value: RotateMode) -> None:
+        self._rotate = value
+
+    def _rotate_frame(self, frame: Frame) -> Frame:
+        if self._rotate is RotateMode.ROTATE_0:
+            return numpy.rot90(frame)
+        if self._rotate is RotateMode.ROTATE_90:
+            return numpy.rot90(numpy.rot90(frame))
+        if self._rotate is RotateMode.ROTATE_180:
+            return numpy.rot90(numpy.rot90(numpy.rot90(frame)))
+        if self._rotate is RotateMode.ROTATE_270:
+            return frame

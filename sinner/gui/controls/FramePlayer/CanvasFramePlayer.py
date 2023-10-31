@@ -45,9 +45,12 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             self.photo_image = PhotoImage(image)
 
-    def adjust_size(self, redraw: bool = True) -> None:
-        if self._last_frame is not None:
-            self.configure(width=self._last_frame.shape[1], height=self._last_frame.shape[0])
+    def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
+        if size is not None or self._last_frame is not None:
+            if size is None:
+                size = self._last_frame.shape[0], self._last_frame.shape[1]
+            # note: set_mode size parameter has the WIDTH, HEIGHT dimensions order
+            self.configure(width=size[1], height=size[0])
             # it is required to redraw the frame after resize, if it is not be intended after
             if redraw:
                 self.show_frame()

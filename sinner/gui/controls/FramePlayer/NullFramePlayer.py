@@ -10,7 +10,7 @@ class NullFramePlayer(BaseFramePlayer):
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
         pass
 
-    def adjust_size(self) -> None:
+    def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
         pass
 
     def clear(self) -> None:

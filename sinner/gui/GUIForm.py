@@ -5,7 +5,7 @@ from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, RotateMode
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
@@ -138,6 +138,14 @@ class GUIForm(Status):
         def on_framerate_mode_select(val: str) -> None:
             self.GUIModel.frame_mode = val
 
+        self.RotateModeVar = StringVar(value=RotateMode.ROTATE_0.value)
+        self.RotateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.RotateModeVar, RotateMode.ROTATE_0.value, *[RotateMode.ROTATE_90.value, RotateMode.ROTATE_180.value, RotateMode.ROTATE_270.value], command=lambda value: on_rotate_mode_select(val=value))
+
+        def on_rotate_mode_select(val: str) -> None:
+            self.Player.rotate = RotateMode(val)
+            self.Player.clear()
+            self.Player.adjust_size()
+
         self.FramerateModeVar.set(self.GUIModel.frame_mode.value)
 
         # source/target selection controls
@@ -181,6 +189,7 @@ class GUIForm(Status):
         self.PreviewButton.pack(anchor=CENTER, side=LEFT)
         self.SaveButton.pack(anchor=CENTER, side=LEFT)
         self.FramerateModeSelect.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
+        self.RotateModeSelect.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
         self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)

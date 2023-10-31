@@ -30,24 +30,28 @@ class PygameFramePlayer(BaseFramePlayer):
             frame = self._last_frame
         if frame is not None:
             self._last_frame = frame
+
+            frame = self._rotate_frame(frame)
+            frame = numpy.flip((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), 0)
+            # note: now the frame has the flipped shape (WIDTH, HEIGHT)
+
             if resize is True:  # resize to the current canvas size
-                frame = resize_proportionally(frame, (self.screen.get_height(), self.screen.get_width()))
+                frame = resize_proportionally(frame, (self.screen.get_width(), self.screen.get_height()))
             elif isinstance(resize, tuple):
                 frame = resize_proportionally(frame, resize)
             elif resize is False:  # resize the canvas to the image size
                 self.adjust_size(False)
 
-        frame = numpy.flip(numpy.rot90((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))), 0)
-        # note: now the frame has the flipped shape (WIDTH, HEIGHT)
-
         image_surface = pygame.surfarray.make_surface(frame)
         self.screen.blit(image_surface, ((self.screen.get_width() - frame.shape[0]) // 2, (self.screen.get_height() - frame.shape[1]) // 2))
         pygame.display.flip()
 
-    def adjust_size(self, redraw: bool = True) -> None:
-        if self._last_frame is not None:
+    def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
+        if size is not None or self._last_frame is not None:
+            if size is None:
+                size = self._last_frame.shape[1], self._last_frame.shape[0]
             # note: set_mode size parameter has the WIDTH, HEIGHT dimensions order
-            self.screen = pygame.display.set_mode((self._last_frame.shape[1], self._last_frame.shape[0]), pygame.RESIZABLE)
+            self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
             # it is required to redraw the frame after resize, if it is not be intended after
             if redraw:
                 self.show_frame()
