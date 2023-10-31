@@ -1,6 +1,7 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, OptionMenu
 
+import pygame
 from customtkinter import CTk
 
 from sinner.Status import Status
@@ -84,7 +85,8 @@ class GUIForm(Status):
 
         self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
-        self.Player: BaseFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='😈sinner player')
+        self.Player: PygameFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='😈sinner player')
+        self.Player.add_handler(pygame.QUIT, self.Player.hide)
 
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
