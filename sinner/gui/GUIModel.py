@@ -41,7 +41,7 @@ class GUIModel(Status):
     _target_path: str
     execution_threads: int
     bootstrap: bool
-    bootstrap_frames: bool
+    _prepare_frames: bool
     temp_dir: str
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _player_buffer_length: int = 10  # frames needs to be rendered before player start
@@ -64,7 +64,7 @@ class GUIModel(Status):
     _frame_wait_coefficient: float = 0
 
     # internal variables
-    _is_target_frames_bootstrapped: bool = False
+    _is_target_frames_prepared: bool = False
 
     # threads
     _multi_process_frames_thread: threading.Thread | None = None
@@ -105,8 +105,8 @@ class GUIModel(Status):
                 'help': 'Initial processing scale quality'
             },
             {
-                'parameter': {'bootstrap-frames'},
-                'attribute': 'bootstrap_frames',
+                'parameter': {'prepare-frames'},
+                'attribute': '_prepare_frames',
                 'default': True,
                 'help': 'Extract target frames to files to make realtime player run smoother'
             },
@@ -283,8 +283,8 @@ class GUIModel(Status):
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
-        if self.bootstrap_frames and not self._is_target_frames_bootstrapped:
-            self._is_target_frames_bootstrapped = self.bootstrap_frames()
+        if self.prepare_frames and not self._is_target_frames_prepared:
+            self._is_target_frames_prepared = self.prepare_frames()
 
         self._event_stop_player.clear()
         self.__start_buffering(start_frame)  # it also will start the player thread
@@ -296,7 +296,7 @@ class GUIModel(Status):
         self.__stop_display()
         self.__stop_buffering()
         if reload_frames:
-            self._is_target_frames_bootstrapped = False
+            self._is_target_frames_prepared = False
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
@@ -408,7 +408,7 @@ class GUIModel(Status):
             # self.update_status(f"fps_coefficient: {fps_coefficient}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
-    def bootstrap_frames(self) -> bool:
+    def prepare_frames(self) -> bool:
         frame_extractor = FrameExtractor(self.parameters)
         state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
         frame_extractor.configure_state(state)
