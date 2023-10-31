@@ -7,9 +7,10 @@ from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
+from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
+from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
-from sinner.gui.controls.NavigateSlider import NavigateSlider
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
 from sinner.utilities import is_int, is_video
@@ -89,7 +90,7 @@ class GUIForm(Status):
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
         # Navigation slider
-        self.NavigateSlider: NavigateSlider = NavigateSlider(self.GUIWindow, command=lambda frame_value: on_navigate_slider_change(frame_value))
+        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, command=lambda frame_value: on_navigate_slider_change(frame_value))
 
         def on_navigate_slider_change(frame_value: float) -> None:
             if self.GUIModel.player_is_playing:
