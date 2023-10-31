@@ -41,3 +41,7 @@ class BaseFramePlayer:
     def save_to_file(self, save_file: str) -> None:
         if self._last_frame is not None:
             FrameHelper.write_to_image(self._last_frame, save_file)
+
+    @abstractmethod
+    def clear(self) -> None:
+        pass

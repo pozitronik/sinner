@@ -12,3 +12,7 @@ class NullFramePlayer(BaseFramePlayer):
 
     def adjust_size(self) -> None:
         pass
+
+    def clear(self) -> None:
+        pass
+

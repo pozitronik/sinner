@@ -51,3 +51,6 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
             # it is required to redraw the frame after resize, if it is not be intended after
             if redraw:
                 self.show_frame()
+
+    def clear(self) -> None:
+        self.photo_image = None

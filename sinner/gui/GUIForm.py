@@ -160,11 +160,12 @@ class GUIForm(Status):
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: on_change_target_button_press())
 
         def on_change_target_button_press() -> None:
-            self.change_target()
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop(reload_frames=True)
+                self.change_target()
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
             else:
+                self.change_target()
                 self.update_preview(self.NavigateSlider.position)
 
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
@@ -232,11 +233,10 @@ class GUIForm(Status):
     def change_target(self) -> None:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
+            self.Player.clear()
             self.GUIModel.target_path = selected_file
-            # self._target_handler = None
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
-            self.Player.adjust_size()
             self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
 
     def update_slider_bounds(self) -> None:
