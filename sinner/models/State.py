@@ -119,9 +119,10 @@ class State(Status):
     @property
     def processed_frames(self) -> List[str]:
         png_files = []
-        for file in os.listdir(self.path):
-            if file.endswith(".png") and os.path.isfile(os.path.join(self.path, file)):
-                png_files.append(os.path.join(self.path, file))
+        with os.scandir(self.path) as entries:
+            for entry in entries:
+                if entry.is_file() and entry.name.endswith(".png"):
+                    png_files.append(entry.path)
         return png_files
 
     #  Returns count of already processed frame for this target (0, if none).
