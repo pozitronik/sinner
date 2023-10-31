@@ -45,10 +45,6 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
             image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             self.photo_image = PhotoImage(image)
 
-    def save_to_file(self, filename: str) -> None:
-        if self._last_frame is not None:
-            Image.fromarray(cv2.cvtColor(self._last_frame, cv2.COLOR_BGR2RGB)).save(filename)
-
     def adjust_size(self, redraw: bool = True) -> None:
         if self._last_frame is not None:
             self.configure(width=self._last_frame.shape[1], height=self._last_frame.shape[0])

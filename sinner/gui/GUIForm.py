@@ -119,10 +119,9 @@ class GUIForm(Status):
         self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: on_save_button_press())
 
         def on_save_button_press() -> None:
-            pass
-            # save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
-            # if save_file != ' ':
-            #     self.Player.save_to_file(save_file)
+            save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
+            if save_file != ' ':
+                self.Player.save_to_file(save_file)
 
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
 
