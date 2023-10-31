@@ -46,7 +46,11 @@ class DirectoryHandler(BaseFrameHandler):
     @property
     def fc(self) -> int:
         if self._fc is None:
-            self._fc = len(list(filter(is_image, glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))))
+            image_count = 0
+            for file in os.scandir(self._target_path):
+                if is_image(file.name):
+                    image_count += 1
+            self._fc = image_count
         return self._fc
 
     @fc.setter
