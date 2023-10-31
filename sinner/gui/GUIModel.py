@@ -304,6 +304,7 @@ class GUIModel(Status):
                 'start_frame': start_frame,
                 'end_frame': self.frame_handler.fc
             })
+            self._multi_process_frames_thread.daemon = True
             self._multi_process_frames_thread.start()
             self._event_buffering.set()
 
@@ -316,6 +317,7 @@ class GUIModel(Status):
     def __start_display(self):
         if not self._event_displaying.is_set():
             self._show_frames_thread = threading.Thread(target=self.show_frames, name="show_frames")
+            self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
             self._event_displaying.set()
 
