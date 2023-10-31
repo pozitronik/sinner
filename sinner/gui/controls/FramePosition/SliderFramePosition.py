@@ -3,8 +3,10 @@ from typing import Union, Callable, Any
 
 from customtkinter import CTkSlider
 
+from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 
-class NavigateSlider(CTkSlider):
+
+class SliderFramePosition(BaseFramePosition, CTkSlider):
     _container = Frame
     _position_label: Label | None = None
     _current_position: StringVar = None
@@ -12,7 +14,7 @@ class NavigateSlider(CTkSlider):
 
     def __init__(self, master: any, **kwargs):
         self._container = Frame(master, borderwidth=2)
-        super().__init__(self._container, **kwargs)
+        CTkSlider.__init__(self, self._container, **kwargs)
         self._current_position = StringVar()
         self._position_label = Label(master)
         self._position_label.configure(textvariable=self._current_position)
@@ -20,7 +22,7 @@ class NavigateSlider(CTkSlider):
 
     def pack(self, **kwargs) -> Any:
         self._container.pack(fill=X)
-        result = super().pack(**kwargs)
+        result = CTkSlider.pack(self, **kwargs)
         self._position_label.pack(anchor=NW, side=TOP, expand=False, fill=X, after=self)
         return result
 
@@ -48,7 +50,7 @@ class NavigateSlider(CTkSlider):
         return int(self.get())
 
     @position.setter
-    def position(self, value: int):
+    def position(self, value: int) -> None:
         self.set(value)
 
     @to.setter

@@ -230,3 +230,7 @@ def format_sequences(sorted_list: List[int]) -> str:
 
 def suggest_temp_dir(initial: str | None) -> str:
     return initial if initial is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
+
+
+def compare_delta(a: float, b: float, delta: float = 1e-6) -> bool:
+    return abs(a - b) <= delta
