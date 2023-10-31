@@ -66,7 +66,7 @@ class GUIForm(Status):
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_preview_window_close())
 
         def on_preview_window_close() -> None:
-            self.GUIModel.player_stop(True)
+            self.GUIModel.player_stop(wait=True)
             quit()
 
         self.GUIWindow.resizable(width=True, height=True)
@@ -163,7 +163,7 @@ class GUIForm(Status):
         def on_change_target_button_press() -> None:
             self.change_target()
             if self.GUIModel.player_is_playing:
-                self.GUIModel.player_stop()
+                self.GUIModel.player_stop(reload_frames=True)
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(self.NavigateSlider.position)

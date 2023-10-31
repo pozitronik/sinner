@@ -35,6 +35,7 @@ class FrameMode(Enum):
 
 
 class GUIModel(Status):
+    # configuration variables
     frame_processor: List[str]
     _source_path: str
     _target_path: str
@@ -42,34 +43,37 @@ class GUIModel(Status):
     bootstrap: bool
     bootstrap_frames: bool
     temp_dir: str
+    _scale_quality: float  # the processed frame size scale from 0 to 1
+    _player_buffer_length: int = 10  # frames needs to be rendered before player start
+    _frame_mode: FrameMode
 
     parameters: Namespace
+
+    # internal/external objects
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
-
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
+    _player_canvas: BaseFramePlayer | None = None
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
-    _scale_quality: float  # the processed frame size scale from 0 to 1
-    _multi_process_frames_thread: threading.Thread | None = None
-    _show_frames_thread: threading.Thread | None = None
-
     _frames_queue: queue.PriorityQueue[NumberedFrame]
+    _progress_callback: Callable[[int], None] | None = None
 
+    # player counters
     _frame_render_time: float = 0
     _fps: float = 1  # playing fps
     _frame_drop_reminder: float = 0
     _frame_wait_coefficient: float = 0
-    _player_buffer_length: int = 10  # frames needs to be rendered before player start
 
-    _player_canvas: BaseFramePlayer | None = None
-    _progress_callback: Callable[[int], None] | None = None
-    _frame_mode: FrameMode
+    # internal variables
+    _is_target_frames_bootstrapped: bool = False
+
+    # threads
+    _multi_process_frames_thread: threading.Thread | None = None
+    _show_frames_thread: threading.Thread | None = None
 
     # threads control events
     _event_buffering: threading.Event = threading.Event()
     _event_displaying: threading.Event = threading.Event()
     _event_stop_player: threading.Event = threading.Event()  # the event to stop live player
-
-    # _processing_thread_stop_event: threading.Event  # the event to stop processing
 
     def rules(self) -> Rules:
         return [
@@ -279,18 +283,20 @@ class GUIModel(Status):
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
-        if self.bootstrap_frames:
-            self.bootstrap_frames()
+        if self.bootstrap_frames and not self._is_target_frames_bootstrapped:
+            self._is_target_frames_bootstrapped = self.bootstrap_frames()
 
         self._event_stop_player.clear()
         self.__start_buffering(start_frame)  # it also will start the player thread
 
-    def player_stop(self, wait: bool = False) -> None:
+    def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         self._event_stop_player.set()
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
         self.__stop_display()
         self.__stop_buffering()
+        if reload_frames:
+            self._is_target_frames_bootstrapped = False
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
@@ -402,7 +408,7 @@ class GUIModel(Status):
             # self.update_status(f"fps_coefficient: {fps_coefficient}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
-    def bootstrap_frames(self):
+    def bootstrap_frames(self) -> bool:
         frame_extractor = FrameExtractor(self.parameters)
         state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
         frame_extractor.configure_state(state)
@@ -428,3 +434,4 @@ class GUIModel(Status):
 
         frame_extractor.release_resources()
         self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
+        return True
