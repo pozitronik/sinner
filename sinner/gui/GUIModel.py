@@ -378,7 +378,7 @@ class GUIModel(Status):
 
                     expected_timer = time.perf_counter()
                     self.canvas.show_frame_wait(n_frame.frame, duration=expected_frame_time)
-                    self.update_status(f"Frame time: {time.perf_counter() - expected_timer}, expected: {expected_frame_time}")
+                    # self.update_status(f"Frame time: {time.perf_counter() - expected_timer}, expected: {expected_frame_time}")
                     timer += expected_frame_time
                     if self.progress_callback:
                         self.progress_callback(n_frame.number)
