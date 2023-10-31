@@ -107,7 +107,7 @@ class GUIModel(Status):
             {
                 'parameter': {'prepare-frames'},
                 'attribute': '_prepare_frames',
-                'default': True,
+                'default': False,
                 'help': 'Extract target frames to files to make realtime player run smoother'
             },
             {
@@ -283,7 +283,7 @@ class GUIModel(Status):
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
-        if self.prepare_frames and not self._is_target_frames_prepared:
+        if self._prepare_frames and not self._is_target_frames_prepared:
             self._is_target_frames_prepared = self.prepare_frames()
 
         self._event_stop_player.clear()
