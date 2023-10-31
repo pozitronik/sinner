@@ -79,9 +79,9 @@ class GUIForm(Status):
 
         def on_preview_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:
-                self.NavigateSlider.position = max(1, self.NavigateSlider.position - 1)
+                self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to//100)
             if event.keycode == 39:
-                self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + 1)
+                self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to//100)
 
         self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
