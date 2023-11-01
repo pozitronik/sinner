@@ -370,7 +370,7 @@ class GUIModel(Status):
         _frame_time = 1 / self.frame_handler.fps
         timer = 0
         if self.canvas:
-            while not self._event_stop_player.is_set():  # todo: need two different events, one for the render thread, and other one for the player
+            while not self._event_stop_player.is_set():
                 try:
                     n_frame = self._processed_frames_queue.get(block=False)
                     if n_frame.number == sys.maxsize:  # use as the stop marker
