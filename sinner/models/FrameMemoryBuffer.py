@@ -8,6 +8,9 @@ from sinner.models.NumberedFrame import NumberedFrame
 class FrameMemoryBuffer:
     _frames: Dict[int, NumberedFrame] = {}  # prototype, List[NumberedFrame] is enough
 
+    def clean(self) -> None:
+        self._frames = {}
+
     def add_frame(self, frame: NumberedFrame) -> int:
         with threading.Lock():
             self._frames[frame.number] = NumberedFrame
