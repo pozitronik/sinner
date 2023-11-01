@@ -37,7 +37,7 @@ class DirectoryHandler(BaseFrameHandler):
 
     @property
     def fps(self) -> float:
-        return self._fps
+        return self._fps if self._fps else 1
 
     @fps.setter
     def fps(self, value: float | None) -> None:
