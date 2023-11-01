@@ -345,6 +345,8 @@ class GUIModel(Status):
                 future.add_done_callback(process_done)
                 futures.append(future)
                 processed_frames_count += 1
+                start_frame += self.frame_step
+
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
                     start_frame += self.frame_step
