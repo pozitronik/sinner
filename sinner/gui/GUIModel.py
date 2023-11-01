@@ -227,8 +227,8 @@ class GUIModel(Status):
             return result
         if processed:  # return all processed frames
             for processor_name, processor in self.processors.items():
-                frame = processor.process_frame(n_frame.frame)
-                result.append((frame, processor_name))
+                n_frame.frame = processor.process_frame(n_frame.frame)
+                result.append((n_frame.frame, processor_name))
         return result
 
     def get_frames(self, frame_number: int = 0, processed: bool = False) -> FramesList:
