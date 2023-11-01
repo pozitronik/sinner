@@ -48,7 +48,7 @@ class DirectoryHandler(BaseFrameHandler):
         if self._fc is None:
             image_count = 0
             for file in os.scandir(self._target_path):
-                if is_image(file.name):
+                if is_image(file.path):
                     image_count += 1
             self._fc = image_count
         return self._fc
