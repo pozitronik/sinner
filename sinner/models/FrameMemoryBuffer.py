@@ -5,6 +5,8 @@ from sinner.models.NumberedFrame import NumberedFrame
 
 
 # Internal class, used to implement extracted frames buffering
+# Was a part of experiment of frame processing acceleration
+# Currently isn't used.
 class FrameMemoryBuffer:
     _frames: Dict[int, NumberedFrame] = {}  # prototype, List[NumberedFrame] is enough
 
