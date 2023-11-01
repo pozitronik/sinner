@@ -68,7 +68,7 @@ class GUIModel(Status):
     _is_target_frames_prepared: bool = False
 
     # threads
-    _multi_process_frames_thread: threading.Thread | None = None
+    _process_frames_thread: threading.Thread | None = None
     _show_frames_thread: threading.Thread | None = None
 
     # threads control events
@@ -301,18 +301,18 @@ class GUIModel(Status):
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
-            self._multi_process_frames_thread = threading.Thread(target=self.multi_process_frames, name="multi_process_frames", kwargs={
+            self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
                 'start_frame': start_frame,
                 'end_frame': self.frame_handler.fc
             })
-            self._multi_process_frames_thread.daemon = True
-            self._multi_process_frames_thread.start()
+            self._process_frames_thread.daemon = True
+            self._process_frames_thread.start()
             self._event_buffering.set()
 
     def __stop_buffering(self):
-        if self._event_buffering.is_set() and self._multi_process_frames_thread:
-            self._multi_process_frames_thread.join(1)
-            self._multi_process_frames_thread = None
+        if self._event_buffering.is_set() and self._process_frames_thread:
+            self._process_frames_thread.join(1)
+            self._process_frames_thread = None
             self._event_buffering.clear()
 
     def __start_display(self):
@@ -328,7 +328,7 @@ class GUIModel(Status):
             self._show_frames_thread = None
             self._event_displaying.clear()
 
-    def multi_process_frames(self, start_frame: int, end_frame: int) -> None:
+    def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             if processed_frames_count >= self._player_buffer_length and not self._event_displaying.is_set():
@@ -341,7 +341,7 @@ class GUIModel(Status):
         processed_frames_count = 0
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame < end_frame:
-                future: Future[None] = executor.submit(self.process_frame_to_queue, start_frame)
+                future: Future[None] = executor.submit(self._process_frame_to_queue, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
                 processed_frames_count += 1
@@ -349,14 +349,13 @@ class GUIModel(Status):
 
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
-                    start_frame += self.frame_step
 
                 if self._event_stop_player.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
             self._processed_frames_queue.put(NumberedFrame(sys.maxsize, EmptyFrame))
 
-    def process_frame_to_queue(self, frame_index: int) -> None:
+    def _process_frame_to_queue(self, frame_index: int) -> None:
         if not self._event_stop_player.is_set():
             with PerfCounter() as frame_render_time:
                 n_frame = self.frame_handler.extract_frame(frame_index)
