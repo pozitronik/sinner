@@ -63,6 +63,8 @@ class GUIModel(Status):
     _fps: float = 1  # playing fps
     _frame_drop_reminder: float = 0
     _frame_wait_coefficient: float = 0
+    _processed_frames_count: int = 0
+    _shown_frames_count: int = 0
 
     # internal variables
     _is_target_frames_prepared: bool = False
@@ -301,6 +303,7 @@ class GUIModel(Status):
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
+            self._processed_frames_count = 0
             self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
                 'start_frame': start_frame,
                 'end_frame': self.frame_handler.fc
@@ -317,6 +320,7 @@ class GUIModel(Status):
 
     def __start_display(self):
         if not self._event_displaying.is_set():
+            self._shown_frames_count = 0
             self._show_frames_thread = threading.Thread(target=self.show_frames, name="show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
@@ -331,20 +335,20 @@ class GUIModel(Status):
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            if processed_frames_count >= self._player_buffer_length and not self._event_displaying.is_set():
+            if self._processed_frames_count >= self._player_buffer_length and not self._event_displaying.is_set():
                 self.__start_display()
             elif not self._event_displaying.is_set():
-                self.update_status(f"Waiting to fill the buffer: {processed_frames_count} of {self._player_buffer_length}")
+                self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._player_buffer_length}")
 
         self._processed_frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         futures: list[Future[None]] = []
-        processed_frames_count = 0
+        self._processed_frames_count = 0
+        self._shown_frames_count = 0
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame < end_frame:
                 future: Future[None] = executor.submit(self._process_frame_to_queue, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
-                processed_frames_count += 1
                 start_frame += self.frame_step
 
                 if len(futures) >= self.execution_threads:
@@ -364,6 +368,7 @@ class GUIModel(Status):
                     n_frame.frame = processor.process_frame(n_frame.frame)
             n_frame.frame_time = frame_render_time.execution_time
             self._processed_frames_queue.put(n_frame)
+            self._processed_frames_count += 1
             self.update_processing_fps(frame_render_time.execution_time)
 
     def show_frames(self) -> None:
@@ -373,6 +378,7 @@ class GUIModel(Status):
             while not self._event_stop_player.is_set():
                 try:
                     n_frame = self._processed_frames_queue.get(block=False)
+
                     if n_frame.number == sys.maxsize:  # use as the stop marker
                         self._event_stop_player.set()
                         continue
@@ -381,11 +387,13 @@ class GUIModel(Status):
                     expected_frame_time = _frame_time * (self.frame_handler.fps / fps)
 
                     expected_timer = time.perf_counter()
-                    self.canvas.show_frame_wait(n_frame.frame, duration=expected_frame_time)
+                    self.canvas.show_frame(n_frame.frame)
+                    self._shown_frames_count += 1
                     # self.update_status(f"Frame time: {time.perf_counter() - expected_timer}, expected: {expected_frame_time}")
                     timer += expected_frame_time
                     if self.progress_callback:
                         self.progress_callback(n_frame.number)
+                    self.update_status(f"QUEUED/PLAYED: {self._processed_frames_count}/{self._shown_frames_count}", mood=Mood.NEUTRAL)
                 except queue.Empty:
                     # self.update_status("Waiting for a frame")
                     continue
