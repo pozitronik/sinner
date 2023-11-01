@@ -44,7 +44,7 @@ class GUIModel(Status):
     _prepare_frames: bool | None
     temp_dir: str
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    _player_buffer_length: int = 10  # frames needs to be rendered before player start
+    _player_buffer_length: int = 0  # frames needs to be rendered before player start
     _frame_mode: FrameMode
 
     parameters: Namespace
@@ -367,6 +367,7 @@ class GUIModel(Status):
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
             n_frame.frame_time = frame_render_time.execution_time
+            self.update_status(f"Frame {n_frame.number} render time {n_frame.frame_time}")
             self._processed_frames_queue.put(n_frame)
             self._processed_frames_count += 1
             self.update_processing_fps(frame_render_time.execution_time)
@@ -388,7 +389,7 @@ class GUIModel(Status):
 
                     expected_timer = time.perf_counter()
                     frame_time = _frame_time if self._processed_frames_count > self._shown_frames_count else expected_frame_time
-                    self.canvas.show_frame_wait(n_frame.frame, duration=frame_time)
+                    self.canvas.show_frame_wait(n_frame.frame, duration=expected_frame_time)
                     self._shown_frames_count += 1
                     # self.update_status(f"Frame time: {time.perf_counter() - expected_timer}, expected: {expected_frame_time}")
                     timer += expected_frame_time
