@@ -54,7 +54,8 @@ class GUIModel(Status):
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _player_canvas: BaseFramePlayer | None = None
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
-    _frames_queue: queue.PriorityQueue[NumberedFrame]
+    _processed_frames_queue: queue.PriorityQueue[NumberedFrame]
+
     _progress_callback: Callable[[int], None] | None = None
 
     # player counters
@@ -134,7 +135,7 @@ class GUIModel(Status):
         if self.bootstrap:
             self._processors = self.processors
 
-        self._frames_queue = queue.PriorityQueue()
+        self._processed_frames_queue = queue.PriorityQueue()
 
         self._event_stop_player.set()
         # self._processing_thread_stop_event.set()
@@ -335,7 +336,7 @@ class GUIModel(Status):
             elif not self._event_displaying.is_set():
                 self.update_status(f"Waiting to fill the buffer: {processed_frames_count} of {self._player_buffer_length}")
 
-        self._frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
+        self._processed_frames_queue = queue.PriorityQueue()  # clears the queue from the old frames
         futures: list[Future[None]] = []
         processed_frames_count = 0
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
@@ -351,7 +352,7 @@ class GUIModel(Status):
                 if self._event_stop_player.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
-            self._frames_queue.put(NumberedFrame(sys.maxsize, EmptyFrame))
+            self._processed_frames_queue.put(NumberedFrame(sys.maxsize, EmptyFrame))
 
     def process_frame_to_queue(self, frame_index: int) -> None:
         if not self._event_stop_player.is_set():
@@ -361,7 +362,7 @@ class GUIModel(Status):
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
             n_frame.frame_time = frame_render_time.execution_time
-            self._frames_queue.put(n_frame)
+            self._processed_frames_queue.put(n_frame)
             self.update_processing_fps(frame_render_time.execution_time)
 
     def show_frames(self) -> None:
@@ -370,7 +371,7 @@ class GUIModel(Status):
         if self.canvas:
             while not self._event_stop_player.is_set():  # todo: need two different events, one for the render thread, and other one for the player
                 try:
-                    n_frame = self._frames_queue.get(block=False)
+                    n_frame = self._processed_frames_queue.get(block=False)
                     if n_frame.number == sys.maxsize:  # use as the stop marker
                         self._event_stop_player.set()
                         continue
