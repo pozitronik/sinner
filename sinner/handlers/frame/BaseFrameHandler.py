@@ -57,6 +57,10 @@ class BaseFrameHandler(Status, ABC):
         pass
 
     @property
+    def frame_time(self) -> float:
+        return 1 / self.fps
+
+    @property
     @abstractmethod
     def resolution(self) -> tuple[int, int]:
         """
