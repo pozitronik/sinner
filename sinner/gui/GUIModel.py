@@ -59,12 +59,9 @@ class GUIModel(Status):
     _progress_callback: Callable[[int], None] | None = None
 
     # player counters
-    _frame_render_time: float = 0
-    _fps: float = 1  # playing fps
-    _frame_drop_reminder: float = 0
-    _frame_wait_coefficient: float = 0
     _processed_frames_count: int = 0
     _shown_frames_count: int = 0
+    _current_frame_drop: int = 0
 
     _timeline: FrameTimeLine
 
@@ -379,7 +376,6 @@ class GUIModel(Status):
             self.update_status(f"Frame {n_frame.number} render time {n_frame.frame_time}")
             self._timeline.add_frame(n_frame)
             self._processed_frames_count += 1
-            self.update_processing_fps(frame_render_time.execution_time)
 
     def _show_frames(self) -> None:
         if self.canvas:
@@ -388,28 +384,22 @@ class GUIModel(Status):
                 if n_frame is None:
                     time.sleep(self.frame_handler.frame_time / 2)
                     continue
-                self.update_status(f"GOT frame: {n_frame.number} (requested {self._timeline.last_frame_index}) from timeline", mood=Mood.NEUTRAL)
                 self.canvas.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
                 if self.progress_callback:
-                    self.progress_callback(self._timeline.last_frame_index)
-                self.update_status(f"QUEUED/PLAYED: {self._processed_frames_count}/{self._shown_frames_count}", mood=Mood.NEUTRAL)
-
-    # method computes the current processing fps based on the median time of all processed frames timings
-    def update_processing_fps(self, frame_render_ns: float) -> None:
-        self._frame_render_time = (self._frame_render_time + frame_render_ns) / self.execution_threads
-        self._fps = 1 / self._frame_render_time
+                    self.progress_callback(self._timeline.last_read_index)
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
-        if self._fps >= self.frame_handler.fps:  # render is faster than video
-            frame_drop = 0  # no frame skip
-        else:  # render is slower than video
-            self._frame_wait_coefficient = ((self.frame_handler.fps / self._fps) + self._frame_drop_reminder)
-            frame_drop = int(self._frame_wait_coefficient) - 1
-            self._frame_drop_reminder = self._frame_wait_coefficient % 1  # do not lose reminder, use it in the next iteration
-            # self.update_status(f"fps_coefficient: {fps_coefficient}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
-        return frame_drop
+        delta = self.frame_handler.fps * 20
+        if (self._timeline.last_written_index - delta) > self._timeline.last_read_index:  # buffering is too fast, need to decrease framedrop
+            if self._current_frame_drop > 0:
+                self._current_frame_drop -= 1
+        elif self._timeline.last_written_index < self._timeline.last_read_index:  # buffering is too slow, need to increase framedrop
+            self._current_frame_drop += 1
+
+        self.update_status(f"current_frame_drop: {self._current_frame_drop} (w/r: {self._timeline.last_written_index}/{self._timeline.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
+        return self._current_frame_drop
 
     def extract_frames(self) -> bool:
         frame_extractor = FrameExtractor(self.parameters)
