@@ -9,12 +9,14 @@ class FrameTimeLine:
     _frames: Dict[int, NumberedFrame] = {}
     _timer: float = 0
     _frame_time: float
+    _start_frame_index: int = 0
 
     _is_started: bool = False
     _last_frame_index: int = 0
 
-    def __init__(self, frame_time: float):
+    def __init__(self, frame_time: float, start_frame: int = 0):
         self._frame_time = frame_time
+        self._start_frame_index = start_frame
 
     # start the time counter
     def start(self):
@@ -56,7 +58,7 @@ class FrameTimeLine:
     def get_frame_index(self) -> int:
         time_position = self.time()
         frame_position = time_position / self._frame_time
-        self._last_frame_index = int(frame_position)
+        self._last_frame_index = int(frame_position) + self._start_frame_index
         return self._last_frame_index
 
     @property

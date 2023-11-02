@@ -283,7 +283,7 @@ class GUIModel(Status):
             self.canvas = canvas
         if progress_callback:
             self.progress_callback = progress_callback
-        self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time)
+        self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
         if self._prepare_frames is not False and not self._is_target_frames_prepared:
             self._is_target_frames_prepared = self.prepare_frames()
 
