@@ -12,11 +12,13 @@ from tqdm import tqdm
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.icons.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.helpers.FrameHelper import scale
+from sinner.models.Event import Event
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -52,6 +54,7 @@ class GUIModel(Status):
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _player_canvas: BaseFramePlayer | None = None
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
+    status_bar: SimpleStatusBar | None = None
 
     _progress_callback: Callable[[int], None] | None = None
 
@@ -73,9 +76,9 @@ class GUIModel(Status):
     _show_frames_thread: threading.Thread | None = None
 
     # threads control events
-    _event_buffering: threading.Event = threading.Event()
-    _event_displaying: threading.Event = threading.Event()
-    _event_stop_player: threading.Event = threading.Event()  # the event to stop live player
+    _event_buffering: Event
+    _event_displaying: Event
+    _event_stop_player: Event  # the event to stop live player
 
     def rules(self) -> Rules:
         return [
@@ -128,6 +131,11 @@ class GUIModel(Status):
             }
         ]
 
+    def status(self, item: str, value: str):
+        with threading.Lock():
+            if self.status_bar is not None:
+                self.status_bar.set_item(item, value)
+
     def __init__(self, parameters: Namespace):
         self._frame_mode: FrameMode = FrameMode.AUTO
         self.parameters = parameters
@@ -135,6 +143,10 @@ class GUIModel(Status):
         self._processors = {}
         if self.bootstrap:
             self._processors = self.processors
+
+        self._event_buffering = Event(on_set_callback=lambda: self.status("BUFFERING", "ON"), on_clear_callback=lambda: self.status("BUFFERING", "OFF"))
+        self._event_displaying = Event(on_set_callback=lambda: self.status("DISPLAYING", "ON"), on_clear_callback=lambda: self.status("DISPLAYING", "OFF"))
+        self._event_stop_player = Event(on_set_callback=lambda: self.status("STOP", "ON"), on_clear_callback=lambda: self.status("STOP", "OFF"))
 
         self._event_stop_player.set()
         # self._processing_thread_stop_event.set()
