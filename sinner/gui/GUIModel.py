@@ -332,7 +332,7 @@ class GUIModel(Status):
     def __start_display(self):
         if not self._event_displaying.is_set():
             self._shown_frames_count = 0
-            self._show_frames_thread = threading.Thread(target=self.show_frames, name="show_frames")
+            self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
             self._event_displaying.set()
@@ -381,7 +381,7 @@ class GUIModel(Status):
             self._processed_frames_count += 1
             self.update_processing_fps(frame_render_time.execution_time)
 
-    def show_frames(self) -> None:
+    def _show_frames(self) -> None:
         if self.canvas:
             while not self._event_stop_player.is_set():
                 n_frame = self._timeline.get_frame()
