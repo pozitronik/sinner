@@ -17,11 +17,17 @@ class FrameTimeLine:
     def __init__(self, frame_time: float, start_frame: int = 0):
         self._frame_time = frame_time
         self._start_frame_index = start_frame
+        self._is_started = False
+        self._frames = {}
 
     # start the time counter
     def start(self):
         self._timer = time.perf_counter()
         self._is_started = True
+
+    def stop(self):
+        self._is_started = False
+        self._frames = {}
 
     # returns time passed from the start
     def time(self) -> float:

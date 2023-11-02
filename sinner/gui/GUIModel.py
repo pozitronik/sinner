@@ -292,6 +292,7 @@ class GUIModel(Status):
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         self._event_stop_player.set()
+        self._timeline.stop()
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
         self.__stop_display()
