@@ -297,7 +297,7 @@ class GUIModel(Status):
             self.progress_callback = progress_callback
         self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
         if self._prepare_frames is not False and not self._is_target_frames_prepared:
-            self._is_target_frames_prepared = self.prepare_frames()
+            self._is_target_frames_prepared = self.extract_frames()
 
         self._event_stop_player.clear()
         self.__start_buffering(start_frame)  # it also will start the player thread
@@ -411,7 +411,7 @@ class GUIModel(Status):
             # self.update_status(f"fps_coefficient: {fps_coefficient}, Framedrop: {frame_drop}, Reminder: {self._frame_drop_reminder}")
         return frame_drop
 
-    def prepare_frames(self) -> bool:
+    def extract_frames(self) -> bool:
         frame_extractor = FrameExtractor(self.parameters)
         state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
         frame_extractor.configure_state(state)
