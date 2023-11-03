@@ -7,6 +7,7 @@ import platform
 import shutil
 import sys
 import urllib
+from datetime import datetime
 from pathlib import Path
 from typing import List, Literal, Any, get_type_hints
 
@@ -235,3 +236,8 @@ def suggest_temp_dir(initial: str | None) -> str:
 # calculates iteration median using previous calculated median, current iteration value and iteration counter
 def iteration_mean(current_value: float, previous_value: float, iteration: int) -> float:
     return current_value if iteration == 0 else (previous_value * iteration + current_value) / (iteration + 1)
+
+
+def seconds_to_hmsms(seconds: float) -> str:
+    time_format = datetime.utcfromtimestamp(seconds).strftime("%H:%M:%S.%f")
+    return time_format[:-3]  # Remove the last three digits to get milliseconds
