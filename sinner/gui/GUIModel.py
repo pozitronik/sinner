@@ -393,7 +393,7 @@ class GUIModel(Status):
                     n_frame.frame = processor.process_frame(n_frame.frame)
             self._timeline.add_frame(n_frame)
             self._processed_frames_count += 1
-            self._process_fps = iteration_mean(1 / n_frame.frame_time, self._process_fps, self._processed_frames_count)
+            self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
 
     def _show_frames(self) -> None:
         if self.canvas:
