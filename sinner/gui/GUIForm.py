@@ -164,7 +164,7 @@ class GUIForm(Status):
 
         def save_current_frame() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
-            if save_file != ' ':
+            if save_file != '':
                 self.player.save_to_file(save_file)
 
         self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
