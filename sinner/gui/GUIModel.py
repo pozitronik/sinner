@@ -66,7 +66,7 @@ class GUIModel(Status):
 
     _process_fps: float = 0
 
-    _timeline: FrameTimeLine
+    _timeline: FrameTimeLine | None = None
 
     # internal variables
     _is_target_frames_prepared: bool = False
@@ -317,7 +317,8 @@ class GUIModel(Status):
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         self._event_stop_player.set()
-        self._timeline.stop()
+        if self._timeline:
+            self._timeline.stop()
         self._current_frame_drop = 0
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
