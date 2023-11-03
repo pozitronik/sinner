@@ -14,7 +14,7 @@ from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
-from sinner.utilities import is_int, is_video
+from sinner.utilities import is_int, is_video, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -63,7 +63,8 @@ class GUIForm(Status):
 
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
-        self.GUIWindow.title('😈sinner controls')
+        self.GUIWindow.iconbitmap(get_app_dir("sinner/gui/icons/sinner.ico"))
+        self.GUIWindow.title('sinner controls')
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
@@ -84,7 +85,7 @@ class GUIForm(Status):
             if event.keycode == 39:
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to//100)
 
-        self.Player: PygameFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='😈sinner player')
+        self.Player: PygameFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='sinner player')
         self.Player.add_handler(pygame.QUIT, self.Player.hide)
 
         # todo: move to a separate window

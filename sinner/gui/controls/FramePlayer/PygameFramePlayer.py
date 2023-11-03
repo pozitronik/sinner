@@ -9,6 +9,7 @@ from pygame import Surface
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
+from sinner.utilities import get_app_dir
 
 
 class PygameFramePlayer(BaseFramePlayer):
@@ -20,7 +21,7 @@ class PygameFramePlayer(BaseFramePlayer):
     _events_thread: threading.Thread
     _event_handlers: dict[int, Callable] = {}
 
-    def __init__(self, width: int, height: int, caption: str = '😈'):
+    def __init__(self, width: int, height: int, caption: str = 'Player'):
         self.width = width
         self.height = height
         self.caption = caption
@@ -41,6 +42,7 @@ class PygameFramePlayer(BaseFramePlayer):
         if self.screen is None:
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
             pygame.display.set_caption(self.caption)
+            pygame.display.set_icon(pygame.image.load(get_app_dir("sinner/gui/icons/sinner_64.png")))
 
     def hide(self) -> None:
         if self.screen is not None:
