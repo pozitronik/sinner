@@ -10,10 +10,10 @@ from sinner.typing import Frame
 
 
 class RotateMode(Enum):
-    ROTATE_0 = "0"
-    ROTATE_90 = "90"
-    ROTATE_180 = "180"
-    ROTATE_270 = "270"
+    ROTATE_0 = "0°"
+    ROTATE_90 = "90°"
+    ROTATE_180 = "180°"
+    ROTATE_270 = "270°"
 
     def __str__(self) -> str:
         return self.value[1]
