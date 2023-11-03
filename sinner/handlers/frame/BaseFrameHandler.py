@@ -58,6 +58,8 @@ class BaseFrameHandler(Status, ABC):
 
     @property
     def frame_time(self) -> float:
+        if 0 == self.fps:
+            return 0
         return 1 / self.fps
 
     @property
