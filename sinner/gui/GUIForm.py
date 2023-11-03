@@ -78,7 +78,7 @@ class GUIForm(Status):
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37 or event.keycode == 39:
-                self.update_preview(self.NavigateSlider.position)
+                on_navigate_slider_change(self.NavigateSlider.position)
 
         def on_player_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:
