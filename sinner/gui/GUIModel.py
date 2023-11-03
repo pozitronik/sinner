@@ -44,7 +44,7 @@ class GUIModel(Status):
     _prepare_frames: bool | None
     temp_dir: str
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    _player_buffer_length: int = 0  # frames needs to be rendered before player start
+    _initial_frame_buffer_length: int = 0  # frames needs to be rendered before player start
     _frame_mode: FrameMode
 
     parameters: Namespace
@@ -302,6 +302,7 @@ class GUIModel(Status):
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         self._event_stop_player.set()
         self._timeline.stop()
+        self._current_frame_drop = 0
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
         self.__stop_display()
@@ -343,10 +344,10 @@ class GUIModel(Status):
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            if self._processed_frames_count >= self._player_buffer_length and not self._event_displaying.is_set():
+            if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_displaying.is_set():
                 self.__start_display()
             elif not self._event_displaying.is_set():
-                self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._player_buffer_length}")
+                self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
@@ -391,7 +392,7 @@ class GUIModel(Status):
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
-        delta = self.frame_handler.fps * 20
+        delta = self.frame_handler.fps * 200
         if (self._timeline.last_written_index - delta) > self._timeline.last_read_index:  # buffering is too fast, need to decrease framedrop
             if self._current_frame_drop > 0:
                 self._current_frame_drop -= 1
