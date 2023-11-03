@@ -230,3 +230,8 @@ def format_sequences(sorted_list: List[int]) -> str:
 
 def suggest_temp_dir(initial: str | None) -> str:
     return initial if initial is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
+
+
+# calculates iteration median using previous calculated median, current iteration value and iteration counter
+def iteration_mean(current_value: float, previous_value: float, iteration: int) -> float:
+    return current_value if iteration == 0 else (previous_value * iteration + current_value) / (iteration + 1)
