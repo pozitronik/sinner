@@ -46,14 +46,7 @@ class FrameTimeLine:
         if not self._is_started:
             self.start()
         frame_index = self.get_frame_index()
-        frame = None
-        if frame_index in self._frames:
-            frame = self._frames[frame_index]
-        else:
-            last_index = self.last_index_before(frame_index)
-            if last_index is not None:
-                frame = self._frames[last_index]
-        return frame
+        return self._frames[frame_index] if frame_index else None
 
     # naive stub
     def last_index_before(self, index: int) -> int | None:
@@ -63,12 +56,15 @@ class FrameTimeLine:
                 return current_index
         return None
 
-    # return the index of a frame, is playing right now
-    def get_frame_index(self) -> int:
+    # return the index of a frame, is playing right now if it is in self._frames
+    # else return last frame before requested
+    def get_frame_index(self) -> int | None:
         time_position = self.time()
         frame_position = time_position / self._frame_time
         self._last_read_index = int(frame_position) + self._start_frame_index
-        return self._last_read_index
+        if self._last_read_index in self._frames:
+            return self._last_read_index
+        return self.last_index_before(self._last_read_index)
 
     @property
     def last_written_index(self) -> int:
