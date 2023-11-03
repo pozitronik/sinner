@@ -51,7 +51,7 @@ class GUIModel(Status):
     # internal/external objects
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
-    _player_canvas: BaseFramePlayer | None = None
+    _player: BaseFramePlayer | None = None
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     status_bar: SimpleStatusBar | None = None
 
@@ -191,12 +191,12 @@ class GUIModel(Status):
         return os.path.dirname(self._target_path) if self._target_path else None
 
     @property
-    def canvas(self) -> BaseFramePlayer | None:
-        return self._player_canvas
+    def player(self) -> BaseFramePlayer | None:
+        return self._player
 
-    @canvas.setter
-    def canvas(self, value: BaseFramePlayer | None) -> None:
-        self._player_canvas = value
+    @player.setter
+    def player(self, value: BaseFramePlayer | None) -> None:
+        self._player = value
 
     @property
     def quality(self) -> int:
@@ -300,9 +300,9 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.SKIP:
             return self.calculate_framedrop() + 1
 
-    def player_start(self, start_frame: int, canvas: BaseFramePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
-        if canvas:
-            self.canvas = canvas
+    def player_start(self, start_frame: int, player: BaseFramePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
+        if player:
+            self.player = player
         if progress_callback:
             self.progress_callback = progress_callback
         self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
@@ -395,13 +395,13 @@ class GUIModel(Status):
             self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
 
     def _show_frames(self) -> None:
-        if self.canvas:
+        if self.player:
             while not self._event_stop_player.is_set():
                 n_frame = self._timeline.get_frame()
                 if n_frame is None:
                     time.sleep(self.frame_handler.frame_time / 2)
                     continue
-                self.canvas.show_frame(n_frame.frame)
+                self.player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
                 if self.progress_callback:
                     self.progress_callback(self._timeline.last_read_index)

@@ -95,7 +95,7 @@ class GUIForm(Status):
         def on_navigate_slider_change(frame_value: float) -> None:
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(int(frame_value))
 
@@ -108,7 +108,7 @@ class GUIForm(Status):
                 self.GUIModel.player_stop()
                 self.RunButton.configure(text="PLAY")
             else:
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
                 self.RunButton.configure(text="STOP")
 
         self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: on_preview_button_press())
@@ -136,7 +136,7 @@ class GUIForm(Status):
             self.change_source()
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(self.NavigateSlider.position)
 
@@ -149,7 +149,7 @@ class GUIForm(Status):
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop(reload_frames=True)
                 self.change_target()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
             else:
                 self.change_target()
                 self.update_preview(self.NavigateSlider.position)

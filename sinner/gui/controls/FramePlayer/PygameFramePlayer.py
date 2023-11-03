@@ -60,11 +60,11 @@ class PygameFramePlayer(BaseFramePlayer):
             frame = numpy.flip((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), 0)
             # note: now the frame has the flipped shape (WIDTH, HEIGHT)
 
-            if resize is True:  # resize to the current canvas size
+            if resize is True:  # resize to the current player size
                 frame = resize_proportionally(frame, (self.screen.get_width(), self.screen.get_height()))
             elif isinstance(resize, tuple):
                 frame = resize_proportionally(frame, resize)
-            elif resize is False:  # resize the canvas to the image size
+            elif resize is False:  # resize the player to the image size
                 self.adjust_size(False)
 
         image_surface = pygame.surfarray.make_surface(frame)
