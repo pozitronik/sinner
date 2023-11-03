@@ -1,11 +1,11 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, OptionMenu
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, OptionMenu, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, DISABLED
 
 import pygame
 from customtkinter import CTk
 
 from sinner.Status import Status
-from sinner.gui.GUIModel import GUIModel
+from sinner.gui.GUIModel import GUIModel, FrameMode
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, RotateMode
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
@@ -81,9 +81,9 @@ class GUIForm(Status):
 
         def on_player_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:
-                self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to//100)
+                self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to // 100)
             if event.keycode == 39:
-                self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to//100)
+                self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to // 100)
 
         self.Player: PygameFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='sinner player')
         self.Player.add_handler(pygame.QUIT, self.Player.hide)
@@ -118,13 +118,6 @@ class GUIForm(Status):
         def on_preview_button_press() -> None:
             self.update_preview(self.NavigateSlider.position, True)
 
-        self.SaveButton: Button = Button(self.ControlsFrame, text="SAVE", compound=LEFT, command=lambda: on_save_button_press())
-
-        def on_save_button_press() -> None:
-            save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
-            if save_file != ' ':
-                self.Player.save_to_file(save_file)
-
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
 
         def on_quality_scale_change(frame_value: float) -> None:
@@ -134,21 +127,6 @@ class GUIForm(Status):
                 #  the quality applies only when playing, the preview always renders with 100% resolution
 
         self.QualityScale.set(self.GUIModel.quality)
-        self.FramerateModeVar = StringVar(value="All")
-        self.FramerateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.FramerateModeVar, "All", *['Auto', 'Fixed'], command=lambda value: on_framerate_mode_select(val=value))
-
-        def on_framerate_mode_select(val: str) -> None:
-            self.GUIModel.frame_mode = val
-
-        self.RotateModeVar = StringVar(value=RotateMode.ROTATE_0.value)
-        self.RotateModeSelect: OptionMenu = OptionMenu(self.ControlsFrame, self.RotateModeVar, RotateMode.ROTATE_0.value, *[RotateMode.ROTATE_90.value, RotateMode.ROTATE_180.value, RotateMode.ROTATE_270.value], command=lambda value: on_rotate_mode_select(val=value))
-
-        def on_rotate_mode_select(val: str) -> None:
-            self.Player.rotate = RotateMode(val)
-            self.Player.clear()
-            self.Player.adjust_size()
-
-        self.FramerateModeVar.set(self.GUIModel.frame_mode.value)
 
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
@@ -181,6 +159,43 @@ class GUIForm(Status):
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
         self.GUIModel.status_bar = self.StatusBar
 
+        self.MainMenu = Menu(self.GUIWindow)
+        self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Operations')
+        self.OperationsSubMenu.add(COMMAND, label='Save frame', command=lambda: save_current_frame())
+
+        def save_current_frame() -> None:
+            save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
+            if save_file != ' ':
+                self.Player.save_to_file(save_file)
+
+        self.ModeSubMenu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.ModeSubMenu, label='Playback mode')
+        self.ModeSubMenu.add(RADIOBUTTON, label='Play all frames', command=lambda: set_framerate_mode(FrameMode.ALL.value))
+        self.ModeSubMenu.add(RADIOBUTTON, label='Skip frames to match the original speed', command=lambda: set_framerate_mode(FrameMode.AUTO.value))
+
+        def set_framerate_mode(val: str) -> None:
+            self.GUIModel.frame_mode = val
+
+        self.RotateSubMenu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')
+        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))
+        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))
+        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_180.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_180))
+        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))
+
+        def set_rotate_mode(mode: RotateMode) -> None:
+            self.Player.rotate = mode
+            self.Player.clear()
+            self.Player.adjust_size()
+
+        self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
+        self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
+
     # maintain the order of window controls
     def draw_controls(self) -> None:
         self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
@@ -189,9 +204,6 @@ class GUIForm(Status):
         self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
         self.RunButton.pack(anchor=CENTER, side=LEFT)
         self.PreviewButton.pack(anchor=CENTER, side=LEFT)
-        self.SaveButton.pack(anchor=CENTER, side=LEFT)
-        self.FramerateModeSelect.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
-        self.RotateModeSelect.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
         self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
