@@ -24,7 +24,7 @@ from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -407,6 +407,7 @@ class GUIModel(Status):
                 self._shown_frames_count += 1
                 if self.progress_callback:
                     self.progress_callback(self._timeline.last_read_index)
+                self.status("time", seconds_to_hmsms(self._timeline.time_position()))
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:

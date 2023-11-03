@@ -10,6 +10,7 @@ class FrameTimeLine:
     _timer: float = 0
     _frame_time: float
     _start_frame_index: int = 0
+    _start_frame_time: float = 0
 
     _is_started: bool = False
     _last_written_index: int = 0
@@ -18,6 +19,7 @@ class FrameTimeLine:
     def __init__(self, frame_time: float, start_frame: int = 0):
         self._frame_time = frame_time
         self._start_frame_index = start_frame
+        self._start_frame_time = start_frame * frame_time
         self._is_started = False
         self._frames = {}
 
@@ -33,6 +35,9 @@ class FrameTimeLine:
     # returns time passed from the start
     def time(self) -> float:
         return time.perf_counter() - self._timer
+
+    def time_position(self) -> float:
+        return self.time() + self._start_frame_time
 
     def add_frame(self, frame: NumberedFrame) -> int:
         with threading.Lock():
