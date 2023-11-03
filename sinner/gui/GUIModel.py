@@ -39,12 +39,12 @@ class GUIModel(Status):
     frame_processor: List[str]
     _source_path: str
     _target_path: str
-    execution_threads: int
-    bootstrap: bool
-    _prepare_frames: bool | None
     temp_dir: str
+    execution_threads: int
+    bootstrap_processors: bool  # bootstrap_processors processors on startup
+    _prepare_frames: bool | None  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists
+    _initial_frame_buffer_length: int  # frames needs to be rendered before player start. Also used to determine initial frame drop
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    _initial_frame_buffer_length: int = 0  # frames needs to be rendered before player start
     _frame_mode: FrameMode
 
     parameters: Namespace
@@ -113,10 +113,16 @@ class GUIModel(Status):
                 'help': 'Extract target frames to files to make realtime player run smoother'
             },
             {
-                'parameter': 'bootstrap',
-                'attribute': 'bootstrap',
+                'parameter': ['bootstrap_processors', 'bootstrap'],
+                'attribute': 'bootstrap_processors',
                 'default': True,
                 'help': 'Bootstrap frame processors on startup'
+            },
+            {
+                'parameter': 'initial_frame_buffer_length',
+                'attribute': 'initial_frame_buffer_length',
+                'default': 10,
+                'help': 'The count of preprocessed frames'
             },
             {
                 'parameter': 'temp-dir',
@@ -138,7 +144,7 @@ class GUIModel(Status):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
-        if self.bootstrap:
+        if self.bootstrap_processors:
             self._processors = self.processors
 
         self._event_buffering = Event(on_set_callback=lambda: self.status("BUFFERING", "ON"), on_clear_callback=lambda: self.status("BUFFERING", "OFF"))
