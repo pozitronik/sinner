@@ -5,7 +5,8 @@ from argparse import Namespace
 from asyncio import Future
 from concurrent.futures.thread import ThreadPoolExecutor
 from enum import Enum
-from typing import List, Callable
+from tkinter import IntVar
+from typing import List
 
 from tqdm import tqdm
 
@@ -52,10 +53,10 @@ class GUIModel(Status):
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _player: BaseFramePlayer | None = None
+    _positionVar: IntVar | None = None
+
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     status_bar: SimpleStatusBar | None = None
-
-    _progress_callback: Callable[[int], None] | None = None
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -173,6 +174,12 @@ class GUIModel(Status):
         self.parameters.source = value
         self.reload_parameters()
 
+        if self.player_is_playing:  # todo: возможно оно и не надо
+            self.player_stop()
+            self.player_start(start_frame=self._timeline.last_read_index, player=self.player)
+        else:
+            self.update_preview()
+
     @property
     def target_path(self) -> str | None:
         return self._target_path
@@ -181,6 +188,13 @@ class GUIModel(Status):
     def target_path(self, value: str | None) -> None:
         self.parameters.target = value
         self.reload_parameters()
+        self.player.clear()
+
+        if self.player_is_playing:
+            self.player_stop(reload_frames=True)
+            self.player_start(start_frame=self._timeline.last_read_index, player=self.player)
+        else:
+            self.update_preview()
 
     @property
     def source_dir(self) -> str | None:
@@ -207,12 +221,18 @@ class GUIModel(Status):
         self._scale_quality = value / 100
 
     @property
-    def progress_callback(self) -> Callable[[int], None] | None:
-        return self._progress_callback
+    def position(self) -> IntVar:
+        if self._positionVar is None:
+            self._positionVar = IntVar()
+        return self._positionVar
 
-    @progress_callback.setter
-    def progress_callback(self, value: Callable[[int], None] | None = None) -> None:
-        self._progress_callback = value
+    def rewind(self, frame_position: int) -> None:
+        if self.player_is_playing:
+            self.player_stop()
+            self.player_start(start_frame=frame_position, player=self.player)
+        else:
+            self.update_preview()
+        self.position.set(frame_position)
 
     @property
     def processors(self) -> dict[str, BaseFrameProcessor]:
@@ -254,6 +274,18 @@ class GUIModel(Status):
         if processed:
             self.set_previews(frame_number, frame_steps)  # cache, if processing has requested
         return frame_steps
+
+    def update_preview(self, processed: bool | None = None) -> None:
+        if processed is None:
+            processed = self.is_processors_loaded
+        frames = self.get_frames(self.position.get(), processed)
+        if frames:
+            if processed:
+                self.player.show_frame(frames[-1][0])
+            else:
+                self.player.show_frame(frames[0][0])
+        else:
+            self.player.photo_image = None
 
     @property
     def frame_handler(self) -> BaseFrameHandler | None:
@@ -300,11 +332,9 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.SKIP:
             return self.calculate_framedrop() + 1
 
-    def player_start(self, start_frame: int, player: BaseFramePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
+    def player_start(self, start_frame: int, player: BaseFramePlayer) -> None:
         if player:
             self.player = player
-        if progress_callback:
-            self.progress_callback = progress_callback
         self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
         if self._prepare_frames is not False and not self._is_target_frames_prepared:
             self._is_target_frames_prepared = self.extract_frames()
@@ -403,8 +433,7 @@ class GUIModel(Status):
                     continue
                 self.player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
-                if self.progress_callback:
-                    self.progress_callback(self._timeline.last_read_index)
+                self.position.set(self._timeline.last_read_index)
                 self.status("time", seconds_to_hmsms(self._timeline.time_position()))
 
     # return the count of the skipped frames for the next iteration

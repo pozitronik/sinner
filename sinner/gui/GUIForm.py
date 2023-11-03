@@ -59,6 +59,7 @@ class GUIForm(Status):
     def __init__(self, parameters: Namespace):
         super().__init__(parameters)
         self.GUIModel = GUIModel(parameters)
+        self.GUIModel.player = self.player
 
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
@@ -74,13 +75,8 @@ class GUIForm(Status):
 
         self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
-        self.GUIWindow.bind("<KeyPress>", lambda event: on_player_window_key_press(event))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
-            if event.keycode == 37 or event.keycode == 39:
-                on_navigate_slider_change(self.NavigateSlider.position)
-
-        def on_player_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:
                 self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to // 100)
             if event.keycode == 39:
@@ -90,14 +86,7 @@ class GUIForm(Status):
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, command=lambda frame_value: on_navigate_slider_change(frame_value))
-
-        def on_navigate_slider_change(frame_value: float) -> None:
-            if self.GUIModel.player_is_playing:
-                self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
-            else:
-                self.update_preview(int(frame_value))
+        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
         self.ControlsFrame = Frame(self.GUIWindow)
@@ -108,13 +97,10 @@ class GUIForm(Status):
                 self.GUIModel.player_stop()
                 self.RunButton.configure(text="PLAY")
             else:
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player)
                 self.RunButton.configure(text="STOP")
 
-        self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: on_preview_button_press())
-
-        def on_preview_button_press() -> None:
-            self.update_preview(self.NavigateSlider.position, True)
+        self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: self.GUIModel.update_preview(True))
 
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
 
@@ -130,29 +116,12 @@ class GUIForm(Status):
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state=READONLY)
         self.SelectSourceDialog = filedialog
-        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: on_change_source_button_press())
-
-        def on_change_source_button_press() -> None:
-            self.change_source()
-            if self.GUIModel.player_is_playing:
-                self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
-            else:
-                self.update_preview(self.NavigateSlider.position)
+        self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.change_source())
 
         self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
         self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state=READONLY)
         self.SelectTargetDialog = filedialog
-        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: on_change_target_button_press())
-
-        def on_change_target_button_press() -> None:
-            if self.GUIModel.player_is_playing:
-                self.GUIModel.player_stop(reload_frames=True)
-                self.change_target()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player, progress_callback=self.NavigateSlider.set)
-            else:
-                self.change_target()
-                self.update_preview(self.NavigateSlider.position)
+        self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
         self.GUIModel.status_bar = self.StatusBar
@@ -220,7 +189,7 @@ class GUIForm(Status):
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
-        self.update_preview(self.NavigateSlider.position)
+        self.GUIModel.update_preview()
         self.player.adjust_size()
         return self.GUIWindow
 
@@ -231,8 +200,8 @@ class GUIForm(Status):
             # self.PlayerControl.add_handler(pygame.QUIT, self.PlayerControl.hide)
         return self.PlayerControl
 
-    # controls manipulation methods
-    def update_preview(self, frame_number: int = 0, processed: bool | None = None) -> None:
+    # controls manipulation methods todo refactor to a GUIModel method
+    def update_preview_(self, frame_number: int = 0, processed: bool | None = None) -> None:
         if processed is None:
             processed = self.GUIModel.is_processors_loaded
         frames = self.GUIModel.get_frames(frame_number, processed)
@@ -256,20 +225,23 @@ class GUIForm(Status):
         if frames:
             self.player.show_frame(frames[thumbnail_index][0])
 
-    def change_source(self) -> None:
+    def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
             self.GUIModel.source_path = selected_file
             self.SourcePathEntry.set_text(selected_file)
+            return True
+        return False
 
-    def change_target(self) -> None:
+    def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
-            self.player.clear()
             self.GUIModel.target_path = selected_file
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
-            self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
+            self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}")
+            return True
+        return False
 
     def update_slider_bounds(self) -> None:
         if is_video(self.GUIModel.target_path):
