@@ -24,7 +24,7 @@ from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -62,6 +62,9 @@ class GUIModel(Status):
     _processed_frames_count: int = 0
     _shown_frames_count: int = 0
     _current_frame_drop: int = 0
+    _framedrop_delta: int | None = None
+
+    _process_fps: float = 0
 
     _timeline: FrameTimeLine
 
@@ -120,8 +123,8 @@ class GUIModel(Status):
             },
             {
                 'parameter': 'initial_frame_buffer_length',
-                'attribute': 'initial_frame_buffer_length',
-                'default': 10,
+                'attribute': '_initial_frame_buffer_length',
+                'default': lambda: self.frame_handler.fps * 2,  # two seconds
                 'help': 'The count of preprocessed frames'
             },
             {
@@ -285,6 +288,12 @@ class GUIModel(Status):
             self._frame_mode = frame_mode_mapping[value]
 
     @property
+    def framedrop_delta(self) -> int:
+        if self._framedrop_delta is None:
+            self._framedrop_delta = int(self.frame_handler.fps * 200)
+        return self._framedrop_delta
+
+    @property
     def frame_step(self) -> int:
         if self._frame_mode is FrameMode.ALL:
             return 1
@@ -351,6 +360,9 @@ class GUIModel(Status):
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_displaying.is_set():
+                self._current_frame_drop = round(self.frame_handler.fps / self._process_fps) - 1
+                if self._current_frame_drop < 0:
+                    self._current_frame_drop = 0
                 self.__start_display()
             elif not self._event_displaying.is_set():
                 self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
@@ -383,6 +395,7 @@ class GUIModel(Status):
             self.update_status(f"Frame {n_frame.number} render time {n_frame.frame_time}")
             self._timeline.add_frame(n_frame)
             self._processed_frames_count += 1
+            self._process_fps = iteration_mean(1 / n_frame.frame_time, self._process_fps, self._processed_frames_count)
 
     def _show_frames(self) -> None:
         if self.canvas:
@@ -398,8 +411,7 @@ class GUIModel(Status):
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
-        delta = self.frame_handler.fps * 200
-        if (self._timeline.last_written_index - delta) > self._timeline.last_read_index:  # buffering is too fast, need to decrease framedrop
+        if (self._timeline.last_written_index - self.framedrop_delta) > self._timeline.last_read_index:  # buffering is too fast, need to decrease framedrop
             if self._current_frame_drop > 0:
                 self._current_frame_drop -= 1
         elif self._timeline.last_written_index < self._timeline.last_read_index:  # buffering is too slow, need to increase framedrop
