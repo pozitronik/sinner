@@ -29,9 +29,8 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class FrameMode(Enum):
-    ALL = "All"
-    AUTO = "Auto"
-    FIXED = "Fixed"
+    ALL = "Play all frames"
+    SKIP = "Skip frames to match the original speed"
 
 
 class GUIModel(Status):
@@ -144,7 +143,7 @@ class GUIModel(Status):
                 self.status_bar.set_item(item, value)
 
     def __init__(self, parameters: Namespace):
-        self._frame_mode: FrameMode = FrameMode.AUTO
+        self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -298,10 +297,8 @@ class GUIModel(Status):
     def frame_step(self) -> int:
         if self._frame_mode is FrameMode.ALL:
             return 1
-        if self._frame_mode is FrameMode.AUTO:
+        if self._frame_mode is FrameMode.SKIP:
             return self.calculate_framedrop() + 1
-        if self._frame_mode is FrameMode.FIXED:
-            return 3  # todo an editable value, I suppose
 
     def player_start(self, start_frame: int, canvas: BaseFramePlayer, progress_callback: Callable[[int], None] | None = None) -> None:
         if canvas:

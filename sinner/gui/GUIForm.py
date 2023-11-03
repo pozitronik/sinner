@@ -171,20 +171,24 @@ class GUIForm(Status):
             if save_file != ' ':
                 self.Player.save_to_file(save_file)
 
+        self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
+
         self.ModeSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ModeSubMenu, label='Playback mode')
-        self.ModeSubMenu.add(RADIOBUTTON, label='Play all frames', command=lambda: set_framerate_mode(FrameMode.ALL.value))
-        self.ModeSubMenu.add(RADIOBUTTON, label='Skip frames to match the original speed', command=lambda: set_framerate_mode(FrameMode.AUTO.value))
+        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.ALL.value, command=lambda: set_framerate_mode(FrameMode.ALL))
+        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.SKIP.value, command=lambda: set_framerate_mode(FrameMode.SKIP))
 
-        def set_framerate_mode(val: str) -> None:
-            self.GUIModel.frame_mode = val
+        def set_framerate_mode(mode: FrameMode) -> None:
+            self.GUIModel.frame_mode = mode
+
+        self.RotateModeVar: StringVar = StringVar(value=RotateMode.ROTATE_0.value)
 
         self.RotateSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')
-        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))
-        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))
-        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_180.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_180))
-        self.RotateSubMenu.add(RADIOBUTTON, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_180.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_180))
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))
 
         def set_rotate_mode(mode: RotateMode) -> None:
             self.Player.rotate = mode
