@@ -1,7 +1,6 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, DISABLED
 
-import pygame
 from customtkinter import CTk
 
 from sinner.Status import Status
@@ -22,7 +21,7 @@ from sinner.validators.AttributeLoader import Rules
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
-    Player: BaseFramePlayer
+    PlayerControl: BaseFramePlayer | None = None  # get via player() property
 
     current_position: StringVar  # current position variable
 
@@ -87,9 +86,6 @@ class GUIForm(Status):
             if event.keycode == 39:
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to // 100)
 
-        self.Player: PygameFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='sinner player')
-        self.Player.add_handler(pygame.QUIT, self.Player.hide)
-
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
@@ -99,7 +95,7 @@ class GUIForm(Status):
         def on_navigate_slider_change(frame_value: float) -> None:
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(int(frame_value))
 
@@ -112,7 +108,7 @@ class GUIForm(Status):
                 self.GUIModel.player_stop()
                 self.RunButton.configure(text="PLAY")
             else:
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
                 self.RunButton.configure(text="STOP")
 
         self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: on_preview_button_press())
@@ -140,7 +136,7 @@ class GUIForm(Status):
             self.change_source()
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
             else:
                 self.update_preview(self.NavigateSlider.position)
 
@@ -153,7 +149,7 @@ class GUIForm(Status):
             if self.GUIModel.player_is_playing:
                 self.GUIModel.player_stop(reload_frames=True)
                 self.change_target()
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.Player, progress_callback=self.NavigateSlider.set)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, canvas=self.player, progress_callback=self.NavigateSlider.set)
             else:
                 self.change_target()
                 self.update_preview(self.NavigateSlider.position)
@@ -169,7 +165,7 @@ class GUIForm(Status):
         def save_current_frame() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
             if save_file != ' ':
-                self.Player.save_to_file(save_file)
+                self.player.save_to_file(save_file)
 
         self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
 
@@ -191,9 +187,9 @@ class GUIForm(Status):
         self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))
 
         def set_rotate_mode(mode: RotateMode) -> None:
-            self.Player.rotate = mode
-            self.Player.clear()
-            self.Player.adjust_size()
+            self.player.rotate = mode
+            self.player.clear()
+            self.player.adjust_size()
 
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')
@@ -225,8 +221,15 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.update_preview(self.NavigateSlider.position)
-        self.Player.adjust_size()
+        self.player.adjust_size()
         return self.GUIWindow
+
+    @property
+    def player(self) -> BaseFramePlayer:
+        if self.PlayerControl is None:
+            self.PlayerControl = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='sinner player')
+            # self.PlayerControl.add_handler(pygame.QUIT, self.PlayerControl.hide)
+        return self.PlayerControl
 
     # controls manipulation methods
     def update_preview(self, frame_number: int = 0, processed: bool | None = None) -> None:
@@ -242,16 +245,16 @@ class GUIForm(Status):
                         position=frame_number,
                         onclick=self.on_preview_frames_thumbnail_click
                     ) for frame in frames])
-                self.Player.show_frame(frames[-1][0])
+                self.player.show_frame(frames[-1][0])
             else:
-                self.Player.show_frame(frames[0][0])
+                self.player.show_frame(frames[0][0])
         else:
-            self.Player.photo_image = None
+            self.player.photo_image = None
 
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self.GUIModel.get_previews(frame_number)
         if frames:
-            self.Player.show_frame(frames[thumbnail_index][0])
+            self.player.show_frame(frames[thumbnail_index][0])
 
     def change_source(self) -> None:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
@@ -262,7 +265,7 @@ class GUIForm(Status):
     def change_target(self) -> None:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
-            self.Player.clear()
+            self.player.clear()
             self.GUIModel.target_path = selected_file
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)

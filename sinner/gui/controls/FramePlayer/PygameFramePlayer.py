@@ -21,7 +21,7 @@ class PygameFramePlayer(BaseFramePlayer):
     _events_thread: threading.Thread
     _event_handlers: dict[int, Callable] = {}
 
-    def __init__(self, width: int, height: int, caption: str = 'Player'):
+    def __init__(self, width: int, height: int, caption: str = 'PlayerControl'):
         self.width = width
         self.height = height
         self.caption = caption
