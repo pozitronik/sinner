@@ -64,6 +64,7 @@ class GUIForm(Status):
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
         self.GUIWindow.iconbitmap(get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
+        # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
