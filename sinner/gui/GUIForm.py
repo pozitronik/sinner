@@ -70,7 +70,7 @@ class GUIForm(Status):
             self.GUIModel.player_stop(wait=True)
             quit()
 
-        self.GUIWindow.resizable(width=True, height=True)
+        self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_preview_window_key_release(event))
 
         def on_preview_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
