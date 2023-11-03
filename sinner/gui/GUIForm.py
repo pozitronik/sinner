@@ -64,26 +64,25 @@ class GUIForm(Status):
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
         self.GUIWindow.title('😈sinner controls')
-        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_preview_window_close())
+        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
-        def on_preview_window_close() -> None:
+        def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
             quit()
 
         self.GUIWindow.resizable(width=True, height=False)
-        self.GUIWindow.bind("<KeyRelease>", lambda event: on_preview_window_key_release(event))
+        self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
+        self.GUIWindow.bind("<KeyPress>", lambda event: on_player_window_key_press(event))
 
-        def on_preview_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
+        def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37 or event.keycode == 39:
                 self.update_preview(self.NavigateSlider.position)
 
-        def on_preview_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
+        def on_player_window_key_press(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:
                 self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to//100)
             if event.keycode == 39:
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to//100)
-
-        self.GUIWindow.bind("<KeyPress>", lambda event: on_preview_window_key_press(event))
 
         self.Player: PygameFramePlayer = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='😈sinner player')
         self.Player.add_handler(pygame.QUIT, self.Player.hide)
