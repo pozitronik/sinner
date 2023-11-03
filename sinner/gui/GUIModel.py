@@ -124,7 +124,7 @@ class GUIModel(Status):
             {
                 'parameter': 'initial_frame_buffer_length',
                 'attribute': '_initial_frame_buffer_length',
-                'default': lambda: self.frame_handler.fps * 2,  # two seconds
+                'default': lambda: int(self.frame_handler.fps * 2),  # two seconds
                 'help': 'The count of preprocessed frames'
             },
             {
@@ -137,6 +137,7 @@ class GUIModel(Status):
             }
         ]
 
+    #  debug only
     def status(self, item: str, value: str):
         with threading.Lock():
             if self.status_bar is not None:
