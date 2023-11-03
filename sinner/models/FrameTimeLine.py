@@ -36,9 +36,9 @@ class FrameTimeLine:
 
     def add_frame(self, frame: NumberedFrame) -> int:
         with threading.Lock():
-            self._frames[frame.number] = frame
-            if frame.number > self._last_written_index:
-                self._last_written_index = frame.number
+            self._frames[frame.index] = frame
+            if frame.index > self._last_written_index:
+                self._last_written_index = frame.index
         return len(self._frames)
 
     # return the frame at current time position, or None, if there's no frame

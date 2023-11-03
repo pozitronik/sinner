@@ -140,7 +140,7 @@ class State(Status):
         if frame.name:
             filename = frame.name + '.png'
         else:
-            filename = str(frame.number).zfill(self.zfill_length) + '.png'
+            filename = str(frame.index).zfill(self.zfill_length) + '.png'
         return str(os.path.join(self.path, filename))
 
     @property

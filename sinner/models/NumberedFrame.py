@@ -5,9 +5,9 @@ from sinner.typing import Frame
 
 @dataclass(order=True)
 class NumberedFrame:
-    number: int
+    index: int
     frame: Frame = field(compare=False)
     name: str | None = field(compare=False, default=None)
 
     def __eq__(self, o: 'NumberedFrame') -> bool:
-        return self.number == o.number
+        return self.index == o.index

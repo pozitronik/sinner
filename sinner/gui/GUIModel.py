@@ -62,7 +62,7 @@ class GUIModel(Status):
     _processed_frames_count: int = 0  # the overall count of processed frames
     _shown_frames_count: int = 0  # the overall count of shown frames
     _current_frame_drop: int = 0  # the current value of frames skipped on each processing iteration
-    _framedrop_delta: int | None = None  # the required number of preprocessed frames
+    _framedrop_delta: int | None = None  # the required index of preprocessed frames
 
     _process_fps: float = 0
 
