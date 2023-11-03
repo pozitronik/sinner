@@ -59,10 +59,10 @@ class GUIModel(Status):
     _progress_callback: Callable[[int], None] | None = None
 
     # player counters
-    _processed_frames_count: int = 0
-    _shown_frames_count: int = 0
-    _current_frame_drop: int = 0
-    _framedrop_delta: int | None = None
+    _processed_frames_count: int = 0  # the overall count of processed frames
+    _shown_frames_count: int = 0  # the overall count of shown frames
+    _current_frame_drop: int = 0  # the current value of frames skipped on each processing iteration
+    _framedrop_delta: int | None = None  # the required number of preprocessed frames
 
     _process_fps: float = 0
 
@@ -290,7 +290,7 @@ class GUIModel(Status):
     @property
     def framedrop_delta(self) -> int:
         if self._framedrop_delta is None:
-            self._framedrop_delta = int(self.frame_handler.fps * 200)
+            self._framedrop_delta = int(self.frame_handler.fps * 5)  # 5 seconds should be enough
         return self._framedrop_delta
 
     @property
@@ -392,7 +392,7 @@ class GUIModel(Status):
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
             n_frame.frame_time = frame_render_time.execution_time
-            self.update_status(f"Frame {n_frame.number} render time {n_frame.frame_time}")
+            # self.update_status(f"Frame {n_frame.number} render time {n_frame.frame_time}")
             self._timeline.add_frame(n_frame)
             self._processed_frames_count += 1
             self._process_fps = iteration_mean(1 / n_frame.frame_time, self._process_fps, self._processed_frames_count)
@@ -411,13 +411,13 @@ class GUIModel(Status):
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
-        if (self._timeline.last_written_index - self.framedrop_delta) > self._timeline.last_read_index:  # buffering is too fast, need to decrease framedrop
+        if (self._timeline.last_written_index - self.framedrop_delta) > self._timeline.last_read_index:  # buffering is too fast, framedrop can be decreased
             if self._current_frame_drop > 0:
                 self._current_frame_drop -= 1
         elif self._timeline.last_written_index < self._timeline.last_read_index:  # buffering is too slow, need to increase framedrop
             self._current_frame_drop += 1
 
-        self.update_status(f"current_frame_drop: {self._current_frame_drop} (w/r: {self._timeline.last_written_index}/{self._timeline.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
+        # self.update_status(f"current_frame_drop: {self._current_frame_drop} (w/r: {self._timeline.last_written_index}/{self._timeline.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
         return self._current_frame_drop
 
     def extract_frames(self) -> bool:
