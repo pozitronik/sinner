@@ -1,4 +1,4 @@
-from tkinter import Label, StringVar,  Frame, X, TOP, NW
+from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL
 from typing import Union, Callable, Any
 
 from customtkinter import CTkSlider
@@ -62,3 +62,9 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     @property
     def container(self) -> Frame:
         return self._container
+
+    def disable(self):
+        CTkSlider.configure(self, True, state=DISABLED)
+
+    def enable(self):
+        CTkSlider.configure(self, True, state=NORMAL)

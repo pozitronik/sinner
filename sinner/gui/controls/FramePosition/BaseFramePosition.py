@@ -31,3 +31,11 @@ class BaseFramePosition:
     @abstractmethod
     def set(self, output_value: int, from_variable_callback: bool = False) -> None:
         pass
+
+    @abstractmethod
+    def disable(self):
+        pass
+
+    @abstractmethod
+    def enable(self):
+        pass

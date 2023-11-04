@@ -171,7 +171,8 @@ class GUIForm(Status):
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
-        self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
+        # self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
+        self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()  # also draws slider, if necessary
         self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
@@ -246,9 +247,9 @@ class GUIForm(Status):
         return False
 
     def update_slider_bounds(self) -> None:
-        if is_video(self.GUIModel.target_path):
-            self.NavigateSlider.to = self.GUIModel.frame_handler.fc
-            self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-            self.NavigateSlider.position = 0
-        else:  # hide navigation, if no frames to navigate
-            self.NavigateSlider.pack_forget()
+        self.NavigateSlider.to = self.GUIModel.frame_handler.fc
+        self.NavigateSlider.position = 0
+        if self.NavigateSlider.to > 1:
+            self.NavigateSlider.enable()
+        else:
+            self.NavigateSlider.disable()
