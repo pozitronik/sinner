@@ -389,7 +389,7 @@ class GUIModel(Status):
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_playback.is_set():
+            if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_playback.is_set():  # todo: need to check, it calls after every restart
                 self._current_frame_drop = round(self.frame_handler.fps / self._process_fps) - 1
                 if self._current_frame_drop < 0:
                     self._current_frame_drop = 0
