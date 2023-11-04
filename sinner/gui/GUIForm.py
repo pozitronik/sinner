@@ -13,7 +13,7 @@ from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
-from sinner.utilities import is_int, is_video, get_app_dir
+from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -79,7 +79,9 @@ class GUIForm(Status):
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
                 self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to // 100)
+                self.GUIModel.rewind(self.NavigateSlider.position)
             if event.keycode == 39:  # right arrow
+                self.GUIModel.rewind(self.NavigateSlider.position)
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to // 100)
             if event.keycode == 32:  # space bar
                 on_self_run_button_press()
