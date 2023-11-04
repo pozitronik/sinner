@@ -286,7 +286,7 @@ class GUIModel(Status):
             else:
                 self.player.show_frame(frames[0][0])
         else:
-            self.player.photo_image = None
+            self.player.clear()
 
     @property
     def frame_handler(self) -> BaseFrameHandler | None:
