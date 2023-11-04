@@ -77,10 +77,12 @@ class GUIForm(Status):
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
-            if event.keycode == 37:
+            if event.keycode == 37:  # left arrow
                 self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to // 100)
-            if event.keycode == 39:
+            if event.keycode == 39:  # right arrow
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to // 100)
+            if event.keycode == 32:  # space bar
+                on_self_run_button_press()
 
         # todo: move to a separate window
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
