@@ -176,7 +176,7 @@ class GUIForm(Status):
         # self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
-        self.update_slider_bounds()  # also draws slider, if necessary
+        self.update_slider_bounds()
         self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
         self.RunButton.pack(anchor=CENTER, side=LEFT)
         self.PreviewButton.pack(anchor=CENTER, side=LEFT)

@@ -189,6 +189,7 @@ class GUIModel(Status):
         self.parameters.target = value
         self.reload_parameters()
         self.player.clear()
+        self.position.set(0)
 
         if self.player_is_playing:
             self.player_stop(reload_frames=True)
