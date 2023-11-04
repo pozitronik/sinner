@@ -77,7 +77,7 @@ class GUIModel(Status):
 
     # threads control events
     _event_buffering: Event
-    _event_displaying: Event
+    _event_playback: Event
     _event_stop_player: Event  # the event to stop live player
 
     def rules(self) -> Rules:
@@ -152,7 +152,7 @@ class GUIModel(Status):
             self._processors = self.processors
 
         self._event_buffering = Event(on_set_callback=lambda: self.status("BUFFERING", "ON"), on_clear_callback=lambda: self.status("BUFFERING", "OFF"))
-        self._event_displaying = Event(on_set_callback=lambda: self.status("DISPLAYING", "ON"), on_clear_callback=lambda: self.status("DISPLAYING", "OFF"))
+        self._event_playback = Event(on_set_callback=lambda: self.status("PLAYBACK", "ON"), on_clear_callback=lambda: self.status("PLAYBACK", "OFF"))
         self._event_stop_player = Event(on_set_callback=lambda: self.status("STOP", "ON"), on_clear_callback=lambda: self.status("STOP", "OFF"))
 
         self._event_stop_player.set()
@@ -345,13 +345,13 @@ class GUIModel(Status):
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         self._event_stop_player.set()
+        self.__stop_display()
+        self.__stop_buffering()
         if self._timeline:
             self._timeline.stop()
         self._current_frame_drop = 0
         if wait:
             time.sleep(1)  # Allow time for the thread to respond
-        self.__stop_display()
-        self.__stop_buffering()
         if reload_frames:
             self._is_target_frames_prepared = False
 
@@ -373,28 +373,28 @@ class GUIModel(Status):
             self._event_buffering.clear()
 
     def __start_display(self):
-        if not self._event_displaying.is_set():
+        if not self._event_playback.is_set():
             self._shown_frames_count = 0
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
-            self._event_displaying.set()
+            self._event_playback.set()
 
     def __stop_display(self):
-        if self._event_displaying.is_set() and self._show_frames_thread:
+        if self._event_playback.is_set() and self._show_frames_thread:
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
-            self._event_displaying.clear()
+            self._event_playback.clear()
 
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_displaying.is_set():
+            if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_playback.is_set():
                 self._current_frame_drop = round(self.frame_handler.fps / self._process_fps) - 1
                 if self._current_frame_drop < 0:
                     self._current_frame_drop = 0
                 self.__start_display()
-            elif not self._event_displaying.is_set():
+            elif not self._event_playback.is_set():
                 self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
 
         futures: list[Future[None]] = []
