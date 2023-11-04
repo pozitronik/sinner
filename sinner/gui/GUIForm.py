@@ -241,6 +241,7 @@ class GUIForm(Status):
     def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
+            self.NavigateSlider.position = 0
             self.GUIModel.target_path = selected_file
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
