@@ -111,8 +111,6 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: self.GUIModel.update_preview(True))
-
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
 
         def on_quality_scale_change(frame_value: float) -> None:
@@ -139,8 +137,9 @@ class GUIForm(Status):
 
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Operations')
-        self.OperationsSubMenu.add(COMMAND, label='Save frame', command=lambda: save_current_frame())
+        self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')
+        self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: save_current_frame())
+        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview(True))
 
         def save_current_frame() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
@@ -197,7 +196,6 @@ class GUIForm(Status):
         self.update_slider_bounds()
         self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
         self.RunButton.pack(anchor=CENTER, side=LEFT)
-        self.PreviewButton.pack(anchor=CENTER, side=LEFT)
         self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
