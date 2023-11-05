@@ -8,6 +8,13 @@ from sinner.helpers import FrameHelper
 from sinner.models.PerfCounter import PerfCounter
 from sinner.typing import Frame
 
+SWP_NOMOVE = 0x0002
+SWP_NOSIZE = 0x0001
+HWND_BOTTOM = 1
+HWND_TOP = 0
+HWND_TOPMOST = -1
+HWND_NOTOPMOST = -2
+
 
 class RotateMode(Enum):
     ROTATE_0 = "0°"
@@ -77,3 +84,15 @@ class BaseFramePlayer:
             return numpy.rot90(numpy.rot90(numpy.rot90(frame)))
         if self._rotate is RotateMode.ROTATE_270:
             return frame
+
+    @abstractmethod
+    def set_fullscreen(self, fullscreen: bool = True) -> None:
+        pass
+
+    @abstractmethod
+    def set_topmost(self, on_top: bool = True) -> None:
+        pass
+
+    @abstractmethod
+    def bring_to_front(self) -> None:
+        pass
