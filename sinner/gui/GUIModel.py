@@ -69,7 +69,7 @@ class GUIModel(Status):
     _timeline: FrameTimeLine | None = None
 
     # internal variables
-    _is_target_frames_prepared: bool = False
+    _is_target_frames_extracted: bool = False
 
     # threads
     _process_frames_thread: threading.Thread | None = None
@@ -330,7 +330,7 @@ class GUIModel(Status):
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
             self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
-            self._is_target_frames_prepared = self.extract_frames()
+            self.extract_frames()
             self.__start_buffering(start_frame)
             if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
                 self.__start_playback()
@@ -345,7 +345,7 @@ class GUIModel(Status):
             if wait:
                 time.sleep(1)  # Allow time for the thread to respond
             if reload_frames:
-                self._is_target_frames_prepared = False
+                self._is_target_frames_extracted = False
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
@@ -455,7 +455,7 @@ class GUIModel(Status):
             self._current_framedrop = 0
 
     def extract_frames(self) -> bool:
-        if self._prepare_frames is not False and not self._is_target_frames_prepared:
+        if self._prepare_frames is not False and not self._is_target_frames_extracted:
             frame_extractor = FrameExtractor(self.parameters)
             state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
             frame_extractor.configure_state(state)
@@ -482,5 +482,5 @@ class GUIModel(Status):
             frame_extractor.release_resources()
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
-            return state_is_finished
-        return False
+            self._is_target_frames_extracted = state_is_finished
+        return self._is_target_frames_extracted
