@@ -1,4 +1,4 @@
-from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL
+from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL, IntVar
 from typing import Union, Callable, Any
 
 from customtkinter import CTkSlider
@@ -34,7 +34,29 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
         self.update_position()
 
     def set(self, output_value: int, from_variable_callback: bool = False) -> None:
-        CTkSlider.set(self, output_value, from_variable_callback)
+        if self._from_ < self._to:
+            if output_value > self._to:
+                output_value = self._to
+            elif output_value < self._from_:
+                output_value = self._from_
+        else:
+            if output_value < self._to:
+                output_value = self._to
+            elif output_value > self._from_:
+                output_value = self._from_
+
+        self._output_value = self._round_to_step_size(output_value)
+        try:
+            self._value = (self._output_value - self._from_) / (self._to - self._from_)
+        except ZeroDivisionError:
+            self._value = 1
+
+        self._draw()
+
+        if self._variable is not None and not from_variable_callback:
+            self._variable_callback_blocked = True
+            self._variable.set(round(self._output_value) if isinstance(self._variable, IntVar) else self._output_value)
+            self._variable_callback_blocked = False
         self.update_position()
 
     def update_position(self):
