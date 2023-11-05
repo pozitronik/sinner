@@ -18,7 +18,8 @@ class ProgressBar:
         self.progressVar = StringVar(value=self.progress_text)
         self.label = Label(self.parent, text=self.title, textvariable=self.progressVar)
         self.label.pack(anchor=NW, side=BOTTOM, expand=False, fill=BOTH, after=self.pb)
-        self.parent.update()
+        if self.parent:
+            self.parent.update()
         return self
 
     @property
@@ -29,7 +30,8 @@ class ProgressBar:
         if self.pb:
             self.progressVar.set(self.progress_text)
             self.pb["value"] += value
-            self.parent.update()
+            if self.parent:
+                self.parent.update()
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         if self.pb:
