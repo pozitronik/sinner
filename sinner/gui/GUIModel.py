@@ -345,7 +345,7 @@ class GUIModel(Status):
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         self._event_stop_player.set()
-        self.__stop_display()
+        self.__stop_playback()
         self.__stop_buffering()
         if self._timeline:
             self._timeline.stop()
@@ -372,7 +372,7 @@ class GUIModel(Status):
             self._process_frames_thread = None
             self._event_buffering.clear()
 
-    def __start_display(self):
+    def __start_playback(self):
         if not self._event_playback.is_set():
             self._shown_frames_count = 0
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
@@ -380,7 +380,7 @@ class GUIModel(Status):
             self._show_frames_thread.start()
             self._event_playback.set()
 
-    def __stop_display(self):
+    def __stop_playback(self):
         if self._event_playback.is_set() and self._show_frames_thread:
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
@@ -393,7 +393,7 @@ class GUIModel(Status):
                 self._current_frame_drop = round(self.frame_handler.fps / self._process_fps) - 1
                 if self._current_frame_drop < 0:
                     self._current_frame_drop = 0
-                self.__start_display()
+                self.__start_playback()
             elif not self._event_playback.is_set():
                 self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
 
