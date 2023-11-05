@@ -48,8 +48,8 @@ class ImageHandler(BaseFrameHandler):
         return [(0, self._target_path)]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
-        if frame_number >= self.fc:
-            raise EOutOfRange(frame_number, 0, self.fc-1)
+        if frame_number > self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc)
         return NumberedFrame(frame_number, read_from_image(self._target_path))
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:

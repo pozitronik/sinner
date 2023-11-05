@@ -98,7 +98,7 @@ class GUIForm(Status):
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
+        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
         self.ControlsFrame = Frame(self.GUIWindow)
@@ -262,7 +262,7 @@ class GUIForm(Status):
     def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
-            self.NavigateSlider.position = 0
+            self.NavigateSlider.position = 1
             self.GUIModel.target_path = selected_file
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
@@ -271,8 +271,8 @@ class GUIForm(Status):
         return False
 
     def update_slider_bounds(self) -> None:
-        self.NavigateSlider.to = self.GUIModel.frame_handler.fc - 1
-        self.NavigateSlider.position = 0
+        self.NavigateSlider.to = self.GUIModel.frame_handler.fc
+        self.NavigateSlider.position = 1
         if self.NavigateSlider.to > 1:
             self.NavigateSlider.enable()
         else:

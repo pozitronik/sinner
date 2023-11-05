@@ -74,8 +74,8 @@ class DirectoryHandler(BaseFrameHandler):
         return [(frames_index, file_path) for frames_index, file_path in enumerate(self._frames_path)][start_frame:stop_frame]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
-        if frame_number >= self.fc:
-            raise EOutOfRange(frame_number, 0, self.fc-1)
+        if frame_number > self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc)
         list_frame = self.get_frames_paths(self._target_path, (frame_number, frame_number))
         frame_path = list_frame[0][1]
         return NumberedFrame(frame_number, read_from_image(frame_path), get_file_name(frame_path))  # zero-based sorted frames list

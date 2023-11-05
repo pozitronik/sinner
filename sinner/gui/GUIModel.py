@@ -189,8 +189,8 @@ class GUIModel(Status):
         self.player.clear()
         if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.position.set(0)
-            self.player_start(start_frame=0)
+            self.position.set(1)
+            self.player_start(start_frame=1)
         else:
             self.update_preview()
 
@@ -221,7 +221,7 @@ class GUIModel(Status):
     @property
     def position(self) -> IntVar:
         if self._positionVar is None:
-            self._positionVar = IntVar()
+            self._positionVar = IntVar(value=1)
         return self._positionVar
 
     @property
