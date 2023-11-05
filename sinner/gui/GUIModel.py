@@ -300,10 +300,8 @@ class GUIModel(Status):
         return self._frame_mode
 
     @frame_mode.setter
-    def frame_mode(self, value: str) -> None:
-        frame_mode_mapping = {mode.value: mode for mode in FrameMode}
-        if value in frame_mode_mapping:
-            self._frame_mode = frame_mode_mapping[value]
+    def frame_mode(self, value: FrameMode) -> None:
+        self._frame_mode = value
 
     @property
     def framedrop_delta(self) -> int:
