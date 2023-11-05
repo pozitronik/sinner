@@ -268,7 +268,7 @@ class GUIForm(Status):
         return False
 
     def update_slider_bounds(self) -> None:
-        self.NavigateSlider.to = self.GUIModel.frame_handler.fc
+        self.NavigateSlider.to = self.GUIModel.frame_handler.fc - 1
         self.NavigateSlider.position = 0
         if self.NavigateSlider.to > 1:
             self.NavigateSlider.enable()
