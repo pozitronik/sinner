@@ -222,14 +222,6 @@ class GUIModel(Status):
             self._positionVar = IntVar()
         return self._positionVar
 
-    def rewind(self, frame_position: int) -> None:
-        if self.player_is_started:
-            self.player_stop()
-            self.player_start(start_frame=frame_position)
-        else:
-            self.update_preview()
-        self.position.set(frame_position)
-
     @property
     def processors(self) -> dict[str, BaseFrameProcessor]:
         try:
@@ -328,11 +320,21 @@ class GUIModel(Status):
     def player_is_started(self) -> bool:
         return self._event_buffering.is_set() or self._event_playback.is_set()
 
-    def player_start(self, start_frame: int) -> None:
+    def rewind(self, frame_position: int) -> None:
+        if self.player_is_started:
+            self.player_stop()
+            self.player_start(start_frame=frame_position, buffer_wait=False)
+        else:
+            self.update_preview()
+        self.position.set(frame_position)
+
+    def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
             self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
             self._is_target_frames_prepared = self.extract_frames()
-            self.__start_buffering(start_frame)  # it also will start the player thread
+            self.__start_buffering(start_frame)
+            if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
+                self.__start_playback()
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         if self.player_is_started:
