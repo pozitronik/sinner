@@ -1,4 +1,4 @@
-from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL, IntVar
+from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL, IntVar, Misc
 from typing import Union, Callable, Any
 
 from customtkinter import CTkSlider
@@ -12,7 +12,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     _current_position: StringVar = None
     _cmd: Union[Callable[[float], None], None] = None
 
-    def __init__(self, master: any, **kwargs):
+    def __init__(self, master: Misc | None, **kwargs):
         self._container = Frame(master, borderwidth=2)
         CTkSlider.__init__(self, self._container, **kwargs)
         self._current_position = StringVar()
