@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, DISABLED
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, DISABLED, BooleanVar
 
 from customtkinter import CTk
 
@@ -25,12 +25,19 @@ class GUIForm(Status):
 
     current_position: StringVar  # current position variable
 
+    topmost: bool
     show_frames_widget: bool
     fw_height: int
     fw_width: int
 
     def rules(self) -> Rules:
         return [
+            {
+                'parameter': {'topmost', 'on-top'},
+                'attribute': 'topmost',
+                'default': False,
+                'help': 'Set player on top of other windows'
+            },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
                 'attribute': 'show_frames_widget',
@@ -164,8 +171,11 @@ class GUIForm(Status):
             self.player.clear()
             self.player.adjust_size()
 
+        self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
+
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get()))
         self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
         self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
         self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
@@ -196,6 +206,7 @@ class GUIForm(Status):
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.GUIModel.update_preview()
         self.player.adjust_size()
+        self.GUIWindow.wm_attributes("-topmost", self.topmost)
         return self.GUIWindow
 
     @property
