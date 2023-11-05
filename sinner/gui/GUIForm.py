@@ -175,7 +175,12 @@ class GUIForm(Status):
 
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get()))
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: set_on_top())
+
+        def set_on_top() -> None:
+            self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
+            self.player.set_topmost(self.StayOnTopVar.get())
+
         self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
         self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
         self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
@@ -207,6 +212,7 @@ class GUIForm(Status):
         self.GUIModel.update_preview()
         self.player.adjust_size()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
+        self.player.set_topmost()
         return self.GUIWindow
 
     @property

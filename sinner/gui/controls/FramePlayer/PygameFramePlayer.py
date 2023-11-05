@@ -1,12 +1,14 @@
+import ctypes
 import threading
 from typing import Callable
 
 import cv2
 import numpy
 import pygame
+from psutil import WINDOWS
 from pygame import Surface
 
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, HWND_TOP
 from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
 from sinner.utilities import get_app_dir
@@ -43,6 +45,7 @@ class PygameFramePlayer(BaseFramePlayer):
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
             pygame.display.set_caption(self.caption)
             pygame.display.set_icon(pygame.image.load(get_app_dir("sinner/gui/icons/sinner_64.png")))
+            self.bring_to_front()
 
     def hide(self) -> None:
         if self.screen is not None:
@@ -94,3 +97,14 @@ class PygameFramePlayer(BaseFramePlayer):
                     handler = self._event_handlers[event.type]
                     handler()
 
+    def set_fullscreen(self, fullscreen: bool = True) -> None:
+        pygame.display.toggle_fullscreen()
+
+    def set_topmost(self, on_top: bool = True) -> None:
+        if WINDOWS:
+            # by some unknown reason it has no effect
+            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+
+    def bring_to_front(self) -> None:
+        if WINDOWS:
+            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
