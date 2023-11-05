@@ -20,3 +20,4 @@ torchvision==0.15.2
 onnxruntime==1.15.0
 pyvirtualcam
 pathvalidate
+pygame
