@@ -14,6 +14,7 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
+from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -389,7 +390,7 @@ class GUIModel(Status):
             futures.remove(future_)
             with threading.Lock():
                 if not self._event_playback.is_set():
-                    if self._processed_frames_count >= self._initial_frame_buffer_length:
+                    if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
                         self.update_status(f"pfc: {self._processed_frames_count}, fbl: {self._initial_frame_buffer_length}, _event_playback: {self._event_playback.is_set()}, _event_buffering: {self._event_buffering.is_set()} ")
                         self.init_framedrop()
                         self.__start_playback()
@@ -400,7 +401,7 @@ class GUIModel(Status):
         self._processed_frames_count = 0
         self._shown_frames_count = 0
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
-            while start_frame < end_frame:
+            while start_frame <= end_frame:
                 future: Future[None] = executor.submit(self._process_frame, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
@@ -417,7 +418,11 @@ class GUIModel(Status):
     def _process_frame(self, frame_index: int) -> None:
         if self._event_buffering.is_set():
             with PerfCounter() as frame_render_time:
-                n_frame = self.frame_handler.extract_frame(frame_index)
+                try:
+                    n_frame = self.frame_handler.extract_frame(frame_index)
+                except EOutOfRange:
+                    self.update_status(f"There's no frame {frame_index}")
+                    return
                 n_frame.frame = scale(n_frame.frame, self._scale_quality)
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
@@ -431,7 +436,7 @@ class GUIModel(Status):
                 try:
                     n_frame = self._timeline.get_frame()
                 except EOFError:
-                    self.update_status("no more frames")
+                    self.update_status("No more frames in the timeline")
                     self._event_playback.clear()
                     break
                 if n_frame is None:
@@ -455,7 +460,10 @@ class GUIModel(Status):
         return self._current_framedrop
 
     def init_framedrop(self) -> None:
-        self._current_framedrop = round(self.frame_handler.fps / self._process_fps) - 1
+        if self._process_fps == 0:  # by some reasons it is not inited
+            self._current_framedrop = 0
+        else:
+            self._current_framedrop = round(self.frame_handler.fps / self._process_fps) - 1
         if self._current_framedrop < 0:
             self._current_framedrop = 0
 
