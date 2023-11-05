@@ -1,5 +1,4 @@
 import queue
-import sys
 import threading
 import time
 from argparse import Namespace
@@ -9,6 +8,7 @@ import tkinter as tk
 import cv2
 from PIL import Image, ImageTk
 from cv2 import VideoCapture
+from psutil import WINDOWS, LINUX, MACOS
 from pyvirtualcam import Camera
 
 from sinner.Status import Status, Mood
@@ -110,11 +110,11 @@ class WebCam(Status):
     @staticmethod
     def list_available_output_devices() -> List[str]:
         devices: List[str] = ['no']
-        if sys.platform == 'linux':
+        if LINUX:
             devices.append('v4l2loopback')
-        if sys.platform == 'win32':
+        if WINDOWS:
             devices.append('unitycapture')
-        if sys.platform == 'Darwin' or sys.platform == 'win32':
+        if MACOS or WINDOWS:
             devices.append('obs')
         return devices
 

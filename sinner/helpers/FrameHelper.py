@@ -5,6 +5,7 @@ from pathlib import Path
 
 import cv2
 from numpy import fromfile, uint8, full
+from psutil import WINDOWS
 
 from sinner.typing import Frame
 
@@ -17,7 +18,7 @@ def create(size: tuple[int, int] = (1, 1)) -> Frame:
 
 
 def read_from_image(path: str) -> Frame:
-    if platform.system().lower() == 'windows':  # issue #511
+    if WINDOWS:  # issue #511
         image = cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
         if len(image.shape) == 2:  # fixes the b/w images issue
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
@@ -29,7 +30,7 @@ def read_from_image(path: str) -> Frame:
 
 
 def write_to_image(image: Frame, path: str) -> bool:
-    if platform.system().lower() == 'windows':  # issue #511
+    if WINDOWS:  # issue #511
         is_success, im_buf_arr = cv2.imencode(".png", image)
         Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
         im_buf_arr.tofile(path)

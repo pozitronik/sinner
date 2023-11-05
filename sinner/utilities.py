@@ -14,6 +14,7 @@ from typing import List, Literal, Any, get_type_hints
 import onnxruntime
 import psutil
 import tensorflow
+from psutil import WINDOWS, MACOS
 from tqdm import tqdm
 
 TEMP_DIRECTORY = 'temp'
@@ -27,9 +28,9 @@ def limit_resources(max_memory: int) -> None:
     # limit memory usage
     if max_memory:
         memory = max_memory * 1024 ** 3
-        if platform.system().lower() == 'darwin':
+        if MACOS:
             memory = max_memory * 1024 ** 6
-        if platform.system().lower() == 'windows':
+        if WINDOWS:
             import ctypes
             kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
             kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
