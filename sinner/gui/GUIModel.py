@@ -184,11 +184,10 @@ class GUIModel(Status):
         self.parameters.target = value
         self.reload_parameters()
         self.player.clear()
-        self.position.set(0)
-
         if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.player_start(start_frame=self._timeline.last_read_index)
+            self.position.set(0)
+            self.player_start(start_frame=0)
         else:
             self.update_preview()
 
