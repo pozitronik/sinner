@@ -5,6 +5,7 @@ from argparse import Namespace
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath
@@ -73,7 +74,10 @@ class DirectoryHandler(BaseFrameHandler):
         return [(frames_index, file_path) for frames_index, file_path in enumerate(self._frames_path)][start_frame:stop_frame]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
-        frame_path = self.get_frames_paths(self._target_path, (frame_number, frame_number))[0][1]
+        if frame_number >= self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc-1)
+        list_frame = self.get_frames_paths(self._target_path, (frame_number, frame_number))
+        frame_path = list_frame[0][1]
         return NumberedFrame(frame_number, read_from_image(frame_path), get_file_name(frame_path))  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:

@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath, Frame
@@ -118,6 +119,8 @@ class CV2VideoHandler(BaseFrameHandler):
             return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
+        if frame_number >= self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc-1)
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
         ret, frame = capture.read()
