@@ -9,16 +9,18 @@ class FrameTimeLine:
     _frames: Dict[int, NumberedFrame] = {}
     _timer: float = 0
     _frame_time: float
-    _start_frame_index: int = 0
+    _start_frame_index: int
+    _end_frame_index: int
     _start_frame_time: float = 0
 
     _is_started: bool = False
     _last_written_index: int = 0
     _last_read_index: int = 0
 
-    def __init__(self, frame_time: float, start_frame: int = 0):
+    def __init__(self, frame_time: float, start_frame: int, end_frame: int):
         self._frame_time = frame_time
         self._start_frame_index = start_frame
+        self._end_frame_index = end_frame
         self._start_frame_time = start_frame * frame_time
         self._is_started = False
         self._frames = {}
@@ -51,6 +53,9 @@ class FrameTimeLine:
         if not self._is_started:
             self.start()
         frame_index = self.get_frame_index()
+        if self._last_read_index > self._end_frame_index:
+            raise EOFError()
+
         return self._frames[frame_index] if frame_index else None
 
     # naive stub

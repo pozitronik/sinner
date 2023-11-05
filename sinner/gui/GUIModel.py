@@ -329,7 +329,7 @@ class GUIModel(Status):
 
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
-            self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
+            self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame, end_frame=self.frame_handler.fc)
             self.extract_frames()
             self.__start_buffering(start_frame)
             if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
@@ -428,7 +428,12 @@ class GUIModel(Status):
     def _show_frames(self) -> None:
         if self.player:
             while self._event_playback.is_set():
-                n_frame = self._timeline.get_frame()
+                try:
+                    n_frame = self._timeline.get_frame()
+                except EOFError:
+                    self.update_status("no more frames")
+                    self._event_playback.clear()
+                    break
                 if n_frame is None:
                     time.sleep(self.frame_handler.frame_time / 2)
                     continue
