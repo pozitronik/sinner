@@ -97,11 +97,11 @@ class GUIForm(Status):
         self.RunButton: Button = Button(self.ControlsFrame, text="PLAY", compound=LEFT, command=lambda: on_self_run_button_press())
 
         def on_self_run_button_press() -> None:
-            if self.GUIModel.player_is_playing:
+            if self.GUIModel.player_is_started:
                 self.GUIModel.player_stop()
                 self.RunButton.configure(text="PLAY")
             else:
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position, player=self.player)
+                self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
         self.PreviewButton: Button = Button(self.ControlsFrame, text="TEST", compound=LEFT, command=lambda: self.GUIModel.update_preview(True))

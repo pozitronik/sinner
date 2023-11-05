@@ -61,7 +61,7 @@ class GUIModel(Status):
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
     _shown_frames_count: int = 0  # the overall count of shown frames
-    _current_frame_drop: int = 0  # the current value of frames skipped on each processing iteration
+    _current_framedrop: int = 0  # the current value of frames skipped on each processing iteration
     _framedrop_delta: int | None = None  # the required index of preprocessed frames
 
     _process_fps: float = 0
@@ -76,9 +76,8 @@ class GUIModel(Status):
     _show_frames_thread: threading.Thread | None = None
 
     # threads control events
-    _event_buffering: Event
-    _event_playback: Event
-    _event_stop_player: Event  # the event to stop live player
+    _event_buffering: Event  # the flag control to start/stop processed frames buffering thread
+    _event_playback: Event  # the flag control to start/stop processed frames playback thread
 
     def rules(self) -> Rules:
         return [
@@ -151,12 +150,8 @@ class GUIModel(Status):
         if self.bootstrap_processors:
             self._processors = self.processors
 
-        self._event_buffering = Event(on_set_callback=lambda: self.status("BUFFERING", "ON"), on_clear_callback=lambda: self.status("BUFFERING", "OFF"))
-        self._event_playback = Event(on_set_callback=lambda: self.status("PLAYBACK", "ON"), on_clear_callback=lambda: self.status("PLAYBACK", "OFF"))
-        self._event_stop_player = Event(on_set_callback=lambda: self.status("STOP", "ON"), on_clear_callback=lambda: self.status("STOP", "OFF"))
-
-        self._event_stop_player.set()
-        # self._processing_thread_stop_event.set()
+        self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
+        self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
 
     def reload_parameters(self) -> None:
         self.clear_previews()
@@ -174,9 +169,9 @@ class GUIModel(Status):
         self.parameters.source = value
         self.reload_parameters()
 
-        if self.player_is_playing:  # todo: возможно оно и не надо
+        if self.player_is_started:  # todo: возможно оно и не надо
             self.player_stop()
-            self.player_start(start_frame=self._timeline.last_read_index, player=self.player)
+            self.player_start(start_frame=self._timeline.last_read_index)
         else:
             self.update_preview()
 
@@ -191,9 +186,9 @@ class GUIModel(Status):
         self.player.clear()
         self.position.set(0)
 
-        if self.player_is_playing:
+        if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.player_start(start_frame=self._timeline.last_read_index, player=self.player)
+            self.player_start(start_frame=self._timeline.last_read_index)
         else:
             self.update_preview()
 
@@ -228,9 +223,9 @@ class GUIModel(Status):
         return self._positionVar
 
     def rewind(self, frame_position: int) -> None:
-        if self.player_is_playing:
+        if self.player_is_started:
             self.player_stop()
-            self.player_start(start_frame=frame_position, player=self.player)
+            self.player_start(start_frame=frame_position)
         else:
             self.update_preview()
         self.position.set(frame_position)
@@ -307,10 +302,6 @@ class GUIModel(Status):
         self._previews.clear()
 
     @property
-    def player_is_playing(self) -> bool:
-        return not self._event_stop_player.is_set()
-
-    @property
     def frame_mode(self) -> FrameMode:
         return self._frame_mode
 
@@ -333,30 +324,31 @@ class GUIModel(Status):
         if self._frame_mode is FrameMode.SKIP:
             return self.calculate_framedrop() + 1
 
-    def player_start(self, start_frame: int, player: BaseFramePlayer) -> None:
-        if player:
-            self.player = player
-        self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
-        if self._prepare_frames is not False and not self._is_target_frames_prepared:
-            self._is_target_frames_prepared = self.extract_frames()
+    @property
+    def player_is_started(self) -> bool:
+        return self._event_buffering.is_set() or self._event_playback.is_set()
 
-        self._event_stop_player.clear()
-        self.__start_buffering(start_frame)  # it also will start the player thread
+    def player_start(self, start_frame: int) -> None:
+        if not self.player_is_started:
+            self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame)
+            self._is_target_frames_prepared = self.extract_frames()
+            self.__start_buffering(start_frame)  # it also will start the player thread
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
-        self._event_stop_player.set()
-        self.__stop_playback()
-        self.__stop_buffering()
-        if self._timeline:
-            self._timeline.stop()
-        self._current_frame_drop = 0
-        if wait:
-            time.sleep(1)  # Allow time for the thread to respond
-        if reload_frames:
-            self._is_target_frames_prepared = False
+        if self.player_is_started:
+            self.__stop_buffering()
+            self.__stop_playback()
+            if self._timeline:
+                self._timeline.stop()
+            self._current_framedrop = 0
+            if wait:
+                time.sleep(1)  # Allow time for the thread to respond
+            if reload_frames:
+                self._is_target_frames_prepared = False
 
     def __start_buffering(self, start_frame: int):
         if not self._event_buffering.is_set():
+            self._event_buffering.set()
             self._processed_frames_count = 0
             self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
                 'start_frame': start_frame,
@@ -364,38 +356,44 @@ class GUIModel(Status):
             })
             self._process_frames_thread.daemon = True
             self._process_frames_thread.start()
-            self._event_buffering.set()
+            self.update_status(f"Buffering started")
 
     def __stop_buffering(self):
         if self._event_buffering.is_set() and self._process_frames_thread:
+            self._event_buffering.clear()
+            self._processed_frames_count = 0
             self._process_frames_thread.join(1)
             self._process_frames_thread = None
-            self._event_buffering.clear()
+            self.update_status(f"Buffering stopped")
 
     def __start_playback(self):
         if not self._event_playback.is_set():
+            self._event_playback.set()
             self._shown_frames_count = 0
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
-            self._event_playback.set()
+            self.update_status(f"Playback started")
 
     def __stop_playback(self):
         if self._event_playback.is_set() and self._show_frames_thread:
+            self._event_playback.clear()
+            self._shown_frames_count = 0
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
-            self._event_playback.clear()
+            self.update_status(f"Playback stopped")
 
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            if self._processed_frames_count >= self._initial_frame_buffer_length and not self._event_playback.is_set():  # todo: need to check, it calls after every restart
-                self._current_frame_drop = round(self.frame_handler.fps / self._process_fps) - 1
-                if self._current_frame_drop < 0:
-                    self._current_frame_drop = 0
-                self.__start_playback()
-            elif not self._event_playback.is_set():
-                self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
+            with threading.Lock():
+                if not self._event_playback.is_set():
+                    if self._processed_frames_count >= self._initial_frame_buffer_length:
+                        self.update_status(f"pfc: {self._processed_frames_count}, fbl: {self._initial_frame_buffer_length}, _event_playback: {self._event_playback.is_set()}, _event_buffering: {self._event_buffering.is_set()} ")
+                        self.init_framedrop()
+                        self.__start_playback()
+                    else:
+                        self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
@@ -410,12 +408,13 @@ class GUIModel(Status):
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
 
-                if self._event_stop_player.is_set():
+                if not self._event_buffering.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
+            self.update_status("_process_frames loop done")
 
     def _process_frame(self, frame_index: int) -> None:
-        if not self._event_stop_player.is_set():
+        if self._event_buffering.is_set():
             with PerfCounter() as frame_render_time:
                 n_frame = self.frame_handler.extract_frame(frame_index)
                 n_frame.frame = scale(n_frame.frame, self._scale_quality)
@@ -427,7 +426,7 @@ class GUIModel(Status):
 
     def _show_frames(self) -> None:
         if self.player:
-            while not self._event_stop_player.is_set():
+            while self._event_playback.is_set():
                 n_frame = self._timeline.get_frame()
                 if n_frame is None:
                     time.sleep(self.frame_handler.frame_time / 2)
@@ -436,43 +435,51 @@ class GUIModel(Status):
                 self._shown_frames_count += 1
                 self.position.set(self._timeline.last_read_index)
                 self.status("time", seconds_to_hmsms(self._timeline.time_position()))
+            self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
         if (self._timeline.last_written_index - self.framedrop_delta) > self._timeline.last_read_index:  # buffering is too fast, framedrop can be decreased
-            if self._current_frame_drop > 0:
-                self._current_frame_drop -= 1
+            if self._current_framedrop > 0:
+                self._current_framedrop -= 1
         elif self._timeline.last_written_index < self._timeline.last_read_index:  # buffering is too slow, need to increase framedrop
-            self._current_frame_drop += 1
+            self._current_framedrop += 1
 
-        # self.update_status(f"current_frame_drop: {self._current_frame_drop} (w/r: {self._timeline.last_written_index}/{self._timeline.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
-        return self._current_frame_drop
+        # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self._timeline.last_written_index}/{self._timeline.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
+        return self._current_framedrop
+
+    def init_framedrop(self) -> None:
+        self._current_framedrop = round(self.frame_handler.fps / self._process_fps) - 1
+        if self._current_framedrop < 0:
+            self._current_framedrop = 0
 
     def extract_frames(self) -> bool:
-        frame_extractor = FrameExtractor(self.parameters)
-        state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
-        frame_extractor.configure_state(state)
-        state_is_finished = state.is_finished
+        if self._prepare_frames is not False and not self._is_target_frames_prepared:
+            frame_extractor = FrameExtractor(self.parameters)
+            state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
+            frame_extractor.configure_state(state)
+            state_is_finished = state.is_finished
 
-        if state_is_finished:
-            self.update_status(f'Extracting frames already done ({state.processed_frames_count}/{state.frames_count})')
-        elif self._prepare_frames is True:
-            if state.is_started:
-                self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-            with tqdm(
-                    total=state.frames_count,
-                    desc=state.processor_name, unit='frame',
-                    dynamic_ncols=True,
-                    bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                    initial=state.processed_frames_count,
-            ) as progress:
-                self.frame_handler.current_frame_index = state.processed_frames_count
-                for frame_num in self.frame_handler:
-                    n_frame = self.frame_handler.extract_frame(frame_num)
-                    state.save_temp_frame(n_frame)
-                    progress.update()
+            if state_is_finished:
+                self.update_status(f'Extracting frames already done ({state.processed_frames_count}/{state.frames_count})')
+            elif self._prepare_frames is True:
+                if state.is_started:
+                    self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
+                with tqdm(
+                        total=state.frames_count,
+                        desc=state.processor_name, unit='frame',
+                        dynamic_ncols=True,
+                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
+                        initial=state.processed_frames_count,
+                ) as progress:
+                    self.frame_handler.current_frame_index = state.processed_frames_count
+                    for frame_num in self.frame_handler:
+                        n_frame = self.frame_handler.extract_frame(frame_num)
+                        state.save_temp_frame(n_frame)
+                        progress.update()
 
-        frame_extractor.release_resources()
-        if state_is_finished:
-            self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
-        return state_is_finished
+            frame_extractor.release_resources()
+            if state_is_finished:
+                self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
+            return state_is_finished
+        return False
