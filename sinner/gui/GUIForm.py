@@ -182,6 +182,9 @@ class GUIForm(Status):
             self.player.set_topmost(self.StayOnTopVar.get())
 
         self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
+
+        self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
+
         self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
         self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)

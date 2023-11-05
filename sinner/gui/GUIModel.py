@@ -171,7 +171,7 @@ class GUIModel(Status):
 
         if self.player_is_started:  # todo: возможно оно и не надо
             self.player_stop()
-            self.player_start(start_frame=self._timeline.last_read_index)
+            self.player_start(start_frame=self._timeline.last_read_index, buffer_wait=False)
         else:
             self.update_preview()
 
