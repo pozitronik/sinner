@@ -6,6 +6,7 @@ from asyncio import Future
 from concurrent.futures.thread import ThreadPoolExecutor
 from enum import Enum
 from tkinter import IntVar
+from tkinter.ttk import Progressbar
 from typing import List
 
 from tqdm import tqdm
@@ -58,6 +59,7 @@ class GUIModel(Status):
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     status_bar: SimpleStatusBar | None = None
+    progress_bar: Progressbar | None = None
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames

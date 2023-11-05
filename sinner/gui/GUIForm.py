@@ -1,5 +1,6 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, DISABLED, BooleanVar
+from tkinter.ttk import Progressbar
 
 from customtkinter import CTk
 
@@ -134,6 +135,8 @@ class GUIForm(Status):
 
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
         self.GUIModel.status_bar = self.StatusBar
+        self.ProgressBar: Progressbar = Progressbar(self.GUIWindow)
+        self.GUIModel.progress_bar = self.ProgressBar
 
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
