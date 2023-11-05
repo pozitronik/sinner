@@ -3,17 +3,24 @@ from tkinter.ttk import Progressbar
 
 
 class ProgressBar:
-    def __init__(self, parent: Misc | None, max_value: int, title: str = "Progress", length: int = 400):
+    maximum: int | None = None
+    length: int | None = None
+    title: str | None = None
+    pb: Progressbar | None = None
+    label: Label | None = None
+    progressVar: StringVar | None = None
+
+    def __init__(self, parent: Misc | None):
         self.parent = parent
-        self.max_value = max_value
+
+    def set_parameters(self, maximum: int, length: int = 400, title: str = "Progress") -> 'ProgressBar':
+        self.maximum = maximum
         self.title = title
         self.length = length
-        self.pb: Progressbar | None = None
-        self.label: Label | None = None
-        self.progressVar: StringVar | None = None
+        return self
 
     def __enter__(self) -> 'ProgressBar':
-        self.pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=self.max_value, length=self.length)
+        self.pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=self.maximum, length=self.length)
         self.pb.pack(side=BOTTOM, expand=True, fill=BOTH)
         self.progressVar = StringVar(value=self.progress_text)
         self.label = Label(self.parent, text=self.title, textvariable=self.progressVar)
@@ -24,7 +31,7 @@ class ProgressBar:
 
     @property
     def progress_text(self) -> str:
-        return f"{self.title}: {int(self.pb['value'])}/{self.max_value}"
+        return f"{self.title}: {int(self.pb['value'])}/{self.maximum}"
 
     def update(self, value: int = 1) -> None:
         if self.pb:
