@@ -29,7 +29,9 @@ class ProgressBar:
     @property
     def pb(self) -> Progressbar:
         if self._pb is None:
-            self._pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=self.maximum, value=self.value, variable=self._variable)
+            self._pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=float(self.maximum), value=float(self.value))
+            if self._variable:
+                self._pb.configure(variable=self._variable)
             self._pb.pack(side=LEFT, expand=True, fill=BOTH)
         return self._pb
 
@@ -42,7 +44,7 @@ class ProgressBar:
     @property
     def label(self) -> Label:
         if self._label is None:
-            self._label = Label(self.parent, text=self.title, textvariable=self.progress_var)
+            self._label = Label(self.parent, textvariable=self.progress_var)
             self._label.pack(anchor=NW, side=RIGHT, expand=False, fill=BOTH, after=self.pb)
         return self._label
 
