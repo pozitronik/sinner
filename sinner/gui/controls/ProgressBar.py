@@ -48,7 +48,7 @@ class ProgressBar:
             self._label.pack(anchor=NW, side=RIGHT, expand=False, fill=BOTH, after=self.pb)
         return self._label
 
-    def create_controls(self):
+    def create_controls(self) -> None:
         if self.controls_flag is False:
             self.controls_flag = True
 
