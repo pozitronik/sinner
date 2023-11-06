@@ -14,9 +14,9 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
 
     def __init__(self, master: Misc | None, **kwargs):  # type: ignore[no-untyped-def]
         self._container = Frame(master, borderwidth=2)
-        CTkSlider.__init__(self, self._container, **kwargs)
         self._current_position = StringVar()
         self._position_label = Label(master)
+        CTkSlider.__init__(self, self._container, **kwargs)
         self._position_label.configure(textvariable=self._current_position)
         self.update_position()
 
