@@ -392,7 +392,6 @@ class GUIModel(Status):
             with threading.Lock():
                 if not self._event_playback.is_set():
                     if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
-                        self.update_status(f"pfc: {self._processed_frames_count}, fbl: {self._initial_frame_buffer_length}, _event_playback: {self._event_playback.is_set()}, _event_buffering: {self._event_buffering.is_set()} ")
                         _buffering_progress.destroy_controls()
                         self.init_framedrop()
                         self.__start_playback()
