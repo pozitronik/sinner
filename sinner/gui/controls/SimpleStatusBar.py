@@ -16,7 +16,7 @@ class SimpleStatusBar(Frame):
         self.text_box: TextBox = TextBox(self)
         self.text_box.configure(state='readonly')
 
-    def pack(self) -> None:
+    def pack(self) -> None:  # type: ignore[override]   # needs to be rewritten
         super().pack(fill=X)
         self.text_box.pack(side=BOTTOM, expand=True, fill=BOTH)
 
