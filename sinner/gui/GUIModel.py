@@ -6,7 +6,6 @@ from asyncio import Future
 from concurrent.futures.thread import ThreadPoolExecutor
 from enum import Enum
 from tkinter import IntVar
-from tkinter.ttk import Progressbar
 from typing import List
 
 from tqdm import tqdm
@@ -14,6 +13,7 @@ from tqdm import tqdm
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.gui.controls.ProgressBar import ProgressBar
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
@@ -59,7 +59,7 @@ class GUIModel(Status):
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     status_bar: SimpleStatusBar | None = None
-    progress_bar: Progressbar | None = None
+    progress_bar: ProgressBar | None = None
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -393,14 +393,20 @@ class GUIModel(Status):
                 if not self._event_playback.is_set():
                     if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
                         self.update_status(f"pfc: {self._processed_frames_count}, fbl: {self._initial_frame_buffer_length}, _event_playback: {self._event_playback.is_set()}, _event_buffering: {self._event_buffering.is_set()} ")
+                        _buffering_progress.destroy_controls()
                         self.init_framedrop()
                         self.__start_playback()
+
                     else:
-                        self.update_status(f"Waiting to fill the buffer: {self._processed_frames_count} of {self._initial_frame_buffer_length}")
+                        _buffering_progress.update()
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
         self._shown_frames_count = 0
+
+        _buffering_progress = self.progress_bar.configure(value=self._processed_frames_count, maximum=self._initial_frame_buffer_length, title="Buffering")
+        _buffering_progress.create_controls()
+
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
                 future: Future[None] = executor.submit(self._process_frame, start_frame)
@@ -413,6 +419,7 @@ class GUIModel(Status):
 
                 if not self._event_buffering.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
+                    _buffering_progress.destroy_controls()
                     break
             self.update_status("_process_frames loop done")
 
@@ -486,12 +493,13 @@ class GUIModel(Status):
                         dynamic_ncols=True,
                         bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                         initial=state.processed_frames_count,
-                ) as progress:
+                ) as progress, self.progress_bar.configure(maximum=state.frames_count, value=state.processed_frames_count, title='Extracting') as pb_update:
                     self.frame_handler.current_frame_index = state.processed_frames_count
                     for frame_num in self.frame_handler:
                         n_frame = self.frame_handler.extract_frame(frame_num)
                         state.save_temp_frame(n_frame)
                         progress.update()
+                        pb_update.update()
 
             frame_extractor.release_resources()
             if state_is_finished:

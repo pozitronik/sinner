@@ -13,6 +13,7 @@ from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePositio
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
+from sinner.gui.controls.ProgressBar import ProgressBar
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox, READONLY
 from sinner.utilities import is_int, get_app_dir
@@ -137,6 +138,9 @@ class GUIForm(Status):
         self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
         self.GUIModel.status_bar = self.StatusBar
 
+        self.ProgressBar: ProgressBar = ProgressBar(self.GUIWindow)
+        self.GUIModel.progress_bar = self.ProgressBar
+
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')
@@ -188,14 +192,6 @@ class GUIForm(Status):
         #
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
-        # self.ToolsSubMenu.add(COMMAND, label='Test PB', command=lambda: test_pb())
-        #
-        # def test_pb() -> None:
-        #     max_value = 100
-        #     with ProgressBar(None, max_value, "Processing", 300) as progress:
-        #         for i in range(max_value + 1):
-        #             progress.update()
-        #             sleep(0.05)
 
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
 
