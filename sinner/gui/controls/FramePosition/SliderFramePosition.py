@@ -67,6 +67,12 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     def to(self) -> int:
         return self._to
 
+    @to.setter
+    def to(self, value: int) -> None:
+        if value > self.position:
+            self.position = value
+        self.configure(to=value)
+
     @property
     def position(self) -> int:
         return int(self.get())
@@ -74,12 +80,6 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     @position.setter
     def position(self, value: int) -> None:
         self.set(value)
-
-    @to.setter
-    def to(self, value: int) -> None:
-        if value > self.position:
-            self.position = value
-        self.configure(to=value)
 
     @property
     def container(self) -> Frame:
