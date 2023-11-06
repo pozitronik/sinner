@@ -1,7 +1,7 @@
 from tkinter import Frame, BOTH, X, BOTTOM
 from typing import Dict, Any
 
-from sinner.gui.controls.TextBox import TextBox, READONLY
+from sinner.gui.controls.TextBox import TextBox
 
 
 #  a simple status bar stub.
@@ -14,7 +14,7 @@ class SimpleStatusBar(Frame):
             cnf = {}
         super().__init__(master, cnf)
         self.text_box: TextBox = TextBox(self)
-        self.text_box.configure(state=READONLY)
+        self.text_box.configure(state='readonly')
 
     def pack(self) -> None:
         super().pack(fill=X)

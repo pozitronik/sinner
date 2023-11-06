@@ -9,11 +9,10 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, Rot
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
-from sinner.gui.controls.FrameThumbnail import FrameThumbnail
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBar import ProgressBar
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
-from sinner.gui.controls.TextBox import TextBox, READONLY
+from sinner.gui.controls.TextBox import TextBox
 from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
@@ -124,12 +123,12 @@ class GUIForm(Status):
 
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state=READONLY)
+        self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state='readonly')
         self.SelectSourceDialog = filedialog
         self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.change_source())
 
         self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
-        self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state=READONLY)
+        self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state='readonly')
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 

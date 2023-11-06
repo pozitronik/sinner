@@ -1,7 +1,5 @@
 from tkinter import Entry, NORMAL, END
 
-READONLY = "readonly"
-
 
 class TextBox(Entry):
 
