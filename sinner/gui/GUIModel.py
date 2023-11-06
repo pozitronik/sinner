@@ -59,7 +59,7 @@ class GUIModel(Status):
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
     status_bar: SimpleStatusBar | None = None
-    progress_bar: ProgressBar | None = None
+    _progress_bar: ProgressBar | None = None
     _buffering_progress_bar: ProgressBar | None = None
 
     # player counters
@@ -213,6 +213,16 @@ class GUIModel(Status):
     @player.setter
     def player(self, value: BaseFramePlayer | None) -> None:
         self._player = value
+
+    @property
+    def progress_bar(self) -> ProgressBar:
+        if self._progress_bar is None:
+            raise Exception("The progress bar is not assigned!")
+        return self._progress_bar
+
+    @progress_bar.setter
+    def progress_bar(self, value: ProgressBar) -> None:
+        self._progress_bar = value
 
     @property
     def quality(self) -> int:
