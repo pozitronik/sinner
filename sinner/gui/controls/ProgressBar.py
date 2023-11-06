@@ -6,8 +6,8 @@ from typing import Optional, Type
 
 
 class ProgressBar:
-    maximum: int | None = None
-    value: int | None = None
+    maximum: float
+    value: float
     title: str | None = None
     _variable: IntVar | None = None
     _pb: Progressbar | None = None
@@ -19,7 +19,7 @@ class ProgressBar:
     def __init__(self, parent: Misc | None):
         self.parent = parent
 
-    def configure(self, value: int, maximum: int, title: str = "Progress", variable: IntVar | None = None) -> 'ProgressBar':
+    def configure(self, value: float, maximum: float, title: str = "Progress", variable: IntVar | None = None) -> 'ProgressBar':
         self.value = value
         self.maximum = maximum
         self.title = title
@@ -29,7 +29,7 @@ class ProgressBar:
     @property
     def pb(self) -> Progressbar:
         if self._pb is None:
-            self._pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=float(self.maximum), value=float(self.value))
+            self._pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=self.maximum, value=self.value)
             if self._variable:
                 self._pb.configure(variable=self._variable)
             self._pb.pack(side=LEFT, expand=True, fill=BOTH)
