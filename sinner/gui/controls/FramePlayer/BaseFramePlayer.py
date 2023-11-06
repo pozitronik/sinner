@@ -74,6 +74,8 @@ class BaseFramePlayer:
     @rotate.setter
     def rotate(self, value: RotateMode) -> None:
         self._rotate = value
+        self.clear()
+        self.show_frame()
 
     def _rotate_frame(self, frame: Frame) -> Frame:
         if self._rotate is RotateMode.ROTATE_0:

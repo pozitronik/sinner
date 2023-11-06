@@ -173,8 +173,6 @@ class GUIForm(Status):
 
         def set_rotate_mode(mode: RotateMode) -> None:
             self.player.rotate = mode
-            self.player.clear()
-            self.player.show_frame()
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
 
