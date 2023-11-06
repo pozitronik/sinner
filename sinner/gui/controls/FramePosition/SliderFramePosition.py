@@ -1,5 +1,5 @@
 from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL, IntVar, Misc
-from typing import Union, Callable, Any
+from typing import Union, Callable, Any, Dict
 
 from customtkinter import CTkSlider
 
@@ -12,7 +12,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     _current_position: StringVar | None = None
     _cmd: Union[Callable[[float], None], None] = None
 
-    def __init__(self, master: Misc | None, **kwargs):
+    def __init__(self, master: Misc | None, **kwargs: Dict[str, Any]):
         self._container = Frame(master, borderwidth=2)
         CTkSlider.__init__(self, self._container, **kwargs)
         self._current_position = StringVar()
@@ -20,7 +20,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
         self._position_label.configure(textvariable=self._current_position)
         self.update_position()
 
-    def pack(self, **kwargs) -> Any:
+    def pack(self, **kwargs: Dict[str, Any]) -> Any:
         self._container.pack(fill=X)
         result = CTkSlider.pack(self, **kwargs)
         self._position_label.pack(anchor=NW, side=TOP, expand=False, fill=X, after=self)
@@ -29,7 +29,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     def pack_forget(self) -> Any:
         self._container.pack_forget()
 
-    def _clicked(self, event=None) -> None:
+    def _clicked(self, event: Any | None = None) -> None:
         CTkSlider._clicked(self, event)
         self.update_position()
 

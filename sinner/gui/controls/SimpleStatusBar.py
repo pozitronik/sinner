@@ -1,4 +1,4 @@
-from tkinter import Frame, BOTH, X, BOTTOM
+from tkinter import Frame, BOTH, X, BOTTOM, Misc
 from typing import Dict, Any
 
 from sinner.gui.controls.TextBox import TextBox
@@ -9,7 +9,7 @@ class SimpleStatusBar(Frame):
     items: Dict[str, Any] = {}
     text_box: TextBox
 
-    def __init__(self, master=None, cnf=None) -> None:
+    def __init__(self, master: Misc | None = None, cnf: Dict[str, Any] | None = None) -> None:
         if cnf is None:
             cnf = {}
         super().__init__(master, cnf)
