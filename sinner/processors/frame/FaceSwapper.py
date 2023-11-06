@@ -100,7 +100,7 @@ class FaceSwapper(BaseFrameProcessor):
         super().__init__(parameters)
 
         if self.source_path is None:
-            self.update_status(f"No source path is set, assuming GUI mode bootstrap", mood=Mood.NEUTRAL)
+            self.update_status("No source path is set, assuming GUI mode bootstrap", mood=Mood.NEUTRAL)
             _, _, _ = self.face_analyser, self.face_swapper, self.face_analyser.face_analyser
 
     def process_frame(self, frame: Frame) -> Frame:

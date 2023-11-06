@@ -372,7 +372,6 @@ class GUIModel(Status):
             })
             self._process_frames_thread.daemon = True
             self._process_frames_thread.start()
-            self.update_status(f"Buffering started")
 
     def __stop_buffering(self) -> None:
         if self._event_buffering.is_set() and self._process_frames_thread:
@@ -381,7 +380,6 @@ class GUIModel(Status):
             self._processed_frames_count = 0
             self._process_frames_thread.join(1)
             self._process_frames_thread = None
-            self.update_status(f"Buffering stopped")
 
     def __start_playback(self) -> None:
         if not self._event_playback.is_set():
@@ -390,7 +388,6 @@ class GUIModel(Status):
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
-            self.update_status(f"Playback started")
 
     def __stop_playback(self) -> None:
         if self._event_playback.is_set() and self._show_frames_thread:
@@ -398,7 +395,6 @@ class GUIModel(Status):
             self._shown_frames_count = 0
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
-            self.update_status(f"Playback stopped")
 
     @property
     def buffering_progress_bar(self) -> ProgressBar:

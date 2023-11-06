@@ -13,7 +13,6 @@ from sinner.Parameters import Parameters
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
 from sinner.gui.GUIForm import GUIForm
-from sinner.gui.GUIModel import GUIModel
 from sinner.webcam.WebCam import WebCam
 from sinner.utilities import limit_resources
 
