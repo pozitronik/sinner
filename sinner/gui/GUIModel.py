@@ -142,7 +142,7 @@ class GUIModel(Status):
         ]
 
     #  debug only
-    def status(self, item: str, value: str):
+    def status(self, item: str, value: str) -> None:
         with threading.Lock():
             if self.status_bar is not None:
                 self.status_bar.set_item(item, value)
