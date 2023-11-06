@@ -6,6 +6,12 @@ from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePositio
 
 class ScaleFramePosition(BaseFramePosition, Scale):
 
+    def disable(self):
+        pass
+
+    def enable(self):
+        pass
+
     def __init__(self, master=None, cnf=None, **kw):
         if cnf is None:
             cnf = {}
