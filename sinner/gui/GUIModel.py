@@ -44,7 +44,7 @@ class GUIModel(Status):
     temp_dir: str
     execution_threads: int
     bootstrap_processors: bool  # bootstrap_processors processors on startup
-    _prepare_frames: bool | None  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists
+    _prepare_frames: bool  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
     _initial_frame_buffer_length: int  # frames needs to be rendered before player start. Also used to determine initial frame drop
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _frame_mode: FrameMode
