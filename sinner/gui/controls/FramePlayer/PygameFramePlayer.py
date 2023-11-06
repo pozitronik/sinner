@@ -8,7 +8,7 @@ import pygame
 from psutil import WINDOWS
 from pygame import Surface
 
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, HWND_TOP
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, HWND_TOP, RotateMode
 from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
 from sinner.utilities import get_app_dir
@@ -52,14 +52,16 @@ class PygameFramePlayer(BaseFramePlayer):
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.HIDDEN)
         pygame.quit()
 
-    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
+    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True) -> None:
         self.show()
         if frame is None and self._last_frame is not None:
             frame = self._last_frame
         if frame is not None:
             self._last_frame = frame
-
-            frame = self._rotate_frame(frame)
+            if rotate:
+                frame = self._rotate_frame(frame, self.rotate.next())
+            else:
+                frame = self._rotate_frame(frame, rotate_mode=RotateMode.ROTATE_90)  # need to bring together numpy/pygame coordinates
             frame = numpy.flip((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), 0)
             # note: now the frame has the flipped shape (WIDTH, HEIGHT)
 
