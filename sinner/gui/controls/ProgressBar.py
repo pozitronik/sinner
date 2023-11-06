@@ -1,4 +1,4 @@
-from tkinter import HORIZONTAL, Misc, BOTTOM, BOTH, Label, NW, StringVar, IntVar
+from tkinter import HORIZONTAL, Misc, BOTTOM, BOTH, Label, NW, StringVar, IntVar, LEFT, RIGHT
 from tkinter.ttk import Progressbar
 
 
@@ -23,10 +23,10 @@ class ProgressBar:
 
     def create_controls(self) -> None:
         self.pb = Progressbar(self.parent, orient=HORIZONTAL, mode="determinate", maximum=self.maximum, value=self.value, variable=self.variable)
-        self.pb.pack(side=BOTTOM, expand=True, fill=BOTH)
+        self.pb.pack(side=LEFT, expand=True, fill=BOTH)
         self.progressVar = StringVar(value=self.progress_text)
         self.label = Label(self.parent, text=self.title, textvariable=self.progressVar)
-        self.label.pack(anchor=NW, side=BOTTOM, expand=False, fill=BOTH, after=self.pb)
+        self.label.pack(anchor=NW, side=RIGHT, expand=False, fill=BOTH, after=self.pb)
 
     def destroy_controls(self) -> None:
         if self.pb:
