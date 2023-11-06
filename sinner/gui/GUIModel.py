@@ -192,6 +192,7 @@ class GUIModel(Status):
             self.position.set(1)
             self.player_start(start_frame=1)
         else:
+            self._is_target_frames_extracted = False
             self.update_preview()
 
     @property
