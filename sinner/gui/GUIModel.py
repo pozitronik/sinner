@@ -176,7 +176,7 @@ class GUIModel(Status):
 
         if self.player_is_started:  # todo: возможно оно и не надо
             self.player_stop()
-            self.player_start(start_frame=self._timeline.last_read_index, buffer_wait=False)
+            self.player_start(start_frame=self.timeline().last_read_index, buffer_wait=False)
         else:
             self.update_preview()
 
@@ -323,6 +323,11 @@ class GUIModel(Status):
     def player_is_started(self) -> bool:
         return self._event_buffering.is_set() or self._event_playback.is_set()
 
+    def timeline(self, start_frame: int = 0) -> FrameTimeLine:
+        if self._timeline is None:
+            self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame, end_frame=self.frame_handler.fc)
+        return self._timeline
+
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
             self.player_stop()
@@ -333,7 +338,7 @@ class GUIModel(Status):
 
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
-            self._timeline = FrameTimeLine(frame_time=self.frame_handler.frame_time, start_frame=start_frame, end_frame=self.frame_handler.fc)
+            self._timeline = self.timeline(start_frame)  # just init timeline
             self.extract_frames()
             self.__start_buffering(start_frame)
             if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
@@ -343,8 +348,7 @@ class GUIModel(Status):
         if self.player_is_started:
             self.__stop_buffering()
             self.__stop_playback()
-            if self._timeline:
-                self._timeline.stop()
+            self.timeline().stop()
             self._current_framedrop = 0
             if wait:
                 time.sleep(1)  # Allow time for the thread to respond
@@ -439,7 +443,7 @@ class GUIModel(Status):
                 n_frame.frame = scale(n_frame.frame, self._scale_quality)
                 for _, processor in self.processors.items():
                     n_frame.frame = processor.process_frame(n_frame.frame)
-            self._timeline.add_frame(n_frame)
+            self.timeline().add_frame(n_frame)
             self._processed_frames_count += 1
             self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
 
@@ -447,7 +451,7 @@ class GUIModel(Status):
         if self.player:
             while self._event_playback.is_set():
                 try:
-                    n_frame = self._timeline.get_frame()
+                    n_frame = self.timeline().get_frame()
                 except EOFError:
                     self.update_status("No more frames in the timeline")
                     self._event_playback.clear()
@@ -457,19 +461,19 @@ class GUIModel(Status):
                     continue
                 self.player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
-                self.position.set(self._timeline.last_read_index)
-                self.status("time", seconds_to_hmsms(self._timeline.time_position()))
+                self.position.set(self.timeline().last_read_index)
+                self.status("time", seconds_to_hmsms(self.timeline().time_position()))
             self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
-        if (self._timeline.last_written_index - self.framedrop_delta) > self._timeline.last_read_index:  # buffering is too fast, framedrop can be decreased
+        if (self.timeline().last_written_index - self.framedrop_delta) > self.timeline().last_read_index:  # buffering is too fast, framedrop can be decreased
             if self._current_framedrop > 0:
                 self._current_framedrop -= 1
-        elif self._timeline.last_written_index < self._timeline.last_read_index:  # buffering is too slow, need to increase framedrop
+        elif self.timeline().last_written_index < self.timeline().last_read_index:  # buffering is too slow, need to increase framedrop
             self._current_framedrop += 1
 
-        # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self._timeline.last_written_index}/{self._timeline.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
+        # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self.timeline().last_written_index}/{self.timeline().last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
         return self._current_framedrop
 
     def init_framedrop(self) -> None:
