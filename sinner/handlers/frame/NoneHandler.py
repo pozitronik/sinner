@@ -6,10 +6,6 @@ from sinner.models.NumberedFrame import NumberedFrame
 # Empty handler for empty targets
 class NoneHandler(BaseFrameHandler):
 
-    # noinspection PyMissingConstructor
-    def __init__(self):
-        pass
-
     @property
     def fps(self) -> float:
         return 0
