@@ -33,9 +33,9 @@ class BaseFramePosition:
         pass
 
     @abstractmethod
-    def disable(self):
+    def disable(self) -> None:
         pass
 
     @abstractmethod
-    def enable(self):
+    def enable(self) -> None:
         pass
