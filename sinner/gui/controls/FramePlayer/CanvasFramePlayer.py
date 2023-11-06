@@ -31,7 +31,7 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
         except Exception as e:
             pass
 
-    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True) -> None:
+    def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True) -> None:
         if frame is None and self._last_frame is not None:
             frame = self._last_frame
         if frame is not None:
@@ -57,3 +57,12 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
 
     def clear(self) -> None:
         self.photo_image = None
+
+    def set_fullscreen(self, fullscreen: bool = True) -> None:
+        pass
+
+    def set_topmost(self, on_top: bool = True) -> None:
+        pass
+
+    def bring_to_front(self) -> None:
+        pass
