@@ -59,7 +59,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
             self._variable_callback_blocked = False
         self.update_position()
 
-    def update_position(self):
+    def update_position(self) -> None:
         if self._position_label:
             self._current_position.set(f'{self.position}/{self._to}')
 
@@ -85,8 +85,8 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     def container(self) -> Frame:
         return self._container
 
-    def disable(self):
+    def disable(self) -> None:
         CTkSlider.configure(self, True, state=DISABLED)
 
-    def enable(self):
+    def enable(self) -> None:
         CTkSlider.configure(self, True, state=NORMAL)
