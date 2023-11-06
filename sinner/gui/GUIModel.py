@@ -281,7 +281,7 @@ class GUIModel(Status):
             self.player.clear()
 
     @property
-    def frame_handler(self) -> BaseFrameHandler | None:
+    def frame_handler(self) -> BaseFrameHandler:
         if self._target_handler is None:
             if self.target_path is None:
                 self._target_handler = NoneHandler()
