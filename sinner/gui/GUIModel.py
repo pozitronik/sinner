@@ -398,7 +398,6 @@ class GUIModel(Status):
     def buffering_progress_bar(self) -> ProgressBar:
         if self._buffering_progress_bar is None:
             self._buffering_progress_bar = self.progress_bar.configure(self._processed_frames_count, maximum=self._initial_frame_buffer_length, title="Buffering")
-            # self._buffering_progress_bar.create_controls()
         return self._buffering_progress_bar
 
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
