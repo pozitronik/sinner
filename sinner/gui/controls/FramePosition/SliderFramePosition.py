@@ -12,7 +12,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
     _current_position: StringVar | None = None
     _cmd: Union[Callable[[float], None], None] = None
 
-    def __init__(self, master: Misc | None, **kwargs: Dict[str, Any]):
+    def __init__(self, master: Misc | None, **kwargs):  # type: ignore[no-untyped-def]
         self._container = Frame(master, borderwidth=2)
         CTkSlider.__init__(self, self._container, **kwargs)
         self._current_position = StringVar()

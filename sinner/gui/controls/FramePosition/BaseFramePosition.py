@@ -5,7 +5,7 @@ from typing import Any, Dict
 class BaseFramePosition:
 
     @abstractmethod
-    def pack(self, **kwargs: Dict[str, Any]) -> Any:
+    def pack(self, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         pass
 
     @property
