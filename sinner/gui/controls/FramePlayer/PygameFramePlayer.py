@@ -90,7 +90,7 @@ class PygameFramePlayer(BaseFramePlayer):
         self.screen.fill((0, 0, 0))
         pygame.display.flip()
 
-    def _handle_events(self):
+    def _handle_events(self) -> None:
         self._reload_event_handlers()
         running = True
         while running:
