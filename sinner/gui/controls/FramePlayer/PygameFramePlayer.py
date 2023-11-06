@@ -21,7 +21,7 @@ class PygameFramePlayer(BaseFramePlayer):
     caption: str
 
     _events_thread: threading.Thread
-    _event_handlers: dict[int, Callable] = {}
+    _event_handlers: dict[int, Callable[[], None]] = {}
 
     def __init__(self, width: int, height: int, caption: str = 'PlayerControl'):
         self.width = width
@@ -32,7 +32,7 @@ class PygameFramePlayer(BaseFramePlayer):
         self._events_thread.daemon = True
         # self._events_thread.start()
 
-    def add_handler(self, event_type: int, handler: Callable) -> None:
+    def add_handler(self, event_type: int, handler: Callable[[], None]) -> None:
         self._event_handlers[event_type] = handler
         self._reload_event_handlers()
 
