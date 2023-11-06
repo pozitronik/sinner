@@ -31,8 +31,12 @@ class ProgressBar:
     def destroy_controls(self) -> None:
         if self.pb:
             self.pb.destroy()
+            self.pb = None
         if self.label:
             self.label.destroy()
+            self.label = None
+        if self.progressVar:
+            self.progressVar = None
 
     def __enter__(self) -> 'ProgressBar':
         self.create_controls()
@@ -46,14 +50,17 @@ class ProgressBar:
 
     @property
     def progress_text(self) -> str:
+        if not self.pb:
+            self.create_controls()
         return f"{self.title}: {int(self.pb['value'])}/{self.maximum}"
 
     def update(self, value: int = 1) -> None:
-        if self.pb:
-            self.progressVar.set(self.progress_text)
-            self.pb["value"] += value
-            if self.parent:
-                self.parent.update()
+        if not self.pb:
+            self.create_controls()
+        self.progressVar.set(self.progress_text)
+        self.pb["value"] += value
+        if self.parent:
+            self.parent.update()
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         self.destroy_controls()

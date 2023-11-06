@@ -60,6 +60,7 @@ class GUIModel(Status):
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
     status_bar: SimpleStatusBar | None = None
     progress_bar: ProgressBar | None = None
+    _buffering_progress_bar: ProgressBar | None = None
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -386,24 +387,27 @@ class GUIModel(Status):
             self._show_frames_thread = None
             self.update_status(f"Playback stopped")
 
+    @property
+    def buffering_progress_bar(self) -> ProgressBar:
+        if self._buffering_progress_bar is None:
+            self._buffering_progress_bar = self.progress_bar.configure(value=self._processed_frames_count, maximum=self._initial_frame_buffer_length, title="Buffering")
+            self._buffering_progress_bar.create_controls()
+        return self._buffering_progress_bar
+
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             if not self._event_playback.is_set():
                 if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
-                    _buffering_progress.destroy_controls()
+                    self.buffering_progress_bar.destroy_controls()
                     self.init_framedrop()
                     self.__start_playback()
-
                 else:
-                    _buffering_progress.update()
+                    self.buffering_progress_bar.update()
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
         self._shown_frames_count = 0
-
-        _buffering_progress = self.progress_bar.configure(value=self._processed_frames_count, maximum=self._initial_frame_buffer_length, title="Buffering")
-        _buffering_progress.create_controls()
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
@@ -417,7 +421,7 @@ class GUIModel(Status):
 
                 if not self._event_buffering.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
-                    _buffering_progress.destroy_controls()
+                    self.buffering_progress_bar.destroy_controls()
                     break
             self.update_status("_process_frames loop done")
 
