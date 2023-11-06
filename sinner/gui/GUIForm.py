@@ -141,9 +141,9 @@ class GUIForm(Status):
 
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')
-        self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: save_current_frame())
-        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview(True))
+        self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')  # type: ignore[no-untyped-call]  # it is a library method
+        self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: save_current_frame())  # type: ignore[no-untyped-call]  # it is a library method
+        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview(True))  # type: ignore[no-untyped-call]  # it is a library method
 
         def save_current_frame() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
@@ -153,9 +153,9 @@ class GUIForm(Status):
         self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
 
         self.ModeSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.ModeSubMenu, label='Playback mode')
-        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.ALL.value, command=lambda: set_framerate_mode(FrameMode.ALL))
-        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.SKIP.value, command=lambda: set_framerate_mode(FrameMode.SKIP))
+        self.MainMenu.add(CASCADE, menu=self.ModeSubMenu, label='Playback mode')  # type: ignore[no-untyped-call]  # it is a library method
+        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.ALL.value, command=lambda: set_framerate_mode(FrameMode.ALL))  # type: ignore[no-untyped-call]  # it is a library method
+        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.SKIP.value, command=lambda: set_framerate_mode(FrameMode.SKIP))  # type: ignore[no-untyped-call]  # it is a library method
 
         def set_framerate_mode(mode: FrameMode) -> None:
             self.GUIModel.frame_mode = mode
@@ -163,11 +163,11 @@ class GUIForm(Status):
         self.RotateModeVar: StringVar = StringVar(value=RotateMode.ROTATE_0.value)
 
         self.RotateSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_180.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_180))
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))
+        self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_180.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_180))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))  # type: ignore[no-untyped-call]  # it is a library method
 
         def set_rotate_mode(mode: RotateMode) -> None:
             self.player.rotate = mode
@@ -175,8 +175,8 @@ class GUIForm(Status):
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
 
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: set_on_top())
+        self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: set_on_top())  # type: ignore[no-untyped-call]  # it is a library method
 
         def set_on_top() -> None:
             self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
