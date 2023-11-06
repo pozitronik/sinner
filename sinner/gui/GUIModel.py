@@ -295,7 +295,7 @@ class GUIModel(Status):
     def frame_handler(self) -> BaseFrameHandler:
         if self._target_handler is None:
             if self.target_path is None:
-                self._target_handler = NoneHandler(self.target_path, self.parameters)
+                self._target_handler = NoneHandler('', self.parameters)
             else:
                 self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._target_handler
