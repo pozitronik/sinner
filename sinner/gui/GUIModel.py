@@ -206,7 +206,9 @@ class GUIModel(Status):
         return os.path.dirname(self._target_path) if self._target_path else None
 
     @property
-    def player(self) -> BaseFramePlayer | None:
+    def player(self) -> BaseFramePlayer:
+        if self._player is None:
+            raise Exception("The player is not assigned!")
         return self._player
 
     @player.setter
