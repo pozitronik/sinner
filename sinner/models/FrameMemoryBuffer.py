@@ -15,7 +15,7 @@ class FrameMemoryBuffer:
 
     def add_frame(self, frame: NumberedFrame) -> int:
         with threading.Lock():
-            self._frames[frame.index] = NumberedFrame
+            self._frames[frame.index] = frame
         return len(self._frames)
 
     def get_frame(self, index: int) -> NumberedFrame | None:
