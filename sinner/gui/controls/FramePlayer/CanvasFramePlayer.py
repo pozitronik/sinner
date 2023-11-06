@@ -28,7 +28,7 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
         try:  # todo add display modes, add handler on empty image
             self.create_image(self.winfo_width() // 2, self.winfo_height() // 2, image=image)
             self.photo = image
-        except Exception as e:
+        except Exception:
             pass
 
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True) -> None:
