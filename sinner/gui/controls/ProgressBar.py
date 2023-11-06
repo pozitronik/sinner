@@ -1,6 +1,8 @@
 from threading import Lock
 from tkinter import HORIZONTAL, Misc, BOTH, Label, NW, StringVar, IntVar, LEFT, RIGHT
 from tkinter.ttk import Progressbar
+from types import TracebackType
+from typing import Optional, Type
 
 
 class ProgressBar:
@@ -83,6 +85,5 @@ class ProgressBar:
         if self.parent:
             self.parent.update()
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
         self.destroy_controls()
-        return False

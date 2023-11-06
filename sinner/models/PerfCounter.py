@@ -1,4 +1,6 @@
 import time
+from types import TracebackType
+from typing import Optional, Type
 
 
 class PerfCounter:
@@ -11,7 +13,7 @@ class PerfCounter:
         self.start_time = time.perf_counter_ns() if self.ns_mode else time.perf_counter()
         return self
 
-    def __exit__(self, *args) -> None:
+    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Optional[TracebackType]) -> None:
         self.end_time = time.perf_counter_ns() if self.ns_mode else time.perf_counter()
         self.execution_time = self.end_time - self.start_time
 
