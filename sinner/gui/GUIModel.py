@@ -389,15 +389,14 @@ class GUIModel(Status):
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            with threading.Lock():
-                if not self._event_playback.is_set():
-                    if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
-                        _buffering_progress.destroy_controls()
-                        self.init_framedrop()
-                        self.__start_playback()
+            if not self._event_playback.is_set():
+                if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
+                    _buffering_progress.destroy_controls()
+                    self.init_framedrop()
+                    self.__start_playback()
 
-                    else:
-                        _buffering_progress.update()
+                else:
+                    _buffering_progress.update()
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
