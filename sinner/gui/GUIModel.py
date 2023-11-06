@@ -366,6 +366,7 @@ class GUIModel(Status):
     def __stop_buffering(self):
         if self._event_buffering.is_set() and self._process_frames_thread:
             self._event_buffering.clear()
+            self.buffering_progress_bar.destroy_controls()
             self._processed_frames_count = 0
             self._process_frames_thread.join(1)
             self._process_frames_thread = None
