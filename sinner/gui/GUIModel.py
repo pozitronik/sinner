@@ -355,7 +355,7 @@ class GUIModel(Status):
             if reload_frames:
                 self._is_target_frames_extracted = False
 
-    def __start_buffering(self, start_frame: int):
+    def __start_buffering(self, start_frame: int) -> None:
         if not self._event_buffering.is_set():
             self._event_buffering.set()
             self._processed_frames_count = 0
@@ -367,7 +367,7 @@ class GUIModel(Status):
             self._process_frames_thread.start()
             self.update_status(f"Buffering started")
 
-    def __stop_buffering(self):
+    def __stop_buffering(self) -> None:
         if self._event_buffering.is_set() and self._process_frames_thread:
             self._event_buffering.clear()
             self.buffering_progress_bar.destroy_controls()
@@ -376,7 +376,7 @@ class GUIModel(Status):
             self._process_frames_thread = None
             self.update_status(f"Buffering stopped")
 
-    def __start_playback(self):
+    def __start_playback(self) -> None:
         if not self._event_playback.is_set():
             self._event_playback.set()
             self._shown_frames_count = 0
@@ -385,7 +385,7 @@ class GUIModel(Status):
             self._show_frames_thread.start()
             self.update_status(f"Playback started")
 
-    def __stop_playback(self):
+    def __stop_playback(self) -> None:
         if self._event_playback.is_set() and self._show_frames_thread:
             self._event_playback.clear()
             self._shown_frames_count = 0

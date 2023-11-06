@@ -26,11 +26,11 @@ class FrameTimeLine:
         self._frames = {}
 
     # start the time counter
-    def start(self):
+    def start(self) -> None:
         self._timer = time.perf_counter()
         self._is_started = True
 
-    def stop(self):
+    def stop(self) -> None:
         self._is_started = False
         self._frames = {}
 
