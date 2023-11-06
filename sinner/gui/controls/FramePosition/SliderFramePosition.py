@@ -8,8 +8,8 @@ from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePositio
 
 class SliderFramePosition(BaseFramePosition, CTkSlider):
     _container: Frame
-    _position_label: Label | None = None
-    _current_position: StringVar | None = None
+    _position_label: Label
+    _current_position: StringVar
     _cmd: Union[Callable[[float], None], None] = None
 
     def __init__(self, master: Misc | None, **kwargs):  # type: ignore[no-untyped-def]
