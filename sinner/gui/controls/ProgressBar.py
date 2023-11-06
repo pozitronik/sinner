@@ -60,7 +60,7 @@ class ProgressBar:
             try:
                 return int(self.pb.cget('value'))
             except Exception:
-                print("wtw")
+                pass
         return 0
 
     @pb_value.setter
@@ -78,7 +78,7 @@ class ProgressBar:
         try:
             self.progressVar.set(self.progress_text)
         except Exception:
-            print("wtf")
+            pass
         self.pb_value += value
         if self.parent:
             self.parent.update()
