@@ -58,6 +58,7 @@ class GUIModel(Status):
     _positionVar: IntVar | None = None
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
+
     status_bar: SimpleStatusBar | None = None
     progress_bar: ProgressBar | None = None
     _buffering_progress_bar: ProgressBar | None = None
@@ -390,8 +391,8 @@ class GUIModel(Status):
     @property
     def buffering_progress_bar(self) -> ProgressBar:
         if self._buffering_progress_bar is None:
-            self._buffering_progress_bar = self.progress_bar.configure(value=self._processed_frames_count, maximum=self._initial_frame_buffer_length, title="Buffering")
-            self._buffering_progress_bar.create_controls()
+            self._buffering_progress_bar = self.progress_bar.configure(self._processed_frames_count, maximum=self._initial_frame_buffer_length, title="Buffering")
+            # self._buffering_progress_bar.create_controls()
         return self._buffering_progress_bar
 
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
@@ -403,7 +404,8 @@ class GUIModel(Status):
                     self.init_framedrop()
                     self.__start_playback()
                 else:
-                    self.buffering_progress_bar.update()
+                    if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
+                        self.buffering_progress_bar.update()
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
