@@ -111,10 +111,10 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(frame_value))
+        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(int(frame_value)))
 
-        def on_quality_scale_change(frame_value: float) -> None:
-            self.GUIModel.quality = int(frame_value)
+        def on_quality_scale_change(frame_value: int) -> None:
+            self.GUIModel.quality = frame_value
             if self.GUIModel.frame_handler.resolution:
                 self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
                 #  the quality applies only when playing, the preview always renders with 100% resolution
