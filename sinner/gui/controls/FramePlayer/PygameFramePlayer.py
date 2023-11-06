@@ -36,7 +36,7 @@ class PygameFramePlayer(BaseFramePlayer):
         self._event_handlers[event_type] = handler
         self._reload_event_handlers()
 
-    def _reload_event_handlers(self):
+    def _reload_event_handlers(self) -> None:
         pygame.event.set_blocked(None)
         pygame.event.set_allowed([key for key in self._event_handlers])
 
