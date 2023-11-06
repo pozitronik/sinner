@@ -1,11 +1,11 @@
 from abc import abstractmethod
-from typing import Any
+from typing import Any, Dict
 
 
 class BaseFramePosition:
 
     @abstractmethod
-    def pack(self, **kwargs) -> Any:
+    def pack(self, **kwargs: Dict[str, Any]) -> Any:
         pass
 
     @property
