@@ -9,7 +9,7 @@ class SimpleStatusBar(Frame):
     items: Dict[str, Any] = {}
     text_box: TextBox
 
-    def __init__(self, master=None, cnf=None):
+    def __init__(self, master=None, cnf=None) -> None:
         if cnf is None:
             cnf = {}
         super().__init__(master, cnf)
