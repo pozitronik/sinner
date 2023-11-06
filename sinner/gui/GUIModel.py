@@ -2,8 +2,7 @@ import os
 import threading
 import time
 from argparse import Namespace
-from asyncio import Future
-from concurrent.futures.thread import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 from enum import Enum
 from tkinter import IntVar
 from typing import List
