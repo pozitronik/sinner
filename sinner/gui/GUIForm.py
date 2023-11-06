@@ -226,26 +226,6 @@ class GUIForm(Status):
             # self.PlayerControl.add_handler(pygame.QUIT, self.PlayerControl.hide)
         return self.PlayerControl
 
-    # controls manipulation methods todo refactor to a GUIModel method
-    def update_preview_(self, frame_number: int = 0, processed: bool | None = None) -> None:
-        if processed is None:
-            processed = self.GUIModel.is_processors_loaded
-        frames = self.GUIModel.get_frames(frame_number, processed)
-        if frames:
-            if processed:
-                if self.show_frames_widget is True:
-                    self.PreviewFrames.show([FrameThumbnail(
-                        frame=frame[0],
-                        caption=frame[1],
-                        position=frame_number,
-                        onclick=self.on_preview_frames_thumbnail_click
-                    ) for frame in frames])
-                self.player.show_frame(frames[-1][0])
-            else:
-                self.player.show_frame(frames[0][0])
-        else:
-            self.player.photo_image = None
-
     def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
         frames = self.GUIModel.get_previews(frame_number)
         if frames:
