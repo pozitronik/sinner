@@ -9,7 +9,6 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.ImageList import ImageList
-from sinner.gui.controls.ProgressBar import ProgressBar
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox
@@ -136,7 +135,6 @@ class GUIForm(Status):
         self.GUIModel.status_bar = self.StatusBar
 
         self.ProgressBar: ProgressBar = ProgressBar(self.GUIWindow)
-        self.GUIModel.progress_bar = self.ProgressBar
 
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)

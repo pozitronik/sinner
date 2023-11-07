@@ -13,7 +13,6 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
-from sinner.gui.controls.ProgressBar import ProgressBar
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
@@ -68,7 +67,6 @@ class GUIModel(Status):
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
     status_bar: SimpleStatusBar | None = None
-    _progress_bar: ProgressBar | None = None
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -213,16 +211,6 @@ class GUIModel(Status):
     @property
     def target_dir(self) -> str | None:
         return os.path.dirname(self._target_path) if self._target_path else None
-
-    @property
-    def progress_bar(self) -> ProgressBar:
-        if self._progress_bar is None:
-            raise Exception("The progress bar is not assigned!")
-        return self._progress_bar
-
-    @progress_bar.setter
-    def progress_bar(self, value: ProgressBar) -> None:
-        self._progress_bar = value
 
     @property
     def quality(self) -> int:
