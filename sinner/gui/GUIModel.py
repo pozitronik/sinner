@@ -14,6 +14,7 @@ from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBar import ProgressBar
+from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
@@ -36,6 +37,10 @@ class FrameMode(Enum):
     SKIP = "Skip frames to match the original speed"
 
 
+BUFFERING_PROGRESS_NAME = "Buffering"
+EXTRACTING_PROGRESS_NAME = "Extracting"
+
+
 class GUIModel(Status):
     # configuration variables
     frame_processor: List[str]
@@ -54,6 +59,7 @@ class GUIModel(Status):
     # internal/external objects
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
+    ProgressBarsManager: ProgressBarManager
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
@@ -146,7 +152,7 @@ class GUIModel(Status):
             if self.status_bar is not None:
                 self.status_bar.set_item(item, value)
 
-    def __init__(self, parameters: Namespace):
+    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager):
         self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
@@ -156,6 +162,7 @@ class GUIModel(Status):
 
         self.TimeLine = FrameTimeLine()
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
+        self.ProgressBarsManager = pb_control
 
         self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
@@ -393,10 +400,12 @@ class GUIModel(Status):
             futures.remove(future_)
             if not self._event_playback.is_set():
                 if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
+                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
                     self.init_framedrop()
                     self.__start_playback()
-                # else:
-                #     if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
+                else:
+                    if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
+                        self.ProgressBarsManager.update(name=BUFFERING_PROGRESS_NAME, value=self._processed_frames_count, max_value=self._initial_frame_buffer_length)
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
@@ -414,6 +423,7 @@ class GUIModel(Status):
 
                 if not self._event_buffering.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
+                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
                     break
             self.update_status("_process_frames loop done")
 
@@ -447,7 +457,7 @@ class GUIModel(Status):
                 self.Player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
                 self.position.set(self.TimeLine.last_read_index)
-                self.status("time", seconds_to_hmsms(self.TimeLine.time_position()))
+                self.status("time", seconds_to_hmsms(self.TimeLine.time_position()))  # todo: use a callback
             self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
@@ -487,13 +497,14 @@ class GUIModel(Status):
                         dynamic_ncols=True,
                         bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                         initial=state.processed_frames_count,
-                ) as progress, self.progress_bar.configure(maximum=state.frames_count, value=state.processed_frames_count, title='Extracting') as pb_update:
+                ) as progress:
                     self.frame_handler.current_frame_index = state.processed_frames_count
                     for frame_num in self.frame_handler:
                         n_frame = self.frame_handler.extract_frame(frame_num)
                         state.save_temp_frame(n_frame)
                         progress.update()
-                        pb_update.update()
+                        self.ProgressBarsManager.update(name=EXTRACTING_PROGRESS_NAME, value=state.processed_frames_count, max_value=state.frames_count)
+                    self.ProgressBarsManager.done(EXTRACTING_PROGRESS_NAME)
 
             frame_extractor.release_resources()
             if state_is_finished:

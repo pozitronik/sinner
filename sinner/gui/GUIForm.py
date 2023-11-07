@@ -10,6 +10,7 @@ from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePositio
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBar import ProgressBar
+from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.utilities import is_int, get_app_dir
@@ -20,6 +21,7 @@ from sinner.validators.AttributeLoader import Rules
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
+    ProgressBars: ProgressBarManager
 
     current_position: StringVar  # current position variable
 
@@ -63,8 +65,6 @@ class GUIForm(Status):
 
     def __init__(self, parameters: Namespace):
         super().__init__(parameters)
-        self.GUIModel = GUIModel(parameters)
-
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
         self.GUIWindow.iconbitmap(get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
@@ -79,6 +79,9 @@ class GUIForm(Status):
 
         self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
+
+        self.ProgressBars = ProgressBarManager(self.GUIWindow)
+        self.GUIModel = GUIModel(parameters, pb_control = self.ProgressBars)
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
