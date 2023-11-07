@@ -27,7 +27,7 @@ from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -206,11 +206,11 @@ class GUIModel(Status):
 
     @property
     def source_dir(self) -> str | None:
-        return os.path.dirname(self._source_path) if self._source_path else None
+        return normalize_path(os.path.dirname(self._source_path)) if self._source_path else None
 
     @property
     def target_dir(self) -> str | None:
-        return os.path.dirname(self._target_path) if self._target_path else None
+        return normalize_path(os.path.dirname(self._target_path)) if self._target_path else None
 
     @property
     def quality(self) -> int:
