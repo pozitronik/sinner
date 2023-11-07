@@ -6,6 +6,7 @@ from sinner.Benchmark import Benchmark
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
 from sinner.Status import Status
+from sinner.gui.GUIForm import GUIForm
 from sinner.gui.GUIModel import GUIModel
 from sinner.webcam.WebCam import WebCam
 from sinner.handlers.frame.VideoHandler import VideoHandler
@@ -21,6 +22,7 @@ DocumentedClasses: List[Type[AttributeLoader]] = [
     BatchProcessingCore,
     Status,
     # State,
+    GUIForm,
     GUIModel,
     WebCam,
     Benchmark,
