@@ -100,7 +100,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._resolution = int(w), int(h)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
-                self._fc = 0
+                self._resolution = 0, 0
         return self._resolution
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
