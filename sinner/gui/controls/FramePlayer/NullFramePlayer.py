@@ -13,9 +13,6 @@ class NullFramePlayer(BaseFramePlayer):
     def bring_to_front(self) -> None:
         pass
 
-    def __init__(self, **kwargs):
-        pass
-
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True) -> None:
         pass
 

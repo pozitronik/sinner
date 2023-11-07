@@ -1,4 +1,5 @@
-from tkinter import Canvas
+from tkinter import Canvas, Misc
+from typing import Dict, Any
 
 import cv2
 from PIL import Image
@@ -13,7 +14,7 @@ from sinner.typing import Frame
 class CanvasFramePlayer(Canvas, BaseFramePlayer):
     photo: PhotoImage | None = None
 
-    def __init__(self, master=None, cnf=None, **kw):
+    def __init__(self, master: Misc | None = None, cnf: Dict[str, Any] | None = None, **kw: Any):
         if cnf is None:
             cnf = {}
         Canvas.__init__(self, master=master, cnf=cnf, **kw)
