@@ -363,6 +363,7 @@ class GUIModel(Status):
 
     def __stop_buffering(self) -> None:
         if self._event_buffering.is_set() and self._process_frames_thread:
+            self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
             self._event_buffering.clear()
             self._processed_frames_count = 0
             self._process_frames_thread.join(1)
@@ -388,7 +389,6 @@ class GUIModel(Status):
             futures.remove(future_)
             if not self._event_playback.is_set():
                 if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
-                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
                     self.init_framedrop()
                     self.__start_playback()
                 else:
