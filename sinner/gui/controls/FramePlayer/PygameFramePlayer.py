@@ -108,8 +108,8 @@ class PygameFramePlayer(BaseFramePlayer):
     def set_topmost(self, on_top: bool = True) -> None:
         if WINDOWS:
             # by some unknown reason it has no effect
-            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)  # type: ignore[attr-defined]  # platform issue
 
     def bring_to_front(self) -> None:
         if WINDOWS:
-            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)  # type: ignore[attr-defined]  # platform issue
