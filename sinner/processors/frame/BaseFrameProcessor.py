@@ -4,16 +4,15 @@ from typing import List, Any, Callable
 
 from argparse import Namespace
 
-from sinner.State import State
+from sinner.models.State import State
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import Frame
-from sinner.utilities import load_class, suggest_execution_threads, suggest_execution_providers, decode_execution_providers
+from sinner.utilities import load_class, suggest_execution_providers, decode_execution_providers
 
 
 class BaseFrameProcessor(ABC, Status):
     execution_provider: List[str]
-    execution_threads: int
 
     parameters: Namespace
 
@@ -35,13 +34,7 @@ class BaseFrameProcessor(ABC, Status):
                 'default': ['cpu'],
                 'choices': suggest_execution_providers(),
                 'help': 'The execution provider, from available on your hardware/software'
-            },
-            {
-                'parameter': 'execution-threads',
-                'type': int,
-                'default': suggest_execution_threads(),
-                'help': 'The count of simultaneous processing threads'
-            },
+            }
         ]
 
     def __init__(self, parameters: Namespace) -> None:

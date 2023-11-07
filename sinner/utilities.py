@@ -7,11 +7,14 @@ import platform
 import shutil
 import sys
 import urllib
+from datetime import datetime
+from pathlib import Path
 from typing import List, Literal, Any, get_type_hints
 
 import onnxruntime
 import psutil
 import tensorflow
+from psutil import WINDOWS, MACOS
 from tqdm import tqdm
 
 TEMP_DIRECTORY = 'temp'
@@ -25,9 +28,9 @@ def limit_resources(max_memory: int) -> None:
     # limit memory usage
     if max_memory:
         memory = max_memory * 1024 ** 3
-        if platform.system().lower() == 'darwin':
+        if MACOS:
             memory = max_memory * 1024 ** 6
-        if platform.system().lower() == 'windows':
+        if WINDOWS:
             import ctypes
             kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
             kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
@@ -72,8 +75,7 @@ def normalize_path(path: Any) -> str | None:
 
 
 def conditional_download(download_directory_path: str, urls: List[str], desc: str = 'Downloading') -> None:
-    if not path_exists(download_directory_path):
-        os.makedirs(download_directory_path)
+    Path(download_directory_path).mkdir(parents=True, exist_ok=True)
     for url in urls:
         download_file_path = os.path.join(download_directory_path, os.path.basename(url))
         if not path_exists(download_file_path):
@@ -247,3 +249,23 @@ def format_sequences(sorted_list: List[int]) -> str:
 
     sequences.append(format_sequence(start, end))
     return ", ".join(sequences)
+
+
+def suggest_temp_dir(initial: str | None = None) -> str:
+    if initial:
+        norm_path = normalize_path(initial)
+        if norm_path:
+            return norm_path
+        else:
+            raise Exception(f"{initial} is not a valid path")
+    return os.path.join(get_app_dir(), TEMP_DIRECTORY)
+
+
+# calculates iteration median using previous calculated median, current iteration value and iteration counter
+def iteration_mean(current_value: float, previous_value: float, iteration: int) -> float:
+    return current_value if iteration == 0 else (previous_value * iteration + current_value) / (iteration + 1)
+
+
+def seconds_to_hmsms(seconds: float) -> str:
+    time_format = datetime.utcfromtimestamp(seconds).strftime("%H:%M:%S.%f")
+    return time_format[:-3]  # Remove the last three digits to get milliseconds

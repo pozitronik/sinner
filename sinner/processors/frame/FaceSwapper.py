@@ -7,13 +7,14 @@ from typing import List, Dict, Any, Callable
 
 import insightface
 import torch
+from insightface.app.common import Face
 
 from sinner.FaceAnalyser import FaceAnalyser
 from sinner.Status import Mood
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
+from sinner.helpers.FrameHelper import read_from_image
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Face, Frame, FaceSwapperType
+from sinner.typing import Frame, FaceSwapperType
 from sinner.utilities import conditional_download, get_app_dir, is_image, normalize_path
 
 
@@ -33,7 +34,7 @@ class FaceSwapper(BaseFrameProcessor):
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': 'source_path',
-                'required': True,
+                'required': False,
                 'valid': lambda attribute_name, attribute_value: is_image(attribute_value),
                 'filter': lambda: normalize_path(self.source_path),
                 'help': 'Select an input image with the source face'
@@ -61,7 +62,10 @@ class FaceSwapper(BaseFrameProcessor):
     @property
     def source_face(self) -> Face | None:
         if self._source_face is None:
-            self._source_face = self.face_analyser.get_one_face(CV2VideoHandler.read_image(self.source_path))
+            if self.source_path is None:
+                # self.update_status(f"There is no source path is provided, ignoring", mood=Mood.BAD)
+                return self._source_face
+            self._source_face = self.face_analyser.get_one_face(read_from_image(self.source_path))
             if self._source_face is None:
                 self.update_status(f"There is no face found on {self.source_path}", mood=Mood.BAD)
             else:
@@ -96,16 +100,21 @@ class FaceSwapper(BaseFrameProcessor):
         conditional_download(download_directory_path, ['https://github.com/pozitronik/sinner/releases/download/v200823/inswapper_128.onnx'])
         super().__init__(parameters)
 
+        if self.source_path is None:
+            self.update_status("No source path is set, assuming GUI mode bootstrap", mood=Mood.NEUTRAL)
+            _, _, _ = self.face_analyser, self.face_swapper, self.face_analyser.face_analyser
+
     def process_frame(self, frame: Frame) -> Frame:
-        if self.many_faces:
-            many_faces = self.face_analyser.get_many_faces(frame)
-            if many_faces:
-                for target_face in many_faces:
+        if self.source_face is not None:
+            if self.many_faces:
+                many_faces = self.face_analyser.get_many_faces(frame)
+                if many_faces:
+                    for target_face in many_faces:
+                        frame = self.face_swapper.get(frame, target_face, self.source_face)
+            else:
+                target_face = self.face_analyser.get_one_face(frame)
+                if target_face:
                     frame = self.face_swapper.get(frame, target_face, self.source_face)
-        else:
-            target_face = self.face_analyser.get_one_face(frame)
-            if target_face:
-                frame = self.face_swapper.get(frame, target_face, self.source_face)
         return frame
 
     def release_resources(self) -> None:

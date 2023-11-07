@@ -3,8 +3,9 @@ import io
 import threading
 from typing import List
 from insightface.app import FaceAnalysis
+from insightface.app.common import Face
 
-from sinner.typing import Frame, Face
+from sinner.typing import Frame
 
 
 class FaceAnalyser:

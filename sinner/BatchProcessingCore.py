@@ -8,15 +8,16 @@ import os
 from pathvalidate import is_valid_filepath, ValidationError, validate_filepath
 from tqdm import tqdm
 
-from sinner.State import State
+from sinner.models.State import State
 from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
+from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.typing import Frame, NumeratedFrame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, path_exists, is_dir, normalize_path
+from sinner.typing import Frame
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, path_exists, is_dir, normalize_path, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -28,6 +29,7 @@ class BatchProcessingCore(Status):
     extract_frames: bool
     keep_frames: bool
     max_memory: int
+    execution_threads: int
 
     parameters: Namespace
 
@@ -39,6 +41,12 @@ class BatchProcessingCore(Status):
             {
                 'parameter': 'max-memory',  # key defined in Sin, but class can be called separately in tests
                 'default': suggest_max_memory(),
+            },
+            {
+                'parameter': 'execution-threads',
+                'type': int,
+                'default': suggest_execution_threads(),
+                'help': 'The count of simultaneous processing threads'
             },
             {
                 'parameter': {'target', 'target-path'},
@@ -74,7 +82,7 @@ class BatchProcessingCore(Status):
             },
             {
                 'parameter': 'temp-dir',
-                'default': lambda: self.suggest_temp_dir(),
+                'default': lambda: suggest_temp_dir(self.temp_dir),
                 'help': 'Select the directory for temporary files'
             },
             {
@@ -134,10 +142,11 @@ class BatchProcessingCore(Status):
             for dir_path in temp_resources:
                 shutil.rmtree(dir_path, ignore_errors=True)
 
-    def process_frame(self, frame_num: int, extract: Callable[[int], NumeratedFrame], process: Callable[[Frame], Frame], save: Callable[[Frame, int | str], None]) -> None:
+    def process_frame(self, frame_num: int, extract: Callable[[int], NumberedFrame], process: Callable[[Frame], Frame], save: Callable[[NumberedFrame], None]) -> None:
         try:
-            frame_num, frame, frame_name = extract(frame_num)
-            save(process(frame), frame_name or frame_num)
+            numbered_frame = extract(frame_num)
+            numbered_frame.frame = process(numbered_frame.frame)
+            save(numbered_frame)
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
             quit()
@@ -165,13 +174,13 @@ class BatchProcessingCore(Status):
         if not is_ok:
             raise Exception("Something went wrong on processed frames check")
 
-    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], NumeratedFrame], save: Callable[[Frame, int | str], None], progress: tqdm) -> None:  # type: ignore[type-arg]
+    def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], NumberedFrame], save: Callable[[NumberedFrame], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
             progress.set_postfix(self.get_postfix(len(futures)))
             progress.update()
 
-        with ThreadPoolExecutor(max_workers=processor.execution_threads) as executor:
+        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
             for frame_num in frames:
                 future: Future[None] = executor.submit(self.process_frame, frame_num, extract, processor.process_frame, save)
@@ -215,11 +224,3 @@ class BatchProcessingCore(Status):
             return VideoHandler(target_path, parameters)
         raise NotImplementedError("The handler for current target type is not implemented")
 
-    def suggest_temp_dir(self) -> str:
-        if self.temp_dir:
-            norm_path = normalize_path(self.temp_dir)
-            if norm_path:
-                return norm_path
-            else:
-                raise Exception(f"{self.temp_dir} is not a valid path")
-        return os.path.join(get_app_dir(), TEMP_DIRECTORY)

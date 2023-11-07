@@ -66,6 +66,7 @@ jobs:
           pip install colorama~=0.4.6
           pip install pyvirtualcam
           pip install pathvalidate
+          pip install pygame
       - run: |
           export DISPLAY=:1:0
           Xvfb :1 -screen 0 1600x1200x16 &

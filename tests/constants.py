@@ -4,6 +4,7 @@ from sinner.utilities import resolve_relative_path, get_app_dir
 
 TARGET_FC = 10
 TARGET_FPS = 10.0
+TARGET_RESOLUTION = (640, 360)
 FRAME_SHAPE = (360, 640, 3)
 IMAGE_SHAPE = (1080, 861, 3)
 

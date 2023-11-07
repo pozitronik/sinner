@@ -1,17 +1,18 @@
 import glob
 import os.path
-import platform
 from pathlib import Path
 from typing import List
 
 import cv2
 from cv2 import VideoCapture
-from numpy import fromfile, uint8
 from tqdm import tqdm
 
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.typing import NumeratedFrame, NumeratedFramePath, Frame
+from sinner.handlers.frame.EOutOfRange import EOutOfRange
+from sinner.helpers.FrameHelper import write_to_image, read_from_image
+from sinner.models.NumberedFrame import NumberedFrame
+from sinner.typing import NumeratedFramePath, Frame
 from sinner.utilities import get_file_name, is_file
 from sinner.validators.AttributeLoader import Rules
 
@@ -79,6 +80,14 @@ class CV2VideoHandler(BaseFrameHandler):
             self._fc = last_good_position
         return self._fc
 
+    @property
+    def resolution(self) -> tuple[int, int]:
+        if self._resolution is None:
+            capture = self.open()
+            self._resolution = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            capture.release()
+        return self._resolution
+
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         start = frames_range[0] if frames_range[0] is not None else 0
         stop = frames_range[1] if frames_range[1] is not None else self.fc - 1
@@ -101,7 +110,7 @@ class CV2VideoHandler(BaseFrameHandler):
                 if not ret:
                     break
                 filename: str = os.path.join(path, str(start).zfill(filename_length) + ".png")
-                if self.write_image(frame, filename) is False:
+                if write_to_image(frame, filename) is False:
                     raise Exception(f"Error writing {frame.nbytes} bytes to {filename}")
                 progress.update()
                 start += 1
@@ -109,14 +118,16 @@ class CV2VideoHandler(BaseFrameHandler):
             frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
             return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_file(file_path)]
 
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
+        if frame_number > self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc)
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
         ret, frame = capture.read()
         capture.release()
         if not ret:
             raise Exception(f"Error reading frame {frame_number}")
-        return frame_number, frame, None
+        return NumberedFrame(frame_number, frame)
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")
@@ -125,12 +136,12 @@ class CV2VideoHandler(BaseFrameHandler):
         try:
             Path(os.path.dirname(filename)).mkdir(parents=True, exist_ok=True)
             frame_files = glob.glob(os.path.join(glob.escape(from_dir), '*.png'))
-            first_frame = self.read_image(frame_files[0])
+            first_frame = read_from_image(frame_files[0])
             height, width, channels = first_frame.shape
             fourcc = self.suggest_codec()
             video_writer = cv2.VideoWriter(filename, fourcc, self.output_fps, (width, height))
             for frame_path in frame_files:
-                frame = self.read_image(frame_path)
+                frame = read_from_image(frame_path)
                 video_writer.write(frame)
             video_writer.release()
             return True
@@ -146,24 +157,3 @@ class CV2VideoHandler(BaseFrameHandler):
                 self.update_status(message=f"Suggested codec: {fourcc}", mood=Mood.NEUTRAL)
                 return fourcc
         raise NotImplementedError('No supported codecs found')
-
-    @staticmethod
-    def read_image(path: str) -> Frame:
-        if platform.system().lower() == 'windows':  # issue #511
-            image = cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
-            if len(image.shape) == 2:  # fixes the b/w images issue
-                image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
-            if image.shape[2] == 4:  # fixes the alpha-channel issue
-                image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
-            return image
-        else:
-            return cv2.imread(path)
-
-    @staticmethod
-    def write_image(image: Frame, path: str) -> bool:
-        if platform.system().lower() == 'windows':  # issue #511
-            is_success, im_buf_arr = cv2.imencode(".png", image)
-            im_buf_arr.tofile(path)
-            return is_success
-        else:
-            return cv2.imwrite(path, image)

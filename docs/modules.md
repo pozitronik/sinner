@@ -9,7 +9,8 @@
 * `--ini`: optional path to a custom configuration file, see the [Configuration file](../README.md#configuration-file) section.
 * `--h`, `--help`: show the help summary.
 
-# BatchProcessingCore:: The main handler for the processing modules
+# BatchProcessingCore:: The main handler for batch processing
+* `--execution-threads`: configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or run the [benchmark](#benchmark-the-benchmarking-module). Defaults to 1.
 * `--target-path`, `--target`: path to the target file or directory (depends on used frame processors set).
 * `--output`, `--output-path`: path to the resulting file or directory (depends on used frame processors set and target).
 * `--processors`, `--frame-processor`, `--processor`: the frame processor module or modules that you want to apply to your files. See the [Built-in frame processors](../README.md#built-in-frame-processors) documentation for the list of built-in modules and their possibilities.
@@ -46,7 +47,6 @@
 
 # FaceSwapper: This module swaps faces on images
 * `--execution-provider`: this parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth trying. Defaults to cpu.
-* `--execution-threads`: configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or run the [benchmark](#benchmark-the-benchmarking-module). Defaults to 1.
 * `--target-path`, `--target`: an image, a video file, or a directory with image files for processing.
 * `--temp-dir`: a way to provide a directory, where processed frames will be saved. Defaults to the `temp` subdirectory in the application directory.
 * `--source-path`, `--source`: the image file containing a face, which will be used for deepfake magic.
@@ -57,7 +57,6 @@
 
 # FaceEnhancer: This module enhances faces on images
 * `--execution-provider`: this parameter specifies what kind of driver should be used to produce AI magic, and it depends on what your hardware and software capabilities. The `cpu` provider should fit as a basic choice, but any GPU-accelerated option is worth trying. Defaults to cpu.
-* `--execution-threads`: configures the count of parallel simultaneous processing tasks. This value heavily depends on your hardware capabilities — how many computing cores it has, and what amount of memory it can use. Let's say, you have a CPU with 32 cores — so you can set `--execution-threads=32` and `--execution-provider=cpu` to use all its computing powers. In another case, a GPU with thousands of CUDA cores, will probably be much faster in total, but one thread will also require a lot of those cores to work with. For that case, I recommend doing some experiments, or run the [benchmark](#benchmark-the-benchmarking-module). Defaults to 1.
 * `--target-path`, `--target`: an image, a video file, or a directory with image files for processing.
 * `--temp-dir`: a way to provide a directory, where processed frames will be saved. Defaults to the `temp` subdirectory in the application directory.
 * `--output`, `--output-path`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.

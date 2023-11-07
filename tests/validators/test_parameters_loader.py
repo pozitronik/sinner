@@ -1,4 +1,3 @@
-import subprocess
 import sys
 from argparse import Namespace
 

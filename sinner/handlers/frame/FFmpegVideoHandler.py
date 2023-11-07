@@ -10,7 +10,9 @@ from numpy import uint8, frombuffer
 
 from sinner.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.handlers.frame.EOutOfRange import EOutOfRange
+from sinner.models.NumberedFrame import NumberedFrame
+from sinner.typing import NumeratedFramePath
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -86,6 +88,21 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._fc = 0
         return self._fc
 
+    @property
+    def resolution(self) -> tuple[int, int]:
+        if self._resolution is None:
+            try:
+                command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', self._target_path]
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
+                if 'N/A' == output:
+                    self._resolution = (0, 0)  # non-frame files, still processable
+                w, h = output.split('x')
+                self._resolution = int(w), int(h)
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                self._resolution = 0, 0
+        return self._resolution
+
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         filename_length = len(str(self.fc))  # a way to determine frame names length
         Path(path).mkdir(parents=True, exist_ok=True)
@@ -94,10 +111,12 @@ class FFmpegVideoHandler(BaseFrameHandler):
         self.run(['-i', self._target_path, '-vf', f"select='between(n,{start_frame},{stop_frame})'", '-vsync', '0', '-pix_fmt', 'rgb24', '-frame_pts', '1', os.path.join(path, f'%{filename_length}d.png')])
         return super().get_frames_paths(path)
 
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
+        if frame_number > self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc)
         command = ['ffmpeg', '-i', self._target_path, '-pix_fmt', 'rgb24', '-vf', f"select='eq(n,{frame_number})',setpts=N/FRAME_RATE/TB", '-vframes', '1', '-f', 'image2pipe', '-c:v', 'png', '-']
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL)
-        return frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR), None
+        return NumberedFrame(frame_number, cv2.imdecode(frombuffer(output, uint8), cv2.IMREAD_COLOR))
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Resulting frames from {from_dir} to {filename} with {self.output_fps} FPS")

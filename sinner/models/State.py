@@ -4,8 +4,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from sinner.Status import Status, Mood
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
-from sinner.typing import Frame
+from sinner.helpers.FrameHelper import write_to_image, EmptyFrame
+from sinner.models.NumberedFrame import NumberedFrame
 from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path
 from sinner.validators.AttributeLoader import Rules
 
@@ -104,9 +104,9 @@ class State(Status):
         self._path = path
         self.make_path(self._path)
 
-    def save_temp_frame(self, frame: Frame, index_name: int | str) -> None:
-        if not CV2VideoHandler.write_image(frame, self.get_frame_processed_name(index_name)):
-            raise Exception(f"Error saving frame: {self.get_frame_processed_name(index_name)}")
+    def save_temp_frame(self, frame: NumberedFrame) -> None:
+        if not write_to_image(frame.frame, self.get_frame_processed_name(frame)):
+            raise Exception(f"Error saving frame: {self.get_frame_processed_name(frame)}")
 
     #  Checks if some frame already processed
     @property
@@ -121,9 +121,10 @@ class State(Status):
     @property
     def processed_frames(self) -> List[str]:
         png_files = []
-        for file in os.listdir(self.path):
-            if file.endswith(".png") and is_file(os.path.join(self.path, file)):
-                png_files.append(os.path.join(self.path, file))
+        with os.scandir(self.path) as entries:
+            for entry in entries:
+                if entry.is_file() and entry.name.endswith(".png"):
+                    png_files.append(entry.path)
         return png_files
 
     #  Returns count of already processed frame for this target (0, if none).
@@ -137,11 +138,11 @@ class State(Status):
         return self.frames_count - self.processed_frames_count
 
     #  Returns a processed file name for an unprocessed frame index
-    def get_frame_processed_name(self, frame_index: int | str) -> str:
-        if isinstance(frame_index, str):
-            filename = frame_index + '.png'
+    def get_frame_processed_name(self, frame: NumberedFrame) -> str:
+        if frame.name:
+            filename = frame.name + '.png'
         else:
-            filename = str(frame_index).zfill(self.zfill_length) + '.png'
+            filename = str(frame.index).zfill(self.zfill_length) + '.png'
         return str(os.path.join(self.path, filename))
 
     @property
@@ -176,8 +177,8 @@ class State(Status):
 
     def check_integrity(self) -> List[int]:
         result: List[int] = []
-        for frame in range(self.frames_count):
-            f_name = self.get_frame_processed_name(frame)
+        for frame_index in range(self.frames_count):
+            f_name = self.get_frame_processed_name(NumberedFrame(frame_index, EmptyFrame))
             if not path_exists(f_name):
-                result.append(frame)
+                result.append(frame_index)
         return result

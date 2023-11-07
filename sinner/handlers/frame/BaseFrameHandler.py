@@ -5,8 +5,9 @@ from argparse import Namespace
 from typing import List
 
 from sinner.Status import Status
+from sinner.models.NumberedFrame import NumberedFrame
 from sinner.validators.AttributeLoader import Rules
-from sinner.typing import NumeratedFrame, NumeratedFramePath
+from sinner.typing import NumeratedFramePath
 from sinner.utilities import load_class, get_file_name, is_file, normalize_path
 
 
@@ -16,6 +17,8 @@ class BaseFrameHandler(Status, ABC):
     _target_path: str
     _fps: float | None = None
     _fc: int | None = None
+    _resolution: tuple[int, int] | None = None
+    _length: float | None = None
 
     def rules(self) -> Rules:
         return [
@@ -53,6 +56,29 @@ class BaseFrameHandler(Status, ABC):
     def fc(self) -> int:
         pass
 
+    @property
+    def frame_time(self) -> float:
+        if 0 == self.fps:
+            return 0
+        return 1 / self.fps
+
+    @property
+    @abstractmethod
+    def resolution(self) -> tuple[int, int]:
+        """
+        Returns the target dimension resolution (WxH) if present, else (0, 0)
+        """
+        pass
+
+    @property
+    def length(self) -> float:
+        """
+        Returns the target play length in seconds if it can be determined, else None
+        """
+        if self._length is None:
+            self._length = self.fc / self.fps
+        return self._length
+
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         """
         Returns all frames paths (extracting them into files, if needed). File names starting from zero index
@@ -64,7 +90,7 @@ class BaseFrameHandler(Status, ABC):
         return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_file(file_path)][frames_range[0]:frames_range[1]]
 
     @abstractmethod
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
         """
         Return the certain frame from the target
         """
