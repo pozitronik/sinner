@@ -1,6 +1,5 @@
 # helper methods to work with frames entity
 import os.path
-import sys
 from pathlib import Path
 
 import cv2
