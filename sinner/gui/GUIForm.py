@@ -225,11 +225,6 @@ class GUIForm(Status):
             # self.PlayerControl.add_handler(pygame.QUIT, self.PlayerControl.hide)
         return self.PlayerControl
 
-    def on_preview_frames_thumbnail_click(self, frame_number: int, thumbnail_index: int) -> None:
-        frames = self.GUIModel.get_previews(frame_number)
-        if frames:
-            self.player.show_frame(frames[thumbnail_index][0])
-
     def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
