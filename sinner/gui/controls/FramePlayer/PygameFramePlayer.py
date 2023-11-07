@@ -74,9 +74,9 @@ class PygameFramePlayer(BaseFramePlayer):
             elif resize is False:  # resize the player to the image size
                 self.adjust_size(False)
 
-        image_surface = pygame.surfarray.make_surface(frame)
-        self.screen.blit(image_surface, ((self.screen.get_width() - frame.shape[0]) // 2, (self.screen.get_height() - frame.shape[1]) // 2))
-        pygame.display.flip()
+            image_surface = pygame.surfarray.make_surface(frame)
+            self.screen.blit(image_surface, ((self.screen.get_width() - frame.shape[0]) // 2, (self.screen.get_height() - frame.shape[1]) // 2))
+            pygame.display.flip()
 
     def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
         if size is not None or self._last_frame is not None:
