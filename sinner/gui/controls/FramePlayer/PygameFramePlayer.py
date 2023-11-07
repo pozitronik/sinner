@@ -15,11 +15,12 @@ from sinner.utilities import get_app_dir
 
 
 class PygameFramePlayer(BaseFramePlayer):
-    screen: Surface = None
+    screen: Surface
     width: int
     height: int
     caption: str
 
+    _visible: bool = False
     _events_thread: threading.Thread
     _event_handlers: dict[int, Callable[[], None]] = {}
 
@@ -41,16 +42,17 @@ class PygameFramePlayer(BaseFramePlayer):
         pygame.event.set_allowed([key for key in self._event_handlers])
 
     def show(self) -> None:
-        if self.screen is None:
+        if not self._visible:
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
             pygame.display.set_caption(self.caption)
             pygame.display.set_icon(pygame.image.load(get_app_dir("sinner/gui/icons/sinner_64.png")))
-            self.bring_to_front()
+            self._visible = True
+        self.bring_to_front()
 
     def hide(self) -> None:
         if self.screen is not None:
             self.screen = pygame.display.set_mode((self.width, self.height), pygame.HIDDEN)
-        pygame.quit()
+        self._visible = False
 
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True) -> None:
         self.show()
