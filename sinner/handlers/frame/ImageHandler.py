@@ -9,7 +9,7 @@ from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath
-from sinner.utilities import is_image
+from sinner.utilities import is_image, path_exists, is_file
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -21,7 +21,7 @@ class ImageHandler(BaseFrameHandler):
             {
                 'parameter': 'target-path',
                 'attribute': '_target_path',
-                'valid': lambda: os.path.exists(self._target_path) and os.path.isfile(self._target_path) and is_image(self._target_path),
+                'valid': lambda: path_exists(self._target_path) and is_file(self._target_path) and is_image(self._target_path),
                 'help': 'Select an image file'
             },
             {

@@ -17,7 +17,7 @@ from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
-from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, suggest_execution_threads, suggest_temp_dir
+from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, get_app_dir, TEMP_DIRECTORY, path_exists, is_dir, normalize_path
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -51,7 +51,8 @@ class BatchProcessingCore(Status):
             {
                 'parameter': {'target', 'target-path'},
                 'attribute': 'target_path',
-                'valid': lambda: os.path.exists(self.target_path),
+                'valid': lambda: path_exists(self.target_path),
+                'filter': lambda: normalize_path(self.target_path),
                 'required': True,
                 'help': 'Path to the target file or directory (depends on used frame processors set)'
             },
@@ -63,6 +64,7 @@ class BatchProcessingCore(Status):
                 'parameter': {'output', 'output-path'},
                 'attribute': 'output_path',
                 'valid': lambda: self.output_path is None or is_valid_filepath(self.output_path, "auto"),
+                'filter': lambda: None if self.output_path is None else normalize_path(self.output_path),
                 'help': 'Path to the resulting file or directory (depends on used frame processors set and target)'
             },
             {
@@ -96,7 +98,7 @@ class BatchProcessingCore(Status):
         else:
             try:
                 validate_filepath(self.output_path, "auto")
-                if os.path.isdir(self.output_path):
+                if is_dir(self.output_path):
                     self._output_file = os.path.join(self.output_path, f'{prefix}-{os.path.basename(self.target_path)}')
                 else:
                     self._output_file = self.output_path
@@ -214,7 +216,7 @@ class BatchProcessingCore(Status):
     def suggest_handler(target_path: str | None, parameters: Namespace) -> BaseFrameHandler:  # todo: refactor this
         if target_path is None:
             raise Exception("The target path is not set")
-        if os.path.isdir(target_path):
+        if is_dir(target_path):
             return DirectoryHandler(target_path, parameters)
         if is_image(target_path):
             return ImageHandler(target_path, parameters)
@@ -222,3 +224,11 @@ class BatchProcessingCore(Status):
             return VideoHandler(target_path, parameters)
         raise NotImplementedError("The handler for current target type is not implemented")
 
+    def suggest_temp_dir(self) -> str:
+        if self.temp_dir:
+            norm_path = normalize_path(self.temp_dir)
+            if norm_path:
+                return norm_path
+            else:
+                raise Exception(f"{self.temp_dir} is not a valid path")
+        return os.path.join(get_app_dir(), TEMP_DIRECTORY)

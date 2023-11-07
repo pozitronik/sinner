@@ -8,7 +8,7 @@ from sinner.Status import Status
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import NumeratedFramePath
-from sinner.utilities import load_class, get_file_name
+from sinner.utilities import load_class, get_file_name, is_file, normalize_path
 
 
 class BaseFrameHandler(Status, ABC):
@@ -42,7 +42,7 @@ class BaseFrameHandler(Status, ABC):
         return True
 
     def __init__(self, target_path: str, parameters: Namespace):
-        self._target_path = target_path
+        self._target_path = str(normalize_path(target_path))
         super().__init__(parameters)
         self.update_status(f"Handle frames for {self._target_path} ({self.fc} frame(s)/{self.fps} FPS)")
 
@@ -87,7 +87,7 @@ class BaseFrameHandler(Status, ABC):
         :return: list of requested frames
         """
         frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)][frames_range[0]:frames_range[1]]
+        return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_file(file_path)][frames_range[0]:frames_range[1]]
 
     @abstractmethod
     def extract_frame(self, frame_number: int) -> NumberedFrame:

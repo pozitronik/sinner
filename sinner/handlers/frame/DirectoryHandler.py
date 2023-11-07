@@ -9,7 +9,7 @@ from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath
-from sinner.utilities import is_image, get_file_name
+from sinner.utilities import is_image, get_file_name, path_exists, is_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -29,7 +29,7 @@ class DirectoryHandler(BaseFrameHandler):
         ]
 
     def __init__(self, target_path: str, parameters: Namespace, fps: float | None = None, fc: int | None = None, resolution: tuple[int, int] | None = None):
-        if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
+        if not os.path.exists(target_path) or not is_dir(target_path):  # todo: move to validator
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
         self._fps = fps

@@ -5,6 +5,7 @@ from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
 from sinner.validators.ErrorDTO import ErrorDTO
+from sinner.validators.FilterValidator import FilterValidator
 from sinner.validators.HelpValidator import HelpValidator
 from sinner.validators.LoaderException import LoaderException, LoadingException
 from sinner.validators.RequiredValidator import RequiredValidator
@@ -24,6 +25,7 @@ VALIDATORS: dict[str, Type[BaseValidator]] = {
     # 'init': InitValidator,
     # 'type': InitValidator,
     'default': DefaultValidator,
+    'filter': FilterValidator,
     'required': RequiredValidator,
     'value': ValueValidator,
     'valid': ValueValidator,

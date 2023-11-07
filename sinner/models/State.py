@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from sinner.Status import Status, Mood
 from sinner.helpers.FrameHelper import write_to_image, EmptyFrame
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.utilities import is_absolute_path, format_sequences
+from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -30,11 +30,13 @@ class State(Status):
         return [
             {
                 'parameter': {'source', 'source-path'},
-                'attribute': 'source_path'
+                'attribute': 'source_path',
+                'filter': lambda: normalize_path(self.source_path)
             },
             {
                 'parameter': {'target', 'target-path'},
-                'attribute': 'initial_target_path'  # issue 29: need to know this parameter to avoid names collisions
+                'attribute': 'initial_target_path',  # issue 29: need to know this parameter to avoid names collisions
+                'filter': lambda: normalize_path(self.initial_target_path)
             },
             {
                 'module_help': 'The state control module'
@@ -76,7 +78,7 @@ class State(Status):
 
     @staticmethod
     def make_path(path: str) -> str:
-        if not os.path.exists(path):
+        if not path_exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
         return path
 
@@ -159,7 +161,7 @@ class State(Status):
         if self.final_check_empty:  # check if all frames are non zero-sized
             zero_sized_files_count = 0
             for file_path in self.processed_frames:
-                if os.path.isfile(file_path) and os.path.getsize(file_path) == 0:
+                if is_file(file_path) and os.path.getsize(file_path) == 0:
                     zero_sized_files_count += 1
             if zero_sized_files_count > 0:
                 self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
@@ -177,6 +179,6 @@ class State(Status):
         result: List[int] = []
         for frame_index in range(self.frames_count):
             f_name = self.get_frame_processed_name(NumberedFrame(frame_index, EmptyFrame))
-            if not os.path.exists(f_name):
+            if not path_exists(f_name):
                 result.append(frame_index)
         return result

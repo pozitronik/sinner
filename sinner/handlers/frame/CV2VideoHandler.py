@@ -13,7 +13,7 @@ from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.typing import NumeratedFramePath, Frame
-from sinner.utilities import get_file_name
+from sinner.utilities import get_file_name, is_file
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -116,7 +116,7 @@ class CV2VideoHandler(BaseFrameHandler):
                 start += 1
             capture.release()
             frames_path = sorted(glob.glob(os.path.join(glob.escape(path), '*.png')))
-            return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if os.path.isfile(file_path)]
+            return [(int(get_file_name(file_path)), file_path) for file_path in frames_path if is_file(file_path)]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:
         if frame_number > self.fc:

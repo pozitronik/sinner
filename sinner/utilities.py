@@ -39,25 +39,46 @@ def limit_resources(max_memory: int) -> None:
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
 
 
+def path_exists(path: str) -> bool:
+    norm_path = normalize_path(path)
+    return os.path.exists(norm_path) if norm_path else False
+
+
+def is_file(path: str) -> bool:
+    norm_path = normalize_path(path)
+    return os.path.isfile(norm_path) if norm_path else False
+
+
+def is_dir(path: str) -> bool:
+    norm_path = normalize_path(path)
+    return os.path.isdir(norm_path) if norm_path else False
+
+
 def is_image(image_path: str | None) -> bool:
-    if image_path is not None and image_path and os.path.isfile(image_path):
+    if image_path is not None and image_path and is_file(image_path):
         mimetype, _ = mimetypes.guess_type(image_path)
         return bool(mimetype and mimetype.startswith('image/'))
     return False
 
 
 def is_video(video_path: str | None) -> bool:
-    if video_path is not None and os.path.isfile(video_path):
+    if video_path is not None and is_file(video_path):
         mimetype, _ = mimetypes.guess_type(video_path)
         return bool(mimetype and (mimetype.startswith('frame/') or mimetype.startswith('video/')))
     return False
+
+
+def normalize_path(path: Any) -> str | None:
+    if path is None:
+        return None
+    return os.path.normpath(os.path.expandvars(os.path.expanduser(path)))
 
 
 def conditional_download(download_directory_path: str, urls: List[str], desc: str = 'Downloading') -> None:
     Path(download_directory_path).mkdir(parents=True, exist_ok=True)
     for url in urls:
         download_file_path = os.path.join(download_directory_path, os.path.basename(url))
-        if not os.path.exists(download_file_path):
+        if not path_exists(download_file_path):
             request = urllib.request.urlopen(url)  # type: ignore[attr-defined]
             total = int(request.headers.get('Content-Length', 0))
             with tqdm(total=total, desc=desc, unit='B', unit_scale=True, unit_divisor=1024) as progress:
@@ -105,7 +126,7 @@ def load_class(path: str, module_name: str, class_name: str | None = None) -> ty
         class_name = module_name
     module_path = os.path.join(path, module_name + '.py')
     try:
-        if os.path.exists(module_path):
+        if path_exists(module_path):
             spec = importlib.util.spec_from_file_location(module_name, module_path)
             if spec is not None:
                 module = importlib.util.module_from_spec(spec)
