@@ -251,8 +251,14 @@ def format_sequences(sorted_list: List[int]) -> str:
     return ", ".join(sequences)
 
 
-def suggest_temp_dir(initial: str | None) -> str:
-    return initial if initial is not None else os.path.join(get_app_dir(), TEMP_DIRECTORY)
+def suggest_temp_dir(initial: str | None = None) -> str:
+    if initial:
+        norm_path = normalize_path(initial)
+        if norm_path:
+            return norm_path
+        else:
+            raise Exception(f"{initial} is not a valid path")
+    return os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
 
 # calculates iteration median using previous calculated median, current iteration value and iteration counter
