@@ -47,7 +47,7 @@ class PygameFramePlayer(BaseFramePlayer):
             pygame.display.set_caption(self.caption)
             pygame.display.set_icon(pygame.image.load(get_app_dir("sinner/gui/icons/sinner_64.png")))
             self._visible = True
-        self.bring_to_front()
+            self.bring_to_front()
 
     def hide(self) -> None:
         if self.screen is not None:
