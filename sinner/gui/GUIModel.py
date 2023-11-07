@@ -417,9 +417,9 @@ class GUIModel(Status):
 
     def _process_frame(self, frame_index: int) -> None:
         if self._event_buffering.is_set():
-            with PerfCounter() as frame_render_time:
+            with PerfCounter() as frame_render_time:  # todo: already processed frames shouldn't be reprocessed
                 try:
-                    n_frame = self.frame_handler.extract_frame(frame_index)
+                    n_frame = self.frame_handler.extract_frame(frame_index)  # todo: can be cached
                 except EOutOfRange:
                     self.update_status(f"There's no frame {frame_index}")
                     return
