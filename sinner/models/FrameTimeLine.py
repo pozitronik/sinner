@@ -13,17 +13,20 @@ class FrameTimeLine:
     _end_frame_index: int
     _start_frame_time: float = 0
 
-    _is_started: bool = False
+    _is_started: bool
     _last_written_index: int = 0
     _last_read_index: int = 0
 
-    def __init__(self, frame_time: float, start_frame: int, end_frame: int):
+    def __init__(self, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0):
+        self.reload(frame_time, start_frame, end_frame)
+        self._is_started = False
+        self._frames = {}
+
+    def reload(self, frame_time: float, start_frame: int, end_frame: int) -> None:
         self._frame_time = frame_time
         self._start_frame_index = start_frame
         self._end_frame_index = end_frame
         self._start_frame_time = start_frame * frame_time
-        self._is_started = False
-        self._frames = {}
 
     # start the time counter
     def start(self) -> None:
