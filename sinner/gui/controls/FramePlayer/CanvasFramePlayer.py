@@ -47,10 +47,10 @@ class CanvasFramePlayer(Canvas, BaseFramePlayer):
             self.photo_image = PhotoImage(image)
 
     def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
-        if size is not None or self._last_frame is not None:
-            if size is None:
+        if size is None:
+            if self._last_frame is not None:
                 size = self._last_frame.shape[0], self._last_frame.shape[1]
-            # note: set_mode size parameter has the WIDTH, HEIGHT dimensions order
+        if size is not None:
             self.configure(width=size[1], height=size[0])
             # it is required to redraw the frame after resize, if it is not be intended after
             if redraw:
