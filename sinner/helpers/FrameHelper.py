@@ -29,13 +29,12 @@ def read_from_image(path: str) -> Frame:
 
 
 def write_to_image(image: Frame, path: str) -> bool:
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
     if WINDOWS:  # issue #511
         is_success, im_buf_arr = cv2.imencode(".png", image)
-        Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
         im_buf_arr.tofile(path)
         return is_success
     else:
-        print("cv2.imgwrite")
         return cv2.imwrite(path, image)
 
 
