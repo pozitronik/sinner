@@ -44,6 +44,9 @@ class FrameTimeLine:
     def time_position(self) -> float:
         return self.time() + self._start_frame_time
 
+    def has_frame(self, index: int) -> bool:
+        return index in self._frames
+
     def add_frame(self, frame: NumberedFrame) -> int:
         with threading.Lock():
             self._frames[frame.index] = frame
@@ -75,7 +78,7 @@ class FrameTimeLine:
         time_position = self.time()
         frame_position = time_position / self._frame_time
         self._last_read_index = int(frame_position) + self._start_frame_index
-        if self._last_read_index in self._frames:
+        if self.has_frame(self._last_read_index):
             return self._last_read_index
         return self.last_index_before(self._last_read_index)
 
