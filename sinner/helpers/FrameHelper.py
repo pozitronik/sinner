@@ -1,5 +1,6 @@
 # helper methods to work with frames entity
 import os.path
+import sys
 from pathlib import Path
 
 import cv2
@@ -35,6 +36,7 @@ def write_to_image(image: Frame, path: str) -> bool:
         im_buf_arr.tofile(path)
         return is_success
     else:
+        print("cv2.imgwrite")
         return cv2.imwrite(path, image)
 
 

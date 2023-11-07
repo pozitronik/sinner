@@ -1,5 +1,6 @@
 import os.path
 import shutil
+import sys
 
 from sinner.helpers import FrameHelper
 from tests.constants import target_png, tmp_dir
@@ -30,6 +31,7 @@ def test_read_from_image() -> None:
 
 
 def test_save_to_image() -> None:
+    print(os.name, sys.platform)
     file_path = os.path.join(tmp_dir, 'save.png')
     print(file_path)  # for CI
     assert not os.path.exists(file_path)
