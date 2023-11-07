@@ -29,7 +29,7 @@ class DirectoryHandler(BaseFrameHandler):
         ]
 
     def __init__(self, target_path: str, parameters: Namespace, fps: float | None = None, fc: int | None = None, resolution: tuple[int, int] | None = None):
-        if not os.path.exists(target_path) or not is_dir(target_path):  # todo: move to validator
+        if not path_exists(target_path) or not is_dir(target_path):  # todo: move to validator
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
         self._fps = fps
