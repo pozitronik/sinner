@@ -95,7 +95,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', self._target_path]
                 output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
                 if 'N/A' == output:
-                    self._resolution = None  # non-frame files, still processable
+                    self._resolution = (0, 0)  # non-frame files, still processable
                 w, h = output.split('x')
                 self._resolution = int(w), int(h)
             except Exception as exception:

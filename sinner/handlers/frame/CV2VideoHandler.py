@@ -81,7 +81,7 @@ class CV2VideoHandler(BaseFrameHandler):
         return self._fc
 
     @property
-    def resolution(self) -> tuple[int, int] | None:
+    def resolution(self) -> tuple[int, int]:
         if self._resolution is None:
             capture = self.open()
             self._resolution = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))

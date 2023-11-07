@@ -38,7 +38,7 @@ class ImageHandler(BaseFrameHandler):
         return 1
 
     @property
-    def resolution(self) -> tuple[int, int] | None:
+    def resolution(self) -> tuple[int, int]:
         if self._resolution is None:
             image = read_from_image(self._target_path)
             self._resolution = image.shape[1], image.shape[0]

@@ -18,7 +18,7 @@ class DirectoryHandler(BaseFrameHandler):
 
     _fps: float | None
     _fc: int | None
-    _resolution: tuple[int, int] | None
+    _resolution: tuple[int, int]
     _frames_path: list[str] | None = None
 
     def rules(self) -> Rules:
@@ -34,7 +34,7 @@ class DirectoryHandler(BaseFrameHandler):
         super().__init__(target_path, parameters)
         self._fps = fps
         self._fc = fc
-        self.resolution = resolution
+        self.resolution = (0, 0) if resolution is None else resolution
 
     @property
     def fps(self) -> float:
@@ -59,11 +59,11 @@ class DirectoryHandler(BaseFrameHandler):
         self._fc = value
 
     @property
-    def resolution(self) -> tuple[int, int] | None:
+    def resolution(self) -> tuple[int, int]:
         return self._resolution
 
     @resolution.setter
-    def resolution(self, value: tuple[int, int] | None) -> None:
+    def resolution(self, value: tuple[int, int]) -> None:
         self._resolution = value
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
