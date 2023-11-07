@@ -89,7 +89,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
         return self._fc
 
     @property
-    def resolution(self) -> tuple[int, int] | None:
+    def resolution(self) -> tuple[int, int]:
         if self._resolution is None:
             try:
                 command = ['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=s=x:p=0', self._target_path]
