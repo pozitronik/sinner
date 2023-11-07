@@ -47,7 +47,7 @@ def test_detect_fc() -> None:
 
 
 def test_detect_resolution() -> None:
-    assert get_test_object().resolution is None
+    assert get_test_object().resolution == (0, 0)
 
 
 def test_get_frames_paths() -> None:
