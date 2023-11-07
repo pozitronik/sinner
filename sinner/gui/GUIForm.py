@@ -5,8 +5,7 @@ from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel, FrameMode
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, RotateMode
-from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.ImageList import ImageList
@@ -21,7 +20,6 @@ from sinner.validators.AttributeLoader import Rules
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
-    PlayerControl: BaseFramePlayer | None = None  # get via player() property
 
     current_position: StringVar  # current position variable
 
@@ -66,7 +64,6 @@ class GUIForm(Status):
     def __init__(self, parameters: Namespace):
         super().__init__(parameters)
         self.GUIModel = GUIModel(parameters)
-        self.GUIModel.player = self.player
 
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
@@ -147,7 +144,7 @@ class GUIForm(Status):
         def save_current_frame() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
             if save_file != '':
-                self.player.save_to_file(save_file)
+                self.GUIModel.Player.save_to_file(save_file)
 
         self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
 
@@ -169,7 +166,7 @@ class GUIForm(Status):
         self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))  # type: ignore[no-untyped-call]  # it is a library method
 
         def set_rotate_mode(mode: RotateMode) -> None:
-            self.player.rotate = mode
+            self.GUIModel.Player.rotate = mode
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
 
@@ -179,7 +176,7 @@ class GUIForm(Status):
 
         def set_on_top() -> None:
             self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
-            self.player.set_topmost(self.StayOnTopVar.get())
+            self.GUIModel.Player.set_topmost(self.StayOnTopVar.get())
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
         #
@@ -213,17 +210,9 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
         self.GUIModel.update_preview()
-        self.player.adjust_size()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
-        self.player.set_topmost()
+        self.GUIModel.Player.set_topmost()
         return self.GUIWindow
-
-    @property
-    def player(self) -> BaseFramePlayer:
-        if self.PlayerControl is None:
-            self.PlayerControl = PygameFramePlayer(width=self.GUIModel.frame_handler.resolution[0], height=self.GUIModel.frame_handler.resolution[1], caption='sinner player')
-            # self.PlayerControl.add_handler(pygame.QUIT, self.PlayerControl.hide)
-        return self.PlayerControl
 
     def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)

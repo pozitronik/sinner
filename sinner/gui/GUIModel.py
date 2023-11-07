@@ -12,6 +12,7 @@ from tqdm import tqdm
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
+from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBar import ProgressBar
 from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
@@ -52,9 +53,10 @@ class GUIModel(Status):
 
     # internal/external objects
     TimeLine: FrameTimeLine
+    Player: BaseFramePlayer
+
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
-    _player: BaseFramePlayer | None = None
     _positionVar: IntVar | None = None
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
@@ -153,6 +155,8 @@ class GUIModel(Status):
             self._processors = self.processors
 
         self.TimeLine = FrameTimeLine()
+        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
+
         self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
 
@@ -186,7 +190,7 @@ class GUIModel(Status):
     def target_path(self, value: str | None) -> None:
         self.parameters.target = value
         self.reload_parameters()
-        self.player.clear()
+        self.Player.clear()
         if self.player_is_started:
             self.player_stop(reload_frames=True)
             self.position.set(1)
@@ -202,16 +206,6 @@ class GUIModel(Status):
     @property
     def target_dir(self) -> str | None:
         return os.path.dirname(self._target_path) if self._target_path else None
-
-    @property
-    def player(self) -> BaseFramePlayer:
-        if self._player is None:
-            raise Exception("The player is not assigned!")
-        return self._player
-
-    @player.setter
-    def player(self, value: BaseFramePlayer | None) -> None:
-        self._player = value
 
     @property
     def progress_bar(self) -> ProgressBar:
@@ -284,11 +278,11 @@ class GUIModel(Status):
         frames = self.get_frames(self.position.get(), processed)
         if frames:
             if processed:
-                self.player.show_frame(frames[-1][0])
+                self.Player.show_frame(frames[-1][0])
             else:
-                self.player.show_frame(frames[0][0])
+                self.Player.show_frame(frames[0][0])
         else:
-            self.player.clear()
+            self.Player.clear()
 
     @property
     def frame_handler(self) -> BaseFrameHandler:
@@ -439,7 +433,7 @@ class GUIModel(Status):
             self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
 
     def _show_frames(self) -> None:
-        if self.player:
+        if self.Player:
             while self._event_playback.is_set():
                 try:
                     n_frame = self.TimeLine.get_frame()
@@ -450,7 +444,7 @@ class GUIModel(Status):
                 if n_frame is None:
                     time.sleep(self.frame_handler.frame_time / 2)
                     continue
-                self.player.show_frame(n_frame.frame)
+                self.Player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
                 self.position.set(self.TimeLine.last_read_index)
                 self.status("time", seconds_to_hmsms(self.TimeLine.time_position()))
