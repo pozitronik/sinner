@@ -6,6 +6,8 @@ labels: 'bug'
 assignees: ''
 
 ---
+**The environment**
+Please, tell here about the environment you used to run the program: operating system, python version, used onnx runtime versions and hardware type. 
 
 **Describe the bug**
 A clear and concise description of what the bug is.
