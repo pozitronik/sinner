@@ -43,12 +43,13 @@ class ProgressBar:
     def destroy(self) -> None:
         self._pb.destroy()
         self._label.destroy()
+        if self._parent:
+            self._parent.update()
 
     def update(self) -> None:
         self._progressVar.set(self.progress_text)
         self._pb.update()
-        if self._parent:
-            self._parent.update()
+
 
 
 #  there are many progressbars can be shown at the same time, so class tries to handle them in an easy way
