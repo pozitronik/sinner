@@ -138,7 +138,7 @@ Example:
 [sinner]
 keep-frames = 1
 many-faces = 1
-execution-provider = gpu
+execution-provider = cuda
 execution-threads = 2
 ```
 
