@@ -189,7 +189,7 @@ currently lacks.
 Also, roop is dead, baby, roop is dead.
 
 :question: Is there a NSWF filter?<br/>
-:exclamation: Nope. I don't care if you will do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife, it is the responsibility of the user to decide how they want to use it.
+:exclamation: Nope. I don't care if you do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife.
 
 :question: Can I use several execution providers simultaneously?<br/>
 :exclamation: You can try. Seriously, you can set `--execution-provider cuda cpu`, and look, what will happen. May be it will work faster, may be it won't work at all. It is a large space for experiments.
