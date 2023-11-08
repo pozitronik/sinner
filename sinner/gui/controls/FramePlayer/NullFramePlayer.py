@@ -21,4 +21,3 @@ class NullFramePlayer(BaseFramePlayer):
 
     def clear(self) -> None:
         pass
-

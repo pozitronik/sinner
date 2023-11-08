@@ -223,4 +223,3 @@ class BatchProcessingCore(Status):
         if is_video(target_path):
             return VideoHandler(target_path, parameters)
         raise NotImplementedError("The handler for current target type is not implemented")
-

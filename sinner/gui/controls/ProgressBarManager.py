@@ -51,7 +51,6 @@ class ProgressBar:
         self._pb.update()
 
 
-
 #  there are many progressbars can be shown at the same time, so class tries to handle them in an easy way
 class ProgressBarManager:
     _parent: Misc | None

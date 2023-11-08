@@ -80,7 +80,7 @@ class GUIForm(Status):
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
-        self.GUIModel = GUIModel(parameters, pb_control = self.ProgressBars)
+        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars)
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
