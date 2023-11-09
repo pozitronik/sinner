@@ -6,12 +6,12 @@ from typing import Dict
 
 class ProgressBar:
     _title: str
-    _parent: Misc | None
+    _parent: Misc
     _pb: Progressbar
     _label: Label
     _progressVar: StringVar
 
-    def __init__(self, parent: Misc | None, max_value: float, initial_value: float, title: str = "Progress"):
+    def __init__(self, parent: Misc, max_value: float, initial_value: float, title: str = "Progress"):
         self._title = title
         self._parent = parent
         self._pb = Progressbar(self._parent, orient=HORIZONTAL, mode="determinate", maximum=max_value, value=initial_value)
@@ -53,10 +53,10 @@ class ProgressBar:
 
 #  there are many progressbars can be shown at the same time, so class tries to handle them in an easy way
 class ProgressBarManager:
-    _parent: Misc | None
+    _parent: Misc
     _bars: Dict[str, ProgressBar] = {}
 
-    def __init__(self, parent: Misc | None):
+    def __init__(self, parent: Misc):
         self._parent = parent
 
     def get(self, name: str, max_value: float | None = None, initial_value: float | None = None) -> ProgressBar:
