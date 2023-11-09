@@ -1,7 +1,6 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
-
 class ThumbnailWidget(tk.Frame):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -30,6 +29,9 @@ class ThumbnailWidget(tk.Frame):
         self.grid_columnconfigure(0, weight=1)
         self.canvas.bind("<Configure>", self.on_canvas_resize)
 
+        # Bind the mouse wheel event to scroll the canvas
+        self.canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
+
     def add_thumbnail(self, image_path):
         if image_path.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
             img = Image.open(image_path)
@@ -45,7 +47,7 @@ class ThumbnailWidget(tk.Frame):
 
     def update_layout(self):
         total_width = self.winfo_width()
-        self.columns = max(1, total_width // (self.thumbnail_width + 10))  # Adjust the column count based on available width
+        self.columns = max(1, total_width // (self.thumbnail_width + 10))
         for i, thumbnail in enumerate(self.thumbnails):
             row = i // self.columns
             col = i % self.columns
@@ -54,6 +56,9 @@ class ThumbnailWidget(tk.Frame):
     def on_canvas_resize(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
         self.update_layout()
+
+    def on_mouse_wheel(self, event):
+        self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
     def clear_thumbnails(self):
         for thumbnail in self.thumbnails:
