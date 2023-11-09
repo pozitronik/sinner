@@ -92,7 +92,7 @@ python sin.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_
 Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory using the `cuda` provider and 8 simultaneous execution threads, with limit of 24 Gb RAM, and save every enhanced image to the `d:\pictures\pngs_dir\enhanced` directory.<br/>
 
 ## Real-time player
-This feature is still in alpha-stage, things can be changed. So there's no much to document yet, it is better to try it by yourself, running
+This feature is still in the alpha stage, so things can be changed. There's not much to document yet; it's better to try it yourself, by running it:
 ```cmd
 python sin.py --gui
 ```
