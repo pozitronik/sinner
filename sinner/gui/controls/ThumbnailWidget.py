@@ -69,6 +69,8 @@ class ThumbnailWidget(Frame):
 
             self.thumbnails.append((thumbnail_label, caption_label))
             self.update_layout()
+            self.update()
+            self.master.update()
 
     # noinspection PyTypeChecker
     def update_layout(self) -> None:
