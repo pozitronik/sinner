@@ -81,7 +81,7 @@ class GUIForm(Status):
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
-        self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE)
+        self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
         self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
