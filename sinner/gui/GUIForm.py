@@ -21,6 +21,7 @@ class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
+    StatusBar: StatusBar
 
     current_position: StringVar  # current position variable
 
@@ -80,7 +81,8 @@ class GUIForm(Status):
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
-        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars)
+        self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE)
+        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
@@ -124,8 +126,7 @@ class GUIForm(Status):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
-        self.StatusBar: StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE)
-        self.GUIModel.status_bar = self.StatusBar
+        # self.GUIModel.status_bar = self.StatusBar
 
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
@@ -241,4 +242,4 @@ class GUIForm(Status):
         self.GUIModel.quality = frame_value
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
-            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0]*self.GUIModel.quality/100)}x{int(self.GUIModel.frame_handler.resolution[1]*self.GUIModel.quality/100)})")
+            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")

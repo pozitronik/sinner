@@ -5,7 +5,7 @@ from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
 from enum import Enum
 from tkinter import IntVar
-from typing import List
+from typing import List, Callable
 
 from tqdm import tqdm
 
@@ -14,7 +14,6 @@ from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
-from sinner.gui.controls.StatusBar import StatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -66,7 +65,7 @@ class GUIModel(Status):
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
-    status_bar: StatusBar | None = None
+    _status: Callable[[str, str], None]
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -144,13 +143,7 @@ class GUIModel(Status):
             }
         ]
 
-    #  debug only
-    def status(self, item: str, value: str) -> None:
-        with threading.Lock():
-            if self.status_bar is not None:
-                self.status_bar.item(item, value)
-
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager):
+    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback=Callable[[str, str], None]):
         self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
@@ -161,6 +154,7 @@ class GUIModel(Status):
         self.TimeLine = FrameTimeLine()
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
         self.ProgressBarsManager = pb_control
+        self._status = status_callback
 
         self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
@@ -446,7 +440,7 @@ class GUIModel(Status):
                 self.Player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
                 self.position.set(self.TimeLine.last_read_index)
-                self.status("time", seconds_to_hmsms(self.TimeLine.time_position()))  # todo: use a callback
+                self._status("Time position", seconds_to_hmsms(self.TimeLine.time_position()))
             self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
