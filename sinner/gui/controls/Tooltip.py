@@ -14,7 +14,7 @@ class Tooltip:
         self.widget.bind("<Leave>", self.hide_tooltip)
 
     # noinspection PyUnusedLocal
-    def show_tooltip(self, event: Event):
+    def show_tooltip(self, event: Event) -> None:  # type: ignore[type-arg]
         x, y, _, _ = self.widget.bbox()
         x += self.widget.winfo_rootx() + 25
         y += self.widget.winfo_rooty() + 25
@@ -27,7 +27,7 @@ class Tooltip:
         label.pack()
 
     # noinspection PyUnusedLocal
-    def hide_tooltip(self, event: Event):
+    def hide_tooltip(self, event: Event) -> None:  # type: ignore[type-arg]
         if self.tooltip:
             self.tooltip.destroy()
             self.tooltip = None
