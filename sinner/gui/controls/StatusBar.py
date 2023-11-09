@@ -2,11 +2,11 @@ from tkinter import Frame, BOTTOM, Misc, X
 from typing import Dict
 
 from sinner.gui.controls.TextBox import TextBox
+from sinner.gui.controls.Tooltip import Tooltip
 
 
 class StatusBar(Frame):
     cells: Dict[str, TextBox]
-    cell_width: int
 
     def __init__(self, master: Misc | None, cells: Dict[str, str] | None = None, **kwargs):
         super().__init__(master, **kwargs)
@@ -34,6 +34,7 @@ class StatusBar(Frame):
         cell.grid(row=0, column=len(self.cells), columnspan=span, sticky="ew")
         cell.set_text(value)
         self.cells[name] = cell
+        tooltip = Tooltip(cell, text=name)
         return cell
 
     def remove_item(self, name: str) -> None:
