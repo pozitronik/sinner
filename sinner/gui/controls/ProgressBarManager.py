@@ -1,4 +1,5 @@
 # a progressbar with display label
+from threading import Lock
 from tkinter import Misc, Label, StringVar, HORIZONTAL, BOTH, RIGHT, LEFT, NW
 from tkinter.ttk import Progressbar
 from typing import Dict
@@ -81,13 +82,17 @@ class ProgressBarManager:
         return self._bars[name]
 
     def done(self, name: str) -> bool:
-        if name in self._bars:
-            self._bars[name].destroy()
-            del self._bars[name]
-            return True
+        with Lock():
+            if name in self._bars:
+                self._bars[name].destroy()
+                del self._bars[name]
+                return True
         return False
 
-    def update(self, name: str, value: float | None = None, max_value: float | None = None) -> ProgressBar:
+    def update(self, name: str, value: float | None = None, max_value: float | None = None) -> None:
+        self._parent.after(0, self._update, name, value, max_value)
+
+    def _update(self, name: str, value: float | None = None, max_value: float | None = None) -> ProgressBar:
         bar = self.get(name, max_value=max_value, initial_value=value)
         if value is None:
             bar.value += 1
