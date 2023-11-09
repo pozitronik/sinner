@@ -44,6 +44,8 @@ class ThumbnailWidget(tk.Frame):
             self.update_layout()
 
     def update_layout(self):
+        total_width = self.winfo_width()
+        self.columns = max(1, total_width // (self.thumbnail_width + 10))  # Adjust the column count based on available width
         for i, thumbnail in enumerate(self.thumbnails):
             row = i // self.columns
             col = i % self.columns
@@ -51,6 +53,7 @@ class ThumbnailWidget(tk.Frame):
 
     def on_canvas_resize(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        self.update_layout()
 
     def clear_thumbnails(self):
         for thumbnail in self.thumbnails:
