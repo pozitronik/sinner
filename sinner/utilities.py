@@ -9,7 +9,7 @@ import sys
 import urllib
 from datetime import datetime
 from pathlib import Path
-from typing import List, Literal, Any, get_type_hints
+from typing import List, Literal, Any, get_type_hints, Callable
 
 import onnxruntime
 import psutil
@@ -52,6 +52,21 @@ def is_file(path: str) -> bool:
 def is_dir(path: str) -> bool:
     norm_path = normalize_path(path)
     return os.path.isdir(norm_path) if norm_path else False
+
+
+# todo test
+def get_directory_file_list(directory_path: str, filter_: Callable[[str], bool] | None = None) -> List[str]:
+    result: List[str] = []
+    if is_dir(directory_path):
+        for root, dirs, files in os.walk(directory_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if filter_:
+                    if filter_(file_path) is True:
+                        result.append(file_path)
+                else:
+                    result.append(file_path)
+    return result
 
 
 def is_image(image_path: str | None) -> bool:
