@@ -110,14 +110,7 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(int(frame_value)))
-
-        def on_quality_scale_change(frame_value: int) -> None:
-            self.GUIModel.quality = frame_value
-            if self.GUIModel.frame_handler.resolution:
-                #  the quality applies only when playing, the preview always renders with 100% resolution
-                self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0]*self.GUIModel.quality/100)}x{int(self.GUIModel.frame_handler.resolution[1]*self.GUIModel.quality/100)})")
-
+        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
 
         # source/target selection controls
@@ -231,6 +224,7 @@ class GUIForm(Status):
             self.GUIModel.target_path = selected_file
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
+            self.on_quality_scale_change(self.GUIModel.quality)
             self.StatusBar.item('Target resolution', self.format_target_info())
             return True
         return False
@@ -242,3 +236,9 @@ class GUIForm(Status):
             self.NavigateSlider.enable()
         else:
             self.NavigateSlider.disable()
+
+    def on_quality_scale_change(self, frame_value: int) -> None:
+        self.GUIModel.quality = frame_value
+        if self.GUIModel.frame_handler.resolution:
+            #  the quality applies only when playing, the preview always renders with 100% resolution
+            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0]*self.GUIModel.quality/100)}x{int(self.GUIModel.frame_handler.resolution[1]*self.GUIModel.quality/100)})")
