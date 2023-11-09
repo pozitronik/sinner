@@ -11,6 +11,8 @@ class ProgressBar:
     _label: Label
     _progressVar: StringVar
 
+    _exists: bool = False
+
     def __init__(self, parent: Misc, max_value: float, initial_value: float, title: str = "Progress"):
         self._title = title
         self._parent = parent
@@ -19,36 +21,45 @@ class ProgressBar:
         self._label = Label(self._parent, textvariable=self._progressVar)
         self._pb.pack(side=LEFT, expand=True, fill=BOTH)
         self._label.pack(anchor=NW, side=RIGHT, expand=False, fill=BOTH, after=self._pb)
+        self._exists = True
 
     @property
     def value(self) -> float:
-        return float(self._pb.cget('value'))
+        if self._exists:
+            return float(self._pb.cget('value'))
+        return 0
 
     @value.setter
     def value(self, value: float) -> None:
-        self._pb.configure(value=value)
+        if self._exists:
+            self._pb.configure(value=value)
 
     @property
     def maximum(self) -> float:
-        return float(self._pb.cget('maximum'))
+        if self._exists:
+            return float(self._pb.cget('maximum'))
+        return 0
 
     @maximum.setter
     def maximum(self, value: float) -> None:
-        self._pb.configure(maximum=value)
+        if self._exists:
+            self._pb.configure(maximum=value)
 
     @property
     def progress_text(self) -> str:
         return f"{self._title}: {int(self.value)}/{int(self.maximum)}"
 
     def destroy(self) -> None:
+        self._exists = False
         self._pb.destroy()
         self._label.destroy()
         if self._parent:
             self._parent.update()
 
     def update(self) -> None:
-        self._progressVar.set(self.progress_text)
-        self._pb.update()
+        if self._exists:
+            self._progressVar.set(self.progress_text)
+            self._pb.update()
 
 
 #  there are many progressbars can be shown at the same time, so class tries to handle them in an easy way
