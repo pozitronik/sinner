@@ -1,6 +1,9 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 
+from sinner.utilities import get_file_name
+
+
 class ThumbnailWidget(tk.Frame):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, **kwargs)
@@ -32,15 +35,21 @@ class ThumbnailWidget(tk.Frame):
         # Bind the mouse wheel event to scroll the canvas
         self.canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 
-    def add_thumbnail(self, image_path):
+    def add_thumbnail(self, image_path, click_callback=None, caption=None):
         if image_path.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp')):
+            if caption is None:
+                caption = get_file_name(image_path)
             img = Image.open(image_path)
             img.thumbnail((self.thumbnail_width, self.thumbnail_height))
             photo = ImageTk.PhotoImage(img)
-
-            thumbnail_label = tk.Label(self.frame, image=photo)
+            if caption is None:
+                caption = get_file_name(image_path)
+            thumbnail_label = tk.Label(self.frame, image=photo, text=caption, compound="top")
             thumbnail_label.image = photo
             thumbnail_label.grid()
+
+            if click_callback:
+                thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))
 
             self.thumbnails.append(thumbnail_label)
             self.update_layout()
