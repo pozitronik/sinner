@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
 
 from customtkinter import CTk
 
@@ -10,7 +10,7 @@ from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePositio
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
-from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
+from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
@@ -21,6 +21,7 @@ class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
+    StatusBar: StatusBar
 
     current_position: StringVar  # current position variable
 
@@ -80,7 +81,8 @@ class GUIForm(Status):
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
-        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars)
+        self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
+        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
@@ -110,14 +112,7 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: on_quality_scale_change(int(frame_value)))
-
-        def on_quality_scale_change(frame_value: int) -> None:
-            self.GUIModel.quality = frame_value
-            if self.GUIModel.frame_handler.resolution:
-                self.StatusBar.set_item('Render size', [int(x * (self.GUIModel.quality / 100)) for x in self.GUIModel.frame_handler.resolution])
-                #  the quality applies only when playing, the preview always renders with 100% resolution
-
+        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
 
         # source/target selection controls
@@ -131,8 +126,7 @@ class GUIForm(Status):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
-        self.StatusBar: SimpleStatusBar = SimpleStatusBar(self.GUIWindow)
-        self.GUIModel.status_bar = self.StatusBar
+        # self.GUIModel.status_bar = self.StatusBar
 
         self.MainMenu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
@@ -203,11 +197,14 @@ class GUIForm(Status):
         self.TargetPathFrame.pack(fill=X, side=TOP)
         self.StatusBar.pack()
 
+    def format_target_info(self) -> str:
+        return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
+
     def show(self) -> CTk:
         self.draw_controls()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
-        self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{self.GUIModel.frame_handler.fps}")
+        self.StatusBar.item('Target resolution', self.format_target_info())
         self.GUIModel.update_preview()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.set_topmost()
@@ -228,7 +225,8 @@ class GUIForm(Status):
             self.GUIModel.target_path = selected_file
             self.update_slider_bounds()
             self.TargetPathEntry.set_text(selected_file)
-            self.StatusBar.set_item('target_res', f"{self.GUIModel.frame_handler.resolution}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}")
+            self.on_quality_scale_change(self.GUIModel.quality)
+            self.StatusBar.item('Target resolution', self.format_target_info())
             return True
         return False
 
@@ -239,3 +237,9 @@ class GUIForm(Status):
             self.NavigateSlider.enable()
         else:
             self.NavigateSlider.disable()
+
+    def on_quality_scale_change(self, frame_value: int) -> None:
+        self.GUIModel.quality = frame_value
+        if self.GUIModel.frame_handler.resolution:
+            #  the quality applies only when playing, the preview always renders with 100% resolution
+            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")

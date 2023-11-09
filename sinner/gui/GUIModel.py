@@ -5,7 +5,7 @@ from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
 from enum import Enum
 from tkinter import IntVar
-from typing import List
+from typing import List, Callable, Any
 
 from tqdm import tqdm
 
@@ -14,7 +14,6 @@ from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
-from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -27,7 +26,7 @@ from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -66,7 +65,7 @@ class GUIModel(Status):
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
-    status_bar: SimpleStatusBar | None = None
+    _status: Callable[[str, str], Any]
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -144,13 +143,7 @@ class GUIModel(Status):
             }
         ]
 
-    #  debug only
-    def status(self, item: str, value: str) -> None:
-        with threading.Lock():
-            if self.status_bar is not None:
-                self.status_bar.set_item(item, value)
-
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager):
+    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any]):
         self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
@@ -161,6 +154,9 @@ class GUIModel(Status):
         self.TimeLine = FrameTimeLine()
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
         self.ProgressBarsManager = pb_control
+        self._status = status_callback
+        self._status("Time position", seconds_to_hmsms(0))
+        self._status("Frame drop", "0")
 
         self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
@@ -329,10 +325,11 @@ class GUIModel(Status):
         else:
             self.update_preview()
         self.position.set(frame_position)
+        self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
 
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
-            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame, end_frame=self.frame_handler.fc)
+            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
             self.extract_frames()
             self.__start_buffering(start_frame)
             if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
@@ -410,6 +407,8 @@ class GUIModel(Status):
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
 
+                self._status("Memory usage(resident/virtual)", self.get_mem_usage())
+
                 if not self._event_buffering.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
@@ -430,6 +429,7 @@ class GUIModel(Status):
             self.TimeLine.add_frame(n_frame)
             self._processed_frames_count += 1
             self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
+            self._status("FPS (last/mean)", f"{round(1 / frame_render_time.execution_time, ndigits=3)}/{round(self._process_fps, ndigits=3)}")
 
     def _show_frames(self) -> None:
         if self.Player:
@@ -446,11 +446,12 @@ class GUIModel(Status):
                 self.Player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
                 self.position.set(self.TimeLine.last_read_index)
-                self.status("time", seconds_to_hmsms(self.TimeLine.time_position()))  # todo: use a callback
+                self._status("Time position", seconds_to_hmsms(self.TimeLine.time_position()))
             self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
+        previous_framedrop = self._current_framedrop
         if (self.TimeLine.last_written_index - self.framedrop_delta) > self.TimeLine.last_read_index:  # buffering is too fast, framedrop can be decreased
             if self._current_framedrop > 0:
                 self._current_framedrop -= 1
@@ -458,6 +459,8 @@ class GUIModel(Status):
             self._current_framedrop += 1
 
         # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self.TimeLine.last_written_index}/{self.TimeLine.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
+        if self._current_framedrop != previous_framedrop:
+            self._status("Frame drop", str(self._current_framedrop))
         return self._current_framedrop
 
     def init_framedrop(self) -> None:
@@ -500,3 +503,9 @@ class GUIModel(Status):
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished
         return self._is_target_frames_extracted
+
+    @staticmethod
+    def get_mem_usage() -> str:
+        mem_rss = get_mem_usage()
+        mem_vms = get_mem_usage('vms')
+        return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
