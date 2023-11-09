@@ -14,7 +14,7 @@ from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
-from sinner.gui.controls.SimpleStatusBar import SimpleStatusBar
+from sinner.gui.controls.StatusBar import StatusBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -66,7 +66,7 @@ class GUIModel(Status):
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
-    status_bar: SimpleStatusBar | None = None
+    status_bar: StatusBar | None = None
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -148,7 +148,7 @@ class GUIModel(Status):
     def status(self, item: str, value: str) -> None:
         with threading.Lock():
             if self.status_bar is not None:
-                self.status_bar.set_item(item, value)
+                self.status_bar.item(item, value)
 
     def __init__(self, parameters: Namespace, pb_control: ProgressBarManager):
         self._frame_mode: FrameMode = FrameMode.SKIP
