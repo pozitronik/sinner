@@ -156,6 +156,7 @@ class GUIModel(Status):
         self.ProgressBarsManager = pb_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
+        self._status("Frame drop", "0")
 
         self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
@@ -426,8 +427,7 @@ class GUIModel(Status):
             self.TimeLine.add_frame(n_frame)
             self._processed_frames_count += 1
             self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
-            self._status("Render FPS", str(1 / frame_render_time.execution_time))
-            self._status("Processing FPS", str(self._process_fps))
+            self._status("FPS (last/mean)", f"{round(1 / frame_render_time.execution_time, ndigits=3)}/{round(self._process_fps, ndigits=3)}")
 
     def _show_frames(self) -> None:
         if self.Player:
