@@ -326,7 +326,7 @@ class GUIModel(Status):
 
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
-            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame, end_frame=self.frame_handler.fc)
+            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
             self.extract_frames()
             self.__start_buffering(start_frame)
             if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
