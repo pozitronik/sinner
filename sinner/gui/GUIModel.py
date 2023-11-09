@@ -324,7 +324,7 @@ class GUIModel(Status):
         else:
             self.update_preview()
         self.position.set(frame_position)
-        self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position-1)))
+        self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
 
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
@@ -426,6 +426,8 @@ class GUIModel(Status):
             self.TimeLine.add_frame(n_frame)
             self._processed_frames_count += 1
             self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
+            self._status("Render FPS", str(1 / frame_render_time.execution_time))
+            self._status("Processing FPS", str(self._process_fps))
 
     def _show_frames(self) -> None:
         if self.Player:
