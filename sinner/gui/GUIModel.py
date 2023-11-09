@@ -155,6 +155,7 @@ class GUIModel(Status):
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
         self.ProgressBarsManager = pb_control
         self._status = status_callback
+        self._status("Time position", seconds_to_hmsms(0))
 
         self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
@@ -323,6 +324,7 @@ class GUIModel(Status):
         else:
             self.update_preview()
         self.position.set(frame_position)
+        self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position-1)))
 
     def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
         if not self.player_is_started:
