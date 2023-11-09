@@ -5,7 +5,7 @@ from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
 from enum import Enum
 from tkinter import IntVar
-from typing import List, Callable
+from typing import List, Callable, Any
 
 from tqdm import tqdm
 
@@ -65,7 +65,7 @@ class GUIModel(Status):
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
-    _status: Callable[[str, str], None]
+    _status: Callable[[str, str], Any]
 
     # player counters
     _processed_frames_count: int = 0  # the overall count of processed frames
@@ -143,7 +143,7 @@ class GUIModel(Status):
             }
         ]
 
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], None]):
+    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any]):
         self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
