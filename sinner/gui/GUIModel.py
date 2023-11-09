@@ -143,7 +143,7 @@ class GUIModel(Status):
             }
         ]
 
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback=Callable[[str, str], None]):
+    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], None]):
         self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
