@@ -1,4 +1,5 @@
 import tkinter as tk
+
 from PIL import Image, ImageTk
 
 from sinner.utilities import get_file_name
@@ -42,25 +43,29 @@ class ThumbnailWidget(tk.Frame):
             img = Image.open(image_path)
             img.thumbnail((self.thumbnail_width, self.thumbnail_height))
             photo = ImageTk.PhotoImage(img)
-            if caption is None:
-                caption = get_file_name(image_path)
-            thumbnail_label = tk.Label(self.frame, image=photo, text=caption, compound="top")
+
+            thumbnail_label = tk.Label(self.frame, image=photo)
             thumbnail_label.image = photo
             thumbnail_label.grid()
+
+            # Create a label for the caption and set its width to match the thumbnail width
+            caption_label = tk.Label(self.frame, text=caption, wraplength=self.thumbnail_width, )
+            caption_label.grid(sticky="n")
 
             if click_callback:
                 thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))
 
-            self.thumbnails.append(thumbnail_label)
+            self.thumbnails.append((thumbnail_label, caption_label))
             self.update_layout()
 
     def update_layout(self):
         total_width = self.winfo_width()
         self.columns = max(1, total_width // (self.thumbnail_width + 10))
-        for i, thumbnail in enumerate(self.thumbnails):
+        for i, (thumbnail, caption) in enumerate(self.thumbnails):
             row = i // self.columns
             col = i % self.columns
-            thumbnail.grid(row=row, column=col)
+            thumbnail.grid(row=row * 2, column=col)
+            caption.grid(row=row * 2 + 1, column=col, )
 
     def on_canvas_resize(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
@@ -70,7 +75,8 @@ class ThumbnailWidget(tk.Frame):
         self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
     def clear_thumbnails(self):
-        for thumbnail in self.thumbnails:
+        for thumbnail, caption in self.thumbnails:
             thumbnail.grid_forget()
+            caption.grid_forget()
         self.thumbnails = []
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
