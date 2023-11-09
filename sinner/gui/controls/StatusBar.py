@@ -8,7 +8,7 @@ from sinner.gui.controls.Tooltip import Tooltip
 class StatusBar(Frame):
     cells: Dict[str, TextBox]
 
-    def __init__(self, master: Misc | None, items: Dict[str, str] | None = None, **kwargs):
+    def __init__(self, master: Misc | None, items: Dict[str, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
         super().__init__(master, **kwargs)
         self.pack(side=BOTTOM, expand=True, fill=X)
         self.cells = {}
