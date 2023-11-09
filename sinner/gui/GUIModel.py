@@ -26,7 +26,7 @@ from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -407,6 +407,8 @@ class GUIModel(Status):
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
 
+                self._status("Memory usage(resident/virtual)", self.get_mem_usage())
+
                 if not self._event_buffering.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
@@ -501,3 +503,9 @@ class GUIModel(Status):
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished
         return self._is_target_frames_extracted
+
+    @staticmethod
+    def get_mem_usage() -> str:
+        mem_rss = get_mem_usage()
+        mem_vms = get_mem_usage('vms')
+        return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
