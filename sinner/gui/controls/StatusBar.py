@@ -1,4 +1,4 @@
-from tkinter import Frame, BOTTOM, Misc, X
+from tkinter import Frame, BOTTOM, Misc, X, EW
 from typing import Dict
 
 from sinner.gui.controls.TextBox import TextBox
@@ -31,7 +31,7 @@ class StatusBar(Frame):
     def create_cell(self, name: str, value: str, span: int = 1) -> TextBox:
         self.grid_columnconfigure(len(self.cells), weight=1)
         cell = TextBox(self, state="readonly")
-        cell.grid(row=0, column=len(self.cells), columnspan=span, sticky="ew")
+        cell.grid(row=0, column=len(self.cells), columnspan=span, sticky=EW)
         cell.set_text(value)
         self.cells[name] = cell
         tooltip = Tooltip(cell, text=name)
