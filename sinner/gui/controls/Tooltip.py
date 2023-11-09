@@ -15,9 +15,14 @@ class Tooltip:
 
     # noinspection PyUnusedLocal
     def show_tooltip(self, event: Event) -> None:  # type: ignore[type-arg]
-        x, y, _, _ = self.widget.bbox()
-        x += self.widget.winfo_rootx() + 25
-        y += self.widget.winfo_rooty() + 25
+        bbox = self.widget.bbox()
+        if bbox:
+            x, y, _, _ = bbox
+            x += self.widget.winfo_rootx() + 25
+            y += self.widget.winfo_rooty() + 25
+        else:
+            x = event.x + self.widget.winfo_rootx()
+            y = event.y + self.widget.winfo_rooty()
 
         self.tooltip = Toplevel(self.widget)
         self.tooltip.wm_overrideredirect(True)
