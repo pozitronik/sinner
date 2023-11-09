@@ -447,6 +447,7 @@ class GUIModel(Status):
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
+        previous_framedrop = self._current_framedrop
         if (self.TimeLine.last_written_index - self.framedrop_delta) > self.TimeLine.last_read_index:  # buffering is too fast, framedrop can be decreased
             if self._current_framedrop > 0:
                 self._current_framedrop -= 1
@@ -454,6 +455,8 @@ class GUIModel(Status):
             self._current_framedrop += 1
 
         # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self.TimeLine.last_written_index}/{self.TimeLine.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
+        if self._current_framedrop != previous_framedrop:
+            self._status("Frame drop", str(self._current_framedrop))
         return self._current_framedrop
 
     def init_framedrop(self) -> None:
