@@ -1,4 +1,4 @@
-from tkinter import Misc, NSEW, Menu, filedialog, CASCADE, COMMAND
+from tkinter import Misc, NSEW, Menu, filedialog, CASCADE, COMMAND, SEPARATOR
 from typing import List, Callable
 
 from customtkinter import CTkToplevel
@@ -35,6 +35,8 @@ class SourcesLibraryForm:
         self.MainMenu.add(CASCADE, menu=self.Library, label='Library')
         self.Library.add(COMMAND, label='Add files', command=lambda: self.add_files())
         self.Library.add(COMMAND, label='Add a folder', command=lambda: self.add_folder())
+        self.Library.add(SEPARATOR)
+        self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())
 
         self.SourcesLibraryWnd.configure(menu=self.MainMenu, tearoff=False)
 
@@ -86,3 +88,6 @@ class SourcesLibraryForm:
         )
         if directory:
             self.load([directory])
+
+    def clear(self) -> None:
+        self.SourcesLibrary.clear_thumbnails()
