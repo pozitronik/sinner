@@ -226,11 +226,11 @@ class GUIForm(Status):
 
     def show(self) -> CTk:
         self.draw_controls()
-        self.create_windows()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.item('Target resolution', self.format_target_info())
         self.GUIModel.update_preview()
+        self.create_windows()
         self.set_topmost(self.topmost)
         return self.GUIWindow
 
