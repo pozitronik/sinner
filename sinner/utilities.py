@@ -82,6 +82,15 @@ def is_video(video_path: str | None) -> bool:
     return False
 
 
+def get_type_extensions(mime_type: str) -> List[str]:
+    image_extensions: List[str] = []
+    for ext in mimetypes.types_map:
+        mimetype, encoding = mimetypes.guess_type(f"file.{ext}")
+        if mimetype and mimetype.startswith(mime_type):
+            image_extensions.append(ext)
+    return image_extensions
+
+
 def normalize_path(path: Any) -> str | None:
     if path is None:
         return None
