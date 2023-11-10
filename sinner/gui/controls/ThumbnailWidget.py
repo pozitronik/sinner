@@ -86,6 +86,19 @@ class ThumbnailWidget(Frame):
         self.update_layout()
 
     def on_mouse_wheel(self, event: Event) -> None:  # type: ignore[type-arg]
+        # Get the bounding box of all items on the canvas
+        bbox = self._canvas.bbox(ALL)
+
+        # Compare the canvas content size to the visible area
+        canvas_width = self._canvas.winfo_width()
+        canvas_height = self._canvas.winfo_height()
+
+        content_width = bbox[2] - bbox[0]
+        content_height = bbox[3] - bbox[1]
+
+        # If content fits within the visible area, do not scroll
+        if content_width <= canvas_width and content_height <= canvas_height:
+            return
         self._canvas.yview_scroll(-1 * (event.delta // 120), UNITS)
 
     def clear_thumbnails(self) -> None:
