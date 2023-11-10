@@ -182,11 +182,7 @@ class GUIForm(Status):
 
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: set_on_top())  # type: ignore[no-untyped-call]  # it is a library method
-
-        def set_on_top() -> None:
-            self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
-            self.GUIModel.Player.set_topmost(self.StayOnTopVar.get())
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))
 
@@ -223,6 +219,11 @@ class GUIForm(Status):
     def format_target_info(self) -> str:
         return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
 
+    def set_topmost(self, on_top: bool = True) -> None:
+        self.GUIWindow.wm_attributes("-topmost", on_top)
+        self.GUIModel.Player.set_topmost(on_top)
+        self.SourcesLibraryWnd.set_topmost(on_top)
+
     def show(self) -> CTk:
         self.draw_controls()
         self.create_windows()
@@ -230,8 +231,7 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.item('Target resolution', self.format_target_info())
         self.GUIModel.update_preview()
-        self.GUIWindow.wm_attributes("-topmost", self.topmost)
-        self.GUIModel.Player.set_topmost()
+        self.set_topmost(self.topmost)
         return self.GUIWindow
 
     def change_source(self) -> bool:

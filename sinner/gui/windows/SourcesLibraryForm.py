@@ -16,6 +16,7 @@ class SourcesLibraryForm:
 
     def __init__(self, master: Misc, library: List[str], callback: Callable[[str], None] | None = None):
         self.SourcesLibraryWnd = CTkToplevel(master)
+
         self.SourcesLibraryWnd.withdraw()  # hide window
         self.SourcesLibraryWnd.title('Sources library')
         self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd)
@@ -36,6 +37,9 @@ class SourcesLibraryForm:
 
     def hide(self) -> None:
         self.show(False)
+
+    def set_topmost(self, on_top: bool = True) -> None:
+        self.SourcesLibraryWnd.wm_attributes("-topmost", on_top)
 
     def load(self, library: List[str] | None = None, callback: Callable[[str], None] | None = None, reload: bool = False):
         if library is None:
