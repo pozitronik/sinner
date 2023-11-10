@@ -1,7 +1,8 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, NSEW
+from typing import List
 
-from customtkinter import CTk
+from customtkinter import CTk, CTkToplevel
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel, FrameMode
@@ -12,23 +13,31 @@ from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
-from sinner.utilities import is_int, get_app_dir
+from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
+from sinner.utilities import is_int, get_app_dir, is_image, is_dir, get_directory_file_list
 from sinner.validators.AttributeLoader import Rules
 
 
 # GUI View
+
 class GUIForm(Status):
     # class attributes
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
+    SourcesLibraryWnd: CTkToplevel
+    SourcesLibrary: ThumbnailWidget
 
     current_position: StringVar  # current position variable
 
     topmost: bool
     show_frames_widget: bool
+    show_sources_library: bool
     fw_height: int
     fw_width: int
+    sources_library: List[str]
+
+    _library_is_loaded: bool = False
 
     def rules(self) -> Rules:
         return [
@@ -45,6 +54,12 @@ class GUIForm(Status):
                 'help': 'Show processed frames widget'
             },
             {
+                'parameter': {'show-sources-widget', 'show-sources-library', 'sources-widget'},
+                'attribute': 'show_sources_library',
+                'default': False,
+                'help': 'Show the sources library widget'
+            },
+            {
                 'parameter': {'frames-widget-width', 'fw-width'},
                 'attribute': 'fw_width',
                 'default': -1,
@@ -57,6 +72,11 @@ class GUIForm(Status):
                 'default': -1,
                 'valid': lambda attribute, value: is_int(value),
                 'help': 'Processed widget maximum height, -1 to set as 10% of original image size'
+            },
+            {
+                'parameter': {'sources-library'},
+                'attribute': 'sources_library',
+                'help': 'The paths to the source files/folders to use in the sources library'
             },
             {
                 'module_help': 'GUI Form'
@@ -82,6 +102,15 @@ class GUIForm(Status):
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
+
+        self.SourcesLibraryWnd = CTkToplevel(self.GUIWindow)
+        if not self.show_sources_library:
+            self.SourcesLibraryWnd.withdraw()  # hide window
+        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd)
+        self.SourcesLibrary.grid(row=0, column=0, sticky=NSEW)
+        self.SourcesLibraryWnd.grid_rowconfigure(0, weight=1)
+        self.SourcesLibraryWnd.grid_columnconfigure(0, weight=1)
+
         self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
@@ -162,6 +191,7 @@ class GUIForm(Status):
             self.GUIModel.Player.rotate = mode
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
+        self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)
 
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
@@ -171,8 +201,8 @@ class GUIForm(Status):
             self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
             self.GUIModel.Player.set_topmost(self.StayOnTopVar.get())
 
-        # self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
-        #
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.show_sources_widget())
+
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
@@ -213,10 +243,13 @@ class GUIForm(Status):
     def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
-            self.GUIModel.source_path = selected_file
-            self.SourcePathEntry.set_text(selected_file)
+            self._set_source(selected_file)
             return True
         return False
+
+    def _set_source(self, filename: str) -> None:
+        self.GUIModel.source_path = filename
+        self.SourcePathEntry.set_text(filename)
 
     def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
@@ -243,3 +276,16 @@ class GUIForm(Status):
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
             self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
+
+    def show_sources_widget(self):
+        if self.SourceLibraryVar.get() is True:
+            self.SourcesLibraryWnd.deiconify()
+            if not self._library_is_loaded:
+                for item in self.sources_library:
+                    if is_image(item):
+                        self.SourcesLibrary.add_thumbnail(image_path=item, click_callback=lambda path: self._set_source(path))
+                    elif is_dir(item):
+                        for dir_file in get_directory_file_list(item, is_image):
+                            self.SourcesLibrary.add_thumbnail(image_path=dir_file, click_callback=lambda path: self._set_source(path))
+        else:
+            self.SourcesLibraryWnd.withdraw()
