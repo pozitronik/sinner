@@ -77,6 +77,8 @@ class ThumbnailWidget(Frame):
             col = i % self._columns
             thumbnail.grid(row=row * 2, column=col)
             caption.grid(row=row * 2 + 1, column=col, )
+        self._canvas.update_idletasks()
+        self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
 
     # noinspection PyUnusedLocal
     def on_canvas_resize(self, event: Event) -> None:  # type: ignore[type-arg]
