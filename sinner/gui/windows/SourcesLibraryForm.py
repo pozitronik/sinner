@@ -12,19 +12,23 @@ class SourcesLibraryForm:
     SourcesLibrary: ThumbnailWidget
     _library: List[str] = []
     _library_is_loaded: bool = False
-    _callback: Callable[[str], None] | None = None
+    _on_thumbnail_click_callback: Callable[[str], None] | None = None
+    _on_window_close_callback: Callable[[], None] | None = None
 
-    def __init__(self, master: Misc, library: List[str], callback: Callable[[str], None] | None = None):
+    def __init__(self, master: Misc, library: List[str], on_thumbnail_click_callback: Callable[[str], None] | None = None, on_window_close_callback: Callable[[], None] | None = None):
         self.SourcesLibraryWnd = CTkToplevel(master)
-
         self.SourcesLibraryWnd.withdraw()  # hide window
         self.SourcesLibraryWnd.title('Sources library')
         self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd)
         self.SourcesLibrary.grid(row=0, column=0, sticky=NSEW)
         self.SourcesLibraryWnd.grid_rowconfigure(0, weight=1)
         self.SourcesLibraryWnd.grid_columnconfigure(0, weight=1)
+
+        self.SourcesLibraryWnd.protocol('WM_DELETE_WINDOW', lambda: self.hide())
+
         self._library = library
-        self._callback = callback
+        self._on_thumbnail_click_callback = on_thumbnail_click_callback
+        self._on_window_close_callback = on_window_close_callback
 
     def show(self, show: bool = True) -> None:
         if show is True:
@@ -37,6 +41,8 @@ class SourcesLibraryForm:
 
     def hide(self) -> None:
         self.show(False)
+        if self._on_window_close_callback:
+            self._on_window_close_callback()
 
     def set_topmost(self, on_top: bool = True) -> None:
         self.SourcesLibraryWnd.wm_attributes("-topmost", on_top)
@@ -45,7 +51,7 @@ class SourcesLibraryForm:
         if library is None:
             library = self._library
         if callback is None:
-            callback = self._callback
+            callback = self._on_thumbnail_click_callback
         if reload:
             self.SourcesLibrary.clear_thumbnails()
         for item in library:
