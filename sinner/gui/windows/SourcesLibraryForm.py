@@ -47,7 +47,7 @@ class SourcesLibraryForm:
     def set_topmost(self, on_top: bool = True) -> None:
         self.SourcesLibraryWnd.wm_attributes("-topmost", on_top)
 
-    def load(self, library: List[str] | None = None, callback: Callable[[str], None] | None = None, reload: bool = False):
+    def load(self, library: List[str] | None = None, callback: Callable[[str], None] | None = None, reload: bool = False) -> None:
         if library is None:
             library = self._library
         if callback is None:
