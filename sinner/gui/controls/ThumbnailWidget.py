@@ -30,10 +30,6 @@ class ThumbnailWidget(Frame):
         self.vsb.grid(row=0, column=1, sticky=NS)
         self._canvas.configure(yscrollcommand=self.vsb.set)
 
-        self.hsb = Scrollbar(self, orient="horizontal", command=self._canvas.xview)
-        self.hsb.grid(row=1, column=0, sticky=EW)
-        self._canvas.configure(xscrollcommand=self.hsb.set)
-
         self.grid(row=0, column=0, sticky=NSEW)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
