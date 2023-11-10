@@ -1,8 +1,8 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, NSEW
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
 from typing import List
 
-from customtkinter import CTk, CTkToplevel
+from customtkinter import CTk
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel, FrameMode
@@ -13,8 +13,8 @@ from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
-from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
-from sinner.utilities import is_int, get_app_dir, is_image, is_dir, get_directory_file_list
+from sinner.gui.windows.SourcesLibraryForm import SourcesLibraryForm
+from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -25,10 +25,7 @@ class GUIForm(Status):
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
-    SourcesLibraryWnd: CTkToplevel
-    SourcesLibrary: ThumbnailWidget
-
-    current_position: StringVar  # current position variable
+    SourcesLibraryWnd: SourcesLibraryForm
 
     topmost: bool
     show_frames_widget: bool
@@ -36,8 +33,6 @@ class GUIForm(Status):
     fw_height: int
     fw_width: int
     sources_library: List[str]
-
-    _library_is_loaded: bool = False
 
     def rules(self) -> Rules:
         return [
@@ -87,7 +82,7 @@ class GUIForm(Status):
         super().__init__(parameters)
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
-        self.GUIWindow.iconbitmap(get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
+        self.GUIWindow.iconbitmap(default=get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
         # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 0)
@@ -102,14 +97,6 @@ class GUIForm(Status):
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-
-        self.SourcesLibraryWnd = CTkToplevel(self.GUIWindow)
-        if not self.show_sources_library:
-            self.SourcesLibraryWnd.withdraw()  # hide window
-        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd)
-        self.SourcesLibrary.grid(row=0, column=0, sticky=NSEW)
-        self.SourcesLibraryWnd.grid_rowconfigure(0, weight=1)
-        self.SourcesLibraryWnd.grid_columnconfigure(0, weight=1)
 
         self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
 
@@ -201,7 +188,7 @@ class GUIForm(Status):
             self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
             self.GUIModel.Player.set_topmost(self.StayOnTopVar.get())
 
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.show_sources_widget())
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
@@ -227,11 +214,18 @@ class GUIForm(Status):
         self.TargetPathFrame.pack(fill=X, side=TOP)
         self.StatusBar.pack()
 
+    # initialize all secondary windows
+    def create_windows(self) -> None:
+        self.SourcesLibraryWnd = SourcesLibraryForm(self.GUIWindow, library=self.sources_library, callback=self._set_source)
+        if self.show_sources_library:
+            self.SourcesLibraryWnd.show()
+
     def format_target_info(self) -> str:
         return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
 
     def show(self) -> CTk:
         self.draw_controls()
+        self.create_windows()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.item('Target resolution', self.format_target_info())
@@ -276,16 +270,3 @@ class GUIForm(Status):
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
             self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
-
-    def show_sources_widget(self):
-        if self.SourceLibraryVar.get() is True:
-            self.SourcesLibraryWnd.deiconify()
-            if not self._library_is_loaded:
-                for item in self.sources_library:
-                    if is_image(item):
-                        self.SourcesLibrary.add_thumbnail(image_path=item, click_callback=lambda path: self._set_source(path))
-                    elif is_dir(item):
-                        for dir_file in get_directory_file_list(item, is_image):
-                            self.SourcesLibrary.add_thumbnail(image_path=dir_file, click_callback=lambda path: self._set_source(path))
-        else:
-            self.SourcesLibraryWnd.withdraw()
