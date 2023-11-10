@@ -54,7 +54,6 @@ def is_dir(path: str) -> bool:
     return os.path.isdir(norm_path) if norm_path else False
 
 
-# todo test
 def get_directory_file_list(directory_path: str, filter_: Callable[[str], bool] | None = None) -> List[str]:
     result: List[str] = []
     if is_dir(directory_path):
