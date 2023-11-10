@@ -1,10 +1,10 @@
-from tkinter import Misc, NSEW
+from tkinter import Misc, NSEW, Menu, filedialog, CASCADE, COMMAND
 from typing import List, Callable
 
 from customtkinter import CTkToplevel
 
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
-from sinner.utilities import is_image, is_dir, get_directory_file_list
+from sinner.utilities import is_image, is_dir, get_directory_file_list, get_type_extensions
 
 
 class SourcesLibraryForm:
@@ -29,6 +29,14 @@ class SourcesLibraryForm:
         self._library = library
         self._on_thumbnail_click_callback = on_thumbnail_click_callback
         self._on_window_close_callback = on_window_close_callback
+
+        self.MainMenu: Menu = Menu(self.SourcesLibraryWnd)
+        self.Library: Menu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.Library, label='Library')
+        self.Library.add(COMMAND, label='Add files', command=lambda: self.add_files())
+        self.Library.add(COMMAND, label='Add a folder', command=lambda: self.add_folder())
+
+        self.SourcesLibraryWnd.configure(menu=self.MainMenu, tearoff=False)
 
     def show(self, show: bool = True) -> None:
         if show is True:
@@ -60,3 +68,21 @@ class SourcesLibraryForm:
             elif is_dir(item):
                 for dir_file in get_directory_file_list(item, is_image):
                     self.SourcesLibrary.add_thumbnail(image_path=dir_file, click_callback=lambda path: callback(path))
+
+    def add_files(self) -> None:
+        image_extensions = get_type_extensions('image/')
+        file_paths = filedialog.askopenfilenames(
+            title="Select files to add",
+            filetypes=[('Image files', image_extensions), ('All files', '*.*')],
+            initialdir="/",  # Set the initial directory (you can change this)
+        )
+        if file_paths:
+            self.load(list(file_paths))
+
+    def add_folder(self) -> None:
+        directory = filedialog.askdirectory(
+            title="Select a directory to add",
+            initialdir="/",
+        )
+        if directory:
+            self.load([directory])
