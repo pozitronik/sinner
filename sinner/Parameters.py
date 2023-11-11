@@ -2,7 +2,7 @@ import shlex
 import sys
 from argparse import ArgumentParser, Namespace
 from configparser import ConfigParser
-from typing import List
+from typing import List, Any
 
 from sinner.utilities import get_app_dir
 from sinner.validators.AttributeDocumenter import AttributeDocumenter
@@ -23,14 +23,7 @@ class Parameters:
         else:
             self._config_name = get_app_dir('sinner.ini')
 
-        config = ConfigParser()
-        config.read(self._config_name)
-        if config.has_section('sinner'):
-            for key in config['sinner']:
-                value = config['sinner'][key]
-                key = key.replace('-', '_')
-                if key not in self.parameters:
-                    self.parameters.__setattr__(key, value)
+        self.update()
 
     def module_parameters(self, module_name: str) -> Namespace | None:
         module_parameters: Namespace = Namespace()
@@ -43,6 +36,26 @@ class Parameters:
                 module_parameters.__setattr__(key, value)
             return module_parameters
         return None
+
+    def set_module_parameter(self, module_name: str, key: str, value: Any | None) -> None:
+        config = ConfigParser()
+        config.read(self._config_name)
+        if value:
+            config.set(module_name, key, str(value))
+        else:
+            config.remove_option(module_name, key)
+        with open(self._config_name, 'w') as config_file:
+            config.write(config_file)
+
+    def update(self) -> None:
+        config = ConfigParser()
+        config.read(self._config_name)
+        if config.has_section('sinner'):
+            for key in config['sinner']:
+                value = config['sinner'][key]
+                key = key.replace('-', '_')
+                if key not in self.parameters:
+                    self.parameters.__setattr__(key, value)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:

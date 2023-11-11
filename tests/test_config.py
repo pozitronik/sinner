@@ -1,3 +1,5 @@
+import random
+
 from sinner.Parameters import Parameters
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from tests.constants import test_config, target_png
@@ -25,3 +27,16 @@ def test_module_and_global_parameters() -> None:
     assert params.many_faces == 'true'
     test_module = DummyProcessor(parameters=params)
     assert test_module.parameters.many_faces == 'false'
+
+
+def test_save_config_value() -> None:
+    config = Parameters(f'--ini="{test_config}"')
+    assert hasattr(config.parameters, 'test_save_value') is False
+    random_value = random.Random().randint(1, 100)
+    config.set_module_parameter('sinner', 'test_save_value', random_value)
+    config = Parameters(f'--ini="{test_config}"')
+    assert hasattr(config.parameters, 'test_save_value') is True
+    assert int(config.parameters.test_save_value) == random_value
+    config.set_module_parameter('sinner', 'test_save_value', None)
+    config = Parameters(f'--ini="{test_config}"')
+    assert hasattr(config.parameters, 'test_save_value') is False
