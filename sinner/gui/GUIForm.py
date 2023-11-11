@@ -3,6 +3,7 @@ from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW,
 
 from customtkinter import CTk
 
+from sinner.Parameters import Parameters
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel, FrameMode
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
@@ -23,12 +24,11 @@ class GUIForm(Status):
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
 
-    current_position: StringVar  # current position variable
-
     topmost: bool
     show_frames_widget: bool
     fw_height: int
     fw_width: int
+    geometry: str
 
     def rules(self) -> Rules:
         return [
@@ -37,6 +37,11 @@ class GUIForm(Status):
                 'attribute': 'topmost',
                 'default': False,
                 'help': 'Set player on top of other windows'
+            },
+            {
+                'parameter': {'controls-geometry'},
+                'attribute': 'geometry',
+                'help': 'Window size and position'
             },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
@@ -71,11 +76,18 @@ class GUIForm(Status):
         # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 0)
+        if self.geometry:
+            self.GUIWindow.geometry(self.geometry)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
             quit()
+
+        self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
+
+        def on_player_window_configure(event: Event) -> None:
+            # Parameters().set_module_parameter(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
 
         self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
