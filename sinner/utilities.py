@@ -93,7 +93,7 @@ def resolve_relative_path(path: str, from_file: str | None = None) -> str:
                 from_file = current_frame.f_back.f_code.co_filename  # type: ignore[union-attr]
         except Exception:
             raise Exception("Can't find caller method")
-    return os.path.abspath(os.path.join(os.path.dirname(from_file), path))  # type: ignore[arg-type]
+    return os.path.abspath(os.path.join(str(os.path.dirname(from_file)), path))  # type: ignore[arg-type]
 
 
 def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 'dirty'] = 'rss', size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
