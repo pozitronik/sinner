@@ -36,15 +36,15 @@ def setup() -> None:
 
 
 def test_save_config_value() -> None:
-    params = Parameters(f'--ini="{test_config}"')
-    config = Config(params.config_name)
-    assert hasattr(params.parameters, 'test_save_value') is False
+    parameters = Parameters(f'--ini="{test_config}"').parameters
+    config = Config(parameters)
+    assert hasattr(parameters, 'test_save_value') is False
     random_value = random.Random().randint(1, 100)
     config.set_key('sinner', 'test_save_value', random_value)
-    params = Parameters(f'--ini="{test_config}"')
-    assert hasattr(params.parameters, 'test_save_value') is True
-    assert int(params.parameters.test_save_value) == random_value
+    parameters = Parameters(f'--ini="{test_config}"').parameters
+    assert hasattr(parameters, 'test_save_value') is True
+    assert int(parameters.test_save_value) == random_value
     config.set_key('sinner', 'test_save_value', None)
-    params = Parameters(f'--ini="{test_config}"')
-    assert hasattr(params.parameters, 'test_save_value') is False
+    parameters = Parameters(f'--ini="{test_config}"').parameters
+    assert hasattr(parameters, 'test_save_value') is False
     shutil.copyfile(test_config_bak, test_config)

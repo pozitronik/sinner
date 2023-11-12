@@ -1,10 +1,9 @@
 import shlex
 import sys
 from argparse import ArgumentParser, Namespace
-from typing import List, Any
+from typing import List
 
 from sinner.models.Config import Config
-from sinner.utilities import get_app_dir
 from sinner.validators.AttributeDocumenter import AttributeDocumenter
 
 
@@ -17,17 +16,13 @@ class Parameters:
         if 'h' in self.parameters or 'help' in self.parameters:
             AttributeDocumenter().show_help()
         # add values from the ini file
-        file_configuration_dict = vars(Config(self.config_name).read_section('sinner'))
+        file_configuration_dict = vars(Config(self.parameters).read_section('sinner'))
         for key, value in file_configuration_dict.items():
             if key not in self.parameters:
                 self.parameters.__setattr__(key, value)
 
-    @property
-    def config_name(self) -> str:
-        return self.parameters.ini if 'ini' in self.parameters else get_app_dir('sinner.ini')
-
     def module_parameters(self, module_name: str) -> Namespace | None:
-        return Config(self.config_name).read_section(module_name)
+        return Config(self.parameters).read_section(module_name)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
