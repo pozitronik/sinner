@@ -3,7 +3,6 @@ from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW,
 
 from customtkinter import CTk
 
-from sinner.Parameters import Parameters
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel, FrameMode
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
@@ -13,6 +12,7 @@ from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
+from sinner.models.Config import Config
 from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
@@ -20,6 +20,7 @@ from sinner.validators.AttributeLoader import Rules
 # GUI View
 class GUIForm(Status):
     # class attributes
+    parameters: Namespace
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
@@ -69,6 +70,7 @@ class GUIForm(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+        self.parameters = parameters
         super().__init__(parameters)
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
@@ -87,7 +89,7 @@ class GUIForm(Status):
         self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
 
         def on_player_window_configure(event: Event) -> None:
-            # Parameters().set_module_parameter(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
+            Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
 
         self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
