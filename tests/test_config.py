@@ -1,6 +1,10 @@
+import random
+import shutil
+
 from sinner.Parameters import Parameters
+from sinner.models.Config import Config
 from sinner.processors.frame.DummyProcessor import DummyProcessor
-from tests.constants import test_config, target_png
+from tests.constants import test_config, target_png, test_config_bak
 
 
 def test_ini() -> None:
@@ -25,3 +29,22 @@ def test_module_and_global_parameters() -> None:
     assert params.many_faces == 'true'
     test_module = DummyProcessor(parameters=params)
     assert test_module.parameters.many_faces == 'false'
+
+
+def setup() -> None:
+    shutil.copyfile(test_config_bak, test_config)  # restore from bak file
+
+
+def test_save_config_value() -> None:
+    parameters = Parameters(f'--ini="{test_config}"').parameters
+    config = Config(parameters)
+    assert hasattr(parameters, 'test_save_value') is False
+    random_value = random.Random().randint(1, 100)
+    config.set_key('sinner', 'test_save_value', random_value)
+    parameters = Parameters(f'--ini="{test_config}"').parameters
+    assert hasattr(parameters, 'test_save_value') is True
+    assert int(parameters.test_save_value) == random_value
+    config.set_key('sinner', 'test_save_value', None)
+    parameters = Parameters(f'--ini="{test_config}"').parameters
+    assert hasattr(parameters, 'test_save_value') is False
+    shutil.copyfile(test_config_bak, test_config)

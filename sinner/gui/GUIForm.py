@@ -14,6 +14,7 @@ from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.gui.windows.SourcesLibraryForm import SourcesLibraryForm
+from sinner.models.Config import Config
 from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
@@ -22,16 +23,20 @@ from sinner.validators.AttributeLoader import Rules
 
 class GUIForm(Status):
     # class attributes
+    parameters: Namespace
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
     SourcesLibraryWnd: SourcesLibraryForm
+
 
     topmost: bool
     show_frames_widget: bool
     show_sources_library: bool
     fw_height: int
     fw_width: int
+    geometry: str
+    state: str
     sources_library: List[str]
 
     def rules(self) -> Rules:
@@ -41,6 +46,16 @@ class GUIForm(Status):
                 'attribute': 'topmost',
                 'default': False,
                 'help': 'Set player on top of other windows'
+            },
+            {
+                'parameter': {'controls-geometry'},
+                'attribute': 'geometry',
+                'help': 'Window size and position'
+            },
+            {
+                'parameter': {'controls-state'},
+                'attribute': 'state',
+                'help': 'Window state'
             },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
@@ -79,6 +94,7 @@ class GUIForm(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+        self.parameters = parameters
         super().__init__(parameters)
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
@@ -86,11 +102,22 @@ class GUIForm(Status):
         # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 0)
+        if self.geometry:
+            self.GUIWindow.geometry(self.geometry)
+        if self.state:
+            self.GUIWindow.wm_state(self.state)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
             quit()
+
+        self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
+
+        # noinspection PyUnusedLocal
+        def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
+            Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
+            Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
         self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
