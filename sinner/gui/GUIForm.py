@@ -96,7 +96,8 @@ class GUIForm(Status):
 
         self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
 
-        def on_player_window_configure(event: Event) -> None:
+        # noinspection PyUnusedLocal
+        def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
