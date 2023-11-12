@@ -47,8 +47,7 @@ class AttributeLoader:
         return []
 
     def __init__(self, parameters: Namespace | None = None):
-        from sinner.Parameters import Parameters
-        local_parameters = Config(Parameters().config_name).read_section(self.__class__.__name__)
+        local_parameters = Config(parameters.ini if hasattr(parameters, 'ini') else None).read_section(self.__class__.__name__)
         if parameters is None:  # try to load only the current module configuration
             if local_parameters and not self.load(local_parameters):
                 raise LoadingException(self.errors)
