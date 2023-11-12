@@ -25,6 +25,7 @@ class Config:
         return None
 
     def set_key(self, section: str, key: str, value: Any | None) -> None:
+        self._config.read(self._filename)
         if value:
             self._config.set(section, key, str(value))
         else:
