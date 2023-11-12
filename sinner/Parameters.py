@@ -1,9 +1,9 @@
 import shlex
 import sys
 from argparse import ArgumentParser, Namespace
-from configparser import ConfigParser
 from typing import List, Any
 
+from sinner.models.Config import Config
 from sinner.utilities import get_app_dir
 from sinner.validators.AttributeDocumenter import AttributeDocumenter
 
@@ -12,50 +12,22 @@ class Parameters:
     parser: ArgumentParser = ArgumentParser()
     parameters: Namespace
 
-    _config_name: str
-
     def __init__(self, source: Namespace | str | None = None):
         self.parameters: Namespace = source if isinstance(source, Namespace) else self.command_line_to_namespace(source)
         if 'h' in self.parameters or 'help' in self.parameters:
             AttributeDocumenter().show_help()
-        if 'ini' in self.parameters:
-            self._config_name = self.parameters.ini
-        else:
-            self._config_name = get_app_dir('sinner.ini')
+        # add values from the ini file
+        file_configuration_dict = vars(Config(self.config_name).read_section('sinner'))
+        for key, value in file_configuration_dict.items():
+            if key not in self.parameters:
+                self.parameters.__setattr__(key, value)
 
-        self.update()
+    @property
+    def config_name(self) -> str:
+        return self.parameters.ini if 'ini' in self.parameters else get_app_dir('sinner.ini')
 
     def module_parameters(self, module_name: str) -> Namespace | None:
-        module_parameters: Namespace = Namespace()
-        config = ConfigParser()
-        config.read(self._config_name)
-        if config.has_section(module_name):
-            for key in config[module_name]:
-                value = config[module_name][key]
-                key = key.replace('-', '_')
-                module_parameters.__setattr__(key, value)
-            return module_parameters
-        return None
-
-    def set_module_parameter(self, module_name: str, key: str, value: Any | None) -> None:
-        config = ConfigParser()
-        config.read(self._config_name)
-        if value:
-            config.set(module_name, key, str(value))
-        else:
-            config.remove_option(module_name, key)
-        with open(self._config_name, 'w') as config_file:
-            config.write(config_file)
-
-    def update(self) -> None:
-        config = ConfigParser()
-        config.read(self._config_name)
-        if config.has_section('sinner'):
-            for key in config['sinner']:
-                value = config['sinner'][key]
-                key = key.replace('-', '_')
-                if key not in self.parameters:
-                    self.parameters.__setattr__(key, value)
+        return Config(self.config_name).read_section(module_name)
 
     @staticmethod
     def command_line_to_namespace(cmd_params: str | None = None) -> Namespace:
