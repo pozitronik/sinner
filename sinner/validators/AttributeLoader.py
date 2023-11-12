@@ -1,6 +1,7 @@
 from argparse import Namespace
 from typing import List, Dict, Any, Type
 
+from sinner.models.Config import Config
 from sinner.utilities import declared_attr_type
 from sinner.validators.BaseValidator import BaseValidator
 from sinner.validators.DefaultValidator import DefaultValidator
@@ -46,8 +47,7 @@ class AttributeLoader:
         return []
 
     def __init__(self, parameters: Namespace | None = None):
-        from sinner.Parameters import Parameters
-        local_parameters = Parameters(parameters).module_parameters(self.__class__.__name__)
+        local_parameters = Config(parameters).read_section(self.__class__.__name__)
         if parameters is None:  # try to load only the current module configuration
             if local_parameters and not self.load(local_parameters):
                 raise LoadingException(self.errors)

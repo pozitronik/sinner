@@ -85,6 +85,7 @@ def conditional_download(download_directory_path: str, urls: List[str], desc: st
                 urllib.request.urlretrieve(url, download_file_path, reporthook=lambda count, block_size, total_size: progress.update(block_size))  # type: ignore[attr-defined]
 
 
+#  todo: refactor this
 def resolve_relative_path(path: str, from_file: str | None = None) -> str:
     if from_file is None:
         try:
@@ -93,7 +94,7 @@ def resolve_relative_path(path: str, from_file: str | None = None) -> str:
                 from_file = current_frame.f_back.f_code.co_filename  # type: ignore[union-attr]
         except Exception:
             raise Exception("Can't find caller method")
-    return os.path.abspath(os.path.join(os.path.dirname(from_file), path))  # type: ignore[arg-type]
+    return os.path.abspath(os.path.join(str(os.path.dirname(from_file)), path))  # type: ignore[arg-type, type-var]
 
 
 def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 'dirty'] = 'rss', size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
