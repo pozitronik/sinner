@@ -30,6 +30,7 @@ class GUIForm(Status):
     fw_height: int
     fw_width: int
     geometry: str
+    state: str
 
     def rules(self) -> Rules:
         return [
@@ -43,6 +44,11 @@ class GUIForm(Status):
                 'parameter': {'controls-geometry'},
                 'attribute': 'geometry',
                 'help': 'Window size and position'
+            },
+            {
+                'parameter': {'controls-state'},
+                'attribute': 'state',
+                'help': 'Window state'
             },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
@@ -80,6 +86,8 @@ class GUIForm(Status):
         self.GUIWindow.minsize(500, 0)
         if self.geometry:
             self.GUIWindow.geometry(self.geometry)
+        if self.state:
+            self.GUIWindow.wm_state(self.state)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
@@ -90,6 +98,7 @@ class GUIForm(Status):
 
         def on_player_window_configure(event: Event) -> None:
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
+            Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
         self.GUIWindow.resizable(width=True, height=False)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
