@@ -9,8 +9,8 @@ class Config:
     _filename: str
     _config: ConfigParser
 
-    def __init__(self, filename: str | None):
-        self._filename = filename if filename else get_app_dir('sinner.ini')
+    def __init__(self, parameters: Namespace):
+        self._filename = parameters.ini if hasattr(parameters, 'ini') else get_app_dir('sinner.ini')
         self._config = ConfigParser()
 
     def read_section(self, section: str) -> Namespace | None:
