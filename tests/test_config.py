@@ -1,8 +1,10 @@
 import random
+import shutil
 
 from sinner.Parameters import Parameters
+from sinner.models.Config import Config
 from sinner.processors.frame.DummyProcessor import DummyProcessor
-from tests.constants import test_config, target_png
+from tests.constants import test_config, target_png, test_config_bak
 
 
 def test_ini() -> None:
@@ -29,14 +31,20 @@ def test_module_and_global_parameters() -> None:
     assert test_module.parameters.many_faces == 'false'
 
 
+def setup() -> None:
+    shutil.copyfile(test_config_bak, test_config)  # restore from bak file
+
+
 def test_save_config_value() -> None:
-    config = Parameters(f'--ini="{test_config}"')
-    assert hasattr(config.parameters, 'test_save_value') is False
+    params = Parameters(f'--ini="{test_config}"')
+    config = Config(params.config_name)
+    assert hasattr(params.parameters, 'test_save_value') is False
     random_value = random.Random().randint(1, 100)
-    config.set_module_parameter('sinner', 'test_save_value', random_value)
-    config = Parameters(f'--ini="{test_config}"')
-    assert hasattr(config.parameters, 'test_save_value') is True
-    assert int(config.parameters.test_save_value) == random_value
-    config.set_module_parameter('sinner', 'test_save_value', None)
-    config = Parameters(f'--ini="{test_config}"')
-    assert hasattr(config.parameters, 'test_save_value') is False
+    config.set_key('sinner', 'test_save_value', random_value)
+    params = Parameters(f'--ini="{test_config}"')
+    assert hasattr(params.parameters, 'test_save_value') is True
+    assert int(params.parameters.test_save_value) == random_value
+    config.set_key('sinner', 'test_save_value', None)
+    params = Parameters(f'--ini="{test_config}"')
+    assert hasattr(params.parameters, 'test_save_value') is False
+    shutil.copyfile(test_config_bak, test_config)
