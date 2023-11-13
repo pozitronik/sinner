@@ -29,14 +29,13 @@ class GUIForm(Status):
     StatusBar: StatusBar
     SourcesLibraryWnd: SourcesLibraryForm
 
-
     topmost: bool
     show_frames_widget: bool
     show_sources_library: bool
     fw_height: int
     fw_width: int
     geometry: str
-    state: str
+    state: str  # currently ignored, see issue #100
     sources_library: List[str]
 
     def rules(self) -> Rules:
@@ -55,7 +54,6 @@ class GUIForm(Status):
             {
                 'parameter': {'controls-state'},
                 'attribute': 'state',
-                'help': 'Window state'
             },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
@@ -104,8 +102,8 @@ class GUIForm(Status):
         self.GUIWindow.minsize(500, 0)
         if self.geometry:
             self.GUIWindow.geometry(self.geometry)
-        if self.state:
-            self.GUIWindow.wm_state(self.state)
+        # if self.state:
+        #     self.GUIWindow.wm_state(self.state)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
