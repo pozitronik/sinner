@@ -96,14 +96,15 @@ class GUIForm(Status):
         super().__init__(parameters)
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
-        self.GUIWindow.iconbitmap(default=get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
-        # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
-        self.GUIWindow.title('sinner controls')
-        self.GUIWindow.minsize(500, 0)
         if self.geometry:
             self.GUIWindow.geometry(self.geometry)
         # if self.state:
         #     self.GUIWindow.wm_state(self.state)
+        self.GUIWindow.iconbitmap(default=get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
+        # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
+        self.GUIWindow.title('sinner controls')
+        self.GUIWindow.minsize(500, 0)
+
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
@@ -114,7 +115,8 @@ class GUIForm(Status):
 
         # noinspection PyUnusedLocal
         def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
-            Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
+            if self.GUIWindow.wm_state() != 'zoomed':
+                Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
         self.GUIWindow.resizable(width=True, height=False)

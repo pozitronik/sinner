@@ -39,6 +39,10 @@ class SourcesLibraryForm(AttributeLoader):
         self.parameters = parameters
         super().__init__(parameters)
         self.SourcesLibraryWnd = CTkToplevel(master)
+        if self.geometry:
+            self.SourcesLibraryWnd.geometry(self.geometry)
+        # if self.state:
+        #     self.SourcesLibraryWnd.wm_state(self.state)
         self.SourcesLibraryWnd.withdraw()  # hide window
         self.SourcesLibraryWnd.title('Sources library')
         self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd)
@@ -65,13 +69,9 @@ class SourcesLibraryForm(AttributeLoader):
 
         # noinspection PyUnusedLocal
         def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
-            Config(self.parameters).set_key(self.__class__.__name__, 'sources-library-geometry', self.SourcesLibraryWnd.geometry())
+            if self.SourcesLibraryWnd.wm_state() != 'zoomed':
+                Config(self.parameters).set_key(self.__class__.__name__, 'sources-library-geometry', self.SourcesLibraryWnd.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'sources-library-state', self.SourcesLibraryWnd.wm_state())
-
-        if self.geometry:
-            self.SourcesLibraryWnd.geometry(self.geometry)
-        if self.state:
-            self.SourcesLibraryWnd.wm_state(self.state)
 
     def show(self, show: bool = True) -> None:
         if show is True:
