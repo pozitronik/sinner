@@ -1,13 +1,17 @@
-from tkinter import Misc, NSEW, Menu, filedialog, CASCADE, COMMAND, SEPARATOR
+from argparse import Namespace
+from tkinter import Misc, NSEW, Menu, filedialog, CASCADE, COMMAND, SEPARATOR, Event
 from typing import List, Callable
 
 from customtkinter import CTkToplevel
 
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
+from sinner.models.Config import Config
 from sinner.utilities import is_image, is_dir, get_directory_file_list, get_type_extensions
+from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
-class SourcesLibraryForm:
+class SourcesLibraryForm(AttributeLoader):
+    parameters: Namespace
     SourcesLibraryWnd: CTkToplevel
     SourcesLibrary: ThumbnailWidget
     _library: List[str] = []
@@ -15,7 +19,25 @@ class SourcesLibraryForm:
     _on_thumbnail_click_callback: Callable[[str], None] | None = None
     _on_window_close_callback: Callable[[], None] | None = None
 
-    def __init__(self, master: Misc, library: List[str], on_thumbnail_click_callback: Callable[[str], None] | None = None, on_window_close_callback: Callable[[], None] | None = None):
+    geometry: str
+    state: str  # currently ignored, see issue #100
+
+    def rules(self) -> Rules:
+        return [
+            {
+                'parameter': {'sources-library-geometry'},
+                'attribute': 'geometry',
+                'help': 'Window size and position'
+            },
+            {
+                'parameter': {'sources-library-state'},
+                'attribute': 'state',
+            },
+        ]
+
+    def __init__(self, parameters: Namespace, master: Misc, library: List[str], on_thumbnail_click_callback: Callable[[str], None] | None = None, on_window_close_callback: Callable[[], None] | None = None):
+        self.parameters = parameters
+        super().__init__(parameters)
         self.SourcesLibraryWnd = CTkToplevel(master)
         self.SourcesLibraryWnd.withdraw()  # hide window
         self.SourcesLibraryWnd.title('Sources library')
@@ -39,12 +61,23 @@ class SourcesLibraryForm:
         self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())
 
         self.SourcesLibraryWnd.configure(menu=self.MainMenu, tearoff=False)
+        self.SourcesLibraryWnd.bind("<Configure>", lambda event: on_player_window_configure(event))
+
+        # noinspection PyUnusedLocal
+        def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
+            Config(self.parameters).set_key(self.__class__.__name__, 'sources-library-geometry', self.SourcesLibraryWnd.geometry())
+            Config(self.parameters).set_key(self.__class__.__name__, 'sources-library-state', self.SourcesLibraryWnd.wm_state())
+
+        if self.geometry:
+            self.SourcesLibraryWnd.geometry(self.geometry)
+        if self.state:
+            self.SourcesLibraryWnd.wm_state(self.state)
 
     def show(self, show: bool = True) -> None:
         if show is True:
             self.SourcesLibraryWnd.deiconify()
             if not self._library_is_loaded:
-                self.load(self._library)
+                self.add(self._library)
                 self._library_is_loaded = True
         else:
             self.SourcesLibraryWnd.withdraw()
@@ -57,7 +90,7 @@ class SourcesLibraryForm:
     def set_topmost(self, on_top: bool = True) -> None:
         self.SourcesLibraryWnd.wm_attributes("-topmost", on_top)
 
-    def load(self, library: List[str] | None = None, callback: Callable[[str], None] | None = None, reload: bool = False) -> None:
+    def add(self, library: List[str] | None = None, callback: Callable[[str], None] | None = None, reload: bool = False) -> None:
         if library is None:
             library = self._library
         if callback is None:
@@ -79,7 +112,7 @@ class SourcesLibraryForm:
             initialdir="/",  # Set the initial directory (you can change this)
         )
         if file_paths:
-            self.load(list(file_paths))
+            self.add(list(file_paths))
 
     def add_folder(self) -> None:
         directory = filedialog.askdirectory(
@@ -87,7 +120,7 @@ class SourcesLibraryForm:
             initialdir="/",
         )
         if directory:
-            self.load([directory])
+            self.add([directory])
 
     def clear(self) -> None:
         self.SourcesLibrary.clear_thumbnails()

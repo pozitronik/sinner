@@ -237,7 +237,7 @@ class GUIForm(Status):
 
     # initialize all secondary windows
     def create_windows(self) -> None:
-        self.SourcesLibraryWnd = SourcesLibraryForm(self.GUIWindow, library=self.sources_library, on_thumbnail_click_callback=self._set_source, on_window_close_callback=lambda: self.SourceLibraryVar.set(False))
+        self.SourcesLibraryWnd = SourcesLibraryForm(self.parameters, self.GUIWindow, library=self.sources_library, on_thumbnail_click_callback=self._set_source, on_window_close_callback=lambda: self.SourceLibraryVar.set(False))
         if self.show_sources_library:
             self.SourcesLibraryWnd.show()
 
