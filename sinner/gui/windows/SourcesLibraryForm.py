@@ -1,4 +1,5 @@
 from argparse import Namespace
+from threading import Thread
 from tkinter import Misc, NSEW, Menu, filedialog, CASCADE, COMMAND, SEPARATOR, Event
 from typing import List, Callable
 
@@ -97,12 +98,18 @@ class SourcesLibraryForm(AttributeLoader):
             callback = self._on_thumbnail_click_callback
         if reload:
             self.SourcesLibrary.clear_thumbnails()
+
+        def add_image(image_path):
+            if is_image(image_path):
+                self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda path: callback(path))
+
         for item in library:
             if is_image(item):
-                self.SourcesLibrary.add_thumbnail(image_path=item, click_callback=lambda path: callback(path))
+                # Start a new thread for each image
+                Thread(target=add_image, args=(item,)).start()
             elif is_dir(item):
                 for dir_file in get_directory_file_list(item, is_image):
-                    self.SourcesLibrary.add_thumbnail(image_path=dir_file, click_callback=lambda path: callback(path))
+                    Thread(target=add_image, args=(dir_file,)).start()
 
     def add_files(self) -> None:
         image_extensions = get_type_extensions('image/')
