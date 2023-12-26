@@ -59,11 +59,11 @@ class SourcesLibraryForm(AttributeLoader):
 
         self.MainMenu: Menu = Menu(self.SourcesLibraryWnd)
         self.Library: Menu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.Library, label='Library')
-        self.Library.add(COMMAND, label='Add files', command=lambda: self.add_files())
-        self.Library.add(COMMAND, label='Add a folder', command=lambda: self.add_folder())
-        self.Library.add(SEPARATOR)
-        self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())
+        self.MainMenu.add(CASCADE, menu=self.Library, label='Library')  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(COMMAND, label='Add files', command=lambda: self.add_files())  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(COMMAND, label='Add a folder', command=lambda: self.add_folder())  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())  # type: ignore[no-untyped-call]  # it is a library method
 
         self.SourcesLibraryWnd.configure(menu=self.MainMenu, tearoff=False)
         self.SourcesLibraryWnd.bind("<Configure>", lambda event: on_player_window_configure(event))
