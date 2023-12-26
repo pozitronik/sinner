@@ -62,6 +62,7 @@ class ThumbnailWidget(Frame):
 
             if click_callback:
                 thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
+                caption_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
 
             self.thumbnails.append((thumbnail_label, caption_label))
             self.update_layout()
