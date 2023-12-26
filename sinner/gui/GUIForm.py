@@ -104,7 +104,6 @@ class GUIForm(Status):
         # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 0)
-
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
@@ -258,7 +257,18 @@ class GUIForm(Status):
         self.StatusBar.item('Target resolution', self.format_target_info())
         self.GUIModel.update_preview()
         self.create_windows()
-        self.set_topmost(self.topmost)
+        self.GUIWindow.wm_attributes("-topmost", self.topmost)
+        self.GUIModel.Player.set_topmost()
+        if self.geometry:
+            self.GUIWindow.update()
+            self.GUIWindow.update_idletasks()
+            current_size_part, _ = self.GUIWindow.geometry().split('+', 1)
+            current_height = int(current_size_part.split('x')[1])
+            size_part, position_part = self.geometry.split('+', 1)
+            requested_width = int(size_part.split('x')[0])
+            self.GUIWindow.geometry(f"{requested_width}x{current_height}+{position_part}")
+        if self.state:
+            self.GUIWindow.wm_state(self.state)
         return self.GUIWindow
 
     def change_source(self) -> bool:
