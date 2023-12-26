@@ -99,7 +99,7 @@ class SourcesLibraryForm(AttributeLoader):
         if reload:
             self.SourcesLibrary.clear_thumbnails()
 
-        def add_image(image_path):
+        def add_image(image_path: str) -> None:
             if is_image(image_path):
                 self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda path: callback(path))
 
