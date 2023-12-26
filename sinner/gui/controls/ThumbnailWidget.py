@@ -1,4 +1,4 @@
-from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, EW, Label, N, UNITS, ALL, Event
+from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event
 from typing import List, Tuple, Callable
 
 from PIL import Image

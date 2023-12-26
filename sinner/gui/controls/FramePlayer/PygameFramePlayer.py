@@ -114,6 +114,7 @@ class PygameFramePlayer(BaseFramePlayer):
         if WINDOWS:
             ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)  # type: ignore[attr-defined]  # platform issue
 
+
 """
 
     def geometry(self, geometry_string: str | None = None) -> str | None:
