@@ -9,7 +9,7 @@ import sys
 import urllib
 from datetime import datetime
 from pathlib import Path
-from typing import List, Literal, Any, get_type_hints
+from typing import List, Literal, Any, get_type_hints, Callable
 
 import onnxruntime
 import psutil
@@ -54,6 +54,20 @@ def is_dir(path: str) -> bool:
     return os.path.isdir(norm_path) if norm_path else False
 
 
+def get_directory_file_list(directory_path: str, filter_: Callable[[str], bool] | None = None) -> List[str]:
+    result: List[str] = []
+    if is_dir(directory_path):
+        for root, dirs, files in os.walk(directory_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if filter_:
+                    if filter_(file_path) is True:
+                        result.append(file_path)
+                else:
+                    result.append(file_path)
+    return result
+
+
 def is_image(image_path: str | None) -> bool:
     if image_path is not None and image_path and is_file(image_path):
         mimetype, _ = mimetypes.guess_type(image_path)
@@ -66,6 +80,15 @@ def is_video(video_path: str | None) -> bool:
         mimetype, _ = mimetypes.guess_type(video_path)
         return bool(mimetype and (mimetype.startswith('frame/') or mimetype.startswith('video/')))
     return False
+
+
+def get_type_extensions(mime_type: str) -> List[str]:
+    image_extensions: List[str] = []
+    for ext in mimetypes.types_map:
+        mimetype, encoding = mimetypes.guess_type(f"file.{ext}")
+        if mimetype and mimetype.startswith(mime_type):
+            image_extensions.append(ext)
+    return image_extensions
 
 
 def normalize_path(path: Any) -> str | None:

@@ -1,5 +1,6 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
+from typing import List
 
 from customtkinter import CTk
 
@@ -12,25 +13,30 @@ from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
+from sinner.gui.windows.SourcesLibraryForm import SourcesLibraryForm
 from sinner.models.Config import Config
 from sinner.utilities import is_int, get_app_dir
 from sinner.validators.AttributeLoader import Rules
 
 
 # GUI View
+
 class GUIForm(Status):
     # class attributes
     parameters: Namespace
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
+    SourcesLibraryWnd: SourcesLibraryForm
 
     topmost: bool
     show_frames_widget: bool
+    show_sources_library: bool
     fw_height: int
     fw_width: int
     geometry: str
-    state: str
+    state: str  # currently ignored, see issue #100
+    sources_library: List[str]
 
     def rules(self) -> Rules:
         return [
@@ -48,13 +54,18 @@ class GUIForm(Status):
             {
                 'parameter': {'controls-state'},
                 'attribute': 'state',
-                'help': 'Window state'
             },
             {
                 'parameter': {'show-frames-widget', 'frames-widget'},
                 'attribute': 'show_frames_widget',
                 'default': True,
                 'help': 'Show processed frames widget'
+            },
+            {
+                'parameter': {'show-sources-widget', 'show-sources-library', 'sources-widget'},
+                'attribute': 'show_sources_library',
+                'default': False,
+                'help': 'Show the sources library widget'
             },
             {
                 'parameter': {'frames-widget-width', 'fw-width'},
@@ -71,6 +82,11 @@ class GUIForm(Status):
                 'help': 'Processed widget maximum height, -1 to set as 10% of original image size'
             },
             {
+                'parameter': {'sources-library'},
+                'attribute': 'sources_library',
+                'help': 'The paths to the source files/folders to use in the sources library'
+            },
+            {
                 'module_help': 'GUI Form'
             }
         ]
@@ -80,7 +96,11 @@ class GUIForm(Status):
         super().__init__(parameters)
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
-        self.GUIWindow.iconbitmap(get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
+        if self.geometry:
+            self.GUIWindow.geometry(self.geometry)
+        # if self.state:
+        #     self.GUIWindow.wm_state(self.state)
+        self.GUIWindow.iconbitmap(default=get_app_dir("sinner/gui/icons/sinner.ico"))  # the taskbar icon may not be changed due tkinter limitations
         # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 0)
@@ -94,7 +114,8 @@ class GUIForm(Status):
 
         # noinspection PyUnusedLocal
         def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
-            Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
+            if self.GUIWindow.wm_state() != 'zoomed':
+                Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
         self.GUIWindow.resizable(width=True, height=False)
@@ -102,6 +123,7 @@ class GUIForm(Status):
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
+
         self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
@@ -182,17 +204,14 @@ class GUIForm(Status):
             self.GUIModel.Player.rotate = mode
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
+        self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)
 
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: set_on_top())  # type: ignore[no-untyped-call]  # it is a library method
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
-        def set_on_top() -> None:
-            self.GUIWindow.wm_attributes("-topmost", self.StayOnTopVar.get())
-            self.GUIModel.Player.set_topmost(self.StayOnTopVar.get())
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get())) # type: ignore[no-untyped-call]  # it is a library method
 
-        # self.ToolsSubMenu.add(CHECKBUTTON, label='Frames previews')
-        #
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
@@ -217,8 +236,19 @@ class GUIForm(Status):
         self.TargetPathFrame.pack(fill=X, side=TOP)
         self.StatusBar.pack()
 
+    # initialize all secondary windows
+    def create_windows(self) -> None:
+        self.SourcesLibraryWnd = SourcesLibraryForm(self.parameters, self.GUIWindow, library=self.sources_library, on_thumbnail_click_callback=self._set_source, on_window_close_callback=lambda: self.SourceLibraryVar.set(False))
+        if self.show_sources_library:
+            self.SourcesLibraryWnd.show()
+
     def format_target_info(self) -> str:
         return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
+
+    def set_topmost(self, on_top: bool = True) -> None:
+        self.GUIWindow.wm_attributes("-topmost", on_top)
+        self.GUIModel.Player.set_topmost(on_top)
+        self.SourcesLibraryWnd.set_topmost(on_top)
 
     def show(self) -> CTk:
         self.draw_controls()
@@ -226,6 +256,7 @@ class GUIForm(Status):
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.item('Target resolution', self.format_target_info())
         self.GUIModel.update_preview()
+        self.create_windows()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.set_topmost()
         if self.geometry:
@@ -243,10 +274,13 @@ class GUIForm(Status):
     def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
-            self.GUIModel.source_path = selected_file
-            self.SourcePathEntry.set_text(selected_file)
+            self._set_source(selected_file)
             return True
         return False
+
+    def _set_source(self, filename: str) -> None:
+        self.GUIModel.source_path = filename
+        self.SourcePathEntry.set_text(filename)
 
     def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)

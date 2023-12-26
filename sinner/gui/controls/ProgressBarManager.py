@@ -91,6 +91,7 @@ class ProgressBarManager:
 
     def update(self, name: str, value: float | None = None, max_value: float | None = None) -> None:
         self._parent.after(0, self._update, name, value, max_value)
+        self._parent.update()
 
     def _update(self, name: str, value: float | None = None, max_value: float | None = None) -> ProgressBar:
         bar = self.get(name, max_value=max_value, initial_value=value)

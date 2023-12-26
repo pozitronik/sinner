@@ -1,6 +1,7 @@
 import statistics
 
-from sinner.utilities import get_all_base_names, format_sequences, iteration_mean
+from sinner.utilities import get_all_base_names, format_sequences, iteration_mean, get_directory_file_list, is_image
+from tests.constants import state_frames_dir
 
 
 def test_get_all_base_names() -> None:
@@ -53,3 +54,10 @@ def test_iteration_mean() -> None:
         calculated_mean = iteration_mean(value, calculated_mean, iteration)
         # print(calculated_mean, statistics.mean(data_stream[:iteration+1]))
     assert calculated_mean == real_mean
+
+
+def test_get_directory_file_list() -> None:
+    file_list = get_directory_file_list(state_frames_dir)
+    assert len(file_list) == 11
+    file_list = get_directory_file_list(state_frames_dir, is_image)
+    assert len(file_list) == 10

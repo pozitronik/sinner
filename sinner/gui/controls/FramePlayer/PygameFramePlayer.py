@@ -113,3 +113,29 @@ class PygameFramePlayer(BaseFramePlayer):
     def bring_to_front(self) -> None:
         if WINDOWS:
             ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)  # type: ignore[attr-defined]  # platform issue
+
+
+"""
+
+    def geometry(self, geometry_string: str | None = None) -> str | None:
+        # mostly taken from customtkinter but ignores DPI scaling
+        if geometry_string is not None:
+            # update width and height attributes
+            self.width, self.height, self., self.y = self._parse_geometry_string(geometry_string)
+        else:
+            return f"{round(self.width)}x{round(self.height)}+{self.x}+{self.y}"
+
+    @staticmethod
+    def _parse_geometry_string(geometry_string: str) -> tuple:  # taken from customtkinter
+        #                 index:   1                   2           3          4             5       6
+        # regex group structure: ('<width>x<height>', '<width>', '<height>', '+-<x>+-<y>', '-<x>', '-<y>')
+        result = re.search(r"((\d+)x(\d+)){0,1}(\+{0,1}([+-]{0,1}\d+)\+{0,1}([+-]{0,1}\d+)){0,1}", geometry_string)
+
+        width = int(result.group(2)) if result.group(2) is not None else None
+        height = int(result.group(3)) if result.group(3) is not None else None
+        x = int(result.group(5)) if result.group(5) is not None else None
+        y = int(result.group(6)) if result.group(6) is not None else None
+
+        return width, height, x, y
+
+"""
