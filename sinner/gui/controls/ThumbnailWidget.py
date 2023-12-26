@@ -9,16 +9,14 @@ from sinner.utilities import get_file_name, is_image
 
 class ThumbnailWidget(Frame):
     thumbnails: List[Tuple[Label, Label]]
-    thumbnail_width: int
-    thumbnail_height: int
+    thumbnail_size: int
     _columns: int
     _canvas: Canvas
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         super().__init__(master, **kwargs)
         self.thumbnails = []
-        self.thumbnail_width = kwargs['thumbnail_width'] if 'thumbnail_width' in kwargs else 200
-        self.thumbnail_height = kwargs['thumbnail_height'] if 'thumbnail_height' in kwargs else 200
+        self.thumbnail_size = kwargs['thumbnail_size'] if 'thumbnail_size' in kwargs else 200
         self._canvas = Canvas(self)
         self._canvas.grid(row=0, column=0, sticky=NSEW)
         self._canvas.grid_rowconfigure(0, weight=1)
@@ -36,6 +34,28 @@ class ThumbnailWidget(Frame):
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 
+    @staticmethod
+    def get_thumbnail(image: Image, size: int):
+        """
+        Crops an image to a square with the given size, centering the crop around the middle of the image.
+        :param image: A PIL Image instance.
+        :param size: The desired size of each side of the square.
+        :return: A square PIL Image instance.
+        """
+        width, height = image.size
+
+        # Determine the size of the square and the coordinates to crop the image.
+        min_side = min(width, height)
+        left = (width - min_side) // 2
+        top = (height - min_side) // 2
+        right = (width + min_side) // 2
+        bottom = (height + min_side) // 2
+
+        # Crop and resize the image to the specified size.
+        image = image.crop((left, top, right, bottom))
+        image.thumbnail((size, size))
+        return image
+
     def add_thumbnail(self, image_path: str, caption: str | bool = True, click_callback: Callable[[str], None] | None = None) -> None:
         """
         Adds an image thumbnail to the widget
@@ -44,8 +64,7 @@ class ThumbnailWidget(Frame):
         :param click_callback: on thumbnail click callback
         """
         if is_image(image_path):
-            img = Image.open(image_path)
-            img.thumbnail((self.thumbnail_width, self.thumbnail_height))
+            img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
             photo = PhotoImage(img)
 
             thumbnail_label = Label(self.frame, image=photo)
@@ -53,7 +72,7 @@ class ThumbnailWidget(Frame):
             thumbnail_label.grid()
 
             # Create a label for the caption and set its width to match the thumbnail width
-            caption_label = Label(self.frame, wraplength=self.thumbnail_width)
+            caption_label = Label(self.frame, wraplength=self.thumbnail_size)
             if caption is not False:
                 if caption is True:
                     caption = get_file_name(image_path)
@@ -72,7 +91,7 @@ class ThumbnailWidget(Frame):
     # noinspection PyTypeChecker
     def update_layout(self) -> None:
         total_width = self.winfo_width()
-        self._columns = max(1, total_width // (self.thumbnail_width + 10))
+        self._columns = max(1, total_width // (self.thumbnail_size + 10))
         for i, (thumbnail, caption) in enumerate(self.thumbnails):
             row = i // self._columns
             col = i % self._columns
