@@ -1,6 +1,7 @@
 import os
 from argparse import Namespace
 
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.models.State import State
 from sinner.Status import Status
 from sinner.typing import Frame
@@ -10,6 +11,7 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 
 class FrameExtractor(BaseFrameProcessor):
     emoji: str = '🏃'
+    self_processing: bool = True
 
     def rules(self) -> Rules:
         return [
@@ -27,3 +29,6 @@ class FrameExtractor(BaseFrameProcessor):
 
     def process_frame(self, frame: Frame) -> Frame:
         return frame
+
+    def process(self, handler: BaseFrameHandler, state: State) -> None:
+        handler.get_frames_paths(path=state.path, frames_range=(state.processed_frames_count, None))
