@@ -4,6 +4,7 @@ from typing import List, Any, Callable
 
 from argparse import Namespace
 
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.models.State import State
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
@@ -13,6 +14,7 @@ from sinner.utilities import load_class, suggest_execution_providers, decode_exe
 
 class BaseFrameProcessor(ABC, Status):
     execution_provider: List[str]
+    self_processing: bool = False
 
     parameters: Namespace
 
@@ -56,4 +58,7 @@ class BaseFrameProcessor(ABC, Status):
         return decode_execution_providers(self.execution_provider)
 
     def configure_output_filename(self, callback: Callable[[str], None]) -> None:
+        pass
+
+    def process(self, handler: BaseFrameHandler, state: State) -> None:
         pass
