@@ -1,9 +1,8 @@
 import glob
 import os.path
-from asyncio import Future
 from pathlib import Path
 from typing import List
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 import cv2
 import psutil
 from cv2 import VideoCapture
@@ -91,7 +90,7 @@ class CV2VideoHandler(BaseFrameHandler):
         return self._resolution
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
-        def write_done(future_: Future[None]) -> None:
+        def write_done(future_: Future[bool]) -> None:
             progress.update()
 
         start = frames_range[0] if frames_range[0] is not None else 0
@@ -121,7 +120,7 @@ class CV2VideoHandler(BaseFrameHandler):
                         break
                     filename: str = os.path.join(path, str(frame_index).zfill(filename_length) + ".png")
                     # Submit only the write_to_image function to the executor, excluding it processing time from the loop
-                    future: Future[None] = executor.submit(write_to_image, frame, filename)
+                    future: Future[bool] = executor.submit(write_to_image, frame, filename)
                     future.add_done_callback(write_done)
                     future_to_frame[future] = frame_index  # Keep track of which frame the future corresponds to
 
