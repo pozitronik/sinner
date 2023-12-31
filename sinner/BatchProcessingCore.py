@@ -125,8 +125,10 @@ class BatchProcessingCore(Status):
             else:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames processed, continue processing with {state.processor_name}')
-
-                self.process(current_processor, handler, state)
+                if current_processor.self_processing:
+                    current_processor.process(handler, state)
+                else:
+                    self.process(current_processor, handler, state)
                 current_processor.release_resources()
             current_target_path = state.path
             temp_resources.append(state.path)

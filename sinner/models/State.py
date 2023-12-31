@@ -164,13 +164,13 @@ class State(Status):
                 if is_file(file_path) and os.path.getsize(file_path) == 0:
                     zero_sized_files_count += 1
             if zero_sized_files_count > 0:
-                self.update_status(message=f"There is zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
+                self.update_status(message=f"There are zero-sized files in {self.path} temp directory ({zero_sized_files_count} of {processed_frames_count}). Check for free disk space and access rights.", mood=Mood.BAD)
                 result = False
         lost_frames = []
         if self.final_check_integrity and not self.is_finished:
             lost_frames = self.check_integrity()
             if lost_frames:
-                self.update_status(message=f"There is lost frames in the processed sequence: {format_sequences(lost_frames)}", mood=Mood.BAD)
+                self.update_status(message=f"There are lost frames in the processed sequence: {format_sequences(lost_frames)}", mood=Mood.BAD)
                 result = False
 
         return result, lost_frames
