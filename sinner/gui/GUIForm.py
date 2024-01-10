@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, NS, Y
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, NS, Y, BOTTOM
 from tkinter.ttk import Spinbox
 from typing import List
 
@@ -238,7 +238,7 @@ class GUIForm(Status):
 
         self.ControlsFrame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.StatusBar.pack()
+        self.StatusBar.pack(fill=X, side=BOTTOM, expand=False)
 
     # initialize all secondary windows
     def create_windows(self) -> None:
