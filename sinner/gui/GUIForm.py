@@ -1,9 +1,10 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, NS, Y, BOTTOM
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM
 from tkinter.ttk import Spinbox
 from typing import List
 
 from customtkinter import CTk
+from psutil import WINDOWS
 
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
@@ -93,6 +94,9 @@ class GUIForm(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+        if WINDOWS:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # fixes the issue with different DPIs
         self.parameters = parameters
         super().__init__(parameters)
         #  Main window
