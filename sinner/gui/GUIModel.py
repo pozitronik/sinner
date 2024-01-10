@@ -311,8 +311,9 @@ class GUIModel(Status):
 
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
-            self.player_stop()
-            self.player_start(start_frame=frame_position, buffer_wait=False)
+            self.__stop_buffering()
+            self.TimeLine.rewind(frame_position - 1)
+            self.__start_buffering(frame_position)
         else:
             self.update_preview()
         self.position.set(frame_position)

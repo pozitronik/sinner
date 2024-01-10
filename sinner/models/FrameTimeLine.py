@@ -29,6 +29,11 @@ class FrameTimeLine:
         self._end_frame_index = end_frame
         self._start_frame_time = start_frame * frame_time
 
+    def rewind(self, frame_index: int) -> None:
+        self._start_frame_index = frame_index
+        self._start_frame_time = self._start_frame_index * self._frame_time
+        self._frames = {}
+
     # start the time counter
     def start(self) -> None:
         self._timer = time.perf_counter()
