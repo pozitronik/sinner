@@ -307,7 +307,7 @@ class GUIModel(Status):
 
     @property
     def player_is_started(self) -> bool:
-        return self._event_buffering.is_set() or self._event_playback.is_set()
+        return self._event_buffering.is_set() and self._event_playback.is_set()
 
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
