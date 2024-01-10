@@ -438,7 +438,7 @@ class GUIModel(Status):
                 self._shown_frames_count += 1
                 if self.TimeLine.last_returned_index is not None:
                     self.position.set(self.TimeLine.last_returned_index)
-                    self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.fps))
+                    self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
                 else:
                     self._status("Time position", "There's no ready frames")
             self.update_status("_show_frames loop done")
