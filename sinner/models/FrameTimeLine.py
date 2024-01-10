@@ -42,7 +42,11 @@ class FrameTimeLine:
     def time(self) -> float:
         return time.perf_counter() - self._timer
 
-    def time_position(self) -> float:
+    def real_time_position(self) -> float:
+        """
+        Return timeline position in seconds from the beginning of the processing
+        :return: float
+        """
         return self.time() + self._start_frame_time
 
     def has_frame(self, index: int) -> bool:
