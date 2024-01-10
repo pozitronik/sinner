@@ -304,5 +304,4 @@ class GUIForm(Status):
 
     def on_framedrop_change(self) -> object | str | list[str] | tuple[str, ...]:
         self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
-        print("Spinbox value is now:", self.GUIModel.framedrop)
-        return self.FrameDropSpinbox.get()
+        return self.FrameDropSpinbox.get()  # Required by Tkinter design, but not really used
