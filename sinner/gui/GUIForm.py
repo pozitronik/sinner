@@ -159,6 +159,7 @@ class GUIForm(Status):
 
         self.SubControlsFrame = Frame(self.ControlsFrame)
         self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
+        self.FrameDropSpinbox.set(-1)
 
         self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
