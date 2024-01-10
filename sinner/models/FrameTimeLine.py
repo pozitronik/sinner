@@ -71,7 +71,7 @@ class FrameTimeLine:
         self._last_returned_index = self.get_frame_index()
         if self._last_requested_index > self._end_frame_index:
             raise EOFError()
-
+        print("Last requested/returned frame:", f"{self._last_requested_index}/{self._last_returned_index}")
         return self._frames[self._last_returned_index] if self._last_returned_index else None
 
     # naive stub
