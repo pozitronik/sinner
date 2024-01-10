@@ -207,7 +207,6 @@ class GUIForm(Status):
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
-
         self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
@@ -266,16 +265,19 @@ class GUIForm(Status):
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.set_topmost()
         if self.geometry:
-            self.GUIWindow.update()
-            self.GUIWindow.update_idletasks()
-            current_size_part, _ = self.GUIWindow.geometry().split('+', 1)
-            current_height = int(current_size_part.split('x')[1])
-            size_part, position_part = self.geometry.split('+', 1)
-            requested_width = int(size_part.split('x')[0])
-            self.GUIWindow.geometry(f"{requested_width}x{current_height}+{position_part}")
+            self.load_geometry()
         if self.state:
             self.GUIWindow.wm_state(self.state)
         return self.GUIWindow
+
+    def load_geometry(self) -> None:
+        self.GUIWindow.update()
+        self.GUIWindow.update_idletasks()
+        current_size_part, _ = self.GUIWindow.geometry().split('+', 1)
+        current_height = int(current_size_part.split('x')[1])
+        size_part, position_part = self.geometry.split('+', 1)
+        requested_width = int(size_part.split('x')[0])
+        self.GUIWindow.geometry(f"{requested_width}x{current_height}+{position_part}")
 
     def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
