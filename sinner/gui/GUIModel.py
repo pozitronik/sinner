@@ -436,8 +436,11 @@ class GUIModel(Status):
                     continue
                 self.Player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
-                self.position.set(self.TimeLine.last_returned_index)
-                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.fps))
+                if self.TimeLine.last_returned_index is not None:
+                    self.position.set(self.TimeLine.last_returned_index)
+                    self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.fps))
+                else:
+                    self._status("Time position", "There's no ready frames")
             self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
