@@ -1,5 +1,6 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
+from tkinter.ttk import Spinbox
 from typing import List
 
 from customtkinter import CTk
@@ -154,6 +155,8 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
+        self.FrameDropSpinbox: Spinbox = Spinbox(self.ControlsFrame, from_=0, to=9999, increment=1, command=lambda: self.on_framedrop_change())
+
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
 
@@ -210,7 +213,7 @@ class GUIForm(Status):
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get())) # type: ignore[no-untyped-call]  # it is a library method
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
@@ -227,7 +230,8 @@ class GUIForm(Status):
         self.update_slider_bounds()
         self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
         self.RunButton.pack(anchor=CENTER, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+        self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
+        self.QualityScale.pack(anchor=CENTER, side=LEFT, expand=True, fill=BOTH)
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeSourceButton.pack(side=RIGHT)
         self.SourcePathFrame.pack(fill=X, side=TOP)
@@ -307,3 +311,8 @@ class GUIForm(Status):
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
             self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
+
+    def on_framedrop_change(self) -> object | str | list[str] | tuple[str, ...]:
+        self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
+        print("Spinbox value is now:", self.GUIModel.framedrop)
+        return self.FrameDropSpinbox.get()

@@ -72,6 +72,7 @@ class GUIModel(Status):
     _shown_frames_count: int = 0  # the overall count of shown frames
     _current_framedrop: int = 0  # the current value of frames skipped on each processing iteration
     _framedrop_delta: int | None = None  # the required index of preprocessed frames
+    _framedrop: int = 0  # the manual value of dropped frames
 
     _process_fps: float = 0
 
@@ -313,6 +314,14 @@ class GUIModel(Status):
             return 1
         if self._frame_mode is FrameMode.SKIP:
             return self.calculate_framedrop() + 1
+
+    @property
+    def framedrop(self) -> int:
+        return self._framedrop
+
+    @framedrop.setter
+    def framedrop(self, value: int) -> None:
+        self._framedrop = value
 
     @property
     def player_is_started(self) -> bool:
