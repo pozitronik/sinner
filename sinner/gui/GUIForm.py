@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, NS, Y
 from tkinter.ttk import Spinbox
 from typing import List
 
@@ -144,8 +144,8 @@ class GUIForm(Status):
         self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
-        self.ControlsFrame = Frame(self.GUIWindow)
-        self.RunButton: Button = Button(self.ControlsFrame, text="PLAY", compound=LEFT, command=lambda: on_self_run_button_press())
+        self.ButtonsFrame = Frame(self.GUIWindow)
+        self.RunButton: Button = Button(self.ButtonsFrame, text="PLAY", width=10, command=lambda: on_self_run_button_press())
 
         def on_self_run_button_press() -> None:
             if self.GUIModel.player_is_started:
@@ -155,18 +155,21 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.FrameDropSpinbox: Spinbox = Spinbox(self.ControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
+        self.ControlsFrame = Frame(self.GUIWindow)
 
-        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
+        self.SubControlsFrame = Frame(self.ControlsFrame)
+        self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
+
+        self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
 
         # source/target selection controls
-        self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state='readonly')
         self.SelectSourceDialog = filedialog
         self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.change_source())
 
-        self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.TargetPathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
         self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state='readonly')
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
@@ -218,16 +221,23 @@ class GUIForm(Status):
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()
-        self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
-        self.RunButton.pack(anchor=CENTER, side=LEFT)
+        self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
+        self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
+
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, side=LEFT, expand=True, fill=BOTH)
+        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH)
+        self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
+
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
-        self.ChangeSourceButton.pack(side=RIGHT)
-        self.SourcePathFrame.pack(fill=X, side=TOP)
+        self.ChangeSourceButton.pack(side=LEFT)
+        self.SourcePathFrame.pack(fill=X, side=TOP, expand=True)
+
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.pack(side=LEFT)
-        self.TargetPathFrame.pack(fill=X, side=TOP)
+        self.TargetPathFrame.pack(fill=X, side=TOP, expand=True)
+
+        self.ControlsFrame.pack(side=LEFT, fill=BOTH, expand=True)
+
         self.StatusBar.pack()
 
     # initialize all secondary windows
