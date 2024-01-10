@@ -3,7 +3,6 @@ import threading
 import time
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
-from enum import Enum
 from tkinter import IntVar
 from typing import List, Callable, Any
 
@@ -29,12 +28,6 @@ from sinner.typing import FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules
 
-
-class FrameMode(Enum):
-    ALL = "Play all frames"
-    SKIP = "Skip frames to match the original speed"
-
-
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
 
@@ -50,7 +43,6 @@ class GUIModel(Status):
     _prepare_frames: bool  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
     _initial_frame_buffer_length: int  # frames needs to be rendered before player start. Also used to determine initial frame drop
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    _frame_mode: FrameMode
 
     parameters: Namespace
 
@@ -145,7 +137,6 @@ class GUIModel(Status):
         ]
 
     def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any]):
-        self._frame_mode: FrameMode = FrameMode.SKIP
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -295,14 +286,6 @@ class GUIModel(Status):
         self._previews.clear()
 
     @property
-    def frame_mode(self) -> FrameMode:
-        return self._frame_mode
-
-    @frame_mode.setter
-    def frame_mode(self, value: FrameMode) -> None:
-        self._frame_mode = value
-
-    @property
     def framedrop_delta(self) -> int:
         if self._framedrop_delta is None:
             self._framedrop_delta = int(self.frame_handler.fps * 5)  # 5 seconds should be enough
@@ -310,10 +293,9 @@ class GUIModel(Status):
 
     @property
     def frame_step(self) -> int:
-        if self._frame_mode is FrameMode.ALL:
-            return 1
-        if self._frame_mode is FrameMode.SKIP:
+        if self.framedrop == -1:
             return self.calculate_framedrop() + 1
+        return self.framedrop + 1
 
     @property
     def framedrop(self) -> int:

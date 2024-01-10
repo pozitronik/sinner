@@ -6,7 +6,7 @@ from typing import List
 from customtkinter import CTk
 
 from sinner.Status import Status
-from sinner.gui.GUIModel import GUIModel, FrameMode
+from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
@@ -155,7 +155,7 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.FrameDropSpinbox: Spinbox = Spinbox(self.ControlsFrame, from_=0, to=9999, increment=1, command=lambda: self.on_framedrop_change())
+        self.FrameDropSpinbox: Spinbox = Spinbox(self.ControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
 
         self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
@@ -183,16 +183,6 @@ class GUIForm(Status):
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
             if save_file != '':
                 self.GUIModel.Player.save_to_file(save_file)
-
-        self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
-
-        self.ModeSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.ModeSubMenu, label='Playback mode')  # type: ignore[no-untyped-call]  # it is a library method
-        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.ALL.value, command=lambda: set_framerate_mode(FrameMode.ALL))  # type: ignore[no-untyped-call]  # it is a library method
-        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.SKIP.value, command=lambda: set_framerate_mode(FrameMode.SKIP))  # type: ignore[no-untyped-call]  # it is a library method
-
-        def set_framerate_mode(mode: FrameMode) -> None:
-            self.GUIModel.frame_mode = mode
 
         self.RotateModeVar: StringVar = StringVar(value=RotateMode.ROTATE_0.value)
 
