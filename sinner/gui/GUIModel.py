@@ -171,7 +171,7 @@ class GUIModel(Status):
 
         if self.player_is_started:  # todo: возможно оно и не надо
             self.player_stop()
-            self.player_start(start_frame=self.TimeLine.last_read_index, buffer_wait=False)
+            self.player_start(start_frame=self.TimeLine.last_requested_index, buffer_wait=False)
         else:
             self.update_preview()
 
@@ -436,17 +436,17 @@ class GUIModel(Status):
                     continue
                 self.Player.show_frame(n_frame.frame)
                 self._shown_frames_count += 1
-                self.position.set(self.TimeLine.last_read_index)
+                self.position.set(self.TimeLine.last_requested_index)
                 self._status("Time position", seconds_to_hmsms(self.TimeLine.time_position()))
             self.update_status("_show_frames loop done")
 
     # return the count of the skipped frames for the next iteration
     def calculate_framedrop(self) -> int:
         previous_framedrop = self._current_framedrop
-        if (self.TimeLine.last_written_index - self.framedrop_delta) > self.TimeLine.last_read_index:  # buffering is too fast, framedrop can be decreased
+        if (self.TimeLine.last_written_index - self.framedrop_delta) > self.TimeLine.last_requested_index:  # buffering is too fast, framedrop can be decreased
             if self._current_framedrop > 0:
                 self._current_framedrop -= 1
-        elif self.TimeLine.last_written_index < self.TimeLine.last_read_index:  # buffering is too slow, need to increase framedrop
+        elif self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # buffering is too slow, need to increase framedrop
             self._current_framedrop += 1
 
         # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self.TimeLine.last_written_index}/{self.TimeLine.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")

@@ -15,7 +15,8 @@ class FrameTimeLine:
 
     _is_started: bool
     _last_written_index: int = 0
-    _last_read_index: int = 0
+    _last_requested_index: int = 0
+    _last_returned_index: int | None = None
 
     def __init__(self, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0):
         self.reload(frame_time, start_frame, end_frame)
@@ -58,11 +59,11 @@ class FrameTimeLine:
     def get_frame(self) -> NumberedFrame | None:
         if not self._is_started:
             self.start()
-        frame_index = self.get_frame_index()
-        if self._last_read_index > self._end_frame_index:
+        self._last_returned_index = self.get_frame_index()
+        if self._last_requested_index > self._end_frame_index:
             raise EOFError()
 
-        return self._frames[frame_index] if frame_index else None
+        return self._frames[self._last_returned_index] if self._last_returned_index else None
 
     # naive stub
     def last_index_before(self, index: int) -> int | None:
@@ -77,15 +78,27 @@ class FrameTimeLine:
     def get_frame_index(self) -> int | None:
         time_position = self.time()
         frame_position = time_position / self._frame_time
-        self._last_read_index = int(frame_position) + self._start_frame_index
-        if self.has_frame(self._last_read_index):
-            return self._last_read_index
-        return self.last_index_before(self._last_read_index)
+        self._last_requested_index = int(frame_position) + self._start_frame_index
+        if self.has_frame(self._last_requested_index):
+            return self._last_requested_index
+        return self.last_index_before(self._last_requested_index)
 
     @property
     def last_written_index(self) -> int:
         return self._last_written_index
 
     @property
-    def last_read_index(self) -> int:
-        return self._last_read_index
+    def last_requested_index(self) -> int:
+        """
+        The last requested real frame index (matching to the real timeline)
+        :return: int
+        """
+        return self._last_requested_index
+
+    @property
+    def last_returned_index(self) -> int | None:
+        """
+        The last returned frame index (prepared in the timeline), None if there's no prepared frame
+        :return: int | None
+        """
+        return self._last_returned_index
