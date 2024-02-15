@@ -143,7 +143,7 @@ class GUIModel(Status):
         if self.bootstrap_processors:
             self._processors = self.processors
 
-        self.TimeLine = FrameTimeLine()
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self.target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
         self.ProgressBarsManager = pb_control
         self._status = status_callback
@@ -391,6 +391,9 @@ class GUIModel(Status):
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
+                if self.TimeLine.has_frame(start_frame):
+                    start_frame += self.frame_step
+                    continue
                 future: Future[None] = executor.submit(self._process_frame, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
