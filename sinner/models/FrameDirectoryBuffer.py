@@ -9,9 +9,6 @@ from sinner.models.NumberedFrame import NumberedFrame
 from sinner.utilities import is_absolute_path, path_exists, get_file_name
 
 
-# Internal class, used to implement extracted frames buffering
-# Was a part of experiment of frame processing acceleration
-# Currently isn't used.
 class FrameDirectoryBuffer:
     _temp_dir: str
     _zfill_length: int | None
@@ -50,11 +47,6 @@ class FrameDirectoryBuffer:
 
     @property
     def path(self) -> str:
-        """
-        Processors may not need the source or (in theory) the target. Method tries to configure a part of state path
-        for any situation
-        :return: adapted state path
-        """
         if self._path is None:
             sub_path = (os.path.basename(self.target_name or ''), os.path.basename(self.source_name or ''))
             self._path = os.path.abspath(os.path.join(self.temp_dir, *sub_path))

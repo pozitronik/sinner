@@ -379,7 +379,7 @@ class GUIModel(Status):
             if not self._event_playback.is_set():
                 if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
                     self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
-                    self.init_framedrop()
+                    # self.init_framedrop() # disable framedrop for now
                     self.__start_playback()
                 else:
                     if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
@@ -397,7 +397,8 @@ class GUIModel(Status):
                 future: Future[None] = executor.submit(self._process_frame, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
-                start_frame += self.frame_step
+                # start_frame += self.frame_step
+                start_frame += 1  # disable framedrop for now
 
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
