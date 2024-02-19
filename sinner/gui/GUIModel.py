@@ -60,6 +60,7 @@ class GUIModel(Status):
     _status: Callable[[str, str], Any]
 
     # player counters
+    _buffered_frames_count: int = 0  # counter of buffered frames
     _processed_frames_count: int = 0  # the overall count of processed frames
     _shown_frames_count: int = 0  # the overall count of shown frames
     _current_framedrop: int = 0  # the current value of frames skipped on each processing iteration
@@ -293,9 +294,10 @@ class GUIModel(Status):
 
     @property
     def frame_step(self) -> int:
-        if self.framedrop == -1:
-            return self.calculate_framedrop() + 1
-        return self.framedrop + 1
+        return 1
+        # if self.framedrop == -1:
+        #     return self.calculate_framedrop() + 1
+        # return self.framedrop + 1
 
     @property
     def framedrop(self) -> int:
@@ -319,13 +321,12 @@ class GUIModel(Status):
         self.position.set(frame_position)
         self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
 
-    def player_start(self, start_frame: int, buffer_wait: bool = True) -> None:
+    def player_start(self, start_frame: int) -> None:
         if not self.player_is_started:
             self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
             self.extract_frames()
             self.__start_buffering(start_frame)
-            if not buffer_wait:  # otherwise playback will be started by the buffering thread when the pre-buffering is done
-                self.__start_playback()
+            self.__start_playback()
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         if self.player_is_started:
@@ -343,12 +344,9 @@ class GUIModel(Status):
         if not self._event_buffering.is_set():
             self._event_buffering.set()
             self._processed_frames_count = 0
-            self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
-                'start_frame': start_frame,
-                'end_frame': self.frame_handler.fc
-            })
-            self._process_frames_thread.daemon = True
-            self._process_frames_thread.start()
+            self._buffered_frames_count = 0
+            self._process_fps = self._process_buffering(start_frame, self.frame_handler.fc)
+            self.update_status(f"frames buffering is done, mean time: {self._process_fps}")
 
     def __stop_buffering(self) -> None:
         if self._event_buffering.is_set() and self._process_frames_thread:
@@ -357,6 +355,52 @@ class GUIModel(Status):
             self._processed_frames_count = 0
             self._process_frames_thread.join(1)
             self._process_frames_thread = None
+
+    def _process_buffering(self, start_frame: int, end_frame: int) -> float:
+        """
+        Pre-process some frames and calculates mean processing frame time
+        :param start_frame: frame to start with
+        :param end_frame: last frame number (end of vide0)
+        :returns mean processing time for a frame
+        """
+
+        def buffering_done(future_: Future[float | None]) -> None:
+            process_time = future_.result()
+            if process_time:
+                results.append(process_time)
+            futures.remove(future_)
+            if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
+                self._buffered_frames_count += 1
+                # зависает!
+                # self.ProgressBarsManager.update(name=BUFFERING_PROGRESS_NAME, value=self._buffered_frames_count, max_value=self._initial_frame_buffer_length)
+
+        futures: list[Future[None]] = []
+        results: list[float] = []
+        self._buffered_frames_count: int = 0
+
+        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
+            while (self._buffered_frames_count < self._initial_frame_buffer_length) or (start_frame >= end_frame):
+                if self.TimeLine.has_frame(start_frame):
+                    start_frame += 1  # skip, if already rendered
+                    continue
+                self.update_status(f"submitting {start_frame}")
+                future: Future[float | None] = executor.submit(self._process_frame, start_frame)
+                future.add_done_callback(buffering_done)
+                futures.append(future)
+                start_frame += 1
+
+                if len(futures) > self._initial_frame_buffer_length:
+                    executor.shutdown()
+                    break
+
+                self._status("Memory usage(resident/virtual)", self.get_mem_usage())
+
+                if not self._event_buffering.is_set():
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
+                    break
+            self.update_status("_process_buffering loop done")
+            return sum(results)/len(results)
 
     def __start_playback(self) -> None:
         if not self._event_playback.is_set():
@@ -397,8 +441,7 @@ class GUIModel(Status):
                 future: Future[None] = executor.submit(self._process_frame, start_frame)
                 future.add_done_callback(process_done)
                 futures.append(future)
-                # start_frame += self.frame_step
-                start_frame += 1  # disable framedrop for now
+                start_frame += self.frame_step
 
                 if len(futures) >= self.execution_threads:
                     futures[:1][0].result()
@@ -411,21 +454,24 @@ class GUIModel(Status):
                     break
             self.update_status("_process_frames loop done")
 
-    def _process_frame(self, frame_index: int) -> None:
-        if self._event_buffering.is_set():
-            with PerfCounter() as frame_render_time:  # todo: already processed frames shouldn't be reprocessed
-                try:
-                    n_frame = self.frame_handler.extract_frame(frame_index)  # todo: can be cached
-                except EOutOfRange:
-                    self.update_status(f"There's no frame {frame_index}")
-                    return
-                n_frame.frame = scale(n_frame.frame, self._scale_quality)
-                for _, processor in self.processors.items():
-                    n_frame.frame = processor.process_frame(n_frame.frame)
-            self.TimeLine.add_frame(n_frame)
-            self._processed_frames_count += 1
-            self._process_fps = iteration_mean(1 / frame_render_time.execution_time, self._process_fps, self._processed_frames_count)
-            self._status("FPS (last/mean)", f"{round(1 / frame_render_time.execution_time, ndigits=3)}/{round(self._process_fps, ndigits=3)}")
+    def _process_frame(self, frame_index: int) -> float | None:
+        """
+        Renders a frame with the current processors set
+        :param frame_index: the frame index
+        :return: the render time, or None on error
+        """
+        try:
+            n_frame = self.frame_handler.extract_frame(frame_index)
+        except EOutOfRange:
+            self.update_status(f"There's no frame {frame_index}")
+            return None
+        n_frame.frame = scale(n_frame.frame, self._scale_quality)
+        with PerfCounter() as frame_render_time:
+            for _, processor in self.processors.items():
+                self.update_status(f"processing {frame_index}")
+                n_frame.frame = processor.process_frame(n_frame.frame)
+        self.TimeLine.add_frame(n_frame)
+        return frame_render_time.execution_time
 
     def _show_frames(self) -> None:
         if self.Player:
