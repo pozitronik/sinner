@@ -313,7 +313,7 @@ class GUIModel(Status):
 
     @property
     def player_is_started(self) -> bool:
-        return self._event_buffering.is_set() and self._event_playback.is_set()
+        return self._event_buffering.is_set() or self._event_processing.is_set() or self._event_playback.is_set()
 
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
@@ -336,6 +336,7 @@ class GUIModel(Status):
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         if self.player_is_started:
             self.__stop_buffering()
+            self.__stop_processing()
             self.__stop_playback()
             if self.TimeLine:
                 self.TimeLine.stop()
@@ -422,7 +423,7 @@ class GUIModel(Status):
     def __stop_processing(self) -> None:
         if self._event_processing.is_set():
             self._event_processing.clear()
-            self._process_frames_thread.join()
+            self._process_frames_thread.join(1)
             self._process_frames_thread = None
 
     def __start_playback(self) -> None:
