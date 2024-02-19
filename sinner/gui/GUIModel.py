@@ -295,9 +295,9 @@ class GUIModel(Status):
     @property
     def frame_step(self) -> int:
         return 1
-        # if self.framedrop == -1:
-        #     return self.calculate_framedrop() + 1
-        # return self.framedrop + 1
+        if self.framedrop == -1:
+            return self.calculate_framedrop() + 1
+        return self.framedrop + 1
 
     @property
     def framedrop(self) -> int:
@@ -363,7 +363,6 @@ class GUIModel(Status):
         :param end_frame: last frame number (end of vide0)
         :returns mean processing time for a frame
         """
-
         def buffering_done(future_: Future[float | None]) -> None:
             process_time = future_.result()
             if process_time:
@@ -418,16 +417,13 @@ class GUIModel(Status):
             self._show_frames_thread = None
 
     def _process_frames(self, start_frame: int, end_frame: int) -> None:
+        """
+        renders all frames between start_frame and end_frame
+        :param start_frame:
+        :param end_frame:
+        """
         def process_done(future_: Future[None]) -> None:
             futures.remove(future_)
-            if not self._event_playback.is_set():
-                if self._processed_frames_count >= self._initial_frame_buffer_length or start_frame >= end_frame:
-                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
-                    # self.init_framedrop() # disable framedrop for now
-                    self.__start_playback()
-                else:
-                    if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
-                        self.ProgressBarsManager.update(name=BUFFERING_PROGRESS_NAME, value=self._processed_frames_count, max_value=self._initial_frame_buffer_length)
 
         futures: list[Future[None]] = []
         self._processed_frames_count = 0
@@ -448,7 +444,7 @@ class GUIModel(Status):
 
                 self._status("Memory usage(resident/virtual)", self.get_mem_usage())
 
-                if not self._event_buffering.is_set():
+                if not self._event_playback.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
                     break
