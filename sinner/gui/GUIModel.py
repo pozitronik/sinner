@@ -331,7 +331,7 @@ class GUIModel(Status):
             self.extract_frames()
             self.__start_buffering(start_frame)  # pre-buffer some frames
             self.__start_processing(start_frame)  # run the main rendering process
-            # self.__start_playback()  # run the separate playback
+            self.__start_playback()  # run the separate playback
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         if self.player_is_started:
@@ -456,23 +456,22 @@ class GUIModel(Status):
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
-                if self.TimeLine.has_frame(start_frame):
-                    start_frame += self.frame_step
-                    continue
-                future: Future[None] = executor.submit(self._process_frame, start_frame)
-                future.add_done_callback(process_done)
-                futures.append(future)
+                if not self.TimeLine.has_frame(start_frame):
+                    future: Future[None] = executor.submit(self._process_frame, start_frame)
+                    future.add_done_callback(process_done)
+                    futures.append(future)
+
+                    if len(futures) >= self.execution_threads:
+                        futures[:1][0].result()
+
+                    self._status("Memory usage(resident/virtual)", self.get_mem_usage())
+
+                if not self._event_processing.is_set():
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    break
+
                 start_frame += self.frame_step
 
-                if len(futures) >= self.execution_threads:
-                    futures[:1][0].result()
-
-                self._status("Memory usage(resident/virtual)", self.get_mem_usage())
-
-                if not self._event_playback.is_set():
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
-                    break
             self.update_status("_process_frames loop done")
 
     def _process_frame(self, frame_index: int) -> float | None:
