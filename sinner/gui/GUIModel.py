@@ -287,7 +287,7 @@ class GUIModel(Status):
         :return:
         """
         if self.framedrop == -1:  # auto
-            return int(self.frame_handler.fps / self._process_fps)
+            return int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
         return self.framedrop + 1
 
     @property
@@ -375,11 +375,12 @@ class GUIModel(Status):
                     results.pop(0)
                 results.append(process_time)
                 self._process_fps = sum(results) / len(results) * self.execution_threads
-                self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS")
+                self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS/{frame_skip}")
             futures.remove(future_)
 
         futures: list[Future[None]] = []
         results: list[float] = []
+        frame_skip: int = 0
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
@@ -396,8 +397,7 @@ class GUIModel(Status):
                 if not self._event_processing.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
-                frame_step = self.frame_skip
-                self._status("Frame skip", str(frame_step))
+                frame_skip = self.frame_skip
                 start_frame += self.frame_skip
 
             self.update_status("_process_frames loop done")
