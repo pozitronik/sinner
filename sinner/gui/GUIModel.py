@@ -140,7 +140,7 @@ class GUIModel(Status):
         if self.bootstrap_processors:
             self._processors = self.processors
 
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self.target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
         self.ProgressBarsManager = pb_control
         self._status = status_callback
