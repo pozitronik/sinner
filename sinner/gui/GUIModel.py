@@ -432,8 +432,11 @@ class GUIModel(Status):
         def process_done(future_: Future[float | None]) -> None:
             process_time = future_.result()
             if process_time:
+                if len(results) >= 30:  # limit mean time base to last 30 executions
+                    results.pop(0)
                 results.append(process_time)
                 self._process_fps = sum(results) / len(results)
+                self._status("Processing FPS", str(self._process_fps))
             futures.remove(future_)
 
         futures: list[Future[None]] = []
@@ -444,7 +447,7 @@ class GUIModel(Status):
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
                 if not self.TimeLine.has_frame(start_frame):
-                    future: Future[None] = executor.submit(self._process_frame, start_frame)
+                    future: Future[float | None] = executor.submit(self._process_frame, start_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
 
