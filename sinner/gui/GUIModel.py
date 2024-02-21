@@ -182,6 +182,7 @@ class GUIModel(Status):
         self.Player.clear()
         if self.player_is_started:
             self.player_stop(reload_frames=True)
+            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
             self.position.set(1)
             self.player_start(start_frame=1)
         else:
