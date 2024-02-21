@@ -285,11 +285,6 @@ def suggest_temp_dir(initial: str | None = None) -> str:
     return os.path.join(get_app_dir(), TEMP_DIRECTORY)
 
 
-# calculates iteration median using previous calculated median, current iteration value and iteration counter
-def iteration_mean(current_value: float, previous_value: float, iteration: int) -> float:
-    return current_value if iteration == 0 else (previous_value * iteration + current_value) / (iteration + 1)
-
-
 def seconds_to_hmsms(seconds: float) -> str:
     time_format = datetime.utcfromtimestamp(seconds).strftime("%H:%M:%S.%f")
     return time_format[:-3]  # Remove the last three digits to get milliseconds

@@ -25,7 +25,7 @@ from sinner.models.State import State
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
-from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, iteration_mean, seconds_to_hmsms, normalize_path, get_mem_usage
+from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules
 
 BUFFERING_PROGRESS_NAME = "Buffering"
@@ -457,28 +457,6 @@ class GUIModel(Status):
                     self.position.set(self.TimeLine.last_returned_index)
                     self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
             self.update_status("_show_frames loop done")
-
-    # return the count of the skipped frames for the next iteration
-    def calculate_framedrop(self) -> int:
-        previous_framedrop = self._current_framedrop
-        if (self.TimeLine.last_written_index - self.framedrop_delta) > self.TimeLine.last_requested_index:  # buffering is too fast, framedrop can be decreased
-            if self._current_framedrop > 0:
-                self._current_framedrop -= 1
-        elif self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # buffering is too slow, need to increase framedrop
-            self._current_framedrop += 1
-
-        # self.update_status(f"current_frame_drop: {self._current_framedrop} (w/r: {self.TimeLine.last_written_index}/{self.TimeLine.last_read_index}, p/s: {self._processed_frames_count}/{self._shown_frames_count})")
-        if self._current_framedrop != previous_framedrop:
-            self._status("Frame drop", str(self._current_framedrop))
-        return self._current_framedrop
-
-    def init_framedrop(self) -> None:
-        if self._process_fps == 0:  # by some reasons it is not inited
-            self._current_framedrop = 0
-        else:
-            self._current_framedrop = round(self.frame_handler.fps / self._process_fps) - 1
-        if self._current_framedrop < 0:
-            self._current_framedrop = 0
 
     def extract_frames(self) -> bool:
         if self._prepare_frames is not False and not self._is_target_frames_extracted:
