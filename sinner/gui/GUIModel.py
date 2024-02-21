@@ -287,11 +287,13 @@ class GUIModel(Status):
         :return:
         """
         if self.framedrop == -1:  # auto
-            auto_frame_skip = int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
-            if self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # if processing is too late
-                auto_frame_skip += int((self.TimeLine.last_requested_index - self.TimeLine.last_written_index))  # push it a little forward
-            return auto_frame_skip
-        return self.framedrop + 1
+            frame_skip = int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
+        else:
+            frame_skip = self.framedrop + 1
+
+        if self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # if processing is too late
+            frame_skip += int((self.TimeLine.last_requested_index - self.TimeLine.last_written_index))  # push it a little forward
+        return frame_skip
 
     @property
     def framedrop(self) -> int:
@@ -378,7 +380,7 @@ class GUIModel(Status):
                     results.pop(0)
                 results.append(process_time)
                 self._process_fps = sum(results) / len(results) * self.execution_threads
-                self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS/{frame_skip}")
+                self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS/{frame_skip - 1}")
             futures.remove(future_)
 
         futures: list[Future[None]] = []
