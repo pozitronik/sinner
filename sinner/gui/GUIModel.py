@@ -346,7 +346,7 @@ class GUIModel(Status):
             self._process_frames_thread.start()
 
     def __stop_processing(self) -> None:
-        if self._event_processing.is_set():
+        if self._event_processing.is_set() and self._process_frames_thread:
             self._event_processing.clear()
             self._process_frames_thread.join(1)
             self._process_frames_thread = None
