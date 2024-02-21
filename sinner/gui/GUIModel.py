@@ -60,7 +60,6 @@ class GUIModel(Status):
     _status: Callable[[str, str], Any]
 
     # player counters
-    _buffered_frames_count: int = 0  # counter required to determine the real count of buffered frames
     _shown_frames_count: int = 0  # the overall count of shown frames
     _current_framedrop: int = 0  # the current value of frames skipped on each processing iteration
     _framedrop_delta: int | None = None  # the required index of preprocessed frames
@@ -342,50 +341,6 @@ class GUIModel(Status):
                 time.sleep(1)  # Allow time for the thread to respond
             if reload_frames:
                 self._is_target_frames_extracted = False
-
-    def _process_buffering(self, start_frame: int, end_frame: int) -> float:
-        """
-        Pre-process some frames and calculates mean processing frame time
-        :param start_frame: frame to start with
-        :param end_frame: last frame number (end of vide0)
-        :returns mean processing time for a frame
-        """
-
-        def buffering_done(future_: Future[float | None]) -> None:
-            process_time = future_.result()
-            if process_time:
-                results.append(process_time)
-            futures.remove(future_)
-            if self._event_buffering.is_set():  # need to check to avoid ghost progressbar
-                self._buffered_frames_count += 1
-                # зависает! fixme
-                # self.ProgressBarsManager.update(name=BUFFERING_PROGRESS_NAME, value=self._buffered_frames_count, max_value=self._initial_frame_buffer_length)
-
-        futures: list[Future[None]] = []
-        results: list[float] = []
-        self._buffered_frames_count: int = 0
-
-        with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
-            while (self._buffered_frames_count < self._initial_frame_buffer_length) or (start_frame >= end_frame):
-                if not self.TimeLine.has_frame(start_frame):
-                    future: Future[float | None] = executor.submit(self._process_frame, start_frame)
-                    future.add_done_callback(buffering_done)
-                    futures.append(future)
-
-                    if len(futures) > self._initial_frame_buffer_length:
-                        executor.shutdown()
-                        break
-
-                    self._status("Memory usage(resident/virtual)", self.get_mem_usage())
-
-                if not self._event_buffering.is_set():
-                    executor.shutdown(wait=False, cancel_futures=True)
-                    self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
-                    break
-
-                start_frame += 1
-
-            return sum(results) / len(results)
 
     def __start_processing(self, start_frame: int) -> None:
         """
