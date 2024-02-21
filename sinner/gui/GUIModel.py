@@ -287,13 +287,8 @@ class GUIModel(Status):
         :return:
         """
         if self.framedrop == -1:  # auto
-            frame_skip = int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
-        else:
-            frame_skip = self.framedrop + 1
-
-        if self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # if processing is too late
-            frame_skip += int((self.TimeLine.last_requested_index - self.TimeLine.last_written_index))  # push it a little forward
-        return frame_skip
+            return int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
+        return self.framedrop + 1
 
     @property
     def framedrop(self) -> int:
@@ -403,7 +398,11 @@ class GUIModel(Status):
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
                 frame_skip = self.frame_skip
-                start_frame += self.frame_skip
+
+                if self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # if processing is too late
+                    start_frame = frame_skip + self.TimeLine.last_requested_index  # push it a little forward
+                else:
+                    start_frame += self.frame_skip
 
             self.update_status("_process_frames loop done")
 
