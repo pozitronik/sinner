@@ -390,8 +390,8 @@ class GUIModel(Status):
                 if len(results) >= 30:  # limit mean time base to last 30 executions
                     results.pop(0)
                 results.append(process_time)
-                self._process_fps = sum(results) / len(results)
-                self._status("Processing FPS", f"{round(self._process_fps, 4)}")
+                self._process_fps = sum(results) / len(results) * self.execution_threads
+                self._status("Processing FPS", f"{round(self._process_fps, 4)}FPS")
             futures.remove(future_)
 
         futures: list[Future[None]] = []
