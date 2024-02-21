@@ -61,10 +61,13 @@ class FrameTimeLine:
                 self._last_written_index = frame.index
 
     # return the frame at current time position, or None, if there's no frame
-    def get_frame(self) -> NumberedFrame | None:
+    def get_frame(self, time_aligned: bool = True) -> NumberedFrame | None:
         if not self._is_started:
             self.start()
-        self._last_requested_index = self.get_frame_index()
+        if time_aligned:
+            self._last_requested_index = self.get_frame_index()
+        else:
+            self._last_requested_index = self.last_written_index
         if self._last_requested_index > self._end_frame_index:
             raise EOFError()
 
