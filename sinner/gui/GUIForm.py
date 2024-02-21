@@ -96,7 +96,7 @@ class GUIForm(Status):
     def __init__(self, parameters: Namespace):
         if WINDOWS:
             import ctypes
-            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # fixes the issue with different DPIs
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # type: ignore[attr-defined]  # it is a library method fixes the issue with different DPIs. Check ignored for non-windows PC like github CI
         self.parameters = parameters
         super().__init__(parameters)
         #  Main window
