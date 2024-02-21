@@ -64,11 +64,15 @@ class FrameTimeLine:
     def get_frame(self) -> NumberedFrame | None:
         if not self._is_started:
             self.start()
-        self._last_returned_index = self.get_frame_index()
+        self._last_requested_index = self.get_frame_index()
         if self._last_requested_index > self._end_frame_index:
             raise EOFError()
+
+        result_frame = self._FrameBuffer.get_frame(self._last_requested_index)
+        if result_frame:
+            self._last_returned_index = result_frame.index
         print("Last requested/returned frame:", f"{self._last_requested_index}/{self._last_returned_index}")
-        return self._FrameBuffer.get_frame(self._last_returned_index)
+        return result_frame
 
     def has_frame(self, index: int) -> bool:
         return self._FrameBuffer.has_frame(index)
@@ -99,5 +103,3 @@ class FrameTimeLine:
         :return: int | None
         """
         return self._last_returned_index
-
-
