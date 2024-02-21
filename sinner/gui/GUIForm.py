@@ -1,5 +1,5 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM
 from tkinter.ttk import Spinbox
 from typing import List
 
