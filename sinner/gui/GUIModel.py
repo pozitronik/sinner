@@ -447,7 +447,8 @@ class GUIModel(Status):
                 if self.TimeLine.last_returned_index is None:
                     self._status("Time position", "There are no ready frames")
                 else:
-                    self.position.set(self.TimeLine.last_returned_index)
+                    if not self._event_rewind.is_set():
+                        self.position.set(self.TimeLine.last_returned_index)
                     self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
                     self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
             self.update_status("_show_frames loop done")
