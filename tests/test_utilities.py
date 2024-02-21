@@ -1,6 +1,6 @@
 import statistics
 
-from sinner.utilities import get_all_base_names, format_sequences, iteration_mean, get_directory_file_list, is_image
+from sinner.utilities import get_all_base_names, format_sequences, get_directory_file_list, is_image
 from tests.constants import state_frames_dir
 
 
@@ -44,16 +44,6 @@ def test_get_all_base_names() -> None:
 def test_find_sequences() -> None:
     assert format_sequences([1, 2, 3, 4, 10, 20, 21, 22, 23]) == '1..4, 10, 20..23'
     assert format_sequences([100, 3, 2, 3, 4, 5]) == '100, 3, 2..5'
-
-
-def test_iteration_mean() -> None:
-    data_stream = [12, 45, 32, 78, 56, 23, 67, 89, 41, 50]
-    real_mean = statistics.mean(data_stream)  # 49.3
-    calculated_mean = 0
-    for iteration, value in enumerate(data_stream):
-        calculated_mean = iteration_mean(value, calculated_mean, iteration)
-        # print(calculated_mean, statistics.mean(data_stream[:iteration+1]))
-    assert calculated_mean == real_mean
 
 
 def test_get_directory_file_list() -> None:
