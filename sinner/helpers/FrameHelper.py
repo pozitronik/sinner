@@ -29,7 +29,7 @@ def read_from_image(path: str) -> Frame:
 
 
 def write_to_image(image: Frame, path: str) -> bool:
-    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)  # todo: can be replaced with os.makedirs
     if WINDOWS:  # issue #511
         is_success, im_buf_arr = cv2.imencode(".png", image)
         im_buf_arr.tofile(path)
