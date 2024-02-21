@@ -1,11 +1,13 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, RIGHT, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM
+from tkinter.ttk import Spinbox
 from typing import List
 
 from customtkinter import CTk
+from psutil import WINDOWS
 
 from sinner.Status import Status
-from sinner.gui.GUIModel import GUIModel, FrameMode
+from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
@@ -92,6 +94,9 @@ class GUIForm(Status):
         ]
 
     def __init__(self, parameters: Namespace):
+        if WINDOWS:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # type: ignore[attr-defined]  # it is a library method fixes the issue with different DPIs. Check ignored for non-windows PC like github CI
         self.parameters = parameters
         super().__init__(parameters)
         #  Main window
@@ -143,8 +148,8 @@ class GUIForm(Status):
         self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
-        self.ControlsFrame = Frame(self.GUIWindow)
-        self.RunButton: Button = Button(self.ControlsFrame, text="PLAY", compound=LEFT, command=lambda: on_self_run_button_press())
+        self.ButtonsFrame = Frame(self.GUIWindow)
+        self.RunButton: Button = Button(self.ButtonsFrame, text="PLAY", width=10, command=lambda: on_self_run_button_press())
 
         def on_self_run_button_press() -> None:
             if self.GUIModel.player_is_started:
@@ -154,16 +159,23 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.QualityScale: Scale = Scale(self.ControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
+        self.ControlsFrame = Frame(self.GUIWindow)
+
+        self.SubControlsFrame = Frame(self.ControlsFrame)
+        self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
+        self.FrameDropSpinbox.bind('<KeyRelease>', lambda event: self.on_framedrop_change())
+        self.FrameDropSpinbox.set(-1)
+
+        self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
 
         # source/target selection controls
-        self.SourcePathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state='readonly')
         self.SelectSourceDialog = filedialog
         self.ChangeSourceButton: Button = Button(self.SourcePathFrame, text="Browse for source", width=20, command=lambda: self.change_source())
 
-        self.TargetPathFrame: Frame = Frame(self.GUIWindow, borderwidth=2)
+        self.TargetPathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
         self.TargetPathEntry: TextBox = TextBox(self.TargetPathFrame, state='readonly')
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
@@ -180,16 +192,6 @@ class GUIForm(Status):
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
             if save_file != '':
                 self.GUIModel.Player.save_to_file(save_file)
-
-        self.FrameModeVar: StringVar = StringVar(value=self.GUIModel.frame_mode.value)
-
-        self.ModeSubMenu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.ModeSubMenu, label='Playback mode')  # type: ignore[no-untyped-call]  # it is a library method
-        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.ALL.value, command=lambda: set_framerate_mode(FrameMode.ALL))  # type: ignore[no-untyped-call]  # it is a library method
-        self.ModeSubMenu.add(RADIOBUTTON, variable=self.FrameModeVar, label=FrameMode.SKIP.value, command=lambda: set_framerate_mode(FrameMode.SKIP))  # type: ignore[no-untyped-call]  # it is a library method
-
-        def set_framerate_mode(mode: FrameMode) -> None:
-            self.GUIModel.frame_mode = mode
 
         self.RotateModeVar: StringVar = StringVar(value=RotateMode.ROTATE_0.value)
 
@@ -209,8 +211,7 @@ class GUIForm(Status):
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
-
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get())) # type: ignore[no-untyped-call]  # it is a library method
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Source library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
@@ -225,16 +226,24 @@ class GUIForm(Status):
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()
-        self.ControlsFrame.pack(anchor=CENTER, expand=False, fill=X, side=TOP)
-        self.RunButton.pack(anchor=CENTER, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+        self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
+        self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
+
+        self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
+        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH)
+        self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
+
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
-        self.ChangeSourceButton.pack(side=RIGHT)
-        self.SourcePathFrame.pack(fill=X, side=TOP)
+        self.ChangeSourceButton.pack(side=LEFT)
+        self.SourcePathFrame.pack(fill=X, side=TOP, expand=True)
+
         self.TargetPathEntry.pack(side=LEFT, expand=True, fill=BOTH)
         self.ChangeTargetButton.pack(side=LEFT)
-        self.TargetPathFrame.pack(fill=X, side=TOP)
-        self.StatusBar.pack()
+        self.TargetPathFrame.pack(fill=X, side=TOP, expand=True)
+
+        self.ControlsFrame.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.StatusBar.pack(fill=X, side=BOTTOM, expand=False)
 
     # initialize all secondary windows
     def create_windows(self) -> None:
@@ -260,16 +269,19 @@ class GUIForm(Status):
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.set_topmost()
         if self.geometry:
-            self.GUIWindow.update()
-            self.GUIWindow.update_idletasks()
-            current_size_part, _ = self.GUIWindow.geometry().split('+', 1)
-            current_height = int(current_size_part.split('x')[1])
-            size_part, position_part = self.geometry.split('+', 1)
-            requested_width = int(size_part.split('x')[0])
-            self.GUIWindow.geometry(f"{requested_width}x{current_height}+{position_part}")
+            self.load_geometry()
         if self.state:
             self.GUIWindow.wm_state(self.state)
         return self.GUIWindow
+
+    def load_geometry(self) -> None:
+        self.GUIWindow.update()
+        self.GUIWindow.update_idletasks()
+        current_size_part, _ = self.GUIWindow.geometry().split('+', 1)
+        current_height = int(current_size_part.split('x')[1])
+        size_part, position_part = self.geometry.split('+', 1)
+        requested_width = int(size_part.split('x')[0])
+        self.GUIWindow.geometry(f"{requested_width}x{current_height}+{position_part}")
 
     def change_source(self) -> bool:
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
@@ -307,3 +319,7 @@ class GUIForm(Status):
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
             self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
+
+    def on_framedrop_change(self) -> object | str | list[str] | tuple[str, ...]:
+        self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
+        return self.FrameDropSpinbox.get()  # Required by Tkinter design, but not really used
