@@ -14,7 +14,7 @@ class FrameTimeLine:
     _start_frame_time: float = 0
 
     _is_started: bool
-    _last_written_index: int = 0
+    _last_added_index: int = 0
     _last_requested_index: int = 0
     _last_returned_index: int | None = None
 
@@ -57,8 +57,7 @@ class FrameTimeLine:
     def add_frame(self, frame: NumberedFrame) -> None:
         with threading.Lock():
             self._FrameBuffer.add_frame(frame)
-            if frame.index > self._last_written_index:
-                self._last_written_index = frame.index
+            self._last_added_index = frame.index
 
     # return the frame at current time position, or None, if there's no frame
     def get_frame(self, time_aligned: bool = True) -> NumberedFrame | None:
@@ -67,7 +66,7 @@ class FrameTimeLine:
         if time_aligned:
             self._last_requested_index = self.get_frame_index()
         else:
-            self._last_requested_index = self.last_written_index
+            self._last_requested_index = self.last_added_index
         if self._last_requested_index > self._end_frame_index:
             raise EOFError()
 
@@ -88,8 +87,8 @@ class FrameTimeLine:
         return int(frame_position) + self._start_frame_index
 
     @property
-    def last_written_index(self) -> int:
-        return self._last_written_index
+    def last_added_index(self) -> int:
+        return self._last_added_index
 
     @property
     def last_requested_index(self) -> int:
