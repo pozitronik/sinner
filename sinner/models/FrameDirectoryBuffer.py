@@ -78,7 +78,7 @@ class FrameDirectoryBuffer:
             return NumberedFrame(index, read_from_image(filepath))
         elif return_previous:
             for previous_number in range(index - 1, 0, -1):
-                if self.has_frame(index):
+                if self.has_frame(previous_number):
                     previous_filename = str(previous_number).zfill(self.zfill_length) + '.png'
                     previous_file_path = os.path.join(self.path, previous_filename)
                     if path_exists(previous_file_path):
