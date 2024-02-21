@@ -381,7 +381,7 @@ class GUIModel(Status):
                 self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS/{frame_skip - 1}")
             futures.remove(future_)
 
-        futures: list[Future[None]] = []
+        futures: list[Future[float | None]] = []
         results: list[float] = []
         frame_skip: int = 0
 
