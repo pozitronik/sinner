@@ -391,7 +391,7 @@ class GUIModel(Status):
                     results.pop(0)
                 results.append(process_time)
                 self._process_fps = sum(results) / len(results)
-                self._status("Processing FPS", str(self._process_fps))
+                self._status("Processing FPS", f"{round(self._process_fps, 4)}")
             futures.remove(future_)
 
         futures: list[Future[None]] = []
