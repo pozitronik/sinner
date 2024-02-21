@@ -1,22 +1,30 @@
+import hashlib
+import os
+import tempfile
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event
 from typing import List, Tuple, Callable
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
+from sinner.helpers.FrameHelper import write_to_image
 from sinner.utilities import get_file_name, is_image
 
 
 class ThumbnailWidget(Frame):
     thumbnails: List[Tuple[Label, Label, str]]
     thumbnail_size: int
+    temp_dir: str
     _columns: int
     _canvas: Canvas
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
+        # custom parameters
+        self.thumbnail_size = kwargs.pop('thumbnail_size', 200)
+        self.temp_dir = os.path.abspath(os.path.join(os.path.normpath(kwargs.pop('temp_dir', tempfile.gettempdir())), 'thumbnails'))
+        os.makedirs(self.temp_dir, exist_ok=True)
         super().__init__(master, **kwargs)
         self.thumbnails = []
-        self.thumbnail_size = kwargs['thumbnail_size'] if 'thumbnail_size' in kwargs else 200
         self._canvas = Canvas(self)
         self._canvas.grid(row=0, column=0, sticky=NSEW)
         self._canvas.grid_rowconfigure(0, weight=1)
@@ -33,6 +41,18 @@ class ThumbnailWidget(Frame):
         self.grid_columnconfigure(0, weight=1)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
+
+    def get_cached_thumbnail(self, image_path: str) -> Image.Image | None:
+        thumb_name = hashlib.md5(f"{image_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
+        thumb_path = os.path.join(self.temp_dir, thumb_name)
+        if os.path.exists(thumb_path):
+            return Image.open(thumb_path)
+        return None
+
+    def set_cached_thumbnail(self, image_path: str, img: Image.Image) -> None:
+        thumb_name = hashlib.md5(f"{image_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
+        thumb_path = os.path.join(self.temp_dir, thumb_name)
+        img.save(thumb_path, 'PNG')
 
     @staticmethod
     def get_thumbnail(image: Image, size: int) -> Image:
@@ -64,7 +84,10 @@ class ThumbnailWidget(Frame):
         :param click_callback: on thumbnail click callback
         """
         if is_image(image_path):
-            img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
+            img = self.get_cached_thumbnail(image_path)
+            if not img:
+                img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
+                self.set_cached_thumbnail(image_path, img)
             photo = PhotoImage(img)
 
             thumbnail_label = Label(self.frame, image=photo)

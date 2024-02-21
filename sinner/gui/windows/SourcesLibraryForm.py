@@ -46,7 +46,7 @@ class SourcesLibraryForm(AttributeLoader):
         #     self.SourcesLibraryWnd.wm_state(self.state)
         self.SourcesLibraryWnd.withdraw()  # hide window
         self.SourcesLibraryWnd.title('Sources library')
-        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd)
+        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryWnd, temp_dir=vars(self.parameters).get('temp_dir'))
         self.SourcesLibrary.grid(row=0, column=0, sticky=NSEW)
         self.SourcesLibraryWnd.grid_rowconfigure(0, weight=1)
         self.SourcesLibraryWnd.grid_columnconfigure(0, weight=1)
