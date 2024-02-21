@@ -66,7 +66,7 @@ class GUIModel(Status):
     _framedrop_delta: int | None = None  # the required index of preprocessed frames
     _framedrop: int = -1  # the manual value of dropped frames
 
-    _process_fps: float = 0
+    _process_fps: float = 1
 
     # internal variables
     _is_target_frames_extracted: bool = False
@@ -317,9 +317,8 @@ class GUIModel(Status):
 
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
-            self.__stop_buffering()
             self.TimeLine.rewind(frame_position - 1)
-            self.__start_buffering(frame_position)
+            # self.__start_buffering(frame_position)
         else:
             self.update_preview()
         self.position.set(frame_position)
@@ -329,13 +328,11 @@ class GUIModel(Status):
         if not self.player_is_started:
             self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
             self.extract_frames()
-            self.__start_buffering(start_frame)  # pre-buffer some frames
             self.__start_processing(start_frame)  # run the main rendering process
             self.__start_playback()  # run the separate playback
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         if self.player_is_started:
-            self.__stop_buffering()
             self.__stop_processing()
             self.__stop_playback()
             if self.TimeLine:
@@ -345,22 +342,6 @@ class GUIModel(Status):
                 time.sleep(1)  # Allow time for the thread to respond
             if reload_frames:
                 self._is_target_frames_extracted = False
-
-    def __start_buffering(self, start_frame: int) -> None:
-        """
-        Runs pre-buffering to prepare some start frames & get average processing fps on them
-        :param start_frame:
-        """
-        if not self._event_buffering.is_set():
-            self._event_buffering.set()
-            self._process_fps = self._process_buffering(start_frame, self.frame_handler.fc)
-            self.update_status(f"frames buffering is done, mean time: {self._process_fps}")
-            self.__stop_buffering()
-
-    def __stop_buffering(self) -> None:
-        if self._event_buffering.is_set():
-            self.ProgressBarsManager.done(BUFFERING_PROGRESS_NAME)
-            self._event_buffering.clear()
 
     def _process_buffering(self, start_frame: int, end_frame: int) -> float:
         """
@@ -448,10 +429,15 @@ class GUIModel(Status):
         :param end_frame:
         """
 
-        def process_done(future_: Future[None]) -> None:
+        def process_done(future_: Future[float | None]) -> None:
+            process_time = future_.result()
+            if process_time:
+                results.append(process_time)
+                self._process_fps = sum(results) / len(results)
             futures.remove(future_)
 
         futures: list[Future[None]] = []
+        results: list[float] = []
         self._processed_frames_count = 0
         self._shown_frames_count = 0
 
