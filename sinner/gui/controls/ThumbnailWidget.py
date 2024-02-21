@@ -1,3 +1,6 @@
+import hashlib
+import os
+import tempfile
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event
 from typing import List, Tuple, Callable
 
@@ -8,15 +11,19 @@ from sinner.utilities import get_file_name, is_image
 
 
 class ThumbnailWidget(Frame):
-    thumbnails: List[Tuple[Label, Label]]
+    thumbnails: List[Tuple[Label, Label, str]]
     thumbnail_size: int
+    temp_dir: str
     _columns: int
     _canvas: Canvas
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
+        # custom parameters
+        self.thumbnail_size = kwargs.pop('thumbnail_size', 200)
+        self.temp_dir = os.path.abspath(os.path.join(os.path.normpath(kwargs.pop('temp_dir', tempfile.gettempdir())), 'thumbnails'))
+        os.makedirs(self.temp_dir, exist_ok=True)
         super().__init__(master, **kwargs)
         self.thumbnails = []
-        self.thumbnail_size = kwargs['thumbnail_size'] if 'thumbnail_size' in kwargs else 200
         self._canvas = Canvas(self)
         self._canvas.grid(row=0, column=0, sticky=NSEW)
         self._canvas.grid_rowconfigure(0, weight=1)
@@ -33,6 +40,18 @@ class ThumbnailWidget(Frame):
         self.grid_columnconfigure(0, weight=1)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
+
+    def get_cached_thumbnail(self, image_path: str) -> Image.Image | None:
+        thumb_name = hashlib.md5(f"{image_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
+        thumb_path = os.path.join(self.temp_dir, thumb_name)
+        if os.path.exists(thumb_path):
+            return Image.open(thumb_path)
+        return None
+
+    def set_cached_thumbnail(self, image_path: str, img: Image.Image) -> None:
+        thumb_name = hashlib.md5(f"{image_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
+        thumb_path = os.path.join(self.temp_dir, thumb_name)
+        img.save(thumb_path, 'PNG')
 
     @staticmethod
     def get_thumbnail(image: Image, size: int) -> Image:
@@ -64,7 +83,10 @@ class ThumbnailWidget(Frame):
         :param click_callback: on thumbnail click callback
         """
         if is_image(image_path):
-            img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
+            img = self.get_cached_thumbnail(image_path)
+            if not img:
+                img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
+                self.set_cached_thumbnail(image_path, img)
             photo = PhotoImage(img)
 
             thumbnail_label = Label(self.frame, image=photo)
@@ -83,16 +105,26 @@ class ThumbnailWidget(Frame):
                 thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
                 caption_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
 
-            self.thumbnails.append((thumbnail_label, caption_label))
-            self.update_layout()
+            self.thumbnails.append((thumbnail_label, caption_label, image_path))
+            self.sort_thumbnails()
             self.update()
             self.master.update()
+
+    def sort_thumbnails(self, asc: bool = True) -> None:
+        # Sort the thumbnails list by the image path
+        if asc:
+            self.thumbnails.sort(key=lambda x: x[2])  # Assuming x[1] is the image path
+        else:
+            self.thumbnails.sort(key=lambda x: x[2], reverse=True)
+
+        # Update the GUI to reflect the new order
+        self.update_layout()
 
     # noinspection PyTypeChecker
     def update_layout(self) -> None:
         total_width = self.winfo_width()
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
-        for i, (thumbnail, caption) in enumerate(self.thumbnails):
+        for i, (thumbnail, caption, path) in enumerate(self.thumbnails):
             row = i // self._columns
             col = i % self._columns
             thumbnail.grid(row=row * 2, column=col)
@@ -122,7 +154,7 @@ class ThumbnailWidget(Frame):
         self._canvas.yview_scroll(-1 * (event.delta // 120), UNITS)
 
     def clear_thumbnails(self) -> None:
-        for thumbnail, caption in self.thumbnails:
+        for thumbnail, caption, path in self.thumbnails:
             thumbnail.grid_forget()
             caption.grid_forget()
         self.thumbnails = []

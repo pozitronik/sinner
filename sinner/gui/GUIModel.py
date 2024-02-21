@@ -166,9 +166,8 @@ class GUIModel(Status):
         self.parameters.source = value
         self.reload_parameters()
 
-        if self.player_is_started:  # todo: возможно оно и не надо
-            self.player_stop()
-            self.player_start(start_frame=self.TimeLine.last_requested_index)
+        if self.player_is_started:
+            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
         else:
             self.update_preview()
 
@@ -183,6 +182,7 @@ class GUIModel(Status):
         self.Player.clear()
         if self.player_is_started:
             self.player_stop(reload_frames=True)
+            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
             self.position.set(1)
             self.player_start(start_frame=1)
         else:
@@ -449,8 +449,9 @@ class GUIModel(Status):
                 else:
                     if not self._event_rewind.is_set():
                         self.position.set(self.TimeLine.last_returned_index)
-                    self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                    self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
+                    if self.TimeLine.last_returned_index:
+                        self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
+                        self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
             self.update_status("_show_frames loop done")
 
     def extract_frames(self) -> bool:
