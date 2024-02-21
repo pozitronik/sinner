@@ -8,7 +8,7 @@ from sinner.utilities import get_file_name, is_image
 
 
 class ThumbnailWidget(Frame):
-    thumbnails: List[Tuple[Label, Label]]
+    thumbnails: List[Tuple[Label, Label, str]]
     thumbnail_size: int
     _columns: int
     _canvas: Canvas
@@ -83,16 +83,26 @@ class ThumbnailWidget(Frame):
                 thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
                 caption_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
 
-            self.thumbnails.append((thumbnail_label, caption_label))
+            self.thumbnails.append((thumbnail_label, caption_label, image_path))
             self.update_layout()
             self.update()
             self.master.update()
+
+    def sort_thumbnails(self, asc: bool = True) -> None:
+        # Sort the thumbnails list by the image path
+        if asc:
+            self.thumbnails.sort(key=lambda x: x[2])  # Assuming x[1] is the image path
+        else:
+            self.thumbnails.sort(key=lambda x: x[2], reverse=True)
+
+        # Update the GUI to reflect the new order
+        self.update_layout()
 
     # noinspection PyTypeChecker
     def update_layout(self) -> None:
         total_width = self.winfo_width()
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
-        for i, (thumbnail, caption) in enumerate(self.thumbnails):
+        for i, (thumbnail, caption, path) in enumerate(self.thumbnails):
             row = i // self._columns
             col = i % self._columns
             thumbnail.grid(row=row * 2, column=col)
@@ -122,7 +132,7 @@ class ThumbnailWidget(Frame):
         self._canvas.yview_scroll(-1 * (event.delta // 120), UNITS)
 
     def clear_thumbnails(self) -> None:
-        for thumbnail, caption in self.thumbnails:
+        for thumbnail, caption, path in self.thumbnails:
             thumbnail.grid_forget()
             caption.grid_forget()
         self.thumbnails = []
