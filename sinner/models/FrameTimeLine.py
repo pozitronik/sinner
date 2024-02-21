@@ -81,7 +81,7 @@ class FrameTimeLine:
 
     # return the index of a frame, is playing right now if it is in self._frames
     # else return last frame before requested
-    def get_frame_index(self) -> int | None:
+    def get_frame_index(self) -> int:
         time_position = self.time()
         frame_position = time_position / self._frame_time
         return int(frame_position) + self._start_frame_index
