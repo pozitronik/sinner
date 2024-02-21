@@ -72,8 +72,9 @@ class GUIModel(Status):
     _show_frames_thread: threading.Thread | None = None
 
     # threads control events
-    _event_processing: Event  # the flag control to start/stop processing thread
-    _event_playback: Event  # the flag control to start/stop processed frames playback thread
+    _event_processing: Event  # the flag to control start/stop processing thread
+    _event_playback: Event  # the flag to control start/stop processed frames playback thread
+    _event_rewind: Event  # the flag to control if playback was rewound
 
     def rules(self) -> Rules:
         return [
@@ -147,6 +148,7 @@ class GUIModel(Status):
 
         self._event_processing = Event(on_set_callback=lambda: self.update_status("PROCESSING: ON"), on_clear_callback=lambda: self.update_status("PROCESSING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
+        self._event_rewind = Event(on_set_callback=lambda: self.update_status("REWIND EVENT SET"), on_clear_callback=lambda: self.update_status("REWIND EVENT CLEAR"))
 
     def reload_parameters(self) -> None:
         self.clear_previews()
@@ -305,6 +307,7 @@ class GUIModel(Status):
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
             self.TimeLine.rewind(frame_position - 1)
+            self._event_rewind.set()
         else:
             self.update_preview()
         self.position.set(frame_position)
@@ -384,6 +387,10 @@ class GUIModel(Status):
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
+                if self._event_rewind.is_set():
+                    start_frame = self.TimeLine.get_frame_index()
+                    self._event_rewind.clear()
+
                 if not self.TimeLine.has_frame(start_frame):
                     future: Future[float | None] = executor.submit(self._process_frame, start_frame)
                     future.add_done_callback(process_done)
@@ -399,7 +406,7 @@ class GUIModel(Status):
                     break
                 frame_skip = self.frame_skip
 
-                if self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # if processing is too late
+                if self.TimeLine.last_added_index < self.TimeLine.last_requested_index:  # if processing is too late
                     start_frame = frame_skip + self.TimeLine.last_requested_index  # push it a little forward
                 else:
                     start_frame += self.frame_skip
@@ -442,7 +449,7 @@ class GUIModel(Status):
                 else:
                     self.position.set(self.TimeLine.last_returned_index)
                     self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                    self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_written_index}")
+                    self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
             self.update_status("_show_frames loop done")
 
     def extract_frames(self) -> bool:
