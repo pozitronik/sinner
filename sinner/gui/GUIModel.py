@@ -60,9 +60,6 @@ class GUIModel(Status):
     _status: Callable[[str, str], Any]
 
     # player counters
-    _shown_frames_count: int = 0  # the overall count of shown frames
-    _current_framedrop: int = 0  # the current value of frames skipped on each processing iteration
-    _framedrop_delta: int | None = None  # the required index of preprocessed frames
     _framedrop: int = -1  # the manual value of dropped frames
 
     _process_fps: float = 1
@@ -75,7 +72,7 @@ class GUIModel(Status):
     _show_frames_thread: threading.Thread | None = None
 
     # threads control events
-    _event_buffering: Event  # the flag control to start/stop processed frames buffering thread
+    _event_processing: Event  # the flag control to start/stop processing thread
     _event_playback: Event  # the flag control to start/stop processed frames playback thread
 
     def rules(self) -> Rules:
@@ -147,9 +144,7 @@ class GUIModel(Status):
         self.ProgressBarsManager = pb_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
-        self._status("Frame drop", "0")
 
-        self._event_buffering = Event(on_set_callback=lambda: self.update_status("BUFFERING: ON"), on_clear_callback=lambda: self.update_status("BUFFERING: OFF"))
         self._event_processing = Event(on_set_callback=lambda: self.update_status("PROCESSING: ON"), on_clear_callback=lambda: self.update_status("PROCESSING: OFF"))
         self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
 
@@ -286,20 +281,13 @@ class GUIModel(Status):
         self._previews.clear()
 
     @property
-    def framedrop_delta(self) -> int:
-        if self._framedrop_delta is None:
-            self._framedrop_delta = int(self.frame_handler.fps * 5)  # 5 seconds should be enough
-        return self._framedrop_delta
-
-    @property
-    def frame_step(self) -> int:
+    def frame_skip(self) -> int:
         """
         Returns the count of frames need to skip every time
         :return:
         """
         if self.framedrop == -1:  # auto
             return int(self.frame_handler.fps / self._process_fps)
-            # return self.calculate_framedrop() + 1
         return self.framedrop + 1
 
     @property
@@ -312,12 +300,11 @@ class GUIModel(Status):
 
     @property
     def player_is_started(self) -> bool:
-        return self._event_buffering.is_set() or self._event_processing.is_set() or self._event_playback.is_set()
+        return self._event_processing.is_set() or self._event_playback.is_set()
 
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
             self.TimeLine.rewind(frame_position - 1)
-            # self.__start_buffering(frame_position)
         else:
             self.update_preview()
         self.position.set(frame_position)
@@ -336,7 +323,6 @@ class GUIModel(Status):
             self.__stop_playback()
             if self.TimeLine:
                 self.TimeLine.stop()
-            self._current_framedrop = 0
             if wait:
                 time.sleep(1)  # Allow time for the thread to respond
             if reload_frames:
@@ -365,7 +351,6 @@ class GUIModel(Status):
     def __start_playback(self) -> None:
         if not self._event_playback.is_set():
             self._event_playback.set()
-            self._shown_frames_count = 0
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
@@ -373,7 +358,6 @@ class GUIModel(Status):
     def __stop_playback(self) -> None:
         if self._event_playback.is_set() and self._show_frames_thread:
             self._event_playback.clear()
-            self._shown_frames_count = 0
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
 
@@ -391,13 +375,11 @@ class GUIModel(Status):
                     results.pop(0)
                 results.append(process_time)
                 self._process_fps = sum(results) / len(results) * self.execution_threads
-                self._status("Processing FPS", f"{round(self._process_fps, 4)}FPS")
+                self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS")
             futures.remove(future_)
 
         futures: list[Future[None]] = []
         results: list[float] = []
-        self._processed_frames_count = 0
-        self._shown_frames_count = 0
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
@@ -414,8 +396,9 @@ class GUIModel(Status):
                 if not self._event_processing.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
-
-                start_frame += self.frame_step
+                frame_step = self.frame_skip
+                self._status("Frame skip", str(frame_step))
+                start_frame += self.frame_skip
 
             self.update_status("_process_frames loop done")
 
@@ -450,7 +433,6 @@ class GUIModel(Status):
                     time.sleep(self.frame_handler.frame_time / 2)
                     continue
                 self.Player.show_frame(n_frame.frame)
-                self._shown_frames_count += 1
                 if self.TimeLine.last_returned_index is None:
                     self._status("Time position", "There are no ready frames")
                 else:
