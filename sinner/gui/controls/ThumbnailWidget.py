@@ -7,7 +7,6 @@ from typing import List, Tuple, Callable
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
-from sinner.helpers.FrameHelper import write_to_image
 from sinner.utilities import get_file_name, is_image
 
 
