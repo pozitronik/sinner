@@ -287,7 +287,10 @@ class GUIModel(Status):
         :return:
         """
         if self.framedrop == -1:  # auto
-            return int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
+            auto_frame_skip = int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
+            if self.TimeLine.last_written_index < self.TimeLine.last_requested_index:  # if processing is too late
+                auto_frame_skip += int((self.TimeLine.last_requested_index - self.TimeLine.last_written_index))  # push it a little forward
+            return auto_frame_skip
         return self.framedrop + 1
 
     @property
@@ -438,6 +441,7 @@ class GUIModel(Status):
                 else:
                     self.position.set(self.TimeLine.last_returned_index)
                     self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
+                    self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_written_index}")
             self.update_status("_show_frames loop done")
 
     def extract_frames(self) -> bool:
