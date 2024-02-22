@@ -41,7 +41,6 @@ class GUIModel(Status):
     execution_threads: int
     bootstrap_processors: bool  # bootstrap_processors processors on startup
     _prepare_frames: bool  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
-    _initial_frame_buffer_length: int  # frames needs to be rendered before player start. Also used to determine initial frame drop
     _scale_quality: float  # the processed frame size scale from 0 to 1
 
     parameters: Namespace
@@ -116,12 +115,6 @@ class GUIModel(Status):
                 'attribute': 'bootstrap_processors',
                 'default': True,
                 'help': 'Bootstrap frame processors on startup'
-            },
-            {
-                'parameter': 'initial_frame_buffer_length',
-                'attribute': '_initial_frame_buffer_length',
-                'default': lambda: int(self.frame_handler.fps * 2),  # two seconds
-                'help': 'The count of preprocessed frames'
             },
             {
                 'parameter': 'temp-dir',
