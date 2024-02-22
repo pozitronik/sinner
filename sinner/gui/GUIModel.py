@@ -6,8 +6,6 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from tkinter import IntVar
 from typing import List, Callable, Any
 
-from tqdm import tqdm
-
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
@@ -107,7 +105,7 @@ class GUIModel(Status):
             {
                 'parameter': {'prepare-frames'},
                 'attribute': '_prepare_frames',
-                'default': None,
+                'default': True,
                 'help': 'Extract target frames to files to make realtime player run smoother'
             },
             {
@@ -457,22 +455,8 @@ class GUIModel(Status):
             elif self._prepare_frames is True:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-                with tqdm(
-                        total=state.frames_count,
-                        desc=state.processor_name, unit='frame',
-                        dynamic_ncols=True,
-                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                        initial=state.processed_frames_count,
-                ) as progress:
-                    self.frame_handler.current_frame_index = state.processed_frames_count
-                    for frame_num in self.frame_handler:
-                        n_frame = self.frame_handler.extract_frame(frame_num)
-                        state.save_temp_frame(n_frame)
-                        progress.update()
-                        self.ProgressBarsManager.update(name=EXTRACTING_PROGRESS_NAME, value=state.processed_frames_count, max_value=state.frames_count)
-                    self.ProgressBarsManager.done(EXTRACTING_PROGRESS_NAME)
-
-            frame_extractor.release_resources()
+                frame_extractor.process(self.frame_handler, state)
+                frame_extractor.release_resources()
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished
