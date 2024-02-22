@@ -455,7 +455,7 @@ class GUIModel(Status):
             elif self._prepare_frames is True:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-                frame_extractor.process(self.frame_handler, state)
+                frame_extractor.process(self.frame_handler, state)  # todo: return the GUI progressbar
                 frame_extractor.release_resources()
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
