@@ -105,7 +105,7 @@ class GUIModel(Status):
             {
                 'parameter': {'prepare-frames'},
                 'attribute': '_prepare_frames',
-                'default': True,
+                'default': None,
                 'help': 'Extract target frames to files to make realtime player run smoother'
             },
             {
