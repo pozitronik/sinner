@@ -165,10 +165,8 @@ class GUIModel(Status):
     def source_path(self, value: str | None) -> None:
         self.parameters.source = value
         self.reload_parameters()
-
-        if self.player_is_started:
-            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
-        else:
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        if not self.player_is_started:
             self.update_preview()
 
     @property
@@ -180,9 +178,9 @@ class GUIModel(Status):
         self.parameters.target = value
         self.reload_parameters()
         self.Player.clear()
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
             self.position.set(1)
             self.player_start(start_frame=1)
         else:
