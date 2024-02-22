@@ -74,14 +74,20 @@ class FrameDirectoryBuffer:
         filename = str(index).zfill(self.zfill_length) + '.png'
         filepath = str(os.path.join(self.path, filename))
         if path_exists(filepath):
-            return NumberedFrame(index, read_from_image(filepath))
+            try:
+                return NumberedFrame(index, read_from_image(filepath))
+            except Exception:
+                pass
         elif return_previous:
             for previous_number in range(index - 1, 0, -1):
                 if self.has_frame(previous_number):
                     previous_filename = str(previous_number).zfill(self.zfill_length) + '.png'
                     previous_file_path = os.path.join(self.path, previous_filename)
                     if path_exists(previous_file_path):
-                        return NumberedFrame(index, read_from_image(previous_file_path))
+                        try:
+                            return NumberedFrame(index, read_from_image(previous_file_path))
+                        except Exception:  # the file may exist but can be locked in another thread.
+                            pass
         return None
 
     def has_frame(self, index: int) -> bool:

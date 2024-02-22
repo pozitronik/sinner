@@ -6,8 +6,6 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from tkinter import IntVar
 from typing import List, Callable, Any
 
-from tqdm import tqdm
-
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
@@ -41,7 +39,6 @@ class GUIModel(Status):
     execution_threads: int
     bootstrap_processors: bool  # bootstrap_processors processors on startup
     _prepare_frames: bool  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
-    _initial_frame_buffer_length: int  # frames needs to be rendered before player start. Also used to determine initial frame drop
     _scale_quality: float  # the processed frame size scale from 0 to 1
 
     parameters: Namespace
@@ -118,12 +115,6 @@ class GUIModel(Status):
                 'help': 'Bootstrap frame processors on startup'
             },
             {
-                'parameter': 'initial_frame_buffer_length',
-                'attribute': '_initial_frame_buffer_length',
-                'default': lambda: int(self.frame_handler.fps * 2),  # two seconds
-                'help': 'The count of preprocessed frames'
-            },
-            {
                 'parameter': 'temp-dir',
                 'default': lambda: suggest_temp_dir(self.temp_dir),
                 'help': 'Select the directory for temporary files'
@@ -165,10 +156,8 @@ class GUIModel(Status):
     def source_path(self, value: str | None) -> None:
         self.parameters.source = value
         self.reload_parameters()
-
-        if self.player_is_started:
-            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
-        else:
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        if not self.player_is_started:
             self.update_preview()
 
     @property
@@ -180,9 +169,9 @@ class GUIModel(Status):
         self.parameters.target = value
         self.reload_parameters()
         self.Player.clear()
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
             self.position.set(1)
             self.player_start(start_frame=1)
         else:
@@ -377,8 +366,8 @@ class GUIModel(Status):
                 if len(results) >= 30:  # limit mean time base to last 30 executions
                     results.pop(0)
                 results.append(process_time)
-                self._process_fps = sum(results) / len(results) * self.execution_threads
-                self._status("Processing FPS/Frame skip", f"{round(self._process_fps, 4)}FPS/{frame_skip - 1}")
+                self._process_fps = self._process_fps = self.execution_threads / (sum(results) / len(results))
+                self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1/process_time, 4)}/{frame_skip - 1}")
             futures.remove(future_)
 
         futures: list[Future[float | None]] = []
@@ -466,22 +455,8 @@ class GUIModel(Status):
             elif self._prepare_frames is True:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-                with tqdm(
-                        total=state.frames_count,
-                        desc=state.processor_name, unit='frame',
-                        dynamic_ncols=True,
-                        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
-                        initial=state.processed_frames_count,
-                ) as progress:
-                    self.frame_handler.current_frame_index = state.processed_frames_count
-                    for frame_num in self.frame_handler:
-                        n_frame = self.frame_handler.extract_frame(frame_num)
-                        state.save_temp_frame(n_frame)
-                        progress.update()
-                        self.ProgressBarsManager.update(name=EXTRACTING_PROGRESS_NAME, value=state.processed_frames_count, max_value=state.frames_count)
-                    self.ProgressBarsManager.done(EXTRACTING_PROGRESS_NAME)
-
-            frame_extractor.release_resources()
+                frame_extractor.process(self.frame_handler, state)  # todo: return the GUI progressbar
+                frame_extractor.release_resources()
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished

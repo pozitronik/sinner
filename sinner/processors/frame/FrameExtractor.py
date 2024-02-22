@@ -18,7 +18,7 @@ class FrameExtractor(BaseFrameProcessor):
     def rules(self) -> Rules:
         return [
             {
-                'module_help': 'This module extracts frames from video file as set of png images'
+                'module_help': 'This module extracts frames from video file as a set of png images'
             }
         ]
 
