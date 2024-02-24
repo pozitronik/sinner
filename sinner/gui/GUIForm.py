@@ -1,6 +1,6 @@
 from argparse import Namespace
 from threading import Thread
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM, NSEW
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NSEW
 from tkinter.ttk import Spinbox
 from typing import List, Callable
 
@@ -187,7 +187,7 @@ class GUIForm(Status):
 
         # self.GUIModel.status_bar = self.StatusBar
 
-        self.MainMenu = Menu(self.GUIWindow)
+        self.MainMenu: Menu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')  # type: ignore[no-untyped-call]  # it is a library method
         self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: save_current_frame())  # type: ignore[no-untyped-call]  # it is a library method
@@ -200,7 +200,7 @@ class GUIForm(Status):
 
         self.RotateModeVar: StringVar = StringVar(value=RotateMode.ROTATE_0.value)
 
-        self.RotateSubMenu = Menu(self.MainMenu, tearoff=False)
+        self.RotateSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')  # type: ignore[no-untyped-call]  # it is a library method
         self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))  # type: ignore[no-untyped-call]  # it is a library method
         self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))  # type: ignore[no-untyped-call]  # it is a library method
@@ -213,15 +213,19 @@ class GUIForm(Status):
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
         self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)
 
-        self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
+        self.ToolsSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Sources library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
-        # self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
-        # self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
+        self.Library: Menu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.Library, label='Sources library')  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(COMMAND, label='Add files', command=lambda: self.add_files())  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(COMMAND, label='Add a folder', command=lambda: self.add_folder())  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())  # type: ignore[no-untyped-call]  # it is a library method
 
         self.SourcesLibraryFrame = Frame(self.GUIWindow)
         self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
@@ -279,7 +283,7 @@ class GUIForm(Status):
         if self.state:
             self.GUIWindow.wm_state(self.state)
         if not self._library_is_loaded:
-            self.add(library=self.sources_library)
+            self.library_add(paths=self.sources_library)
             self._library_is_loaded = True
         return self.GUIWindow
 
@@ -333,20 +337,25 @@ class GUIForm(Status):
         self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
         return self.FrameDropSpinbox.get()  # Required by Tkinter design, but not really used
 
-    def add(self, library: List[str] | None = None, reload: bool = False) -> None:
+    def library_add(self, paths: List[str] | None = None, reload: bool = False) -> None:
+        """
+        Add something to the sources library
+        :param paths: each path can point to an image or a folder with images
+        :param reload: True for reloading library from given paths
+        """
         if reload:
             self.SourcesLibrary.clear_thumbnails()
 
         def add_image(image_path: str) -> None:
             if is_image(image_path):
-                self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda path: self._set_source(path))  # type: ignore[misc]  # callback is always defined
+                self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
 
-        for item in library:
-            if is_image(item):
+        for path in paths:
+            if is_image(path):
                 # Start a new thread for each image
-                Thread(target=add_image, args=(item,)).start()
-            elif is_dir(item):
-                for dir_file in get_directory_file_list(item, is_image):
+                Thread(target=add_image, args=(path,)).start()
+            elif is_dir(path):
+                for dir_file in get_directory_file_list(path, is_image):
                     Thread(target=add_image, args=(dir_file,)).start()
 
     def add_files(self) -> None:
@@ -357,7 +366,7 @@ class GUIForm(Status):
             initialdir="/",  # Set the initial directory (you can change this)
         )
         if file_paths:
-            self.add(library=list(file_paths))
+            self.library_add(paths=list(file_paths))
 
     def add_folder(self) -> None:
         directory = filedialog.askdirectory(
@@ -365,7 +374,7 @@ class GUIForm(Status):
             initialdir="/",
         )
         if directory:
-            self.add(library=[directory])
+            self.library_add(paths=[directory])
 
     def clear(self) -> None:
         self.SourcesLibrary.clear_thumbnails()
