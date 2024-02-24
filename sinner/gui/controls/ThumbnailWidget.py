@@ -36,8 +36,8 @@ class ThumbnailWidget(Frame):
         self._canvas.configure(yscrollcommand=self.vsb.set)
 
         self.grid(row=0, column=0, sticky=NSEW)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
+        # self.grid_rowconfigure(0, weight=1)
+        # self.grid_columnconfigure(0, weight=1)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 

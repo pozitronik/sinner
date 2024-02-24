@@ -1,7 +1,8 @@
 from argparse import Namespace
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM
+from threading import Thread
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, BooleanVar, RIDGE, BOTTOM, NSEW
 from tkinter.ttk import Spinbox
-from typing import List
+from typing import List, Callable
 
 from customtkinter import CTk
 from psutil import WINDOWS
@@ -15,9 +16,9 @@ from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
-from sinner.gui.windows.SourcesLibraryForm import SourcesLibraryForm
+from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
-from sinner.utilities import is_int, get_app_dir
+from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -29,7 +30,8 @@ class GUIForm(Status):
     GUIModel: GUIModel
     ProgressBars: ProgressBarManager
     StatusBar: StatusBar
-    SourcesLibraryWnd: SourcesLibraryForm
+    # SourcesLibraryWnd: SourcesLibraryForm
+    SourcesLibrary: ThumbnailWidget
 
     topmost: bool
     show_frames_widget: bool
@@ -39,6 +41,9 @@ class GUIForm(Status):
     geometry: str
     state: str  # currently ignored, see issue #100
     sources_library: List[str]
+
+    _library_is_loaded: bool = False
+    _on_window_close_callback: Callable[[], None] | None = None
 
     def rules(self) -> Rules:
         return [
@@ -96,7 +101,7 @@ class GUIForm(Status):
     def __init__(self, parameters: Namespace):
         if WINDOWS:
             import ctypes
-            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # type: ignore[attr-defined]  # it is a library method fixes the issue with different DPIs. Check ignored for non-windows PC like github CI
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)  # type: ignore[attr-defined]  # it is a library method fixes the issue with different DPIs. Check ignored for non-windows PC like GitHub CI
         self.parameters = parameters
         super().__init__(parameters)
         #  Main window
@@ -123,7 +128,7 @@ class GUIForm(Status):
                 Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
-        self.GUIWindow.resizable(width=True, height=False)
+        self.GUIWindow.resizable(width=True, height=True)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
 
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
@@ -211,12 +216,15 @@ class GUIForm(Status):
         self.ToolsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Sources library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
+        # self.ToolsSubMenu.add(CHECKBUTTON, label='Sources library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Source selection', state=DISABLED)
         # self.ToolsSubMenu.add(CHECKBUTTON, label='Target selection', state=DISABLED)
+
+        self.SourcesLibraryFrame = Frame(self.GUIWindow)
+        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
 
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
 
@@ -242,14 +250,13 @@ class GUIForm(Status):
         self.TargetPathFrame.pack(fill=X, side=TOP, expand=True)
 
         self.ControlsFrame.pack(side=LEFT, fill=BOTH, expand=True)
-
+        self.SourcesLibraryFrame.pack(fill=X, side=BOTTOM, expand=True)
+        self.SourcesLibrary.grid(row=0, column=0, sticky=NSEW)
         self.StatusBar.pack(fill=X, side=BOTTOM, expand=False)
 
     # initialize all secondary windows
     def create_windows(self) -> None:
-        self.SourcesLibraryWnd = SourcesLibraryForm(self.parameters, self.GUIWindow, library=self.sources_library, on_thumbnail_click_callback=self._set_source, on_window_close_callback=lambda: self.SourceLibraryVar.set(False))
-        if self.show_sources_library:
-            self.SourcesLibraryWnd.show()
+        pass
 
     def format_target_info(self) -> str:
         return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
@@ -257,7 +264,6 @@ class GUIForm(Status):
     def set_topmost(self, on_top: bool = True) -> None:
         self.GUIWindow.wm_attributes("-topmost", on_top)
         self.GUIModel.Player.set_topmost(on_top)
-        self.SourcesLibraryWnd.set_topmost(on_top)
 
     def show(self) -> CTk:
         self.draw_controls()
@@ -272,6 +278,9 @@ class GUIForm(Status):
             self.load_geometry()
         if self.state:
             self.GUIWindow.wm_state(self.state)
+        if not self._library_is_loaded:
+            self.add(library=self.sources_library)
+            self._library_is_loaded = True
         return self.GUIWindow
 
     def load_geometry(self) -> None:
@@ -323,3 +332,40 @@ class GUIForm(Status):
     def on_framedrop_change(self) -> object | str | list[str] | tuple[str, ...]:
         self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
         return self.FrameDropSpinbox.get()  # Required by Tkinter design, but not really used
+
+    def add(self, library: List[str] | None = None, reload: bool = False) -> None:
+        if reload:
+            self.SourcesLibrary.clear_thumbnails()
+
+        def add_image(image_path: str) -> None:
+            if is_image(image_path):
+                self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda path: self._set_source(path))  # type: ignore[misc]  # callback is always defined
+
+        for item in library:
+            if is_image(item):
+                # Start a new thread for each image
+                Thread(target=add_image, args=(item,)).start()
+            elif is_dir(item):
+                for dir_file in get_directory_file_list(item, is_image):
+                    Thread(target=add_image, args=(dir_file,)).start()
+
+    def add_files(self) -> None:
+        image_extensions = get_type_extensions('image/')
+        file_paths = filedialog.askopenfilenames(
+            title="Select files to add",
+            filetypes=[('Image files', image_extensions), ('All files', '*.*')],
+            initialdir="/",  # Set the initial directory (you can change this)
+        )
+        if file_paths:
+            self.add(library=list(file_paths))
+
+    def add_folder(self) -> None:
+        directory = filedialog.askdirectory(
+            title="Select a directory to add",
+            initialdir="/",
+        )
+        if directory:
+            self.add(library=[directory])
+
+    def clear(self) -> None:
+        self.SourcesLibrary.clear_thumbnails()
