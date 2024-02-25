@@ -376,7 +376,7 @@ class GUIForm(Status):
         file_paths = filedialog.askopenfilenames(
             title="Select files to add",
             filetypes=[('Image files', image_extensions), ('All files', '*.*')],
-            initialdir="/",  # Set the initial directory (you can change this)
+            initialdir=self.GUIModel.source_dir
         )
         if file_paths:
             self.library_add(paths=list(file_paths))
@@ -384,7 +384,7 @@ class GUIForm(Status):
     def add_folder(self) -> None:
         directory = filedialog.askdirectory(
             title="Select a directory to add",
-            initialdir="/",
+            initialdir=self.GUIModel.source_dir
         )
         if directory:
             self.library_add(paths=[directory])
