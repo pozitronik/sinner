@@ -41,8 +41,6 @@ class GUIForm(Status):
     geometry: str
     state: str  # currently ignored, see issue #100
     sources_library: List[str]
-
-    _library_is_loaded: bool = False
     _on_window_close_callback: Callable[[], None] | None = None
 
     def rules(self) -> Rules:
@@ -295,9 +293,8 @@ class GUIForm(Status):
             self.load_geometry()
         if self.state:
             self.GUIWindow.wm_state(self.state)
-        if not self._library_is_loaded and self.sources_library:
+        if self.sources_library:
             self.library_add(paths=self.sources_library)
-            self._library_is_loaded = True
         return self.GUIWindow
 
     def load_geometry(self) -> None:
