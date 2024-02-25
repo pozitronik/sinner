@@ -1,6 +1,6 @@
 from argparse import Namespace
 from threading import Thread
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NSEW
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM
 from tkinter.ttk import Spinbox
 from typing import List, Callable
 
@@ -185,6 +185,9 @@ class GUIForm(Status):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
+        self.SourcesLibraryFrame = Frame(self.GUIWindow, borderwidth=2, background="lightblue")
+        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
+
         # self.GUIModel.status_bar = self.StatusBar
 
         self.MainMenu: Menu = Menu(self.GUIWindow)
@@ -227,9 +230,6 @@ class GUIForm(Status):
         self.Library.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
         self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())  # type: ignore[no-untyped-call]  # it is a library method
 
-        self.SourcesLibraryFrame = Frame(self.GUIWindow)
-        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
-
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
 
     # maintain the order of window controls
@@ -253,9 +253,13 @@ class GUIForm(Status):
         self.ChangeTargetButton.pack(side=LEFT)
         self.TargetPathFrame.pack(fill=X, side=TOP, expand=True)
 
-        self.ControlsFrame.pack(side=LEFT, fill=BOTH, expand=True)
-        self.SourcesLibraryFrame.pack(fill=X, side=BOTTOM, expand=True)
-        self.SourcesLibrary.grid(row=0, column=0, sticky=NSEW)
+        self.ControlsFrame.pack(side=BOTTOM, fill=BOTH, expand=True)
+
+        self.SourcesLibrary.pack(side=LEFT, expand=True, fill=BOTH)
+        self.SourcesLibraryFrame.pack(side=BOTTOM, expand=True, fill=BOTH)
+        self.SourcesLibraryFrame.rowconfigure(0, weight=1)
+        self.SourcesLibraryFrame.columnconfigure(0, weight=1)
+
         self.StatusBar.pack(fill=X, side=BOTTOM, expand=False)
 
     # initialize all secondary windows
