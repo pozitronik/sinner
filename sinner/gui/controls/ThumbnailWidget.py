@@ -124,6 +124,8 @@ class ThumbnailWidget(Frame):
 
     # noinspection PyTypeChecker
     def update_layout(self) -> None:
+        if 0 == len(self.thumbnails):
+            return
         total_width = self.winfo_width()
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
         for i, (thumbnail, caption, path) in enumerate(self.thumbnails):
