@@ -12,6 +12,7 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
+from sinner.models.AudioBackend import AudioBackend
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -47,6 +48,7 @@ class GUIModel(Status):
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
     ProgressBarsManager: ProgressBarManager
+    AudioPlayer: AudioBackend
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
@@ -133,6 +135,7 @@ class GUIModel(Status):
 
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
+        self.AudioPlayer = AudioBackend()
         self.ProgressBarsManager = pb_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
@@ -305,12 +308,15 @@ class GUIModel(Status):
     def player_start(self, start_frame: int) -> None:
         if not self.player_is_started:
             self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
+            self.AudioPlayer.load_media(self.target_path, start_frame * self.frame_handler.frame_time)
             self.extract_frames()
             self.__start_processing(start_frame)  # run the main rendering process
             self.__start_playback()  # run the separate playback
+            self.AudioPlayer.play()
 
     def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
         if self.player_is_started:
+            self.AudioPlayer.stop()
             self.__stop_processing()
             self.__stop_playback()
             if self.TimeLine:
@@ -367,7 +373,7 @@ class GUIModel(Status):
                     results.pop(0)
                 results.append(process_time)
                 self._process_fps = self._process_fps = self.execution_threads / (sum(results) / len(results))
-                self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1/process_time, 4)}/{frame_skip - 1}")
+                self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1 / process_time, 4)}/{frame_skip - 1}")
             futures.remove(future_)
 
         futures: list[Future[float | None]] = []
