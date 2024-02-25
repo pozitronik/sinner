@@ -1,7 +1,7 @@
 import hashlib
 import os
 import tempfile
-from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event
+from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event, NW
 from typing import List, Tuple, Callable
 
 from PIL import Image
@@ -29,7 +29,7 @@ class ThumbnailWidget(Frame):
         self._canvas.grid_rowconfigure(0, weight=1)
         self._canvas.grid_columnconfigure(0, weight=1)
         self.frame = Frame(self._canvas)
-        self._canvas.create_window((0, 0), window=self.frame, anchor="nw")
+        self._canvas.create_window((0, 0), window=self.frame, anchor=NW)
 
         self.vsb = Scrollbar(self, orient="vertical", command=self._canvas.yview)
         self.vsb.grid(row=0, column=1, sticky=NS)
