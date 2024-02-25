@@ -1,6 +1,6 @@
 from argparse import Namespace
 from threading import Thread
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NSEW, SW, Y
 from tkinter.ttk import Spinbox
 from typing import List, Callable
 
@@ -153,7 +153,10 @@ class GUIForm(Status):
         self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
-        self.ButtonsFrame = Frame(self.GUIWindow)
+        self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors
+        self.WidgetsFrame: Frame = Frame(self.GUIWindow)  # it is a frame for dynamic controls which can be hidden, like library widget
+
+        self.ButtonsFrame = Frame(self.BaseFrame)
         self.RunButton: Button = Button(self.ButtonsFrame, text="PLAY", width=10, command=lambda: on_self_run_button_press())
 
         def on_self_run_button_press() -> None:
@@ -164,7 +167,7 @@ class GUIForm(Status):
                 self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
-        self.ControlsFrame = Frame(self.GUIWindow)
+        self.ControlsFrame = Frame(self.BaseFrame)
 
         self.SubControlsFrame = Frame(self.ControlsFrame)
         self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
@@ -185,11 +188,14 @@ class GUIForm(Status):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
-        self.SourcesLibraryFrame = Frame(self.GUIWindow, borderwidth=2, background="lightblue")
+        # Dynamic widgets
+
+        self.SourcesLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
         self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
 
         # self.GUIModel.status_bar = self.StatusBar
 
+        # Menus
         self.MainMenu: Menu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')  # type: ignore[no-untyped-call]  # it is a library method
@@ -240,6 +246,7 @@ class GUIForm(Status):
         self.update_slider_bounds()
         self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
+        self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
 
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
         self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH)
@@ -253,12 +260,14 @@ class GUIForm(Status):
         self.ChangeTargetButton.pack(side=LEFT)
         self.TargetPathFrame.pack(fill=X, side=TOP, expand=True)
 
-        self.ControlsFrame.pack(side=BOTTOM, fill=BOTH, expand=True)
+        self.ControlsFrame.pack(side=TOP, fill=BOTH, expand=True)
 
-        self.SourcesLibrary.pack(side=LEFT, expand=True, fill=BOTH)
+        self.SourcesLibrary.pack(side=TOP, expand=True, fill=BOTH)
         self.SourcesLibraryFrame.pack(side=BOTTOM, expand=True, fill=BOTH)
         self.SourcesLibraryFrame.rowconfigure(0, weight=1)
         self.SourcesLibraryFrame.columnconfigure(0, weight=1)
+
+        self.WidgetsFrame.pack(side=TOP, expand=True, fill=BOTH)
 
         self.StatusBar.pack(fill=X, side=BOTTOM, expand=False)
 
