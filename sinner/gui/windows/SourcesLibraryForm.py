@@ -11,6 +11,7 @@ from sinner.utilities import is_image, is_dir, get_directory_file_list, get_type
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
+# unused since #419dc57026d33b018e54a780ed1b0501de3bb0fc
 class SourcesLibraryForm(AttributeLoader):
     parameters: Namespace
     SourcesLibraryWnd: CTkToplevel
