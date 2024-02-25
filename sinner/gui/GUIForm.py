@@ -350,7 +350,7 @@ class GUIForm(Status):
         self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
         return self.FrameDropSpinbox.get()  # Required by Tkinter design, but not really used
 
-    def library_add(self, paths: List[str] | None = None, reload: bool = False) -> None:
+    def library_add(self, paths: List[str], reload: bool = False) -> None:
         """
         Add something to the sources library
         :param paths: each path can point to an image or a folder with images
