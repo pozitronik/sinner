@@ -1,7 +1,7 @@
 import hashlib
 import os
 import tempfile
-from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event
+from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
 from typing import List, Tuple, Callable
 
 from PIL import Image
@@ -25,19 +25,21 @@ class ThumbnailWidget(Frame):
         super().__init__(master, **kwargs)
         self.thumbnails = []
         self._canvas = Canvas(self)
-        self._canvas.grid(row=0, column=0, sticky=NSEW)
-        self._canvas.grid_rowconfigure(0, weight=1)
-        self._canvas.grid_columnconfigure(0, weight=1)
+        self._canvas.pack(side=LEFT, expand=True, fill=BOTH)
+        # self._canvas.grid(row=0, column=0, sticky=NSEW)
+        # self._canvas.grid_rowconfigure(0, weight=1)
+        # self._canvas.grid_columnconfigure(0, weight=1)
         self.frame = Frame(self._canvas)
-        self._canvas.create_window((0, 0), window=self.frame, anchor="nw")
+        self._canvas.create_window((0, 0), window=self.frame, anchor=NW)
 
         self.vsb = Scrollbar(self, orient="vertical", command=self._canvas.yview)
-        self.vsb.grid(row=0, column=1, sticky=NS)
+        # self.vsb.grid(row=0, column=1, sticky=NS)
+        self.vsb.pack(side=LEFT, fill=Y)
         self._canvas.configure(yscrollcommand=self.vsb.set)
 
         self.grid(row=0, column=0, sticky=NSEW)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
+        # self.grid_rowconfigure(0, weight=1)
+        # self.grid_columnconfigure(0, weight=1)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 
@@ -122,6 +124,8 @@ class ThumbnailWidget(Frame):
 
     # noinspection PyTypeChecker
     def update_layout(self) -> None:
+        if 0 == len(self.thumbnails):
+            return
         total_width = self.winfo_width()
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
         for i, (thumbnail, caption, path) in enumerate(self.thumbnails):
