@@ -295,7 +295,7 @@ class GUIForm(Status):
             self.load_geometry()
         if self.state:
             self.GUIWindow.wm_state(self.state)
-        if not self._library_is_loaded:
+        if not self._library_is_loaded and self.sources_library:
             self.library_add(paths=self.sources_library)
             self._library_is_loaded = True
         return self.GUIWindow
