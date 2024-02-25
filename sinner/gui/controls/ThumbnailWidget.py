@@ -1,7 +1,7 @@
 import hashlib
 import os
 import tempfile
-from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, NS, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
+from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
 from typing import List, Tuple, Callable
 
 from PIL import Image
