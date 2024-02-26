@@ -45,7 +45,10 @@ class BaseAudioBackend(Status, ABC):
 
     @property
     @abstractmethod
-    def position(self) -> int:
+    def position(self) -> int | None:
+        """
+        Returns the current playing position in seconds, if supported (else None)
+        """
         pass
 
     @position.setter
