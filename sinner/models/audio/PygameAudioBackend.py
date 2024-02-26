@@ -7,7 +7,7 @@ import threading
 from sinner.utilities import get_file_name
 
 
-class AudioBackend:
+class PygameAudioBackend:
     def __init__(self):
         pygame.mixer.init()
         self.clip = None
@@ -54,7 +54,7 @@ class AudioBackend:
 
 
 # Example usage
-# audio_backend = AudioBackend()
+# audio_backend = PygameAudioBackend()
 # audio_backend.load_media('path/to/your/media.mp3', start_time=10)  # Load media and seek to 10 seconds
 # audio_backend.set_volume(0.8)  # Set volume
 # audio_backend.play()

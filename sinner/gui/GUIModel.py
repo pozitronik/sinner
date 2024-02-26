@@ -12,7 +12,7 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
-from sinner.models.AudioBackend import AudioBackend
+from sinner.models.audio.PygameAudioBackend import PygameAudioBackend
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -48,7 +48,7 @@ class GUIModel(Status):
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
     ProgressBarsManager: ProgressBarManager
-    AudioPlayer: AudioBackend
+    AudioPlayer: PygameAudioBackend
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
@@ -135,7 +135,7 @@ class GUIModel(Status):
 
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
-        self.AudioPlayer = AudioBackend()
+        self.AudioPlayer = PygameAudioBackend()
         self.ProgressBarsManager = pb_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
