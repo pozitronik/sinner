@@ -3,7 +3,6 @@ from argparse import Namespace
 
 from sinner.Status import Status
 from sinner.utilities import normalize_path
-from sinner.validators.AttributeLoader import Rules
 
 
 class BaseAudioBackend(Status, ABC):

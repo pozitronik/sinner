@@ -18,8 +18,10 @@ class PygameAudioBackend(BaseAudioBackend):
 
     def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
         self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(vars(parameters).get('temp_dir', tempfile.gettempdir())), 'extracted_audio'))
+        os.makedirs(self._temp_dir, exist_ok=True)
         super().__init__(parameters, media_path)
         pygame.mixer.init()
+
 
     @property
     def media_path(self) -> str | None:
@@ -30,9 +32,13 @@ class PygameAudioBackend(BaseAudioBackend):
         self._media_path = str(normalize_path(media_path))
         self.update_status(f"Using audio backend for {self._media_path}")
         self._clip = AudioFileClip(self.media_path)
-        self._audio_path = os.path.join(self._temp_dir, get_file_name(self.media_path), '.wav')
+        self._audio_path = os.path.join(self._temp_dir, get_file_name(self.media_path) + '.wav')
         if not os.path.exists(self._audio_path):
-            self._clip.write_audiofile(self._audio_path, codec='pcm_s16le')
+            try:
+                self._clip.write_audiofile(self._audio_path, codec='pcm_s32le')
+            except Exception as exception:
+                self.update_status(message=f"Unable to save the temp audio. Possible reasons: no audio in the media/no access rights/no space on device. \n {str(exception)}", mood=Mood.BAD)
+                return
         try:
             pygame.mixer.music.load(self._audio_path)
             self._media_loaded = True
