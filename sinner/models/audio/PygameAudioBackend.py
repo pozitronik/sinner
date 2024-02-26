@@ -7,7 +7,7 @@ import pygame
 
 from sinner.Status import Mood
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
-from sinner.utilities import get_file_name
+from sinner.utilities import get_file_name, normalize_path
 
 
 class PygameAudioBackend(BaseAudioBackend):
@@ -16,9 +16,9 @@ class PygameAudioBackend(BaseAudioBackend):
     _audio_path: str
     _media_loaded: bool = False
 
-    def __init__(self, parameters: Namespace, media_path: str | None) -> None:
-        super().__init__(parameters, media_path)
+    def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
         self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(vars(parameters).get('temp_dir', tempfile.gettempdir())), 'extracted_audio'))
+        super().__init__(parameters, media_path)
         pygame.mixer.init()
 
     @property
@@ -27,11 +27,12 @@ class PygameAudioBackend(BaseAudioBackend):
 
     @media_path.setter
     def media_path(self, media_path: str) -> None:
-        super().media_path = media_path
+        self._media_path = str(normalize_path(media_path))
+        self.update_status(f"Using audio backend for {self._media_path}")
         self._clip = AudioFileClip(self.media_path)
         self._audio_path = os.path.join(self._temp_dir, get_file_name(self.media_path), '.wav')
         if not os.path.exists(self._audio_path):
-            self.clip.write_audiofile(self._audio_path, codec='pcm_s16le')
+            self._clip.write_audiofile(self._audio_path, codec='pcm_s16le')
         try:
             pygame.mixer.music.load(self._audio_path)
             self._media_loaded = True
@@ -77,9 +78,3 @@ class PygameAudioBackend(BaseAudioBackend):
     @position.setter
     def position(self, position: int) -> None:
         pygame.mixer.music.set_pos(position)
-
-# Example usage
-# audio_backend = PygameAudioBackend()
-# audio_backend.load_media('path/to/your/media.mp3', start_time=10)  # Load media and seek to 10 seconds
-# audio_backend.set_volume(0.8)  # Set volume
-# audio_backend.play()

@@ -7,11 +7,7 @@ from sinner.validators.AttributeLoader import Rules
 
 
 class BaseAudioBackend(Status, ABC):
-    _media_path: str | None
-
-    def rules(self) -> Rules:
-        return [
-        ]
+    _media_path: str | None = None
 
     @staticmethod
     def available() -> bool:
@@ -20,9 +16,10 @@ class BaseAudioBackend(Status, ABC):
         """
         return True
 
-    def __init__(self, parameters: Namespace, media_path: str | None) -> None:
-        self.media_path = media_path
+    def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
         super().__init__(parameters)
+        if media_path:
+            self.media_path = media_path
 
     @property
     def media_path(self) -> str | None:
