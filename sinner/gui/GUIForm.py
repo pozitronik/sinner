@@ -175,6 +175,9 @@ class GUIForm(Status):
         self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
 
+        # Volume slider
+        self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
+
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state='readonly')
@@ -217,6 +220,23 @@ class GUIForm(Status):
         def set_rotate_mode(mode: RotateMode) -> None:
             self.GUIModel.Player.rotate = mode
 
+        self.SoundEnabledVar: BooleanVar = BooleanVar(value=self.GUIModel.enable_sound())
+
+        self.SoundSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.SoundSubMenu, label='Sound')  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(CHECKBUTTON, variable=self.SoundEnabledVar, label='Enable sound', command=lambda: self.GUIModel.enable_sound(self.SoundEnabledVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(COMMAND, label='Volume up', command=lambda: increase_volume())  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(COMMAND, label='Volume down', command=lambda: decrease_volume())  # type: ignore[no-untyped-call]  # it is a library method
+
+        def increase_volume() -> None:
+            if self.GUIModel.volume.get() < 100:
+                self.GUIModel.volume.set(self.GUIModel.volume.get() + 1)
+
+        def decrease_volume() -> None:
+            if self.GUIModel.volume.get() > 0:
+                self.GUIModel.volume.set(self.GUIModel.volume.get() - 1)
+
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
         self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)
 
@@ -247,7 +267,8 @@ class GUIForm(Status):
         self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
 
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH)
+        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+        self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
 
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)

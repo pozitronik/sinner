@@ -29,7 +29,7 @@ class FrameDirectoryBuffer:
     @temp_dir.setter
     def temp_dir(self, value: str | None) -> None:
         if not is_absolute_path(value or ''):
-            raise Exception("Relative paths is not supported")
+            raise Exception("Relative paths are not supported")
         self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(value or ''), 'preview'))
 
     @property

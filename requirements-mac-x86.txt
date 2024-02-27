@@ -21,3 +21,4 @@ onnxruntime==1.15.0
 pyvirtualcam
 pathvalidate
 pygame
+moviepy
