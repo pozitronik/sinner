@@ -21,6 +21,8 @@ def setup_function():
 
 
 def test_init_default() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("Sound can not be initialized in GitHub CI")
     params: Namespace = Parameters().parameters
     backend = PygameAudioBackend(params)
     assert backend.media_path is None
