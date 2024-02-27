@@ -57,8 +57,9 @@ class PygameAudioBackend(BaseAudioBackend):
 
     def stop(self):
         """Stops playback."""
-        pygame.mixer.music.stop()
-        self._media_is_playing = False
+        if self._media_is_playing:
+            pygame.mixer.music.stop()
+            self._media_is_playing = False
 
     def pause(self):
         """Pauses playback."""
