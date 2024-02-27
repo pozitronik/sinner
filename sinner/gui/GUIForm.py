@@ -251,7 +251,7 @@ class GUIForm(Status):
 
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
         self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
-        self.VolumeSlider.pack(anchor=CENTER, expand=True, fill=BOTH)
+        self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
 
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
