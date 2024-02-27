@@ -54,6 +54,7 @@ class GUIModel(Status):
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _positionVar: IntVar | None = None
+    _volumeVar: IntVar | None = None
 
     _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
@@ -206,6 +207,12 @@ class GUIModel(Status):
         return self._positionVar
 
     @property
+    def volume(self) -> IntVar:
+        if self._volumeVar is None:
+            self._volumeVar = IntVar(value=0)
+        return self._volumeVar
+
+    @property
     def processors(self) -> dict[str, BaseFrameProcessor]:
         try:
             for processor_name in self.frame_processor:
@@ -297,6 +304,9 @@ class GUIModel(Status):
     @property
     def player_is_started(self) -> bool:
         return self._event_processing.is_set() or self._event_playback.is_set()
+
+    def set_volume(self, volume: int) -> None:
+        self.AudioPlayer.volume = volume
 
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:

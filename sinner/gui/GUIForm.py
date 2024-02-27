@@ -150,9 +150,6 @@ class GUIForm(Status):
         # Navigation slider
         self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
-        # Volume slider
-        self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
-
         # Controls frame and contents
         self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors
         self.WidgetsFrame: Frame = Frame(self.GUIWindow)  # it is a frame for dynamic controls which can be hidden, like library widget
@@ -177,6 +174,9 @@ class GUIForm(Status):
 
         self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
         self.QualityScale.set(self.GUIModel.quality)
+
+        # Volume slider
+        self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
 
         # source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
@@ -243,7 +243,6 @@ class GUIForm(Status):
     def draw_controls(self) -> None:
         # self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-        self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()
         self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
@@ -251,7 +250,8 @@ class GUIForm(Status):
         self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
 
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH)
+        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+        self.VolumeSlider.pack(anchor=CENTER, expand=True, fill=BOTH)
         self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
 
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
