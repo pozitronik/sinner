@@ -33,7 +33,7 @@ class PygameAudioBackend(BaseAudioBackend):
         self._media_path = str(normalize_path(media_path))
         self.update_status(f"Using audio backend for {self._media_path}")
         self._clip = AudioFileClip(self.media_path)
-        self._audio_path = os.path.join(self._temp_dir, get_file_name(self.media_path) + '.wav')
+        self._audio_path = os.path.join(self._temp_dir, get_file_name(self.media_path) + '.wav')  # type: ignore[arg-type]  # self._media_path always have a value here
         if not os.path.exists(self._audio_path):
             try:
                 self._clip.write_audiofile(self._audio_path, codec='pcm_s32le')
@@ -46,7 +46,7 @@ class PygameAudioBackend(BaseAudioBackend):
         except Exception as exception:
             self.update_status(message=str(exception), mood=Mood.BAD)
 
-    def play(self):
+    def play(self) -> None:
         """Plays the loaded media from the current position."""
         if self._media_loaded and not self._media_is_playing:
             pygame.mixer.music.play()
@@ -55,17 +55,17 @@ class PygameAudioBackend(BaseAudioBackend):
                 pygame.mixer.music.set_pos(self._position)
                 self._position = None
 
-    def stop(self):
+    def stop(self) -> None:
         """Stops playback."""
         if self._media_is_playing:
             pygame.mixer.music.stop()
             self._media_is_playing = False
 
-    def pause(self):
+    def pause(self) -> None:
         """Pauses playback."""
         pygame.mixer.music.pause()
 
-    def unpause(self):
+    def unpause(self) -> None:
         """Resumes playback."""
         pygame.mixer.music.unpause()
 

@@ -224,7 +224,7 @@ class GUIForm(Status):
 
         self.SoundSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.SoundSubMenu, label='Sound')  # type: ignore[no-untyped-call]  # it is a library method
-        self.SoundSubMenu.add(CHECKBUTTON, variable=self.SoundEnabledVar, label='Enable sound', command=lambda: self.GUIModel.enable_sound(self.SoundEnabledVar))  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(CHECKBUTTON, variable=self.SoundEnabledVar, label='Enable sound', command=lambda: self.GUIModel.enable_sound(self.SoundEnabledVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(COMMAND, label='Volume up', command=lambda: increase_volume())  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(COMMAND, label='Volume down', command=lambda: decrease_volume())  # type: ignore[no-untyped-call]  # it is a library method
