@@ -28,6 +28,8 @@ def test_init_default() -> None:
 
 
 def test_init_parameters() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("Sound can not be initialized in GitHub CI")
     params: Namespace = Parameters(f'--temp_dir="{tmp_dir}"').parameters
     backend = PygameAudioBackend(params, target_mp4)
     assert backend._temp_dir == os.path.join(tmp_dir, 'extracted_audio')
@@ -36,6 +38,8 @@ def test_init_parameters() -> None:
 
 
 def test_on_silent(capsys) -> None:
+    if 'CI' in os.environ:
+        pytest.skip("Sound can not be initialized in GitHub CI")
     params: Namespace = Parameters(f'--temp_dir="{tmp_dir}"').parameters
     PygameAudioBackend(params, silent_target_mp4)
     captured = capsys.readouterr()
