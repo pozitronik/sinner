@@ -21,3 +21,4 @@ onnxruntime-silicon==1.13.1
 pyvirtualcam
 pathvalidate
 pygame
+moviepy
