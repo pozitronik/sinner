@@ -11,7 +11,7 @@ class BaseAudioBackend(Status, ABC):
     @staticmethod
     def available() -> bool:
         """
-        If this backend is available
+        :return: True, if this backend is available
         """
         return True
 
@@ -22,34 +22,52 @@ class BaseAudioBackend(Status, ABC):
 
     @property
     def media_path(self) -> str | None:
+        """
+        :return: string path to the current mediafile, if present
+        """
         return self._media_path
 
     @media_path.setter
     def media_path(self, media_path: str) -> None:
+        """
+        The path to the mediafile
+        :param media_path: string path to the current mediafile
+        """
         self._media_path = str(normalize_path(media_path))
         self.update_status(f"Using audio backend for {self._media_path}")
 
     @property
     @abstractmethod
     def volume(self) -> int:
+        """
+        :return: the current volume level
+        """
         pass
 
     @volume.setter
     @abstractmethod
     def volume(self, vol: int) -> None:
+        """
+        Sets the volume level
+        :param vol: volume level (0 - 100)
+        """
         pass
 
     @property
     @abstractmethod
     def position(self) -> int | None:
         """
-        Returns the current playing position in seconds, if supported (else None)
+        :return: the current playing position in seconds, if supported (else None)
         """
         pass
 
     @position.setter
     @abstractmethod
     def position(self, position: int) -> None:
+        """
+        Sets the current position, if seconds
+        :param position: required position
+        """
         pass
 
     @abstractmethod
