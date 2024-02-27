@@ -15,12 +15,14 @@ class PygameAudioBackend(BaseAudioBackend):
     _temp_dir: str
     _audio_path: str
     _media_loaded: bool = False
+    _media_is_playing: bool = False
+    _position: int | None = None
 
     def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
         self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(vars(parameters).get('temp_dir', tempfile.gettempdir())), 'extracted_audio'))
         os.makedirs(self._temp_dir, exist_ok=True)
-        super().__init__(parameters, media_path)
         pygame.mixer.init()
+        super().__init__(parameters, media_path)
 
     @property
     def media_path(self) -> str | None:
@@ -46,18 +48,17 @@ class PygameAudioBackend(BaseAudioBackend):
 
     def play(self):
         """Plays the loaded media from the current position."""
-        if self._media_loaded:
+        if self._media_loaded and not self._media_is_playing:
             pygame.mixer.music.play()
-
-    def set_volume(self, volume):
-        """Sets the playback volume."""
-        self.volume = volume
-        pygame.mixer.music.set_volume(volume)
+            self._media_is_playing = True
+            if self._position is not None:
+                pygame.mixer.music.set_pos(self._position)
+                self._position = None
 
     def stop(self):
         """Stops playback."""
         pygame.mixer.music.stop()
-        self._media_loaded = False
+        self._media_is_playing = False
 
     def pause(self):
         """Pauses playback."""
@@ -82,4 +83,7 @@ class PygameAudioBackend(BaseAudioBackend):
 
     @position.setter
     def position(self, position: int) -> None:
-        pygame.mixer.music.set_pos(position)
+        self._position = position
+        if self._media_is_playing:
+            pygame.mixer.music.set_pos(self._position)
+            self._position = None
