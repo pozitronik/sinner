@@ -38,5 +38,5 @@ def test_init_parameters() -> None:
 def test_on_silent(capsys) -> None:
     params: Namespace = Parameters(f'--temp_dir="{tmp_dir}"').parameters
     PygameAudioBackend(params, silent_target_mp4)
-    captured: str = capsys.readouterr()
+    captured = capsys.readouterr()
     assert "Unable to save the temp audio" in captured.out
