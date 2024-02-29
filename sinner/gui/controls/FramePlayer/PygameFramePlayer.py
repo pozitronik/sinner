@@ -1,5 +1,7 @@
 import ctypes
 import threading
+from ctypes import wintypes
+from time import sleep
 from typing import Callable
 
 import cv2
@@ -10,8 +12,10 @@ from pygame import Surface
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, HWND_TOP, RotateMode
 from sinner.helpers.FrameHelper import resize_proportionally
+from sinner.models.Event import Event
 from sinner.typing import Frame
 from sinner.utilities import get_app_dir
+from pygame.event import Event as PygameEvent
 
 
 class PygameFramePlayer(BaseFramePlayer):
@@ -19,27 +23,53 @@ class PygameFramePlayer(BaseFramePlayer):
     width: int
     height: int
     caption: str
+    on_close_event: Event | None
 
     _visible: bool = False
     _events_thread: threading.Thread
-    _event_handlers: dict[int, Callable[[], None]] = {}
+    _event_handlers: dict[int, Callable[[PygameEvent], None]] = {}
+    _event_processing: Event  # the flag to control start/stop event_handling thread
 
-    def __init__(self, width: int, height: int, caption: str = 'PlayerControl'):
+    def __init__(self, width: int, height: int, caption: str = 'PlayerControl', on_close_event: Event | None = None):
         self.width = width
         self.height = height
         self.caption = caption
+        self.on_close_event = on_close_event
         pygame.init()
+        self._event_processing: Event = Event()
         self._events_thread = threading.Thread(target=self._handle_events, name="_handle_events")
         self._events_thread.daemon = True
-        # self._events_thread.start()
+        self._events_thread.start()
 
-    def add_handler(self, event_type: int, handler: Callable[[], None]) -> None:
+        self.add_handler(pygame.QUIT, lambda event: self._event_processing.clear())
+        self.add_handler(pygame.WINDOWRESIZED, lambda event: self.show_frame())
+        self.add_handler(pygame.WINDOWCLOSE, lambda event: self.close())
+
+        self._event_processing.set()
+
+    def close(self) -> None:
+        self._event_processing.clear()  # stop handlers
+        # self.screen = None
+        pygame.quit()
+        if self.on_close_event:
+            self.on_close_event.set()
+
+    def add_handler(self, event_type: int, handler: Callable[[PygameEvent], None]) -> None:
         self._event_handlers[event_type] = handler
         self._reload_event_handlers()
 
     def _reload_event_handlers(self) -> None:
         pygame.event.set_blocked(None)
         pygame.event.set_allowed([key for key in self._event_handlers])
+
+    def _handle_events(self) -> None:
+        self._reload_event_handlers()
+        while self._event_processing.is_set():
+            for event in pygame.event.get():
+                if event.type in self._event_handlers:
+                    handler = self._event_handlers[event.type]
+                    handler(event)
+            sleep(0.01)  # should prevent a high CPU load
 
     def show(self) -> None:
         if not self._visible:
@@ -93,49 +123,19 @@ class PygameFramePlayer(BaseFramePlayer):
         self.screen.fill((0, 0, 0))
         pygame.display.flip()
 
-    def _handle_events(self) -> None:
-        self._reload_event_handlers()
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type in self._event_handlers:
-                    handler = self._event_handlers[event.type]
-                    handler()
-
     def set_fullscreen(self, fullscreen: bool = True) -> None:
         pygame.display.toggle_fullscreen()
 
     def set_topmost(self, on_top: bool = True) -> None:
         if WINDOWS:
-            # by some unknown reason it has no effect
-            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)  # type: ignore[attr-defined]  # platform issue
+            user32 = ctypes.WinDLL("user32")  # type: ignore[attr-defined]  # platform issue
+            user32.SetWindowPos.restype = wintypes.HWND
+            user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.UINT]
+            user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
 
     def bring_to_front(self) -> None:
         if WINDOWS:
-            ctypes.windll.user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)  # type: ignore[attr-defined]  # platform issue
-
-
-"""
-
-    def geometry(self, geometry_string: str | None = None) -> str | None:
-        # mostly taken from customtkinter but ignores DPI scaling
-        if geometry_string is not None:
-            # update width and height attributes
-            self.width, self.height, self., self.y = self._parse_geometry_string(geometry_string)
-        else:
-            return f"{round(self.width)}x{round(self.height)}+{self.x}+{self.y}"
-
-    @staticmethod
-    def _parse_geometry_string(geometry_string: str) -> tuple:  # taken from customtkinter
-        #                 index:   1                   2           3          4             5       6
-        # regex group structure: ('<width>x<height>', '<width>', '<height>', '+-<x>+-<y>', '-<x>', '-<y>')
-        result = re.search(r"((\d+)x(\d+)){0,1}(\+{0,1}([+-]{0,1}\d+)\+{0,1}([+-]{0,1}\d+)){0,1}", geometry_string)
-
-        width = int(result.group(2)) if result.group(2) is not None else None
-        height = int(result.group(3)) if result.group(3) is not None else None
-        x = int(result.group(5)) if result.group(5) is not None else None
-        y = int(result.group(6)) if result.group(6) is not None else None
-
-        return width, height, x, y
-
-"""
+            user32 = ctypes.WinDLL("user32")  # type: ignore[attr-defined]  # platform issue
+            user32.SetWindowPos.restype = wintypes.HWND
+            user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.UINT]
+            user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)

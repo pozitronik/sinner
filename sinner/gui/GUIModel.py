@@ -135,7 +135,7 @@ class GUIModel(Status):
             }
         ]
 
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any]):
+    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -143,7 +143,8 @@ class GUIModel(Status):
             self._processors = self.processors
 
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
-        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player')
+        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player', on_close_event=on_close_event)
+
         if self._enable_sound:
             self.AudioPlayer = PygameAudioBackend(parameters=self.parameters, media_path=self._target_path)
         self.ProgressBarsManager = pb_control
