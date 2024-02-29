@@ -288,3 +288,7 @@ def suggest_temp_dir(initial: str | None = None) -> str:
 def seconds_to_hmsms(seconds: float) -> str:
     time_format = datetime.utcfromtimestamp(seconds).strftime("%H:%M:%S.%f")
     return time_format[:-3]  # Remove the last three digits to get milliseconds
+
+
+def halt() -> None:
+    os._exit(0)
