@@ -128,14 +128,14 @@ class PygameFramePlayer(BaseFramePlayer):
 
     def set_topmost(self, on_top: bool = True) -> None:
         if WINDOWS:
-            user32 = ctypes.WinDLL("user32")
+            user32 = ctypes.WinDLL("user32")  # type: ignore[attr-defined]  # platform issue
             user32.SetWindowPos.restype = wintypes.HWND
             user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.UINT]
-            user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE) # type: ignore[attr-defined]  # platform issue
+            user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOPMOST if on_top else HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
 
     def bring_to_front(self) -> None:
         if WINDOWS:
-            user32 = ctypes.WinDLL("user32")
+            user32 = ctypes.WinDLL("user32")  # type: ignore[attr-defined]  # platform issue
             user32.SetWindowPos.restype = wintypes.HWND
             user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.UINT]
-            user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE) # type: ignore[attr-defined]  # platform issue
+            user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
