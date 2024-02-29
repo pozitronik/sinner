@@ -25,7 +25,7 @@ class PygameFramePlayer(BaseFramePlayer):
 
     _visible: bool = False
     _events_thread: threading.Thread
-    _event_handlers: dict[int, Callable[[], None]] = {}
+    _event_handlers: dict[int, Callable[[pygame.event], None]] = {}
     _event_processing: Event # the flag to control start/stop event_handling thread
 
     def __init__(self, width: int, height: int, caption: str = 'PlayerControl'):
@@ -38,22 +38,24 @@ class PygameFramePlayer(BaseFramePlayer):
         self._events_thread.daemon = True
         self._events_thread.start()
 
-        self.add_handler(pygame.QUIT, lambda: self._event_processing.clear())
-        self.add_handler(pygame.WINDOWEXPOSED, lambda: print("Window exposed"))
-        self.add_handler(pygame.VIDEOEXPOSE, lambda: print("VIDEO exposed"))
-        self.add_handler(pygame.VIDEORESIZE, lambda: print("VIDEO resized"))
-        self.add_handler(pygame.WINDOWRESIZED, lambda: print("Window resized"))
-        self.add_handler(pygame.WINDOWSIZECHANGED, lambda: print("Window size changed"))
-        self.add_handler(pygame.WINDOWDISPLAYCHANGED, lambda: print("Window display changed"))
-        self.add_handler(pygame.WINDOWRESTORED, lambda: print("Window restored"))
-        self.add_handler(pygame.WINDOWMOVED, lambda: print("Window moved"))
-        self.add_handler(pygame.WINDOWMAXIMIZED, lambda: print("Window maximized"))
-        self.add_handler(pygame.WINDOWMINIMIZED, lambda: print("Window minimized"))
-        self.add_handler(pygame.WINDOWCLOSE, lambda: print("Window closed"))
+        self.add_handler(pygame.QUIT, lambda event: self._event_processing.clear())
+        self.add_handler(pygame.WINDOWRESIZED, lambda event: self.show_frame())
+
+        # self.add_handler(pygame.WINDOWEXPOSED, lambda: print("Window exposed"))
+        # self.add_handler(pygame.VIDEOEXPOSE, lambda: print("VIDEO exposed"))
+        # self.add_handler(pygame.VIDEORESIZE, lambda: print("VIDEO resized"))
+        #
+        # self.add_handler(pygame.WINDOWSIZECHANGED, lambda: print("Window size changed"))
+        # self.add_handler(pygame.WINDOWDISPLAYCHANGED, lambda: print("Window display changed"))
+        # self.add_handler(pygame.WINDOWRESTORED, lambda: print("Window restored"))
+        # self.add_handler(pygame.WINDOWMOVED, lambda: print("Window moved"))
+        # self.add_handler(pygame.WINDOWMAXIMIZED, lambda: print("Window maximized"))
+        # self.add_handler(pygame.WINDOWMINIMIZED, lambda: print("Window minimized"))
+        # self.add_handler(pygame.WINDOWCLOSE, lambda: print("Window closed"))
 
         self._event_processing.set()
 
-    def add_handler(self, event_type: int, handler: Callable[[], None]) -> None:
+    def add_handler(self, event_type: int, handler: Callable[[pygame.event], None]) -> None:
         self._event_handlers[event_type] = handler
         self._reload_event_handlers()
 
@@ -67,17 +69,8 @@ class PygameFramePlayer(BaseFramePlayer):
             for event in pygame.event.get():
                 if event.type in self._event_handlers:
                     handler = self._event_handlers[event.type]
-                    handler()
+                    handler(event)
             sleep(0.01)  # should prevent a high CPU load
-
-    def on_expose_event(self) -> None:
-        # self.screen.blit(pygame.transform.scale(pic, event.dict['size']), (0, 0))
-        pygame.display.update()
-
-    def on_videoexpose_event(self, e: pygame.event) -> None:
-        # self.screen.fill((0, 0, 0))
-        # self.screen.blit(pygame.transform.scale(pic, screen.get_size()), (0, 0))
-        pygame.display.update()
 
     def show(self) -> None:
         if not self._visible:
