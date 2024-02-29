@@ -2,11 +2,12 @@ from argparse import Namespace
 from threading import Thread
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM
 from tkinter.ttk import Spinbox
-from typing import List, Callable
+from typing import List
 
 from customtkinter import CTk
 from psutil import WINDOWS
 
+from sinner.models.Event import Event as SinnerEvent
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
@@ -18,7 +19,7 @@ from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
-from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list
+from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt
 from sinner.validators.AttributeLoader import Rules
 
 
@@ -41,7 +42,8 @@ class GUIForm(Status):
     geometry: str
     state: str  # currently ignored, see issue #100
     sources_library: List[str]
-    _on_window_close_callback: Callable[[], None] | None = None
+
+    _event_player_window_closed: SinnerEvent  # the event when the player window is closed (forwarded via GUIModel)
 
     def rules(self) -> Rules:
         return [
@@ -113,10 +115,11 @@ class GUIForm(Status):
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 130)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
+        self._event_player_window_closed = SinnerEvent(on_set_callback=lambda: on_player_window_close())
 
         def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
-            quit()
+            halt()
 
         self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
 
@@ -132,7 +135,7 @@ class GUIForm(Status):
         self.ProgressBars = ProgressBarManager(self.GUIWindow)
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
 
-        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value))
+        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
