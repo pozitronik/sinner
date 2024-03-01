@@ -122,12 +122,17 @@ class GUIForm(Status):
             halt()
 
         self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
+        self.GUIWindow.bind("<FocusIn>", lambda event: on_player_window_focus_in(event))
 
         # noinspection PyUnusedLocal
         def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
             if self.GUIWindow.wm_state() != 'zoomed':
                 Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
+
+        # noinspection PyUnusedLocal
+        def on_player_window_focus_in(event: Event) -> None:  # type: ignore[type-arg]
+            self.GUIModel.Player.bring_to_front()
 
         self.GUIWindow.resizable(width=True, height=True)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
