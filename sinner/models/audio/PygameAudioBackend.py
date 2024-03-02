@@ -75,7 +75,7 @@ class PygameAudioBackend(BaseAudioBackend):
 
     @volume.setter
     def volume(self, vol: int) -> None:
-        pygame.mixer.music.set_volume(self.volume / 100)
+        pygame.mixer.music.set_volume(vol / 100)
 
     @property
     def position(self) -> int | None:

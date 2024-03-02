@@ -19,6 +19,7 @@ from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
+from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt
 from sinner.validators.AttributeLoader import Rules
 
@@ -116,6 +117,9 @@ class GUIForm(Status):
         self.GUIWindow.minsize(500, 130)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
         self._event_player_window_closed = SinnerEvent(on_set_callback=lambda: on_player_window_close())
+        self.ProgressBars = ProgressBarManager(self.GUIWindow)
+        self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
+        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
@@ -132,15 +136,11 @@ class GUIForm(Status):
 
         # noinspection PyUnusedLocal
         def on_player_window_focus_in(event: Event) -> None:  # type: ignore[type-arg]
-            self.GUIModel.Player.bring_to_front()
+            if self.GUIModel:
+                self.GUIModel.Player.bring_to_front()
 
         self.GUIWindow.resizable(width=True, height=True)
         self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
-
-        self.ProgressBars = ProgressBarManager(self.GUIWindow)
-        self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-
-        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
             if event.keycode == 37:  # left arrow
@@ -244,6 +244,18 @@ class GUIForm(Status):
         def decrease_volume() -> None:
             if self.GUIModel.volume.get() > 0:
                 self.GUIModel.volume.set(self.GUIModel.volume.get() - 1)
+
+        self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.AudioBackendVar: StringVar = StringVar(value=self.GUIModel.audio_backend)
+
+        self.AudioBackendSelectionMenu: Menu = Menu(self.SoundSubMenu, tearoff=False)
+        for available_backend in BaseAudioBackend.list():
+            self.AudioBackendSelectionMenu.add(RADIOBUTTON, variable=self.AudioBackendVar, label=available_backend, command=lambda: switch_audio_backend(available_backend))  # type: ignore[no-untyped-call]  # it is a library method
+
+        def switch_audio_backend(backend: str) -> None:
+            self.GUIModel.audio_backend = backend
+
+        self.SoundSubMenu.add(CASCADE, menu=self.AudioBackendSelectionMenu, label='Audio backend')  # type: ignore[no-untyped-call]  # it is a library method
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
         self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)

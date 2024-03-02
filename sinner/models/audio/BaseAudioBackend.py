@@ -1,12 +1,28 @@
+import os
 from abc import ABC, abstractmethod
 from argparse import Namespace
+from typing import Any
 
 from sinner.Status import Status
-from sinner.utilities import normalize_path
+from sinner.utilities import normalize_path, load_class, list_class_descendants
 
 
 class BaseAudioBackend(Status, ABC):
     _media_path: str | None = None
+
+    @staticmethod
+    def create(backend_name: str, parameters: Namespace, media_path: str | None = None) -> 'BaseAudioBackend':  # audio backend factory
+        backend_class = load_class(os.path.dirname(__file__), backend_name)
+
+        if backend_class and issubclass(backend_class, BaseAudioBackend):
+            params: dict[str, Any] = {'parameters': parameters, 'media_path': media_path}
+            return backend_class(**params)
+        else:
+            raise ValueError(f"Invalid backend name: {backend_name}")
+
+    @staticmethod
+    def list() -> list[str]:
+        return list_class_descendants(os.path.dirname(__file__), 'BaseAudioBackend')
 
     @staticmethod
     def available() -> bool:
