@@ -329,7 +329,7 @@ class GUIForm(Status):
         self.GUIModel.update_preview()
         self.create_windows()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
-        self.GUIModel.Player.set_topmost()
+        self.GUIModel.Player.bring_to_front()
         if self.geometry:
             self.load_geometry()
         if self.state:
