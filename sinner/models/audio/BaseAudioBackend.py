@@ -4,7 +4,7 @@ from argparse import Namespace
 from typing import Any
 
 from sinner.Status import Status
-from sinner.utilities import normalize_path, load_class, list_class_descendants, resolve_relative_path
+from sinner.utilities import normalize_path, load_class, list_class_descendants
 
 
 class BaseAudioBackend(Status, ABC):
