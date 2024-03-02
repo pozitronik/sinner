@@ -179,6 +179,16 @@ class GUIModel(Status):
         return self._enable_sound
 
     @property
+    def audio_backend(self) -> str:
+        return self._audio_backend
+
+    @audio_backend.setter
+    def audio_backend(self, backend: str) -> None:
+        self.enable_sound(False)
+        self._audio_backend = backend
+        self.enable_sound(True)
+
+    @property
     def source_path(self) -> str | None:
         return self._source_path
 

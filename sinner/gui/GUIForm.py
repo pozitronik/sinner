@@ -19,6 +19,7 @@ from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
+from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt
 from sinner.validators.AttributeLoader import Rules
 
@@ -244,6 +245,18 @@ class GUIForm(Status):
         def decrease_volume() -> None:
             if self.GUIModel.volume.get() > 0:
                 self.GUIModel.volume.set(self.GUIModel.volume.get() - 1)
+
+        self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.AudioBackendVar: StringVar = StringVar(value=self.GUIModel.audio_backend)
+
+        self.AudioBackendSelectionMenu: Menu = Menu(self.SoundSubMenu, tearoff=False)
+        for available_backend in BaseAudioBackend.list():
+            self.AudioBackendSelectionMenu.add(RADIOBUTTON, variable=self.AudioBackendVar, label=available_backend, command=lambda: switch_audio_backend(available_backend))  # type: ignore[no-untyped-call]  # it is a library method
+
+        def switch_audio_backend(backend: str) -> None:
+            self.GUIModel.audio_backend = backend
+
+        self.SoundSubMenu.add(CASCADE, menu=self.AudioBackendSelectionMenu, label='Audio backend')
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
         self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)
