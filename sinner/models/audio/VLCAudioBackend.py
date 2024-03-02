@@ -6,11 +6,14 @@ from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 
 class VLCAudioBackend(BaseAudioBackend):
     _position: int | None = None
+    _show_player_window: bool = False
+
+    _vlc_instance: vlc.Instance
 
     def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
         super().__init__(parameters, media_path)
-        self._player = vlc.MediaPlayer(media_path) if media_path else vlc.MediaPlayer()
-        self._vlc_instance = vlc.Instance()
+        self._vlc_instance = vlc.Instance() if self._show_player_window else vlc.Instance(['--intf=dummy', '--no-video'])
+        self._player = self._vlc_instance.media_player_new(uri=media_path) if media_path else self._vlc_instance.media_player_new
 
     @property
     def volume(self) -> int:
