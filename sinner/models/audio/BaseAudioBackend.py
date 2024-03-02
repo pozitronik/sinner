@@ -4,7 +4,7 @@ from argparse import Namespace
 from typing import Any
 
 from sinner.Status import Status
-from sinner.utilities import normalize_path, load_class
+from sinner.utilities import normalize_path, load_class, list_class_descendants, resolve_relative_path
 
 
 class BaseAudioBackend(Status, ABC):
@@ -19,6 +19,10 @@ class BaseAudioBackend(Status, ABC):
             return backend_class(**params)
         else:
             raise ValueError(f"Invalid backend name: {backend_name}")
+
+    @staticmethod
+    def list() -> list[str]:
+        return list_class_descendants(os.path.dirname(__file__), 'BaseAudioBackend')
 
     @staticmethod
     def available() -> bool:

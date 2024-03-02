@@ -16,3 +16,10 @@ def test_audio_backend_factory() -> None:
     assert (BaseAudioBackend.create(backend_name='VLCAudioBackend', parameters=parameters, media_path=target_mp4), VLCAudioBackend)
     with pytest.raises(Exception):
         BaseAudioBackend.create(backend_name='UnknownBackend', parameters=parameters, media_path=target_mp4)
+
+
+def test_audio_backend_list() -> None:
+    backends = BaseAudioBackend.list()
+    assert 'PygameAudioBackend' in backends
+    assert 'VLCAudioBackend' in backends
+    assert 2 == len(backends)
