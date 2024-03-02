@@ -21,7 +21,6 @@ from sinner.models.Event import Event
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
-from sinner.models.audio.PygameAudioBackend import PygameAudioBackend
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
@@ -43,6 +42,7 @@ class GUIModel(Status):
     _prepare_frames: bool  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _enable_sound: bool
+    _audio_backend: str  # the current audio backend class name, used to create it in the factory
 
     parameters: Namespace
 
@@ -126,6 +126,12 @@ class GUIModel(Status):
                 'help': 'Enable audio playback'
             },
             {
+                'parameter': ['audio-backend', 'audio'],
+                'attribute': '_audio_backend',
+                'default': 'PygameAudioBackend',
+                'help': 'Audio backend class to use'
+            },
+            {
                 'parameter': 'temp-dir',
                 'default': lambda: suggest_temp_dir(self.temp_dir),
                 'help': 'Select the directory for temporary files'
@@ -146,7 +152,7 @@ class GUIModel(Status):
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player', on_close_event=on_close_event)
 
         if self._enable_sound:
-            self.AudioPlayer = PygameAudioBackend(parameters=self.parameters, media_path=self._target_path)
+            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         self.ProgressBarsManager = pb_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
@@ -166,7 +172,7 @@ class GUIModel(Status):
         if enable is not None:
             self._enable_sound = enable
             if self._enable_sound and not self.AudioPlayer:
-                self.AudioPlayer = PygameAudioBackend(parameters=self.parameters, media_path=self._target_path)
+                self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
             elif self.AudioPlayer:
                 self.AudioPlayer.stop()
                 self.AudioPlayer = None
@@ -195,7 +201,7 @@ class GUIModel(Status):
         self.Player.clear()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         if self._enable_sound:
-            self.AudioPlayer = PygameAudioBackend(parameters=self.parameters, media_path=self._target_path)
+            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
             self.player_stop(reload_frames=True)
             self.position.set(1)
