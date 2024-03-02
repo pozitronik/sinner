@@ -148,7 +148,7 @@ def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 
 def load_class(path: str, module_name: str, class_name: str | None = None) -> type | None:
     if class_name is None:
         class_name = module_name
-    module_path = os.path.join(normalize_path(path), module_name + '.py')
+    module_path = os.path.join(str(normalize_path(path)), module_name + '.py')
     try:
         if path_exists(module_path):
             spec = importlib.util.spec_from_file_location(module_name, module_path)
