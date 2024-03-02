@@ -129,7 +129,7 @@ class GUIModel(Status):
                 'parameter': ['audio-backend', 'audio'],
                 'attribute': '_audio_backend',
                 'default': 'PygameAudioBackend',
-                'help': 'Audio backend class to use'
+                'help': 'Audio backend to use'
             },
             {
                 'parameter': 'temp-dir',
