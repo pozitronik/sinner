@@ -5,6 +5,8 @@ from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 
 
 class VLCAudioBackend(BaseAudioBackend):
+    _position: int | None = None
+
     def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
         super().__init__(parameters, media_path)
         self._player = vlc.MediaPlayer(media_path) if media_path else vlc.MediaPlayer()
@@ -20,17 +22,21 @@ class VLCAudioBackend(BaseAudioBackend):
 
     @property
     def position(self) -> int | None:
-        pos = self._player.get_position()
+        pos = self._player.get_time()
         if pos == -1:  # Indicates that the position is not available
             return None
-        return int(self._player.get_length() * pos)  # Convert to seconds
+        return pos * 1000  # Convert to seconds
 
     @position.setter
     def position(self, position: int) -> None:
-        self._player.set_position(position / self._player.get_length())
+        self._position = position
+        self._player.set_time(position * 1000)
 
     def play(self) -> None:
         self._player.play()
+        if self._position is not None:
+            self._player.set_time(self._position * 1000)
+            self._position = None
 
     def pause(self) -> None:
         self._player.pause()  # VLC's pause function toggles pause, so this method can also unpause
