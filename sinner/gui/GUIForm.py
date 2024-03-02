@@ -255,7 +255,7 @@ class GUIForm(Status):
         def switch_audio_backend(backend: str) -> None:
             self.GUIModel.audio_backend = backend
 
-        self.SoundSubMenu.add(CASCADE, menu=self.AudioBackendSelectionMenu, label='Audio backend')
+        self.SoundSubMenu.add(CASCADE, menu=self.AudioBackendSelectionMenu, label='Audio backend')  # type: ignore[no-untyped-call]  # it is a library method
 
         self.StayOnTopVar: BooleanVar = BooleanVar(value=self.topmost)
         self.SourceLibraryVar: BooleanVar = BooleanVar(value=self.show_sources_library)
