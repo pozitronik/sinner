@@ -128,7 +128,8 @@ class GUIModel(Status):
             {
                 'parameter': ['audio-backend', 'audio'],
                 'attribute': '_audio_backend',
-                'default': 'PygameAudioBackend',
+                'default': 'VLCAudioBackend',
+                'choices': list_class_descendants(resolve_relative_path('../models/audio'), 'BaseAudioBackend'),
                 'help': 'Audio backend to use'
             },
             {
