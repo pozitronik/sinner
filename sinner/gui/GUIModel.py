@@ -429,7 +429,7 @@ class GUIModel(Status):
                         results.pop(0)
                     results.append(process_time)
                     self._process_fps = self._process_fps = self.execution_threads / (sum(results) / len(results))
-                self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1 / process_time, 4)}/{frame_skip - 1}")
+                    self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1 / process_time, 4)}/{frame_skip - 1}")
             futures.remove(future_)
 
         futures: list[Future[float | None]] = []
