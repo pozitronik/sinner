@@ -246,7 +246,7 @@ class GUIModel(Status):
     @property
     def volume(self) -> IntVar:
         if self._volumeVar is None:
-            self._volumeVar = IntVar(value=self.AudioPlayer.volume)
+            self._volumeVar = IntVar(value=self.AudioPlayer.volume if self.AudioPlayer else 0)
         return self._volumeVar
 
     @property
