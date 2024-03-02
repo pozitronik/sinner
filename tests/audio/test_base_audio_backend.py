@@ -1,3 +1,4 @@
+import os
 from argparse import Namespace
 
 import pytest
@@ -12,6 +13,8 @@ parameters: Namespace = Parameters().parameters
 
 
 def test_audio_backend_factory() -> None:
+    if 'CI' in os.environ:
+        pytest.skip("Sound can not be initialized in GitHub CI")
     assert (BaseAudioBackend.create(backend_name='PygameAudioBackend', parameters=parameters, media_path=target_mp4), PygameAudioBackend)
     assert (BaseAudioBackend.create(backend_name='VLCAudioBackend', parameters=parameters, media_path=target_mp4), VLCAudioBackend)
     with pytest.raises(Exception):
