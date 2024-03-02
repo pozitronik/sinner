@@ -18,3 +18,4 @@ pyvirtualcam
 pathvalidate
 pygame
 moviepy
+python-vlc

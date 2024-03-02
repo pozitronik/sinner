@@ -68,6 +68,7 @@ jobs:
           pip install pathvalidate
           pip install pygame
           pip install moviepy
+          pip install python-vlc
       - run: |
           export DISPLAY=:1:0
           Xvfb :1 -screen 0 1600x1200x16 &
