@@ -12,11 +12,11 @@ class VLCAudioBackend(BaseAudioBackend):
 
     @property
     def volume(self) -> int:
-        return self._player.audio_get_volume() // 2  # VLC's volume range is 0-200, so we scale it to 0-100
+        return self._player.audio_get_volume()
 
     @volume.setter
     def volume(self, vol: int) -> None:
-        self._player.audio_set_volume(vol * 2)  # Scale back to VLC's range
+        self._player.audio_set_volume(vol)
 
     @property
     def position(self) -> int | None:
