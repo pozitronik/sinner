@@ -1,7 +1,7 @@
 from argparse import Namespace
 from threading import Thread
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM
-from tkinter.ttk import Spinbox
+from tkinter.ttk import Spinbox, Label
 from typing import List
 
 from customtkinter import CTk
@@ -176,6 +176,7 @@ class GUIForm(Status):
         self.ControlsFrame = Frame(self.BaseFrame)
 
         self.SubControlsFrame = Frame(self.ControlsFrame)
+        self.FrameDropLabel: Label = Label(self.SubControlsFrame, text="Framedrop (-1 to auto):")
         self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
         self.FrameDropSpinbox.bind('<KeyRelease>', lambda event: self.on_framedrop_change())
         self.FrameDropSpinbox.set(-1)
@@ -286,6 +287,7 @@ class GUIForm(Status):
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
         self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
 
+        self.FrameDropLabel.pack(anchor=NW, side=LEFT)
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
         self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
         self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
