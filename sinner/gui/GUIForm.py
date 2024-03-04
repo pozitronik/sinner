@@ -1,6 +1,6 @@
 from argparse import Namespace
 from threading import Thread
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, RIGHT, NE
 from tkinter.ttk import Spinbox, Label
 from typing import List
 
@@ -186,7 +186,12 @@ class GUIForm(Status):
         self.QualityScaleSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=1, to=100, increment=1, command=lambda: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
         self.QualityScaleSpinbox.set(self.GUIModel.quality)
 
+        # empty space to divide controls
+
+        self.EmptyDivisor: Label = Label(self.SubControlsFrame)
+
         # Volume slider
+        self.VolumeLabel: Label = Label(self.SubControlsFrame, text="Vol:")
         self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
 
         # source/target selection controls
@@ -292,8 +297,12 @@ class GUIForm(Status):
         self.FrameDropLabel.pack(anchor=NW, side=LEFT)
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
         self.QualityScaleLabel.pack(anchor=NW, side=LEFT)
-        self.QualityScaleSpinbox.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
-        self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
+        self.QualityScaleSpinbox.pack(anchor=NW, expand=False, fill=BOTH, side=LEFT)
+
+        self.EmptyDivisor.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+
+        self.VolumeLabel.pack(anchor=NE, side=LEFT)
+        self.VolumeSlider.pack(anchor=NE, side=LEFT, expand=False, fill=X)
         self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
 
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
