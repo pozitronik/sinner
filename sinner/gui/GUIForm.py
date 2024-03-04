@@ -181,8 +181,10 @@ class GUIForm(Status):
         self.FrameDropSpinbox.bind('<KeyRelease>', lambda event: self.on_framedrop_change())
         self.FrameDropSpinbox.set(-1)
 
-        self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
-        self.QualityScale.set(self.GUIModel.quality)
+        self.QualityScaleLabel: Label = Label(self.SubControlsFrame, text="Quality scale:")
+
+        self.QualityScaleSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=1, to=100, increment=1, command=lambda: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
+        self.QualityScaleSpinbox.set(self.GUIModel.quality)
 
         # Volume slider
         self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
@@ -289,7 +291,8 @@ class GUIForm(Status):
 
         self.FrameDropLabel.pack(anchor=NW, side=LEFT)
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+        self.QualityScaleLabel.pack(anchor=NW, side=LEFT)
+        self.QualityScaleSpinbox.pack(anchor=CENTER, expand=False, fill=BOTH, side=LEFT)
         self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
 
