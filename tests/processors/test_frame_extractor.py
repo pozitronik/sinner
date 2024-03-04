@@ -5,8 +5,7 @@ from argparse import Namespace
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Parameters import Parameters
-from sinner.State import State
-from sinner.handlers.frame.VideoHandler import VideoHandler
+from sinner.models.State import State
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from tests.constants import tmp_dir, target_mp4, TARGET_FC
 

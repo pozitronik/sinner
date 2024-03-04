@@ -4,13 +4,16 @@ import signal
 import sys
 from argparse import Namespace
 
+if sys.version_info < (3, 10):
+    print('Python version is not supported - please upgrade to 3.10 or higher.')
+    quit()
+
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
-from sinner.gui.GUI import GUI
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
-from sinner.WebCam import WebCam
-from sinner.gui.GUIProcessingCore import GUIProcessingCore
+from sinner.gui.GUIForm import GUIForm
+from sinner.webcam.WebCam import WebCam
 from sinner.utilities import limit_resources
 
 
@@ -23,8 +26,6 @@ class Sin(Sinner):
     parameters: Namespace
 
     def __init__(self) -> None:
-        if sys.version_info < (3, 10):
-            raise Exception('Python version is not supported - please upgrade to 3.10 or higher.')
         signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
         self.parameters = Parameters().parameters
         super().__init__(parameters=self.parameters)
@@ -33,7 +34,7 @@ class Sin(Sinner):
 
     def run(self) -> None:
         if self.gui:
-            preview = GUI(GUIProcessingCore(parameters=self.parameters))
+            preview = GUIForm(parameters=self.parameters)
             window = preview.show()
             window.mainloop()
         elif self.benchmark is True:

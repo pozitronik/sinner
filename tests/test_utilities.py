@@ -1,4 +1,7 @@
-from sinner.utilities import get_all_base_names, format_sequences
+import statistics
+
+from sinner.utilities import get_all_base_names, format_sequences, get_directory_file_list, is_image
+from tests.constants import state_frames_dir
 
 
 def test_get_all_base_names() -> None:
@@ -41,3 +44,10 @@ def test_get_all_base_names() -> None:
 def test_find_sequences() -> None:
     assert format_sequences([1, 2, 3, 4, 10, 20, 21, 22, 23]) == '1..4, 10, 20..23'
     assert format_sequences([100, 3, 2, 3, 4, 5]) == '100, 3, 2..5'
+
+
+def test_get_directory_file_list() -> None:
+    file_list = get_directory_file_list(state_frames_dir)
+    assert len(file_list) == 11
+    file_list = get_directory_file_list(state_frames_dir, is_image)
+    assert len(file_list) == 10

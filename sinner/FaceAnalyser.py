@@ -1,9 +1,11 @@
 import contextlib
+import io
 import threading
 from typing import List
 from insightface.app import FaceAnalysis
+from insightface.app.common import Face
 
-from sinner.typing import Frame, Face
+from sinner.typing import Frame
 
 
 class FaceAnalyser:
@@ -20,7 +22,7 @@ class FaceAnalyser:
         if self._face_analyser is None:
             with threading.Lock():
                 if self._less_output:
-                    with contextlib.redirect_stdout(None):
+                    with contextlib.redirect_stdout(io.StringIO()):
                         self._face_analyser = FaceAnalysis(name='buffalo_l', providers=self._execution_providers)
                         self._face_analyser.prepare(ctx_id=0, det_size=(640, 640))
                 else:

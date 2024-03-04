@@ -1,8 +1,9 @@
 from typing import List
 
+from insightface.app.common import Face
+
 from sinner.FaceAnalyser import FaceAnalyser
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
-from sinner.typing import Face
+from sinner.helpers.FrameHelper import read_from_image
 from tests.constants import source_jpg, target_faces
 
 
@@ -12,7 +13,7 @@ def get_test_object() -> FaceAnalyser:
 
 def test_one_face():
     analyser = get_test_object()
-    face = analyser.get_one_face(CV2VideoHandler.read_image(source_jpg))
+    face = analyser.get_one_face(read_from_image(source_jpg))
     assert (face, Face)
     assert face.age == 31
     assert face.sex == 'F'
@@ -20,7 +21,7 @@ def test_one_face():
 
 def test_one_face_from_many():
     analyser = get_test_object()
-    face = analyser.get_one_face(CV2VideoHandler.read_image(target_faces))
+    face = analyser.get_one_face(read_from_image(target_faces))
     assert (face, Face)
     assert face.age == 47
     assert face.sex == 'M'
@@ -28,7 +29,7 @@ def test_one_face_from_many():
 
 def test_many_faces():
     analyser = get_test_object()
-    faces = analyser.get_many_faces(CV2VideoHandler.read_image(target_faces))
+    faces = analyser.get_many_faces(read_from_image(target_faces))
     assert (faces, List)
     assert len(faces) == 2
     assert faces[0].age == 28

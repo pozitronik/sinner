@@ -5,16 +5,20 @@ from argparse import Namespace
 from typing import List
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
-from sinner.typing import NumeratedFrame, NumeratedFramePath
-from sinner.utilities import is_image, get_file_name
+from sinner.handlers.frame.EOutOfRange import EOutOfRange
+from sinner.helpers.FrameHelper import read_from_image
+from sinner.models.NumberedFrame import NumberedFrame
+from sinner.typing import NumeratedFramePath
+from sinner.utilities import is_image, get_file_name, path_exists, is_dir
 from sinner.validators.AttributeLoader import Rules
 
 
 class DirectoryHandler(BaseFrameHandler):
     emoji: str = '📂'
 
-    _fc: int | None = None
+    _fps: float | None
+    _fc: int | None
+    _resolution: tuple[int, int]
     _frames_path: list[str] | None = None
 
     def rules(self) -> Rules:
@@ -24,20 +28,43 @@ class DirectoryHandler(BaseFrameHandler):
             }
         ]
 
-    def __init__(self, target_path: str, parameters: Namespace):
-        if not os.path.exists(target_path) or not os.path.isdir(target_path):  # todo: move to validator
+    def __init__(self, target_path: str, parameters: Namespace, fps: float | None = None, fc: int | None = None, resolution: tuple[int, int] | None = None):
+        if not path_exists(target_path) or not is_dir(target_path):  # todo: move to validator
             raise Exception(f"{target_path} should point to a directory with image files")
         super().__init__(target_path, parameters)
+        self._fps = fps
+        self._fc = fc
+        self.resolution = (0, 0) if resolution is None else resolution
 
     @property
     def fps(self) -> float:
-        return 1  # todo
+        return self._fps if self._fps else 1
+
+    @fps.setter
+    def fps(self, value: float | None) -> None:
+        self._fps = value
 
     @property
     def fc(self) -> int:
         if self._fc is None:
-            self._fc = len(list(filter(is_image, glob.glob(os.path.join(glob.escape(self._target_path), '*.*')))))
+            image_count = 0
+            for file in os.scandir(self._target_path):
+                if is_image(file.path):
+                    image_count += 1
+            self._fc = image_count
         return self._fc
+
+    @fc.setter
+    def fc(self, value: int | None) -> None:
+        self._fc = value
+
+    @property
+    def resolution(self) -> tuple[int, int]:
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, value: tuple[int, int]) -> None:
+        self._resolution = value
 
     def get_frames_paths(self, path: str, frames_range: tuple[int | None, int | None] = (None, None)) -> List[NumeratedFramePath]:
         if self._frames_path is None:
@@ -46,9 +73,12 @@ class DirectoryHandler(BaseFrameHandler):
         stop_frame = frames_range[1] + 1 if frames_range[1] is not None else len(self._frames_path)
         return [(frames_index, file_path) for frames_index, file_path in enumerate(self._frames_path)][start_frame:stop_frame]
 
-    def extract_frame(self, frame_number: int) -> NumeratedFrame:
-        frame_path = self.get_frames_paths(self._target_path, (frame_number, frame_number))[0][1]
-        return frame_number, CV2VideoHandler.read_image(frame_path), get_file_name(frame_path)  # zero-based sorted frames list
+    def extract_frame(self, frame_number: int) -> NumberedFrame:
+        if frame_number > self.fc:
+            raise EOutOfRange(frame_number, 0, self.fc)
+        list_frame = self.get_frames_paths(self._target_path, (frame_number, frame_number))
+        frame_path = list_frame[0][1]
+        return NumberedFrame(frame_number, read_from_image(frame_path), get_file_name(frame_path))  # zero-based sorted frames list
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         self.update_status(f"Copying results from {from_dir} to {filename}")

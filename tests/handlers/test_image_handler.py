@@ -42,6 +42,10 @@ def test_detect_fc() -> None:
     assert 1 == get_test_object().fc
 
 
+def test_detect_resolution() -> None:
+    assert (861, 1080) == get_test_object().resolution
+
+
 def test_get_frames_paths() -> None:
     frames_paths = get_test_object().get_frames_paths(path=tmp_dir)
     assert 1 == len(frames_paths)
@@ -51,9 +55,9 @@ def test_get_frames_paths() -> None:
 
 def test_extract_frame() -> None:
     first_frame = get_test_object().extract_frame(1)
-    assert 1 == first_frame[0]
-    assert isinstance(first_frame[1], ndarray)
-    assert first_frame[1].shape == IMAGE_SHAPE
+    assert 1 == first_frame.index
+    assert isinstance(first_frame.frame, ndarray)
+    assert first_frame.frame.shape == IMAGE_SHAPE
 
 
 def test_result() -> None:

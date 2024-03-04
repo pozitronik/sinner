@@ -91,6 +91,13 @@ python sin.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_
 
 Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory using the `cuda` provider and 8 simultaneous execution threads, with limit of 24 Gb RAM, and save every enhanced image to the `d:\pictures\pngs_dir\enhanced` directory.<br/>
 
+## Real-time player
+This feature is still in the alpha stage, so things can be changed. There's not much to document yet; it's better to try it yourself, by running it:
+```cmd
+python sin.py --gui
+```
+![FaceSwapper demo](/demos/player-demo.png)
+
 ## Virtual camera feature
 
 You can use sinner to create a virtual real-time face-swapped camera, and use it with your software. This feature is managed by the [WebCam](/docs/modules.md#webcam-the-virtual-camera-module) module. You can refer to the module's live help (`python sin.py -h`) to find information about currently supported features. Here is a description of the common setup process:
@@ -131,7 +138,7 @@ Example:
 [sinner]
 keep-frames = 1
 many-faces = 1
-execution-provider = gpu
+execution-provider = cuda
 execution-threads = 2
 ```
 
@@ -182,10 +189,7 @@ currently lacks.
 Also, roop is dead, baby, roop is dead.
 
 :question: Is there a NSWF filter?<br/>
-:exclamation: Nope. I don't care if you will do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife, it is the responsibility of the user to decide how they want to use it.
-
-:question: Is there a graphic interface?<br/>
-:exclamation:Yes, but it still in development. You can start the program with `--gui` parameter to enable GUI.
+:exclamation: Nope. I don't care if you do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife.
 
 :question: Can I use several execution providers simultaneously?<br/>
 :exclamation: You can try. Seriously, you can set `--execution-provider cuda cpu`, and look, what will happen. May be it will work faster, may be it won't work at all. It is a large space for experiments.

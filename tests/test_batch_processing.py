@@ -8,11 +8,11 @@ import pytest
 
 from sinner.Parameters import Parameters
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.State import State
+from sinner.models.State import State
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.utilities import limit_resources, suggest_max_memory, get_file_name, get_app_dir, resolve_relative_path
 from sinner.validators.LoaderException import LoadingException
-from tests.constants import target_png, source_jpg, target_mp4, source_target_png_result, source_target_mp4_result, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC, images_dir, source_images_result
+from tests.constants import target_png, source_jpg, target_mp4, source_target_png, source_target_mp4, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC, images_dir, source_images_result
 
 threads_count = multiprocessing.cpu_count()
 
@@ -21,12 +21,12 @@ def setup():
     #  clean previous results, if exists
     if os.path.exists(tmp_dir):
         shutil.rmtree(tmp_dir)
-    if os.path.exists(source_target_png_result):
-        os.remove(source_target_png_result)
+    if os.path.exists(source_target_png):
+        os.remove(source_target_png)
     if os.path.exists(source_images_result):
         shutil.rmtree(source_images_result)
-    if os.path.exists(source_target_mp4_result):
-        os.remove(source_target_mp4_result)
+    if os.path.exists(source_target_mp4):
+        os.remove(source_target_mp4)
 
 
 def setup_function():
@@ -48,21 +48,21 @@ def test_no_source() -> None:
 
 
 def test_swap_image() -> None:
-    assert os.path.exists(source_target_png_result) is False
+    assert os.path.exists(source_target_png) is False
     params = Parameters(f'--target-path="{target_png}" --source-path="{source_jpg}"')
     limit_resources(suggest_max_memory())
     BatchProcessingCore(parameters=params.parameters).run()
-    assert os.path.exists(source_target_png_result) is True
+    assert os.path.exists(source_target_png) is True
 
 
 def test_swap_mp4() -> None:
     if 'CI' in os.environ:
         pytest.skip("This test is not ready for GitHub CI")
-    assert os.path.exists(source_target_mp4_result) is False
+    assert os.path.exists(source_target_mp4) is False
     params = Parameters(f'--target-path="{target_mp4}" --source-path="{source_jpg}" --execution-treads={threads_count}')
     limit_resources(suggest_max_memory())
     BatchProcessingCore(parameters=params.parameters).run()
-    assert os.path.exists(source_target_mp4_result) is True
+    assert os.path.exists(source_target_mp4) is True
 
 
 def test_swap_frames_to_mp4() -> None:

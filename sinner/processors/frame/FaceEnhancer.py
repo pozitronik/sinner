@@ -1,4 +1,5 @@
 import contextlib
+import io
 import threading
 from argparse import Namespace
 
@@ -56,7 +57,7 @@ class FaceEnhancer(BaseFrameProcessor):
             model_path = get_app_dir('models/GFPGANv1.4.pth')
             with self.thread_lock:
                 if self.less_output:
-                    with contextlib.redirect_stdout(None):
+                    with contextlib.redirect_stdout(io.StringIO()):
                         self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]
                 else:
                     self._face_enhancer = gfpgan.GFPGANer(model_path=model_path, upscale=self.upscale)  # type: ignore[attr-defined]

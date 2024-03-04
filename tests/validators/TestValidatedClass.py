@@ -17,6 +17,28 @@ class TestDefaultValidation(AttributeLoader):
         ]
 
 
+class TestFilterValidation(AttributeLoader):
+    filtered_parameter: Any = None
+    filtered_parameter_2: int = None
+
+    @staticmethod
+    def filter_lambda(value: Any) -> Any:
+        if isinstance(value, str):
+            return value.strip()
+        if isinstance(value, float) or isinstance(value, int):
+            if value < 0:
+                value = 0
+            if value > 100:
+                value = 100
+        return value
+
+    def rules(self) -> Rules:
+        return [
+            {'parameter': 'filtered_parameter', 'filter': lambda: self.filter_lambda(self.filtered_parameter)},
+            {'parameter': 'filtered_parameter_2', 'filter': lambda param: self.filter_lambda(param)},
+        ]
+
+
 class TestRequiredValidation(AttributeLoader):
     required_parameter: str = None
     default_required_parameter: int = None

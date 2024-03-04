@@ -1,19 +1,20 @@
 import os.path
 from abc import ABC, abstractmethod
-from typing import List, Any
+from typing import List, Any, Callable
 
 from argparse import Namespace
 
-from sinner.State import State
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.models.State import State
 from sinner.Status import Status
 from sinner.validators.AttributeLoader import Rules
 from sinner.typing import Frame
-from sinner.utilities import load_class, suggest_execution_threads, suggest_execution_providers, decode_execution_providers
+from sinner.utilities import load_class, suggest_execution_providers, decode_execution_providers
 
 
 class BaseFrameProcessor(ABC, Status):
     execution_provider: List[str]
-    execution_threads: int
+    self_processing: bool = False
 
     parameters: Namespace
 
@@ -35,13 +36,7 @@ class BaseFrameProcessor(ABC, Status):
                 'default': ['cpu'],
                 'choices': suggest_execution_providers(),
                 'help': 'The execution provider, from available on your hardware/software'
-            },
-            {
-                'parameter': 'execution-threads',
-                'type': int,
-                'default': suggest_execution_threads(),
-                'help': 'The count of simultaneous processing threads'
-            },
+            }
         ]
 
     def __init__(self, parameters: Namespace) -> None:
@@ -61,3 +56,9 @@ class BaseFrameProcessor(ABC, Status):
     @property
     def execution_providers(self) -> List[str]:
         return decode_execution_providers(self.execution_provider)
+
+    def configure_output_filename(self, callback: Callable[[str], None]) -> None:
+        pass
+
+    def process(self, handler: BaseFrameHandler, state: State) -> None:
+        pass

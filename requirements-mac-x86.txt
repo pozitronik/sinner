@@ -19,3 +19,7 @@ torch==2.0.1
 torchvision==0.15.2
 onnxruntime==1.15.0
 pyvirtualcam
+pathvalidate
+pygame
+moviepy
+python-vlc

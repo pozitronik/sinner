@@ -7,11 +7,14 @@ import platform
 import shutil
 import sys
 import urllib
-from typing import List, Literal, Any, get_type_hints
+from datetime import datetime
+from pathlib import Path
+from typing import List, Literal, Any, get_type_hints, Callable
 
 import onnxruntime
 import psutil
 import tensorflow
+from psutil import WINDOWS, MACOS
 from tqdm import tqdm
 
 TEMP_DIRECTORY = 'temp'
@@ -25,9 +28,9 @@ def limit_resources(max_memory: int) -> None:
     # limit memory usage
     if max_memory:
         memory = max_memory * 1024 ** 3
-        if platform.system().lower() == 'darwin':
+        if MACOS:
             memory = max_memory * 1024 ** 6
-        if platform.system().lower() == 'windows':
+        if WINDOWS:
             import ctypes
             kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
             kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
@@ -36,32 +39,76 @@ def limit_resources(max_memory: int) -> None:
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))  # type: ignore[attr-defined]
 
 
+def path_exists(path: str) -> bool:
+    norm_path = normalize_path(path)
+    return os.path.exists(norm_path) if norm_path else False
+
+
+def is_file(path: str) -> bool:
+    norm_path = normalize_path(path)
+    return os.path.isfile(norm_path) if norm_path else False
+
+
+def is_dir(path: str) -> bool:
+    norm_path = normalize_path(path)
+    return os.path.isdir(norm_path) if norm_path else False
+
+
+def get_directory_file_list(directory_path: str, filter_: Callable[[str], bool] | None = None) -> List[str]:
+    result: List[str] = []
+    if is_dir(directory_path):
+        for root, dirs, files in os.walk(directory_path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                if filter_:
+                    if filter_(file_path) is True:
+                        result.append(file_path)
+                else:
+                    result.append(file_path)
+    return result
+
+
 def is_image(image_path: str | None) -> bool:
-    if image_path is not None and image_path and os.path.isfile(image_path):
+    if image_path is not None and image_path and is_file(image_path):
         mimetype, _ = mimetypes.guess_type(image_path)
         return bool(mimetype and mimetype.startswith('image/'))
     return False
 
 
 def is_video(video_path: str | None) -> bool:
-    if video_path is not None and os.path.isfile(video_path):
+    if video_path is not None and is_file(video_path):
         mimetype, _ = mimetypes.guess_type(video_path)
         return bool(mimetype and (mimetype.startswith('frame/') or mimetype.startswith('video/')))
     return False
 
 
+def get_type_extensions(mime_type: str) -> List[str]:
+    image_extensions: List[str] = []
+    for ext in mimetypes.types_map:
+        mimetype, encoding = mimetypes.guess_type(f"file.{ext}")
+        if mimetype and mimetype.startswith(mime_type):
+            image_extensions.append(ext)
+    return image_extensions
+
+
+def normalize_path(path: Any) -> str | None:
+    if path is None:
+        return None
+    return os.path.normpath(os.path.expandvars(os.path.expanduser(path)))
+
+
 def conditional_download(download_directory_path: str, urls: List[str], desc: str = 'Downloading') -> None:
-    if not os.path.exists(download_directory_path):
-        os.makedirs(download_directory_path)
+    Path(download_directory_path).mkdir(parents=True, exist_ok=True)
     for url in urls:
         download_file_path = os.path.join(download_directory_path, os.path.basename(url))
-        if not os.path.exists(download_file_path):
+        if not path_exists(download_file_path):
             request = urllib.request.urlopen(url)  # type: ignore[attr-defined]
             total = int(request.headers.get('Content-Length', 0))
             with tqdm(total=total, desc=desc, unit='B', unit_scale=True, unit_divisor=1024) as progress:
                 urllib.request.urlretrieve(url, download_file_path, reporthook=lambda count, block_size, total_size: progress.update(block_size))  # type: ignore[attr-defined]
 
 
+#  todo: refactor this
 def resolve_relative_path(path: str, from_file: str | None = None) -> str:
     if from_file is None:
         try:
@@ -70,7 +117,7 @@ def resolve_relative_path(path: str, from_file: str | None = None) -> str:
                 from_file = current_frame.f_back.f_code.co_filename  # type: ignore[union-attr]
         except Exception:
             raise Exception("Can't find caller method")
-    return os.path.abspath(os.path.join(os.path.dirname(from_file), path))  # type: ignore[arg-type]
+    return os.path.abspath(os.path.join(str(os.path.dirname(from_file)), path))  # type: ignore[arg-type, type-var]
 
 
 def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 'dirty'] = 'rss', size: Literal['b', 'k', 'm', 'g'] = 'm') -> int:
@@ -101,9 +148,9 @@ def get_mem_usage(param: Literal['rss', 'vms', 'shared', 'text', 'lib', 'data', 
 def load_class(path: str, module_name: str, class_name: str | None = None) -> type | None:
     if class_name is None:
         class_name = module_name
-    module_path = os.path.join(path, module_name + '.py')
+    module_path = os.path.join(str(normalize_path(path)), module_name + '.py')
     try:
-        if os.path.exists(module_path):
+        if path_exists(module_path):
             spec = importlib.util.spec_from_file_location(module_name, module_path)
             if spec is not None:
                 module = importlib.util.module_from_spec(spec)
@@ -226,3 +273,22 @@ def format_sequences(sorted_list: List[int]) -> str:
 
     sequences.append(format_sequence(start, end))
     return ", ".join(sequences)
+
+
+def suggest_temp_dir(initial: str | None = None) -> str:
+    if initial:
+        norm_path = normalize_path(initial)
+        if norm_path:
+            return norm_path
+        else:
+            raise Exception(f"{initial} is not a valid path")
+    return os.path.join(get_app_dir(), TEMP_DIRECTORY)
+
+
+def seconds_to_hmsms(seconds: float) -> str:
+    time_format = datetime.utcfromtimestamp(seconds).strftime("%H:%M:%S.%f")
+    return time_format[:-3]  # Remove the last three digits to get milliseconds
+
+
+def halt() -> None:
+    os._exit(0)
