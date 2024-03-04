@@ -1,6 +1,6 @@
 from argparse import Namespace
 from threading import Thread
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, RIGHT, NE
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event,  TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
 from tkinter.ttk import Spinbox, Label
 from typing import List
 
