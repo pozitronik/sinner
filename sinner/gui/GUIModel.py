@@ -104,7 +104,7 @@ class GUIModel(Status):
             {
                 'parameter': {'quality', 'scale-quality'},
                 'attribute': '_scale_quality',
-                'default': 0.75,
+                'default': 1,
                 'help': 'Initial processing scale quality'
             },
             {
