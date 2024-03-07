@@ -6,7 +6,7 @@ from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 
 class VLCAudioBackend(BaseAudioBackend):
     _position: int | None = None
-    _show_player_window: bool = False
+    _show_player_window: bool = True
 
     _vlc_instance: vlc.Instance
 
