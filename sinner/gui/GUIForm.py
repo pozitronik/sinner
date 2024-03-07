@@ -344,6 +344,7 @@ class GUIForm(Status):
         self.create_windows()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.bring_to_front()
+        self.GUIModel.Player.set_topmost(self.topmost)
         if self.geometry:
             self.load_geometry()
         if self.state:
