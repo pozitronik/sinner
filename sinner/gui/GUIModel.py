@@ -485,24 +485,27 @@ class GUIModel(Status):
     def _show_frames(self) -> None:
         if self.Player:
             while self._event_playback.is_set():
+                start_time = time.perf_counter()
                 try:
                     n_frame = self.TimeLine.get_frame()
                 except EOFError:
                     self.update_status("No more frames in the timeline")
                     self._event_playback.clear()
                     break
-                if n_frame is None:
-                    time.sleep(self.frame_handler.frame_time / 2)
-                    continue
-                self.Player.show_frame(n_frame.frame)
-                if self.TimeLine.last_returned_index is None:
-                    self._status("Time position", "There are no ready frames")
-                else:
-                    if not self._event_rewind.is_set():
-                        self.position.set(self.TimeLine.last_returned_index)
-                    if self.TimeLine.last_returned_index:
-                        self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                        self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
+                if n_frame is not None:
+                    self.Player.show_frame(n_frame.frame)
+                    if self.TimeLine.last_returned_index is None:
+                        self._status("Time position", "There are no ready frames")
+                    else:
+                        if not self._event_rewind.is_set():
+                            self.position.set(self.TimeLine.last_returned_index)
+                        if self.TimeLine.last_returned_index:
+                            self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
+                            self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
+                loop_time = time.perf_counter() - start_time  # time for the current loop, sec
+                sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
             self.update_status("_show_frames loop done")
 
     def extract_frames(self) -> bool:
