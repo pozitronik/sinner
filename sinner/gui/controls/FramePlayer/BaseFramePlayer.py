@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from enum import Enum
 
 import numpy
 
@@ -14,32 +13,15 @@ HWND_TOPMOST = -1
 HWND_NOTOPMOST = -2
 SWP_NOACTIVATE = 0x0010
 
-
-class RotateMode(Enum):
-    ROTATE_0 = "0°"
-    ROTATE_90 = "90°"
-    ROTATE_180 = "180°"
-    ROTATE_270 = "270°"
-
-    def __str__(self) -> str:
-        return self.value[1]
-
-    def prev(self) -> 'RotateMode':
-        enum_list = list(RotateMode)
-        current_index = enum_list.index(self)
-        previous_index = (current_index - 1) % len(enum_list)
-        return enum_list[previous_index]
-
-    def next(self) -> 'RotateMode':
-        enum_list = list(RotateMode)
-        current_index = enum_list.index(self)
-        next_index = (current_index + 1) % len(enum_list)
-        return enum_list[next_index]
+# those are similar to cv2 constants with same names
+ROTATE_90_CLOCKWISE = 0
+ROTATE_180 = 1
+ROTATE_90_COUNTERCLOCKWISE = 2
 
 
 class BaseFramePlayer:
     _last_frame: Frame | None = None  # the last viewed frame
-    _rotate: RotateMode = RotateMode.ROTATE_0
+    _rotate: int | None = None
 
     @abstractmethod
     def show_frame(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True) -> None:
@@ -67,29 +49,30 @@ class BaseFramePlayer:
         pass
 
     @property
-    def rotate(self) -> RotateMode:
+    def rotate(self) -> int | None:
         return self._rotate
 
     @rotate.setter
-    def rotate(self, value: RotateMode) -> None:
+    def rotate(self, value: int | None) -> None:
         self._rotate = value
-        self.clear()
         if self._last_frame is not None:
+            self.clear()
             _tmp_frame = self._last_frame
-            self.show_frame(self._rotate_frame(self._last_frame), rotate=False)
+            self.show_frame(self._last_frame)
             self._last_frame = _tmp_frame
 
-    def _rotate_frame(self, frame: Frame, rotate_mode: RotateMode | None = None) -> Frame:
+    def _rotate_frame(self, frame: Frame, rotate_mode: int | None = None) -> Frame:
         if rotate_mode is None:
             rotate_mode = self._rotate
-        if rotate_mode is RotateMode.ROTATE_0:
+        if rotate_mode is None:
             return frame
-        if rotate_mode is RotateMode.ROTATE_90:
+        if rotate_mode == ROTATE_90_CLOCKWISE:
             return numpy.rot90(frame)
-        if rotate_mode is RotateMode.ROTATE_180:
+        if rotate_mode is ROTATE_180:
             return numpy.rot90(frame, k=2)
-        if rotate_mode is RotateMode.ROTATE_270:
+        if rotate_mode == ROTATE_90_COUNTERCLOCKWISE:
             return numpy.rot90(frame, k=3)
+        return frame
 
     @abstractmethod
     def set_fullscreen(self, fullscreen: bool = True) -> None:

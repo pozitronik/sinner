@@ -4,11 +4,12 @@ from ctypes import wintypes
 from time import sleep
 from typing import Callable
 
+import numpy
 import pygame
 from psutil import WINDOWS
 from pygame import Surface
 
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, HWND_TOP, RotateMode, SWP_NOACTIVATE
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer, HWND_NOTOPMOST, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE, HWND_TOP, SWP_NOACTIVATE, ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
 from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.models.Event import Event
 from sinner.typing import Frame
@@ -90,10 +91,8 @@ class PygameFramePlayer(BaseFramePlayer):
             self._last_frame = frame
             frame = frame[::-1, :, [2, 1, 0]]  # swaps colors channels from BGR to RGB, flips the frame to a pygame coordinates
 
-            if rotate:
-                frame = self._rotate_frame(frame, self.rotate.prev())
-            else:
-                frame = self._rotate_frame(frame, rotate_mode=RotateMode.ROTATE_270)  # need to bring together numpy/pygame coordinates
+            # it's always required rotate frames for pygame to match the X coordinate
+            frame = self._rotate_frame(frame)
 
             if resize is True:  # resize to the current player size
                 frame = resize_proportionally(frame, (self.screen.get_width(), self.screen.get_height()))
@@ -139,3 +138,17 @@ class PygameFramePlayer(BaseFramePlayer):
                 user32.SetWindowPos.restype = wintypes.HWND
                 user32.SetWindowPos.argtypes = [wintypes.HWND, wintypes.HWND, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.INT, wintypes.UINT]
                 user32.SetWindowPos(pygame.display.get_wm_info()['window'], HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
+
+    # the method is overlapped because pygame uses inverted X coordinate
+    def _rotate_frame(self, frame: Frame, rotate_mode: int | None = None) -> Frame:
+        if rotate_mode is None:
+            rotate_mode = self._rotate
+        if rotate_mode is None:
+            return numpy.rot90(frame, k=3)
+        if rotate_mode == ROTATE_90_CLOCKWISE:
+            return frame
+        if rotate_mode is ROTATE_180:
+            return numpy.rot90(frame)
+        if rotate_mode == ROTATE_90_COUNTERCLOCKWISE:
+            return numpy.rot90(frame, k=2)
+        return frame
