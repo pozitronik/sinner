@@ -1,11 +1,9 @@
-import time
 from abc import abstractmethod
 from enum import Enum
 
 import numpy
 
 from sinner.helpers import FrameHelper
-from sinner.models.PerfCounter import PerfCounter
 from sinner.typing import Frame
 
 SWP_NOMOVE = 0x0002
@@ -55,19 +53,6 @@ class BaseFramePlayer:
         :param rotate: True: rotate frame to the current RotateMode, False: do not rotate
         """
         pass
-
-    def show_frame_wait(self, frame: Frame | None = None, resize: bool | tuple[int, int] | None = True, rotate: bool = True, duration: float = 0) -> float:
-        """
-        Shows a frame for the given duration (awaits after frame being shown). If duration is lesser than the frame show time
-        function won't wait
-        :returns await time
-        """
-        with PerfCounter() as timer:
-            self.show_frame(frame=frame, resize=resize, rotate=rotate)
-        await_time = duration - timer.execution_time
-        if await_time > 0:
-            time.sleep(await_time)
-        return await_time
 
     @abstractmethod
     def adjust_size(self, redraw: bool = True, size: tuple[int, int] | None = None) -> None:
