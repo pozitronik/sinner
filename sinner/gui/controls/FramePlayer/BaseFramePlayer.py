@@ -102,9 +102,9 @@ class BaseFramePlayer:
         if rotate_mode is RotateMode.ROTATE_90:
             return numpy.rot90(frame)
         if rotate_mode is RotateMode.ROTATE_180:
-            return numpy.rot90(numpy.rot90(frame))
+            return numpy.rot90(frame, k=2)
         if rotate_mode is RotateMode.ROTATE_270:
-            return numpy.rot90(numpy.rot90(numpy.rot90(frame)))
+            return numpy.rot90(frame, k=3)
 
     @abstractmethod
     def set_fullscreen(self, fullscreen: bool = True) -> None:
