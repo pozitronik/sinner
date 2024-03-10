@@ -1,5 +1,6 @@
 import os
 import threading
+from bisect import bisect_right
 from pathlib import Path
 from typing import List
 
@@ -79,15 +80,16 @@ class FrameDirectoryBuffer:
             except Exception:
                 pass
         elif return_previous:
-            for previous_number in range(index - 1, 0, -1):
-                if self.has_frame(previous_number):
-                    previous_filename = str(previous_number).zfill(self.zfill_length) + '.png'
-                    previous_file_path = os.path.join(self.path, previous_filename)
-                    if path_exists(previous_file_path):
-                        try:
-                            return NumberedFrame(index, read_from_image(previous_file_path))
-                        except Exception:  # the file may exist but can be locked in another thread.
-                            pass
+            previous_position = bisect_right(self._indices, index - 1)
+            if previous_position:
+                previous_index = self._indices[previous_position - 1]
+                previous_filename = str(previous_index).zfill(self.zfill_length) + '.png'
+                previous_file_path = os.path.join(self.path, previous_filename)
+                if path_exists(previous_file_path):
+                    try:
+                        return NumberedFrame(index, read_from_image(previous_file_path))
+                    except Exception:  # the file may exist but can be locked in another thread.
+                        pass
         return None
 
     def has_frame(self, index: int) -> bool:
