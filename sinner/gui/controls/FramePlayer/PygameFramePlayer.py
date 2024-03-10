@@ -4,8 +4,6 @@ from ctypes import wintypes
 from time import sleep
 from typing import Callable
 
-import cv2
-import numpy
 import pygame
 from psutil import WINDOWS
 from pygame import Surface
@@ -90,12 +88,12 @@ class PygameFramePlayer(BaseFramePlayer):
             frame = self._last_frame
         if frame is not None:
             self._last_frame = frame
+            frame = frame[::-1, :, [2, 1, 0]]  # swaps colors channels from BGR to RGB, flips the frame to a pygame coordinates
+
             if rotate:
-                frame = self._rotate_frame(frame, self.rotate.next())
+                frame = self._rotate_frame(frame, self.rotate.prev())
             else:
-                frame = self._rotate_frame(frame, rotate_mode=RotateMode.ROTATE_90)  # need to bring together numpy/pygame coordinates
-            frame = numpy.flip((cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), 0)
-            # note: now the frame has the flipped shape (WIDTH, HEIGHT)
+                frame = self._rotate_frame(frame, rotate_mode=RotateMode.ROTATE_270)  # need to bring together numpy/pygame coordinates
 
             if resize is True:  # resize to the current player size
                 frame = resize_proportionally(frame, (self.screen.get_width(), self.screen.get_height()))
