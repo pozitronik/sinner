@@ -442,7 +442,7 @@ class GUIModel(Status):
                     start_frame = self.TimeLine.get_frame_index()
                     self._event_rewind.clear()
 
-                if not self.TimeLine.has_frame(start_frame):
+                if not self.TimeLine.has_index(start_frame):
                     future: Future[float | None] = executor.submit(self._process_frame, start_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
