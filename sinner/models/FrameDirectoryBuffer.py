@@ -74,7 +74,7 @@ class FrameDirectoryBuffer:
     def get_frame(self, index: int, return_previous: bool = True) -> NumberedFrame | None:
         filename = str(index).zfill(self.zfill_length) + '.png'
         filepath = str(os.path.join(self.path, filename))
-        if path_exists(filepath):
+        if self.has_frame(index):
             try:
                 return NumberedFrame(index, read_from_image(filepath))
             except Exception:
