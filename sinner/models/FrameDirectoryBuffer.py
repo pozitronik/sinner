@@ -89,7 +89,8 @@ class FrameDirectoryBuffer:
         if cache_result is True:  # the frame is on the disk
             filename = str(index).zfill(self.zfill_length) + '.png'
             filepath = str(os.path.join(self.path, filename))
-            return NumberedFrame(index, read_from_image(filepath))
+            with threading.Lock():
+                return NumberedFrame(index, read_from_image(filepath))
         elif cache_result is False:
             if return_previous:
                 previous_position = bisect_right(self._indices, index - 1)
