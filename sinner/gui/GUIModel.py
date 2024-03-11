@@ -483,6 +483,7 @@ class GUIModel(Status):
         return frame_render_time.execution_time
 
     def _show_frames(self) -> None:
+        last_shown_frame_index: int = -1
         if self.Player:
             while self._event_playback.is_set():
                 start_time = time.perf_counter()
@@ -492,8 +493,9 @@ class GUIModel(Status):
                     self.update_status("No more frames in the timeline")
                     self._event_playback.clear()
                     break
-                if n_frame is not None:
+                if n_frame is not None and n_frame.index != last_shown_frame_index:
                     self.Player.show_frame(n_frame.frame)
+                    last_shown_frame_index = n_frame.index
                     if self.TimeLine.last_returned_index is None:
                         self._status("Time position", "There are no ready frames")
                     else:
