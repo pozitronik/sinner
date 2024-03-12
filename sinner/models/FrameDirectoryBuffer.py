@@ -93,7 +93,7 @@ class FrameDirectoryBuffer:
                 try:
                     return NumberedFrame(index, read_from_image(filepath))
                 except Exception:
-                    pass
+                    return None  # if frame can't be read
         elif cache_result is False:
             if return_previous:
                 previous_position = bisect_right(self._indices, index - 1)
