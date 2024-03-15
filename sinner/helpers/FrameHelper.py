@@ -3,7 +3,7 @@ import os.path
 from pathlib import Path
 
 import cv2
-from numpy import fromfile, uint8, full
+from numpy import fromfile, uint8, full, dstack
 from psutil import WINDOWS
 
 from sinner.typing import Frame
@@ -20,9 +20,9 @@ def read_from_image(path: str) -> Frame:
     if WINDOWS:  # issue #511
         image = cv2.imdecode(fromfile(path, dtype=uint8), cv2.IMREAD_UNCHANGED)
         if len(image.shape) == 2:  # fixes the b/w images issue
-            image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+            image = dstack([image] * 3)
         if image.shape[2] == 4:  # fixes the alpha-channel issue
-            image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)
+            image = image[:, :, :3]
         return image
     else:
         return cv2.imread(path)

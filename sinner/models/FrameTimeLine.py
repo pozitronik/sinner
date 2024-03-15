@@ -33,6 +33,8 @@ class FrameTimeLine:
         self._start_frame_index = frame_index
         self._start_frame_time = self._start_frame_index * self._frame_time
         self._FrameBuffer.clean()
+        if self._is_started:
+            self._timer = time.perf_counter()
 
     # start the time counter
     def start(self) -> None:
@@ -76,8 +78,8 @@ class FrameTimeLine:
         # print("Last requested/returned frame:", f"{self._last_requested_index}/{self._last_returned_index}")
         return result_frame
 
-    def has_frame(self, index: int) -> bool:
-        return self._FrameBuffer.has_frame(index)
+    def has_index(self, index: int) -> bool:
+        return self._FrameBuffer.has_index(index)
 
     # return the index of a frame, is playing right now if it is in self._frames
     # else return last frame before requested
