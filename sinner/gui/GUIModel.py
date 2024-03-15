@@ -349,7 +349,7 @@ class GUIModel(Status):
     def rewind(self, frame_position: int) -> None:
         if self.player_is_started:
             self.TimeLine.rewind(frame_position - 1)
-            self._event_rewind.set()
+            self._event_rewind.set(tag=frame_position - 1)
         else:
             self.update_preview()
         self.position.set(frame_position)
@@ -439,7 +439,7 @@ class GUIModel(Status):
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
                 if self._event_rewind.is_set():
-                    start_frame = self.TimeLine.get_frame_index()
+                    start_frame = self._event_rewind.tag
                     self._event_rewind.clear()
 
                 if not self.TimeLine.has_index(start_frame):
