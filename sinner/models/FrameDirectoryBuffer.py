@@ -15,6 +15,7 @@ class CacheStrategy(Enum):
     NONE = 0  # use cache only for indices check
     ON_INIT = 1  # cache all existed frames to the memory (very wasteful)
     ON_ADD = 2  # cache only fresh frames (default strategy)
+    # NOTE: caching still have issues on rewound action, so it is disabled until it fixed
 
 
 class FrameDirectoryBuffer:
