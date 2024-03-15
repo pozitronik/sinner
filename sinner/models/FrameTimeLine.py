@@ -33,6 +33,8 @@ class FrameTimeLine:
         self._start_frame_index = frame_index
         self._start_frame_time = self._start_frame_index * self._frame_time
         self._FrameBuffer.clean()
+        if self._is_started:
+            self._timer = time.perf_counter()
 
     # start the time counter
     def start(self) -> None:
