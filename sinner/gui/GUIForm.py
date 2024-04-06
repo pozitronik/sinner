@@ -184,6 +184,7 @@ class GUIForm(Status):
         self.QualityScaleLabel: Label = Label(self.SubControlsFrame, text="Quality scale:")
 
         self.QualityScaleSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=1, to=100, increment=1, command=lambda: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
+        self.QualityScaleSpinbox.bind('<KeyRelease>', lambda event: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
         self.QualityScaleSpinbox.set(self.GUIModel.quality)
 
         # empty space to divide controls
@@ -394,6 +395,10 @@ class GUIForm(Status):
             self.NavigateSlider.disable()
 
     def on_quality_scale_change(self, frame_value: int) -> None:
+        if frame_value > self.QualityScaleSpinbox.cget('to'):
+            frame_value = self.QualityScaleSpinbox.cget('to')
+        if frame_value < self.QualityScaleSpinbox.cget('from'):
+            frame_value = self.QualityScaleSpinbox.cget('from')
         self.GUIModel.quality = frame_value
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
