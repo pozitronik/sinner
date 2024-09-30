@@ -10,7 +10,7 @@ from sinner.FaceAnalyser import FaceAnalyser
 from sinner.helpers.FrameHelper import read_from_image
 from sinner.processors.frame.FaceSwapper import FaceSwapper
 from sinner.typing import Frame, FaceSwapperType
-from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir, no_face_jpg, male_face_jpg, female_face_jpg, multiple_faces_jpg, unknown_gender_face_jpg
+from tests.constants import source_jpg, target_png, IMAGE_SHAPE, tmp_dir, no_face_jpg, male_face_jpg, female_face_jpg, multiple_faces_jpg
 
 
 def get_test_object(additional_params: str = "") -> FaceSwapper:
