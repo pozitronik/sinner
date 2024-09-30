@@ -24,7 +24,7 @@ class FaceSwapper(BaseFrameProcessor):
     source_path: str
     many_faces: bool = False
     less_output: bool = True
-    target_gender: Literal['male', 'female', 'both', 'as_input'] = 'as_input'
+    target_gender: Literal['M', 'F', 'B', 'I'] = 'I'
 
     _source_face: Face | None = None
     _face_analyser: FaceAnalyser | None = None
@@ -53,9 +53,9 @@ class FaceSwapper(BaseFrameProcessor):
             },
             {
                 'parameter': 'target-gender',
-                'default': 'as_input',
-                'choices': ['male', 'female', 'both', 'as_input'],
-                'help': 'Select the gender of faces to swap: male, female, both, or as_input (based on source face)'
+                'default': 'I',
+                'choices': ['M', 'F', 'B', 'I'],
+                'help': 'Select the gender of faces to swap: [M]ale, [F]emale, [B]oth, or as_[I]nput (based on source face)'
             },
             {
                 'module_help': 'This module swaps faces on images'
@@ -127,16 +127,16 @@ class FaceSwapper(BaseFrameProcessor):
         return frame
 
     def _get_target_gender(self) -> str:
-        if self.target_gender == 'as_input' and self.source_face:
+        if self.target_gender == 'I' and self.source_face:
             return self.source_face.sex
         return self.target_gender
 
     def _should_swap_face(self, face: Face, target_gender: str) -> bool:
-        if target_gender == 'both':
+        if target_gender == 'B':
             return True
         if face.sex == target_gender:
             return True
-        if face.sex not in ['male', 'female']:
+        if face.sex not in ['M', 'F']:
             self.update_status(f"Unable to determine gender for a face. Skipping this face.", mood=Mood.NEUTRAL)
         return False
 
