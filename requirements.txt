@@ -18,7 +18,8 @@ future
 colorama
 sympy
 torch
-torchvision==0.15.2
+new-basicsr
+torchvision==0.19.1
 onnxruntime
 pytest
 pyvirtualcam
