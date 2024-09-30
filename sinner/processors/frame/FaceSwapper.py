@@ -53,6 +53,7 @@ class FaceSwapper(BaseFrameProcessor):
             },
             {
                 'parameter': {'target-gender', 'gender'},
+                'attribute': 'target_gender',
                 'default': 'I',
                 'choices': ['M', 'F', 'B', 'I'],
                 'help': 'Select the gender of faces to swap: [M]ale, [F]emale, [B]oth, or as_[I]nput (based on source face)'
