@@ -24,7 +24,7 @@ class FaceSwapper(BaseFrameProcessor):
     source_path: str
     many_faces: bool = False
     less_output: bool = True
-    target_gender: Literal['M', 'F', 'B', 'I'] = 'I'
+    target_gender: Literal['M', 'F', 'B', 'I'] = 'B'
 
     _source_face: Face | None = None
     _face_analyser: FaceAnalyser | None = None
@@ -52,7 +52,7 @@ class FaceSwapper(BaseFrameProcessor):
                 'help': 'Silence noisy runtime console output'
             },
             {
-                'parameter': 'target-gender',
+                'parameter': {'target-gender', 'gender'},
                 'default': 'I',
                 'choices': ['M', 'F', 'B', 'I'],
                 'help': 'Select the gender of faces to swap: [M]ale, [F]emale, [B]oth, or as_[I]nput (based on source face)'
@@ -82,7 +82,7 @@ class FaceSwapper(BaseFrameProcessor):
                     {"det_score": self._source_face.det_score},
                 ]
                 face_info = "\n".join([f"\t{key}: {value}" for dict_line in face_data for key, value in dict_line.items()])
-                self.update_status(f'Recognized face:\n{face_info}')
+                self.update_status(f'Recognized source face:\n{face_info}')
         return self._source_face
 
     @property
