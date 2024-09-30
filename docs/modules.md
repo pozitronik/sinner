@@ -53,6 +53,11 @@
 * `--target-path`, `--target`: an image, a video file, or a directory with image files for processing.
 * `--output`, `--output-path`: a path (either a file or a directory) to save the processing result. If not provided, the resulting file will be saved near the target with an automatically generated filename.
 * `--many-faces`: if set to `true`, every frame processor in the processing chain will apply its magic to every face on every frame of the `target`. If set to `false`, only one face (the first one found, no heavy logic here) will be processed. Defaults to `false`.
+* `--target-gender`: this parameter allows for more precise control over the face swapping process, limiting swaps to faces of a specific gender or matching the gender of the source face. If the gender of a face cannot be determined, that face will be skipped during processing (except when `--target-gender=B`). Possible values:
+  - `M`: Swap only male faces
+  - `F`: Swap only female faces
+  - `B`: Swap faces of both genders
+  - `I`: Swap faces of the same gender as the input face (default)
 * `--less-output`: if set to `true` all console outputs from the 3rd party runtime models will be silenced. Those outputs usually contains parameters of self-configuration and other stuff, that you can skip without pain. Defaults to `true`.
 
 # FaceEnhancer: This module enhances faces on images
