@@ -137,7 +137,7 @@ class FaceSwapper(BaseFrameProcessor):
         if face.sex == target_gender:
             return True
         if face.sex not in ['M', 'F']:
-            self.update_status(f"Unable to determine gender for a face. Skipping this face.", mood=Mood.NEUTRAL)
+            self.update_status("Unable to determine gender for a face. Skipping this face.", mood=Mood.NEUTRAL)
         return False
 
     def release_resources(self) -> None:
