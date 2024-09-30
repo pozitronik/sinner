@@ -72,11 +72,5 @@ jobs:
       - run: |
           export DISPLAY=:1:0
           Xvfb :1 -screen 0 1600x1200x16 &
-      - name: Debug information
-        run: |
-          python --version
-          pip list
-          echo $PYTHONPATH
-          ls -R
       - run: pytest -m "not skip" -vv --tb=long
 
