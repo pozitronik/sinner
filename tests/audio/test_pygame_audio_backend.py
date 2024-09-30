@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from argparse import Namespace
 
+import pygame
 import pytest
 
 from tests.constants import tmp_dir, target_mp4, silent_target_mp4
@@ -18,6 +19,11 @@ def setup():
 
 def setup_function():
     setup()
+
+
+def teardown_function():
+    pygame.mixer.quit()
+    pygame.quit()
 
 
 def test_init_default() -> None:

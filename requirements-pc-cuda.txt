@@ -4,7 +4,7 @@
 
 numpy>=1.24.3
 opencv-python>=4.8.0.74
-onnx>=1.14.0
+onnx>=1.16.2
 insightface==0.7.3
 psutil>=5.9.5
 tk==0.1.0
@@ -17,8 +17,9 @@ tensorflow>=2.13.0
 future==0.18.3
 colorama>=0.4.6
 sympy==1.12
-torch==2.0.1+cu118
-torchvision==0.15.2+cu118
+new-basicsr
+torch==2.4.1+cu118
+torchvision==0.19.1+cu118
 onnxruntime-gpu>=1.15.1
 pyvirtualcam
 pathvalidate
