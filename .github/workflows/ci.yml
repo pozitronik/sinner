@@ -58,7 +58,7 @@ jobs:
           pip install torch==2.0.1
           pip install torchvision==0.15.2
           pip install onnxruntime==1.15.1
-          pip install tensorflow~=2.13.0rc1
+          pip install tensorflow==2.17.0
           pip install protobuf>=4.24.1
           pip install tqdm>=4.65.0
           pip install pytest==7.4.0
