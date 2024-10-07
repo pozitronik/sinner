@@ -1,11 +1,11 @@
 import locale
+import logging
 import shutil
 import sys
 from enum import Enum
 
 from colorama import Fore, Back
 
-from sinner.typing import UTF8
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
@@ -19,18 +19,12 @@ class Mood(Enum):
 
 
 class Status(AttributeLoader):
-    logfile: str
+    logger: logging.Logger = logging.getLogger("Status")
     emoji: str = '😈'
     enable_emoji: bool
 
     def rules(self) -> Rules:
         return [
-            {
-                'parameter': {'log', 'logfile'},
-                'attribute': 'logfile',
-                'valid': lambda: self.log_write(),
-                'help': 'Path to the log file'
-            },
             {
                 'parameter': {'enable-emoji'},
                 'attribute': 'enable_emoji',
@@ -91,15 +85,12 @@ class Status(AttributeLoader):
         if position is None:
             sys.stdout.write("\n")
         self.restore_position(position)
-        self.log_write(f'{emoji}{caller}: {message}')
+        log_level = logging.DEBUG
+        if mood is Mood.GOOD:
+            log_level = logging.INFO
+        elif mood is Mood.BAD:
+            log_level = logging.ERROR
+        self.logger.log(level=log_level, msg=f"{emoji}{caller}: {message}")
 
-    def log_write(self, content: str | None = None) -> bool:
-        try:
-            if self.logfile:
-                with open(self.logfile, "w", encoding=UTF8) as log:
-                    if content:
-                        log.write(content)
-                    return True
-        except Exception:
-            pass
-        return False
+    def log(self, level=logging.INFO, msg="", *args, **kwargs) -> None:
+        self.logger.log(level, msg, args, **kwargs)

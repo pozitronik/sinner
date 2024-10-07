@@ -49,7 +49,7 @@ class Sin(Sinner):
 if __name__ == '__main__':
     logging.basicConfig(
         level=logging.DEBUG,
-        format='%(name)s - %(message)s',
+        format='%(name)s: %(message)s',
         filename='debug.log',
         filemode='w'
     )
