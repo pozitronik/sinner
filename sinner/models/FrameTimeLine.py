@@ -47,7 +47,10 @@ class FrameTimeLine:
 
     # returns time passed from the start
     def time(self) -> float:
-        return time.perf_counter() - self._timer
+        if self._is_started:
+            return time.perf_counter() - self._timer
+        else:
+            return 0.0
 
     def real_time_position(self) -> float:
         """
