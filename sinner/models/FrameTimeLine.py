@@ -77,8 +77,7 @@ class FrameTimeLine:
 
         result_frame = self._FrameBuffer.get_frame(self._last_requested_index)
         if result_frame:
-            self._last_returned_index = result_frame.index
-        # print("Last requested/returned frame:", f"{self._last_requested_index}/{self._last_returned_index}")
+            self._last_returned_index = self._last_requested_index  # it is an EXPECTED index, not a real one
         return result_frame
 
     def has_index(self, index: int) -> bool:
