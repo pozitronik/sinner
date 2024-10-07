@@ -388,7 +388,7 @@ class GUIModel(Status):
         if not self._event_processing.is_set():
             self._event_processing.set()
             self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
-                'start_frame': start_frame,
+                'next_frame': start_frame,
                 'end_frame': self.frame_handler.fc
             })
             self._process_frames_thread.daemon = True
@@ -413,10 +413,10 @@ class GUIModel(Status):
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
 
-    def _process_frames(self, start_frame: int, end_frame: int) -> None:
+    def _process_frames(self, next_frame: int, end_frame: int) -> None:
         """
         renders all frames between start_frame and end_frame
-        :param start_frame:
+        :param next_frame:
         :param end_frame:
         """
 
@@ -439,15 +439,15 @@ class GUIModel(Status):
         futures: list[Future[float | None]] = []
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
-            while start_frame <= end_frame:
+            while next_frame <= end_frame:
                 if self._event_rewind.is_set():
-                    start_frame = self._event_rewind.tag or 0
+                    next_frame = self._event_rewind.tag or 0
                     self._event_rewind.clear()
 
-                if start_frame not in processing and not self.TimeLine.has_index(start_frame):
-                    # self.logger.info(f"Submit to processing frame {start_frame}")
-                    processing.append(start_frame)
-                    future: Future[float | None] = executor.submit(self._process_frame, start_frame)
+                if next_frame not in processing and not self.TimeLine.has_index(next_frame):
+                    # self.logger.info(f"Submit to processing frame {next_frame}")
+                    processing.append(next_frame)
+                    future: Future[float | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
 
@@ -462,8 +462,8 @@ class GUIModel(Status):
 
                 self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps)
 
-                start_frame += math.ceil(self._average_frame_skip.get_average()) + self.TimeLine.current_frame_miss
-                self.logger.info(f"NEXT: {start_frame}, MISS: {self.TimeLine.current_frame_miss}, AVG: {self._average_frame_skip.get_average()} ")
+                next_frame += math.ceil(self._average_frame_skip.get_average()) + self.TimeLine.current_frame_miss
+                self.logger.info(f"NEXT: {next_frame}, MISS: {self.TimeLine.current_frame_miss}, AVG: {self._average_frame_skip.get_average()} ")
 
             self.logger.info("process_frames loop done")
 
