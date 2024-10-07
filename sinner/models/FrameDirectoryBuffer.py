@@ -88,7 +88,7 @@ class FrameDirectoryBuffer:
                     if path_exists(previous_file_path):
                         try:
                             self._miss = index - previous_number
-                            return NumberedFrame(index, read_from_image(previous_file_path))
+                            return NumberedFrame(previous_number, read_from_image(previous_file_path))
                         except Exception:  # the file may exist but can be locked in another thread.
                             pass
         return None
