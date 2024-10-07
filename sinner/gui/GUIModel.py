@@ -449,12 +449,15 @@ class GUIModel(Status):
 
                 self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps)
 
-                if self._biggest_processed_frame > self.TimeLine.last_requested_index + self.TimeLine.current_frame_miss and processing_delta > 0:
+                if self.TimeLine.last_added_index > self.TimeLine.last_requested_index + self.TimeLine.current_frame_miss and processing_delta > self._average_frame_skip.get_average():
                     processing_delta -= 1
-                elif self._biggest_processed_frame < self.TimeLine.last_requested_index:
+                elif self.TimeLine.last_added_index < self.TimeLine.last_requested_index:
                     processing_delta += 1
-
-                next_frame += int(self._average_frame_skip.get_average()) + processing_delta
+                step = int(self._average_frame_skip.get_average()) + processing_delta
+                if step < 1:  # preventing going backwards
+                    step = 1
+                next_frame += step
+                self.logger.info(f"NEXT: {next_frame}, STEP: {step}, DELTA: {processing_delta}, LAST: {self.TimeLine.last_added_index}, AVG: {self._average_frame_skip.get_average()} ")
 
     def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
@@ -471,6 +474,7 @@ class GUIModel(Status):
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
+                self.logger.info(f"DONE: {n_frame.index}")
         self.TimeLine.add_frame(n_frame)
         return frame_render_time.execution_time, n_frame.index
 
@@ -486,6 +490,7 @@ class GUIModel(Status):
                     break
                 if n_frame is not None:
                     if n_frame.index != last_shown_frame_index:  # check if frame is really changed
+                        self.logger.info(f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
                         self.Player.show_frame(n_frame.frame)
                         last_shown_frame_index = n_frame.index
                         if self.TimeLine.last_returned_index is None:
