@@ -430,9 +430,7 @@ class GUIModel(Status):
                     self._processing_fps = 1 / self._average_processing_time.get_average()
                     if self._biggest_processed_frame < frame_index:
                         self._biggest_processed_frame = frame_index
-                    # self.logger.info(f"self.__last_processed_frame = {self._biggest_processed_frame}")
-                    self._status("Processing FPS/Last frame", f"{round(self._processing_fps, 4)}/{round(1 / process_time, 4)}")
-                    self._status("Frame lag/Play frame lag", f"{self.TimeLine.frame_lag}/{self.TimeLine.display_frame_lag}")
+                    self._status("Average processing speed", f"{round(self._processing_fps, 4)} FPS")
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed
@@ -445,7 +443,6 @@ class GUIModel(Status):
                     self._event_rewind.clear()
 
                 if next_frame not in processing and not self.TimeLine.has_index(next_frame):
-                    # self.logger.info(f"Submit to processing frame {next_frame}")
                     processing.append(next_frame)
                     future: Future[float | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
@@ -454,7 +451,7 @@ class GUIModel(Status):
                     if len(futures) >= self.execution_threads:
                         futures[:1][0].result()
 
-                    self._status("Memory usage(resident/virtual)", self.get_mem_usage())
+                    self._status("Memory usage (resident/virtual)", self.get_mem_usage())
 
                 if not self._event_processing.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
@@ -507,7 +504,6 @@ class GUIModel(Status):
                         if not self._event_rewind.is_set():
                             self.position.set(self.TimeLine.last_returned_index)
                             self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                            self._status("Last shown/rendered frame/Lag", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}/{self.TimeLine.display_frame_lag}")
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
