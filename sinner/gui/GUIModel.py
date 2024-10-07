@@ -330,14 +330,6 @@ class GUIModel(Status):
         self._previews.clear()
 
     @property
-    def framedrop(self) -> int:
-        return self._framedrop
-
-    @framedrop.setter
-    def framedrop(self, value: int) -> None:
-        self._framedrop = value
-
-    @property
     def player_is_started(self) -> bool:
         return self._event_processing.is_set() or self._event_playback.is_set()
 
