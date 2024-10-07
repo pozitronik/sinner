@@ -1,5 +1,4 @@
 import logging
-import math
 import os
 import threading
 import time
@@ -427,6 +426,7 @@ class GUIModel(Status):
 
         processing: List[int] = []  # list of frames currently being processed
         futures: list[Future[float | None]] = []
+        processing_delta: int = 0  # additional lookahead to adjust frames synchronization
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while next_frame <= end_frame:
@@ -451,8 +451,13 @@ class GUIModel(Status):
 
                 self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps)
 
-                next_frame += math.ceil(self._average_frame_skip.get_average()) + self.TimeLine.current_frame_miss
-                self.logger.info(f"NEXT: {next_frame}, MISS: {self.TimeLine.current_frame_miss}, AVG: {self._average_frame_skip.get_average()} ")
+                if self._biggest_processed_frame > self.TimeLine.last_requested_index + self.TimeLine.current_frame_miss and processing_delta > 0:
+                    processing_delta -= 1
+                elif self._biggest_processed_frame < self.TimeLine.last_requested_index:
+                    processing_delta += 1
+
+                next_frame += int(self._average_frame_skip.get_average()) + processing_delta
+                self.logger.info(f"NEXT: {next_frame}, DELTA: {processing_delta}, MISS: {self.TimeLine.current_frame_miss}, AVG: {self._average_frame_skip.get_average()} ")
 
             self.logger.info("process_frames loop done")
 
