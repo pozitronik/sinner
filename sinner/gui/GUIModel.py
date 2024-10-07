@@ -488,12 +488,12 @@ class GUIModel(Status):
                     if n_frame.index != last_shown_frame_index:  # check if frame is really changed
                         self.Player.show_frame(n_frame.frame)
                         last_shown_frame_index = n_frame.index
-                    if self.TimeLine.last_returned_index is None:
-                        self._status("Time position", "There are no ready frames")
-                    else:
                         if not self._event_rewind.is_set():
-                            self.position.set(self.TimeLine.last_returned_index)
-                            self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
+                            if self.TimeLine.last_returned_index is None:
+                                self._status("Time position", "There are no ready frames")
+                            else:
+                                self.position.set(self.TimeLine.last_returned_index)
+                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
