@@ -1,3 +1,4 @@
+import logging
 import os
 import threading
 import time
@@ -144,6 +145,7 @@ class GUIModel(Status):
 
     def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
         self.parameters = parameters
+        self.logger = logging.getLogger("GUI Model")
         super().__init__(parameters)
         self._processors = {}
         if self.bootstrap_processors:
