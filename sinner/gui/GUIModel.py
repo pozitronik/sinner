@@ -1,4 +1,3 @@
-import logging
 import os
 import threading
 import time
@@ -151,7 +150,6 @@ class GUIModel(Status):
 
     def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
         self.parameters = parameters
-        self.logger = logging.getLogger("GUI Model")
         super().__init__(parameters)
         self._processors = {}
         if self.bootstrap_processors:
@@ -457,9 +455,6 @@ class GUIModel(Status):
                     processing_delta += 1
 
                 next_frame += int(self._average_frame_skip.get_average()) + processing_delta
-                self.logger.info(f"NEXT: {next_frame}, DELTA: {processing_delta}, MISS: {self.TimeLine.current_frame_miss}, AVG: {self._average_frame_skip.get_average()} ")
-
-            self.logger.info("process_frames loop done")
 
     def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
@@ -476,7 +471,6 @@ class GUIModel(Status):
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
-        self.logger.info(f"DONE: {n_frame.index}")
         self.TimeLine.add_frame(n_frame)
         return frame_render_time.execution_time, n_frame.index
 
@@ -492,7 +486,6 @@ class GUIModel(Status):
                     break
                 if n_frame is not None:
                     if n_frame.index != last_shown_frame_index:  # check if frame is really changed
-                        self.logger.info(f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}")
                         self.Player.show_frame(n_frame.frame)
                         last_shown_frame_index = n_frame.index
                     if self.TimeLine.last_returned_index is None:
@@ -505,7 +498,6 @@ class GUIModel(Status):
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
                     time.sleep(sleep_time)
-            self.logger.info("show_frames loop done")
 
     def extract_frames(self) -> bool:
         if self._prepare_frames is not False and not self._is_target_frames_extracted:
