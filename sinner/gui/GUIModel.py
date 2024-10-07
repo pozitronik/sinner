@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import threading
 import time
@@ -70,7 +71,11 @@ class GUIModel(Status):
 
     # internal variables
     _is_target_frames_extracted: bool = False
+    _last_requested_frame: int = 0  # the last requested frame inside processing, needed to avoid re-requesting on same frames
+    _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
+    _largest_miss: int = 0  # experimental
     _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
+    _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
 
     # threads
     _process_frames_thread: threading.Thread | None = None
@@ -325,16 +330,6 @@ class GUIModel(Status):
         self._previews.clear()
 
     @property
-    def frame_skip(self) -> int:
-        """
-        Returns the count of frames need to skip every time
-        :return:
-        """
-        if self.framedrop == -1:  # auto
-            return int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
-        return self.framedrop + 1
-
-    @property
     def framedrop(self) -> int:
         return self._framedrop
 
@@ -433,15 +428,15 @@ class GUIModel(Status):
                     self._average_processing_time.update(process_time / self.execution_threads)
                     processing.remove(frame_index)
                     self._processing_fps = 1 / self._average_processing_time.get_average()
-                    self.logger.info(f"self._processing_fps = {self._processing_fps}")
+                    if self._biggest_processed_frame < frame_index:
+                        self._biggest_processed_frame = frame_index
+                    # self.logger.info(f"self.__last_processed_frame = {self._biggest_processed_frame}")
                     self._status("Processing FPS/Last frame", f"{round(self._processing_fps, 4)}/{round(1 / process_time, 4)}")
                     self._status("Frame lag/Play frame lag", f"{self.TimeLine.frame_lag}/{self.TimeLine.display_frame_lag}")
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed
         futures: list[Future[float | None]] = []
-        results: list[float] = []
-        frame_skip: int = 0
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
             while start_frame <= end_frame:
@@ -449,7 +444,9 @@ class GUIModel(Status):
                     start_frame = self._event_rewind.tag or 0
                     self._event_rewind.clear()
 
-                if not self.TimeLine.has_index(start_frame):
+                if start_frame not in processing and not self.TimeLine.has_index(start_frame):
+                    # self.logger.info(f"Submit to processing frame {start_frame}")
+                    processing.append(start_frame)
                     future: Future[float | None] = executor.submit(self._process_frame, start_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
@@ -462,14 +459,13 @@ class GUIModel(Status):
                 if not self._event_processing.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
-                frame_skip = self.frame_skip
 
-                if self.TimeLine.last_added_index < self.TimeLine.last_requested_index:  # if processing is too late
-                    start_frame = frame_skip + self.TimeLine.last_requested_index  # push it a little forward
-                else:
-                    start_frame += self.frame_skip
+                self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps)
 
-            self.update_status("_process_frames loop done")
+                start_frame += math.ceil(self._average_frame_skip.get_average()) + self.TimeLine.current_frame_miss
+                self.logger.info(f"NEXT: {start_frame}, MISS: {self.TimeLine.current_frame_miss}, AVG: {self._average_frame_skip.get_average()} ")
+
+            self.logger.info("process_frames loop done")
 
     def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
@@ -486,7 +482,7 @@ class GUIModel(Status):
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
-        self.logger.info(f"Frame processed: {n_frame.index} in {frame_render_time.execution_time}")
+        self.logger.info(f"DONE: {n_frame.index}")
         self.TimeLine.add_frame(n_frame)
         return frame_render_time.execution_time, n_frame.index
 
@@ -498,25 +494,25 @@ class GUIModel(Status):
                 try:
                     n_frame = self.TimeLine.get_frame()
                 except EOFError:
-                    self.update_status("No more frames in the timeline")
                     self._event_playback.clear()
                     break
-                if n_frame is not None and n_frame.index != last_shown_frame_index:
-                    self.Player.show_frame(n_frame.frame)
-                    last_shown_frame_index = n_frame.index
+                if n_frame is not None:
+                    if n_frame.index != last_shown_frame_index:  # check if frame is really changed
+                        self.logger.info(f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}")
+                        self.Player.show_frame(n_frame.frame)
+                        last_shown_frame_index = n_frame.index
                     if self.TimeLine.last_returned_index is None:
                         self._status("Time position", "There are no ready frames")
                     else:
                         if not self._event_rewind.is_set():
                             self.position.set(self.TimeLine.last_returned_index)
-                        if self.TimeLine.last_returned_index:
                             self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                            self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
+                            self._status("Last shown/rendered frame/Lag", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}/{self.TimeLine.display_frame_lag}")
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
                     time.sleep(sleep_time)
-            self.update_status("_show_frames loop done")
+            self.logger.info("show_frames loop done")
 
     def extract_frames(self) -> bool:
         if self._prepare_frames is not False and not self._is_target_frames_extracted:
