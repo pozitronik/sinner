@@ -19,6 +19,7 @@ from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.helpers.FrameHelper import scale
 from sinner.models.Event import Event
+from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
@@ -65,10 +66,11 @@ class GUIModel(Status):
     # player counters
     _framedrop: int = -1  # the manual value of dropped frames
 
-    _process_fps: float = 1
+    _processing_fps: float = 1
 
     # internal variables
     _is_target_frames_extracted: bool = False
+    _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
 
     # threads
     _process_frames_thread: threading.Thread | None = None
@@ -425,15 +427,18 @@ class GUIModel(Status):
 
         def process_done(future_: Future[float | None]) -> None:
             if not future_.cancelled():
-                process_time = future_.result()
-                if process_time:
-                    if len(results) >= 30:  # limit mean time base to last 30 executions
-                        results.pop(0)
-                    results.append(process_time)
-                    self._process_fps = self._process_fps = self.execution_threads / (sum(results) / len(results))
-                    self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1 / process_time, 4)}/{frame_skip - 1}")
+                result = future_.result()
+                if result:
+                    process_time, frame_index = result
+                    self._average_processing_time.update(process_time / self.execution_threads)
+                    processing.remove(frame_index)
+                    self._processing_fps = 1 / self._average_processing_time.get_average()
+                    self.logger.info(f"self._processing_fps = {self._processing_fps}")
+                    self._status("Processing FPS/Last frame", f"{round(self._processing_fps, 4)}/{round(1 / process_time, 4)}")
+                    self._status("Frame lag/Play frame lag", f"{self.TimeLine.frame_lag}/{self.TimeLine.display_frame_lag}")
             futures.remove(future_)
 
+        processing: List[int] = []  # list of frames currently being processed
         futures: list[Future[float | None]] = []
         results: list[float] = []
         frame_skip: int = 0
@@ -466,11 +471,11 @@ class GUIModel(Status):
 
             self.update_status("_process_frames loop done")
 
-    def _process_frame(self, frame_index: int) -> float | None:
+    def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
         Renders a frame with the current processors set
         :param frame_index: the frame index
-        :return: the render time, or None on error
+        :return: the [render time, frame index], or None on error
         """
         try:
             n_frame = self.frame_handler.extract_frame(frame_index)
@@ -481,8 +486,9 @@ class GUIModel(Status):
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
+        self.logger.info(f"Frame processed: {n_frame.index} in {frame_render_time.execution_time}")
         self.TimeLine.add_frame(n_frame)
-        return frame_render_time.execution_time
+        return frame_render_time.execution_time, n_frame.index
 
     def _show_frames(self) -> None:
         last_shown_frame_index: int = -1
