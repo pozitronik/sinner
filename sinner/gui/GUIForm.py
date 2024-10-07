@@ -1,16 +1,16 @@
 from argparse import Namespace
 from threading import Thread
-from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, Scale, TOP, HORIZONTAL, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM
-from tkinter.ttk import Spinbox
+from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
+from tkinter.ttk import Spinbox, Label
 from typing import List
 
 from customtkinter import CTk
 from psutil import WINDOWS
 
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
 from sinner.models.Event import Event as SinnerEvent
 from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import RotateMode
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.ImageList import ImageList
@@ -176,14 +176,23 @@ class GUIForm(Status):
         self.ControlsFrame = Frame(self.BaseFrame)
 
         self.SubControlsFrame = Frame(self.ControlsFrame)
+        self.FrameDropLabel: Label = Label(self.SubControlsFrame, text="Framedrop (-1 to auto):")
         self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
         self.FrameDropSpinbox.bind('<KeyRelease>', lambda event: self.on_framedrop_change())
         self.FrameDropSpinbox.set(-1)
 
-        self.QualityScale: Scale = Scale(self.SubControlsFrame, showvalue=False, from_=1, to=100, length=300, orient=HORIZONTAL, command=lambda frame_value: self.on_quality_scale_change(int(frame_value)))
-        self.QualityScale.set(self.GUIModel.quality)
+        self.QualityScaleLabel: Label = Label(self.SubControlsFrame, text="Quality scale:")
+
+        self.QualityScaleSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=1, to=100, increment=1, command=lambda: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
+        self.QualityScaleSpinbox.bind('<KeyRelease>', lambda event: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
+        self.QualityScaleSpinbox.set(self.GUIModel.quality)
+
+        # empty space to divide controls
+
+        self.EmptyDivisor: Label = Label(self.SubControlsFrame)
 
         # Volume slider
+        self.VolumeLabel: Label = Label(self.SubControlsFrame, text="Vol:")
         self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
 
         # source/target selection controls
@@ -216,16 +225,16 @@ class GUIForm(Status):
             if save_file != '':
                 self.GUIModel.Player.save_to_file(save_file)
 
-        self.RotateModeVar: StringVar = StringVar(value=RotateMode.ROTATE_0.value)
+        self.RotateModeVar: StringVar = StringVar(value="0°")
 
         self.RotateSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_0.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_0))  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_90.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_90))  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_180.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_180))  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label=RotateMode.ROTATE_270.value, command=lambda: set_rotate_mode(RotateMode.ROTATE_270))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="0°", command=lambda: set_rotate_mode(None))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="90°", command=lambda: set_rotate_mode(ROTATE_90_CLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="180°", command=lambda: set_rotate_mode(ROTATE_180))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="270°", command=lambda: set_rotate_mode(ROTATE_90_COUNTERCLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
 
-        def set_rotate_mode(mode: RotateMode) -> None:
+        def set_rotate_mode(mode: int | None) -> None:
             self.GUIModel.Player.rotate = mode
 
         self.SoundEnabledVar: BooleanVar = BooleanVar(value=self.GUIModel.enable_sound())
@@ -286,9 +295,15 @@ class GUIForm(Status):
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
         self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
 
+        self.FrameDropLabel.pack(anchor=NW, side=LEFT)
         self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
-        self.QualityScale.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
-        self.VolumeSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
+        self.QualityScaleLabel.pack(anchor=NW, side=LEFT)
+        self.QualityScaleSpinbox.pack(anchor=NW, expand=False, fill=BOTH, side=LEFT)
+
+        self.EmptyDivisor.pack(anchor=CENTER, expand=True, fill=BOTH, side=LEFT)
+
+        self.VolumeLabel.pack(anchor=NE, side=LEFT)
+        self.VolumeSlider.pack(anchor=NE, side=LEFT, expand=False, fill=X)
         self.SubControlsFrame.pack(anchor=CENTER, expand=True, fill=BOTH)
 
         self.SourcePathEntry.pack(side=LEFT, expand=True, fill=BOTH)
@@ -330,6 +345,7 @@ class GUIForm(Status):
         self.create_windows()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.bring_to_front()
+        self.GUIModel.Player.set_topmost(self.topmost)
         if self.geometry:
             self.load_geometry()
         if self.state:
@@ -379,6 +395,10 @@ class GUIForm(Status):
             self.NavigateSlider.disable()
 
     def on_quality_scale_change(self, frame_value: int) -> None:
+        if frame_value > self.QualityScaleSpinbox.cget('to'):
+            frame_value = self.QualityScaleSpinbox.cget('to')
+        if frame_value < self.QualityScaleSpinbox.cget('from'):
+            frame_value = self.QualityScaleSpinbox.cget('from')
         self.GUIModel.quality = frame_value
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution

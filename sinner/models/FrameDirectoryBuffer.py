@@ -80,7 +80,7 @@ class FrameDirectoryBuffer:
                 pass
         elif return_previous:
             for previous_number in range(index - 1, 0, -1):
-                if self.has_frame(previous_number):
+                if self.has_index(previous_number):
                     previous_filename = str(previous_number).zfill(self.zfill_length) + '.png'
                     previous_file_path = os.path.join(self.path, previous_filename)
                     if path_exists(previous_file_path):
@@ -90,7 +90,7 @@ class FrameDirectoryBuffer:
                             pass
         return None
 
-    def has_frame(self, index: int) -> bool:
+    def has_index(self, index: int) -> bool:
         return index in self._indices
 
     def init_indices(self) -> None:

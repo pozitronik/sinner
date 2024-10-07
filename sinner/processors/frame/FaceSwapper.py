@@ -3,7 +3,7 @@ import io
 import os
 import threading
 from argparse import Namespace
-from typing import List, Dict, Any, Callable
+from typing import List, Dict, Any, Callable, Literal
 
 import insightface
 import torch
@@ -24,6 +24,7 @@ class FaceSwapper(BaseFrameProcessor):
     source_path: str
     many_faces: bool = False
     less_output: bool = True
+    target_gender: Literal['M', 'F', 'B', 'I'] = 'B'
 
     _source_face: Face | None = None
     _face_analyser: FaceAnalyser | None = None
@@ -51,6 +52,13 @@ class FaceSwapper(BaseFrameProcessor):
                 'help': 'Silence noisy runtime console output'
             },
             {
+                'parameter': {'target-gender', 'gender'},
+                'attribute': 'target_gender',
+                'default': 'I',
+                'choices': ['M', 'F', 'B', 'I'],
+                'help': 'Select the gender of faces to swap: [M]ale, [F]emale, [B]oth, or as_[I]nput (based on source face)'
+            },
+            {
                 'module_help': 'This module swaps faces on images'
             }
         ]
@@ -75,7 +83,7 @@ class FaceSwapper(BaseFrameProcessor):
                     {"det_score": self._source_face.det_score},
                 ]
                 face_info = "\n".join([f"\t{key}: {value}" for dict_line in face_data for key, value in dict_line.items()])
-                self.update_status(f'Recognized face:\n{face_info}')
+                self.update_status(f'Recognized source face:\n{face_info}')
         return self._source_face
 
     @property
@@ -106,16 +114,32 @@ class FaceSwapper(BaseFrameProcessor):
 
     def process_frame(self, frame: Frame) -> Frame:
         if self.source_face is not None:
+            target_gender = self._get_target_gender()
             if self.many_faces:
                 many_faces = self.face_analyser.get_many_faces(frame)
                 if many_faces:
                     for target_face in many_faces:
-                        frame = self.face_swapper.get(frame, target_face, self.source_face)
+                        if self._should_swap_face(target_face, target_gender):
+                            frame = self.face_swapper.get(frame, target_face, self.source_face)
             else:
                 target_face = self.face_analyser.get_one_face(frame)
-                if target_face:
+                if target_face and self._should_swap_face(target_face, target_gender):
                     frame = self.face_swapper.get(frame, target_face, self.source_face)
         return frame
+
+    def _get_target_gender(self) -> str:
+        if self.target_gender == 'I' and self.source_face:
+            return self.source_face.sex
+        return self.target_gender
+
+    def _should_swap_face(self, face: Face, target_gender: str) -> bool:
+        if target_gender == 'B':
+            return True
+        if face.sex == target_gender:
+            return True
+        if face.sex not in ['M', 'F']:
+            self.update_status("Unable to determine gender for a face. Skipping this face.", mood=Mood.NEUTRAL)
+        return False
 
     def release_resources(self) -> None:
         if 'CUDAExecutionProvider' in self.execution_providers:
