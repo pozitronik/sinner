@@ -167,9 +167,9 @@ class GUIModel(Status):
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
 
-        self._event_processing = Event(on_set_callback=lambda: self.update_status("PROCESSING: ON"), on_clear_callback=lambda: self.update_status("PROCESSING: OFF"))
-        self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
-        self._event_rewind = Event(on_set_callback=lambda: self.update_status("REWIND EVENT SET"), on_clear_callback=lambda: self.update_status("REWIND EVENT CLEAR"))
+        self._event_processing = Event()
+        self._event_playback = Event()
+        self._event_rewind = Event()
 
     def reload_parameters(self) -> None:
         self.clear_previews()
