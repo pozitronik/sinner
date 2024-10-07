@@ -419,7 +419,7 @@ class GUIModel(Status):
                     self._processing_fps = 1 / self._average_processing_time.get_average()
                     if self._biggest_processed_frame < frame_index:
                         self._biggest_processed_frame = frame_index
-                    self._status("Average processing speed", f"{round(self._processing_fps, 4)} FPS")
+                    self._status("Average processing speed", f"{round(self._processing_fps, 4)} FPS")  # fixme: execution-threads=1 prevents value to display
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed
