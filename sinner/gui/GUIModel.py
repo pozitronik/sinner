@@ -407,7 +407,7 @@ class GUIModel(Status):
         :param end_frame:
         """
 
-        def process_done(future_: Future[float | None]) -> None:
+        def process_done(future_: Future[tuple[float, int] | None]) -> None:
             if not future_.cancelled():
                 result = future_.result()
                 if result:
@@ -421,7 +421,7 @@ class GUIModel(Status):
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed
-        futures: list[Future[float | None]] = []
+        futures: list[Future[tuple[float, int] | None]] = []
         processing_delta: int = 0  # additional lookahead to adjust frames synchronization
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
@@ -432,7 +432,7 @@ class GUIModel(Status):
 
                 if next_frame not in processing and not self.TimeLine.has_index(next_frame):
                     processing.append(next_frame)
-                    future: Future[float | None] = executor.submit(self._process_frame, next_frame)
+                    future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
 
