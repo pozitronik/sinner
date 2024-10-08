@@ -5,10 +5,10 @@ class MovingAverage:
     def __init__(self, window_size: int = 0):
         self.window_size = window_size
         if window_size > 0:
-            self.window = deque(maxlen=window_size)
+            self.window: deque[float] = deque(maxlen=window_size)
         else:
-            self.sum = 0
-            self.count = 0
+            self.sum: float = 0
+            self.count: int = 0
 
     def update(self, value: float) -> None:
         if self.window_size > 0:
