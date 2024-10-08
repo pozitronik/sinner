@@ -19,12 +19,20 @@ class Mood(Enum):
 
 
 class Status(AttributeLoader):
-    logger: logging.Logger = logging.getLogger("Status")
+    logfile: str | None = None
+    logger: logging.Logger | None = None
     emoji: str = '😈'
     enable_emoji: bool
 
     def rules(self) -> Rules:
         return [
+            {
+                'parameter': {'log', 'logfile'},
+                'attribute': 'logfile',
+                'default': None,
+                'valid': lambda: self.init_logger(),
+                'help': 'Path to the log file'
+            },
             {
                 'parameter': {'enable-emoji'},
                 'attribute': 'enable_emoji',
@@ -90,7 +98,29 @@ class Status(AttributeLoader):
             log_level = logging.INFO
         elif mood is Mood.BAD:
             log_level = logging.ERROR
-        self.logger.log(level=log_level, msg=f"{emoji}{caller}: {message}")
+        self.log(level=log_level, msg=f"{emoji}{caller}: {message}")
 
-    def log(self, level=logging.INFO, msg="", *args, **kwargs) -> None:
-        self.logger.log(level, msg, args, **kwargs)
+    def log(self, level=logging.INFO, msg="") -> None:
+        if self.logger:
+            self.logger.log(level, msg)
+
+    def init_logger(self) -> bool:
+        try:
+            if self.logfile:
+                self.logger = logging.getLogger(__name__)
+                self.logger.setLevel(logging.DEBUG)
+
+                file_handler = logging.FileHandler(self.logfile, encoding='utf-8')
+                file_handler.setLevel(logging.DEBUG)
+
+                formatter = logging.Formatter('%(levelname)s: %(message)s')
+                file_handler.setFormatter(formatter)
+
+                self.logger.addHandler(file_handler)
+                #
+                # logging.getLogger('PIL.PngImagePlugin').setLevel(logging.CRITICAL + 1)
+                # logging.getLogger('PIL.PngImagePlugin').addHandler(logging.NullHandler())
+            return True
+        except Exception:
+            pass
+        return False
