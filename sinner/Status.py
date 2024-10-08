@@ -100,7 +100,7 @@ class Status(AttributeLoader):
             log_level = logging.ERROR
         self.log(level=log_level, msg=f"{emoji}{caller}: {message}")
 
-    def log(self, level=logging.INFO, msg="") -> None:
+    def log(self, level: int = logging.INFO, msg: str = "") -> None:
         if self.logger:
             self.logger.log(level, msg)
 
