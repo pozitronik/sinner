@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import logging
 import os
 import signal
 import sys
@@ -47,15 +46,6 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(name)s: %(message)s',
-        filename='debug.log',
-        filemode='w'
-    )
-    logging.getLogger('PIL.PngImagePlugin').setLevel(logging.CRITICAL + 1)
-    logging.getLogger('PIL.PngImagePlugin').addHandler(logging.NullHandler())
-
     # todo: remnants of roop code, needs to be checked
     # single thread doubles cuda performance - needs to be set before torch import
     if any(arg.startswith('--execution-provider') for arg in sys.argv):
