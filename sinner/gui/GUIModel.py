@@ -69,7 +69,6 @@ class GUIModel(Status):
 
     # internal variables
     _is_target_frames_extracted: bool = False
-    _last_requested_frame: int = 0  # the last requested frame inside processing, needed to avoid re-requesting on same frames
     _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
     _largest_miss: int = 0  # experimental
     _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
