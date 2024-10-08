@@ -47,7 +47,10 @@ class FrameTimeLine:
 
     # returns time passed from the start
     def time(self) -> float:
-        return time.perf_counter() - self._timer
+        if self._is_started:
+            return time.perf_counter() - self._timer
+        else:
+            return 0.0
 
     def real_time_position(self) -> float:
         """
@@ -74,8 +77,7 @@ class FrameTimeLine:
 
         result_frame = self._FrameBuffer.get_frame(self._last_requested_index)
         if result_frame:
-            self._last_returned_index = result_frame.index
-        # print("Last requested/returned frame:", f"{self._last_requested_index}/{self._last_returned_index}")
+            self._last_returned_index = self._last_requested_index  # it is an EXPECTED index, not a real one
         return result_frame
 
     def has_index(self, index: int) -> bool:
@@ -107,3 +109,39 @@ class FrameTimeLine:
         :return: int | None
         """
         return self._last_returned_index
+
+    @property
+    def frame_lag(self) -> int:
+        """
+        :return: the difference between currently playing frame and the last returned one. Shows the processing lag.
+        """
+        return self.get_frame_index() - (self._last_returned_index or self._start_frame_index)
+
+    @property
+    def time_lag(self) -> float:
+        """
+        :return: the time difference between currently playing frame and the last requested one.
+        """
+        return self.frame_lag * self._frame_time
+
+    @property
+    def display_frame_lag(self) -> int:
+        """
+        :return: the difference between current frame and the last returned one. Shows the visible lag.
+        """
+        return (self._last_returned_index or self._start_frame_index) - self._last_added_index
+
+    @property
+    def display_time_lag(self) -> float:
+        """
+        :return: the time difference between current frame and the last returned one.
+        """
+        return self.display_frame_lag * self._frame_time
+
+    @property
+    def current_frame_miss(self) -> int:
+        """
+        :return: the current *real* gap between requested frame and returned one
+        """
+        return self._FrameBuffer.miss
+

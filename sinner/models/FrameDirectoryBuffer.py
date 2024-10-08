@@ -13,6 +13,7 @@ class FrameDirectoryBuffer:
     _zfill_length: int | None
     _path: str | None = None
     _indices: List[int] = []
+    _miss: int = 0  # the current miss between requested frame and the returned one
 
     def __init__(self, source_name: str, target_name: str, temp_dir: str, frames_count: int):
         self.source_name = source_name
@@ -73,8 +74,9 @@ class FrameDirectoryBuffer:
     def get_frame(self, index: int, return_previous: bool = True) -> NumberedFrame | None:
         filename = str(index).zfill(self.zfill_length) + '.png'
         filepath = str(os.path.join(self.path, filename))
-        if path_exists(filepath):
+        if path_exists(filepath):  # todo: check within indexes should be faster
             try:
+                self._miss = 0
                 return NumberedFrame(index, read_from_image(filepath))
             except Exception:
                 pass
@@ -85,7 +87,8 @@ class FrameDirectoryBuffer:
                     previous_file_path = os.path.join(self.path, previous_filename)
                     if path_exists(previous_file_path):
                         try:
-                            return NumberedFrame(index, read_from_image(previous_file_path))
+                            self._miss = index - previous_number
+                            return NumberedFrame(previous_number, read_from_image(previous_file_path))
                         except Exception:  # the file may exist but can be locked in another thread.
                             pass
         return None
@@ -98,3 +101,7 @@ class FrameDirectoryBuffer:
             for entry in entries:
                 if entry.is_file() and entry.name.endswith(".png"):
                     self._indices.append(int(get_file_name(entry.name)))
+
+    @property
+    def miss(self) -> int:
+        return self._miss

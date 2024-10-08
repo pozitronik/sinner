@@ -18,6 +18,7 @@ from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.helpers.FrameHelper import scale
 from sinner.models.Event import Event
+from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
@@ -64,10 +65,13 @@ class GUIModel(Status):
     # player counters
     _framedrop: int = -1  # the manual value of dropped frames
 
-    _process_fps: float = 1
+    _processing_fps: float = 1
 
     # internal variables
     _is_target_frames_extracted: bool = False
+    _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
+    _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
+    _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
 
     # threads
     _process_frames_thread: threading.Thread | None = None
@@ -158,9 +162,9 @@ class GUIModel(Status):
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
 
-        self._event_processing = Event(on_set_callback=lambda: self.update_status("PROCESSING: ON"), on_clear_callback=lambda: self.update_status("PROCESSING: OFF"))
-        self._event_playback = Event(on_set_callback=lambda: self.update_status("PLAYBACK: ON"), on_clear_callback=lambda: self.update_status("PLAYBACK: OFF"))
-        self._event_rewind = Event(on_set_callback=lambda: self.update_status("REWIND EVENT SET"), on_clear_callback=lambda: self.update_status("REWIND EVENT CLEAR"))
+        self._event_processing = Event()
+        self._event_playback = Event()
+        self._event_rewind = Event()
 
     def reload_parameters(self) -> None:
         self.clear_previews()
@@ -321,24 +325,6 @@ class GUIModel(Status):
         self._previews.clear()
 
     @property
-    def frame_skip(self) -> int:
-        """
-        Returns the count of frames need to skip every time
-        :return:
-        """
-        if self.framedrop == -1:  # auto
-            return int(self.frame_handler.fps / self._process_fps / self.execution_threads) + 1
-        return self.framedrop + 1
-
-    @property
-    def framedrop(self) -> int:
-        return self._framedrop
-
-    @framedrop.setter
-    def framedrop(self, value: int) -> None:
-        self._framedrop = value
-
-    @property
     def player_is_started(self) -> bool:
         return self._event_processing.is_set() or self._event_playback.is_set()
 
@@ -389,7 +375,7 @@ class GUIModel(Status):
         if not self._event_processing.is_set():
             self._event_processing.set()
             self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
-                'start_frame': start_frame,
+                'next_frame': start_frame,
                 'end_frame': self.frame_handler.fc
             })
             self._process_frames_thread.daemon = True
@@ -414,61 +400,67 @@ class GUIModel(Status):
             self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
             self._show_frames_thread = None
 
-    def _process_frames(self, start_frame: int, end_frame: int) -> None:
+    def _process_frames(self, next_frame: int, end_frame: int) -> None:
         """
         renders all frames between start_frame and end_frame
-        :param start_frame:
+        :param next_frame:
         :param end_frame:
         """
 
-        def process_done(future_: Future[float | None]) -> None:
+        def process_done(future_: Future[tuple[float, int] | None]) -> None:
             if not future_.cancelled():
-                process_time = future_.result()
-                if process_time:
-                    if len(results) >= 30:  # limit mean time base to last 30 executions
-                        results.pop(0)
-                    results.append(process_time)
-                    self._process_fps = self._process_fps = self.execution_threads / (sum(results) / len(results))
-                    self._status("Mean FPS/Last frame/Frame skip", f"{round(self._process_fps, 4)}/{round(1 / process_time, 4)}/{frame_skip - 1}")
+                result = future_.result()
+                if result:
+                    process_time, frame_index = result
+                    self._average_processing_time.update(process_time / self.execution_threads)
+                    processing.remove(frame_index)
+                    self._processing_fps = 1 / self._average_processing_time.get_average()
+                    if self._biggest_processed_frame < frame_index:
+                        self._biggest_processed_frame = frame_index
+                    self._status("Average processing speed", f"{round(self._processing_fps, 4)} FPS")  # fixme: execution-threads=1 prevents value to display
             futures.remove(future_)
 
-        futures: list[Future[float | None]] = []
-        results: list[float] = []
-        frame_skip: int = 0
+        processing: List[int] = []  # list of frames currently being processed
+        futures: list[Future[tuple[float, int] | None]] = []
+        processing_delta: int = 0  # additional lookahead to adjust frames synchronization
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
-            while start_frame <= end_frame:
+            while next_frame <= end_frame:
                 if self._event_rewind.is_set():
-                    start_frame = self._event_rewind.tag or 0
+                    next_frame = self._event_rewind.tag or 0
                     self._event_rewind.clear()
 
-                if not self.TimeLine.has_index(start_frame):
-                    future: Future[float | None] = executor.submit(self._process_frame, start_frame)
+                if next_frame not in processing and not self.TimeLine.has_index(next_frame):
+                    processing.append(next_frame)
+                    future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
 
                     if len(futures) >= self.execution_threads:
                         futures[:1][0].result()
 
-                    self._status("Memory usage(resident/virtual)", self.get_mem_usage())
+                    self._status("Memory usage (resident/virtual)", self.get_mem_usage())
 
                 if not self._event_processing.is_set():
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
-                frame_skip = self.frame_skip
 
-                if self.TimeLine.last_added_index < self.TimeLine.last_requested_index:  # if processing is too late
-                    start_frame = frame_skip + self.TimeLine.last_requested_index  # push it a little forward
-                else:
-                    start_frame += self.frame_skip
+                self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps)
 
-            self.update_status("_process_frames loop done")
+                if self.TimeLine.last_added_index > self.TimeLine.last_requested_index + self.TimeLine.current_frame_miss and processing_delta > self._average_frame_skip.get_average():
+                    processing_delta -= 1
+                elif self.TimeLine.last_added_index < self.TimeLine.last_requested_index:
+                    processing_delta += 1
+                step = int(self._average_frame_skip.get_average()) + processing_delta
+                if step < 1:  # preventing going backwards
+                    step = 1
+                next_frame += step
 
-    def _process_frame(self, frame_index: int) -> float | None:
+    def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
         Renders a frame with the current processors set
         :param frame_index: the frame index
-        :return: the render time, or None on error
+        :return: the [render time, frame index], or None on error
         """
         try:
             n_frame = self.frame_handler.extract_frame(frame_index)
@@ -480,7 +472,7 @@ class GUIModel(Status):
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
         self.TimeLine.add_frame(n_frame)
-        return frame_render_time.execution_time
+        return frame_render_time.execution_time, n_frame.index
 
     def _show_frames(self) -> None:
         last_shown_frame_index: int = -1
@@ -490,25 +482,23 @@ class GUIModel(Status):
                 try:
                     n_frame = self.TimeLine.get_frame()
                 except EOFError:
-                    self.update_status("No more frames in the timeline")
                     self._event_playback.clear()
                     break
-                if n_frame is not None and n_frame.index != last_shown_frame_index:
-                    self.Player.show_frame(n_frame.frame)
-                    last_shown_frame_index = n_frame.index
-                    if self.TimeLine.last_returned_index is None:
-                        self._status("Time position", "There are no ready frames")
-                    else:
-                        if not self._event_rewind.is_set():
-                            self.position.set(self.TimeLine.last_returned_index)
-                        if self.TimeLine.last_returned_index:
-                            self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                            self._status("Last shown/rendered frame", f"{self.TimeLine.last_returned_index}/{self.TimeLine.last_added_index}")
+                if n_frame is not None:
+                    if n_frame.index != last_shown_frame_index:  # check if frame is really changed
+                        self.Player.show_frame(n_frame.frame)
+                        last_shown_frame_index = n_frame.index
+                        if self.TimeLine.last_returned_index is None:
+                            self._status("Time position", "There are no ready frames")
+                        else:
+                            if not self._event_rewind.is_set():
+                                self.position.set(self.TimeLine.last_returned_index)
+                            if self.TimeLine.last_returned_index:
+                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
                     time.sleep(sleep_time)
-            self.update_status("_show_frames loop done")
 
     def extract_frames(self) -> bool:
         if self._prepare_frames is not False and not self._is_target_frames_extracted:

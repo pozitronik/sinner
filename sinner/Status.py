@@ -1,11 +1,11 @@
 import locale
+import logging
 import shutil
 import sys
 from enum import Enum
 
 from colorama import Fore, Back
 
-from sinner.typing import UTF8
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
@@ -19,7 +19,8 @@ class Mood(Enum):
 
 
 class Status(AttributeLoader):
-    logfile: str
+    logfile: str | None = None
+    logger: logging.Logger | None = None
     emoji: str = '😈'
     enable_emoji: bool
 
@@ -28,7 +29,8 @@ class Status(AttributeLoader):
             {
                 'parameter': {'log', 'logfile'},
                 'attribute': 'logfile',
-                'valid': lambda: self.log_write(),
+                'default': None,
+                'valid': lambda: self.init_logger(),
                 'help': 'Path to the log file'
             },
             {
@@ -91,15 +93,34 @@ class Status(AttributeLoader):
         if position is None:
             sys.stdout.write("\n")
         self.restore_position(position)
-        self.log_write(f'{emoji}{caller}: {message}')
+        log_level = logging.DEBUG
+        if mood is Mood.GOOD:
+            log_level = logging.INFO
+        elif mood is Mood.BAD:
+            log_level = logging.ERROR
+        self.log(level=log_level, msg=f"{emoji}{caller}: {message}")
 
-    def log_write(self, content: str | None = None) -> bool:
+    def log(self, level: int = logging.INFO, msg: str = "") -> None:
+        if self.logger:
+            self.logger.log(level, msg)
+
+    def init_logger(self) -> bool:
         try:
             if self.logfile:
-                with open(self.logfile, "w", encoding=UTF8) as log:
-                    if content:
-                        log.write(content)
-                    return True
+                self.logger = logging.getLogger(__name__)
+                self.logger.setLevel(logging.DEBUG)
+
+                file_handler = logging.FileHandler(self.logfile, encoding='utf-8')
+                file_handler.setLevel(logging.DEBUG)
+
+                formatter = logging.Formatter('%(levelname)s: %(message)s')
+                file_handler.setFormatter(formatter)
+
+                self.logger.addHandler(file_handler)
+                #
+                # logging.getLogger('PIL.PngImagePlugin').setLevel(logging.CRITICAL + 1)
+                # logging.getLogger('PIL.PngImagePlugin').addHandler(logging.NullHandler())
+            return True
         except Exception:
             pass
         return False

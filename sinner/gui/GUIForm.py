@@ -176,10 +176,6 @@ class GUIForm(Status):
         self.ControlsFrame = Frame(self.BaseFrame)
 
         self.SubControlsFrame = Frame(self.ControlsFrame)
-        self.FrameDropLabel: Label = Label(self.SubControlsFrame, text="Framedrop (-1 to auto):")
-        self.FrameDropSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=-1, to=9999, increment=1, command=lambda: self.on_framedrop_change())  # -1 for auto
-        self.FrameDropSpinbox.bind('<KeyRelease>', lambda event: self.on_framedrop_change())
-        self.FrameDropSpinbox.set(-1)
 
         self.QualityScaleLabel: Label = Label(self.SubControlsFrame, text="Quality scale:")
 
@@ -295,8 +291,6 @@ class GUIForm(Status):
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
         self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
 
-        self.FrameDropLabel.pack(anchor=NW, side=LEFT)
-        self.FrameDropSpinbox.pack(anchor=NW, side=LEFT)
         self.QualityScaleLabel.pack(anchor=NW, side=LEFT)
         self.QualityScaleSpinbox.pack(anchor=NW, expand=False, fill=BOTH, side=LEFT)
 
@@ -403,10 +397,6 @@ class GUIForm(Status):
         if self.GUIModel.frame_handler.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
             self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
-
-    def on_framedrop_change(self) -> object | str | list[str] | tuple[str, ...]:
-        self.GUIModel.framedrop = int(self.FrameDropSpinbox.get())
-        return self.FrameDropSpinbox.get()  # Required by Tkinter design, but not really used
 
     def library_add(self, paths: List[str], reload: bool = False) -> None:
         """
