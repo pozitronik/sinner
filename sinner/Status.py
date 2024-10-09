@@ -30,7 +30,7 @@ class Status(AttributeLoader):
                 'parameter': {'log', 'logfile'},
                 'attribute': 'logfile',
                 'default': None,
-                'valid': lambda attribute, value: self.init_logger(self, value),  # type: ignore  #see issue #123
+                'valid': lambda attribute, value: self.init_logger(value),
                 'help': 'Path to the log file'
             },
             {
@@ -106,11 +106,11 @@ class Status(AttributeLoader):
 
     def init_logger(self, value: str) -> bool:
         try:
-            if value:
+            if value and not self.logger:
                 self.logger = logging.getLogger(__name__)
                 self.logger.setLevel(logging.DEBUG)
 
-                file_handler = logging.FileHandler(value, encoding='utf-8')
+                file_handler = logging.FileHandler(value, encoding='utf-8', mode='w')
                 file_handler.setLevel(logging.DEBUG)
 
                 formatter = logging.Formatter('%(levelname)s: %(message)s')
