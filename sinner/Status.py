@@ -30,7 +30,7 @@ class Status(AttributeLoader):
                 'parameter': {'log', 'logfile'},
                 'attribute': 'logfile',
                 'default': None,
-                'valid': lambda attribute, value: self.init_logger(self, value),  # type: ignore  #see issue #123
+                'valid': lambda attribute, value: self.init_logger(value),
                 'help': 'Path to the log file'
             },
             {
