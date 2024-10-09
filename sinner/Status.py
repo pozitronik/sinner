@@ -106,11 +106,11 @@ class Status(AttributeLoader):
 
     def init_logger(self, value: str) -> bool:
         try:
-            if value:
+            if value and not self.logger:
                 self.logger = logging.getLogger(__name__)
                 self.logger.setLevel(logging.DEBUG)
 
-                file_handler = logging.FileHandler(value, encoding='utf-8')
+                file_handler = logging.FileHandler(value, encoding='utf-8', mode='w')
                 file_handler.setLevel(logging.DEBUG)
 
                 formatter = logging.Formatter('%(levelname)s: %(message)s')
