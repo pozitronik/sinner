@@ -4,7 +4,7 @@ import pytest
 from colorama import Fore, Back
 
 from sinner.Parameters import Parameters
-from sinner.Status import Status, Mood
+from sinner.models.logger.Status import Status, Mood
 from sinner.typing import UTF8
 from sinner.validators.LoaderException import LoadingException
 from tests.constants import test_logfile
