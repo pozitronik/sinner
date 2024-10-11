@@ -15,11 +15,11 @@ class SelectiveLogger(logging.Logger):
         self.addHandler(self.stdout_handler)
 
         # Настройка обработчика для файла
-        self.file_handler = logging.FileHandler(file_path)
+        self.file_handler = logging.FileHandler(file_path, encoding='utf-8', mode='w')
         self.file_handler.addFilter(SelectiveFilter(LogDestination.FILE))
         self.addHandler(self.file_handler)
 
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s | %(levelname)s: %(message)s')
         self.stdout_handler.setFormatter(formatter)
         self.file_handler.setFormatter(formatter)
 
