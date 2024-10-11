@@ -8,10 +8,10 @@ from typing import List
 import cv2
 from numpy import uint8, frombuffer
 
-from sinner.models.logger.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.NumberedFrame import NumberedFrame
+from sinner.models.logger.Mood import Mood
 from sinner.typing import NumeratedFramePath
 from sinner.validators.AttributeLoader import Rules
 

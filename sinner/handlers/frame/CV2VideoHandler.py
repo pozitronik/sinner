@@ -8,7 +8,7 @@ import psutil
 from cv2 import VideoCapture
 from tqdm import tqdm
 
-from sinner.models.logger.Status import Mood
+from sinner.models.logger.Mood import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import write_to_image, read_from_image

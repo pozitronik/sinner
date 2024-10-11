@@ -3,21 +3,12 @@ import logging
 import shutil
 import sys
 from argparse import Namespace
-from enum import Enum
 
 from colorama import Fore, Back
 
 from sinner.Singleton import Singleton
+from sinner.models.logger.Mood import Mood
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
-
-
-class Mood(Enum):
-    GOOD = (0, f'{Fore.LIGHTWHITE_EX}{Back.BLACK}')
-    BAD = (1, f'{Fore.BLACK}{Back.RED}')
-    NEUTRAL = (2, f'{Fore.YELLOW}{Back.BLACK}')
-
-    def __str__(self) -> str:
-        return self.value[1]
 
 
 class Status(AttributeLoader, metaclass=Singleton):
