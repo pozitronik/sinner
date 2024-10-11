@@ -5,7 +5,7 @@ from colorama import Style, Fore
 from sinner.Benchmark import Benchmark
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
-from sinner.models.logger.Status import Status
+from sinner.models.logger.Logger import Logger
 from sinner.gui.GUIForm import GUIForm
 from sinner.gui.GUIModel import GUIModel
 from sinner.webcam.WebCam import WebCam
@@ -20,7 +20,7 @@ from sinner.validators.ValueValidator import ValueValidator
 DocumentedClasses: List[Type[AttributeLoader]] = [
     Sinner,
     BatchProcessingCore,
-    Status,
+    Logger,
     # State,
     GUIForm,
     GUIModel,

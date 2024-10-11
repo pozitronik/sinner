@@ -11,7 +11,7 @@ from sinner.models.logger.Mood import Mood
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
-class Status(AttributeLoader, metaclass=Singleton):
+class Logger(AttributeLoader, metaclass=Singleton):
     logfile: str | None = None
     logger: logging.Logger | None = None
     emoji: str = '😈'

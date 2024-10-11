@@ -4,14 +4,14 @@ import pytest
 from colorama import Fore, Back
 
 from sinner.Parameters import Parameters
-from sinner.models.logger.Status import Status, Mood
+from sinner.models.logger.Logger import Logger, Mood
 from sinner.typing import UTF8
 from sinner.validators.LoaderException import LoadingException
 from tests.constants import test_logfile
 
 
 def test_status(capsys) -> None:
-    status = Status(Namespace())
+    status = Logger(Namespace())
 
     status.update_status('test', 'self', Mood.BAD)
     captured = capsys.readouterr()
@@ -21,7 +21,7 @@ def test_status(capsys) -> None:
 
 def test_status_force_emoji() -> None:
     parameters: Namespace = Parameters(f'--log="{test_logfile}" --enable_emoji=1').parameters
-    status = Status(parameters=parameters)
+    status = Logger(parameters=parameters)
 
     status.update_status('test', 'self', Mood.BAD)
     with open(test_logfile, encoding=UTF8) as file:
@@ -31,7 +31,7 @@ def test_status_force_emoji() -> None:
 
 def test_status_log() -> None:
     parameters: Namespace = Parameters(f'--log="{test_logfile}" --enable_emoji=0').parameters
-    status = Status(parameters=parameters)
+    status = Logger(parameters=parameters)
 
     status.update_status('test', 'self', Mood.BAD)
     with open(test_logfile, encoding=UTF8) as file:
@@ -42,4 +42,4 @@ def test_status_log() -> None:
 def test_status_error() -> None:
     parameters: Namespace = Parameters(f'--log="/dev/random/incorrect:file\\path*?"').parameters
     with pytest.raises(LoadingException):
-        assert Status(parameters=parameters)
+        assert Logger(parameters=parameters)
