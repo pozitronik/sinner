@@ -7,6 +7,7 @@ from enum import Enum
 
 from colorama import Fore, Back
 
+from sinner.Singleton import Singleton
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
 
 
@@ -19,7 +20,7 @@ class Mood(Enum):
         return self.value[1]
 
 
-class Status(AttributeLoader):
+class Status(AttributeLoader, metaclass=Singleton):
     logfile: str | None = None
     logger: logging.Logger | None = None
     emoji: str = '😈'
