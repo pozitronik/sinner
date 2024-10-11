@@ -3,7 +3,6 @@ import threading
 import time
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
-from logging import DEBUG
 from tkinter import IntVar
 from typing import List, Callable, Any
 
