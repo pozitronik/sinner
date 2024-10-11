@@ -10,11 +10,12 @@ import psutil
 import torch
 
 from sinner.BatchProcessingCore import BatchProcessingCore
+from sinner.models.logger.LoggerMixin import LoggerMixin
 from sinner.utilities import resolve_relative_path, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Benchmark(AttributeLoader):
+class Benchmark(AttributeLoader, LoggerMixin):
     emoji: str = '📏'
 
     source_path: str

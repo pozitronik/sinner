@@ -1,5 +1,4 @@
 import os
-from argparse import Namespace
 
 from tqdm import tqdm
 

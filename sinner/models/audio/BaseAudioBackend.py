@@ -3,11 +3,12 @@ from abc import ABC, abstractmethod
 from argparse import Namespace
 from typing import Any
 
+from sinner.models.logger.LoggerMixin import LoggerMixin
 from sinner.utilities import normalize_path, load_class, list_class_descendants
 from sinner.validators.AttributeLoader import AttributeLoader
 
 
-class BaseAudioBackend(AttributeLoader, ABC):
+class BaseAudioBackend(AttributeLoader, ABC, LoggerMixin):
     _media_path: str | None = None
 
     @staticmethod

@@ -5,12 +5,13 @@ from argparse import Namespace
 from typing import List
 
 from sinner.models.NumberedFrame import NumberedFrame
+from sinner.models.logger.LoggerMixin import LoggerMixin
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 from sinner.typing import NumeratedFramePath
 from sinner.utilities import load_class, get_file_name, is_file, normalize_path
 
 
-class BaseFrameHandler(AttributeLoader, ABC):
+class BaseFrameHandler(AttributeLoader, ABC, LoggerMixin):
     current_frame_index: int = 0
 
     _target_path: str

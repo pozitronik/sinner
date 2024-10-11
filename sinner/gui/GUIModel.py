@@ -22,6 +22,8 @@ from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
+from sinner.models.logger.LoggerMixin import LoggerMixin
+from sinner.models.logger.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
@@ -32,7 +34,7 @@ BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
 
 
-class GUIModel(AttributeLoader):
+class GUIModel(AttributeLoader, LoggerMixin):
     # configuration variables
     frame_processor: List[str]
     _source_path: str
