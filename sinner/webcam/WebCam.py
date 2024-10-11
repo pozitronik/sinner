@@ -11,18 +11,17 @@ from cv2 import VideoCapture
 from psutil import WINDOWS, LINUX, MACOS
 from pyvirtualcam import Camera
 
-from sinner.Status import Status, Mood
 from sinner.models.PerfCounter import PerfCounter
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 from sinner.webcam.ImageCamera import ImageCamera
 from sinner.webcam.NoDevice import NoDevice
 from sinner.webcam.VideoCamera import VideoCamera
 
 
-class WebCam(Status):
+class WebCam(AttributeLoader):
     emoji: str = '🤳'
 
     stop: bool = False

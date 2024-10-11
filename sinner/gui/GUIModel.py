@@ -8,7 +8,6 @@ from tkinter import IntVar
 from typing import List, Callable, Any
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
@@ -27,13 +26,13 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, seconds_to_hmsms, normalize_path, get_mem_usage
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
 
 
-class GUIModel(Status):
+class GUIModel(AttributeLoader):
     # configuration variables
     frame_processor: List[str]
     _source_path: str

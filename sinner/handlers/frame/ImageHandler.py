@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 from typing import List
 
-from sinner.Status import Mood
+from sinner.models.logger.Status import Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import read_from_image

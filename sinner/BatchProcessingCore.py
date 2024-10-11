@@ -9,7 +9,6 @@ from pathvalidate import is_valid_filepath, ValidationError, validate_filepath
 from tqdm import tqdm
 
 from sinner.models.State import State
-from sinner.Status import Status, Mood
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
@@ -18,10 +17,10 @@ from sinner.models.NumberedFrame import NumberedFrame
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, path_exists, is_dir, normalize_path, suggest_execution_threads, suggest_temp_dir
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class BatchProcessingCore(Status):
+class BatchProcessingCore(AttributeLoader):
     target_path: str
     output_path: str
     frame_processor: List[str]

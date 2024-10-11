@@ -10,12 +10,11 @@ import psutil
 import torch
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.Status import Status
 from sinner.utilities import resolve_relative_path, get_app_dir, suggest_execution_providers, decode_execution_providers, list_class_descendants
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class Benchmark(Status):
+class Benchmark(AttributeLoader):
     emoji: str = '📏'
 
     source_path: str
