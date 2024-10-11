@@ -19,9 +19,8 @@ class SelectiveLogger(logging.Logger):
         self.file_handler.addFilter(SelectiveFilter(LogDestination.FILE))
         self.addHandler(self.file_handler)
 
-        formatter = logging.Formatter('%(asctime)s | %(levelname)s: %(message)s')
-        self.stdout_handler.setFormatter(formatter)
-        self.file_handler.setFormatter(formatter)
+        self.stdout_handler.setFormatter(logging.Formatter('%(message)s'))
+        self.file_handler.setFormatter(logging.Formatter('%(asctime)s | %(levelname)s: %(message)s'))
 
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False, destinations=LogDestination.BOTH):
         if extra is None:
