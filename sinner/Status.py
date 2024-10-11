@@ -2,6 +2,7 @@ import locale
 import logging
 import shutil
 import sys
+from argparse import Namespace
 from enum import Enum
 
 from colorama import Fore, Back
@@ -30,7 +31,6 @@ class Status(AttributeLoader):
                 'parameter': {'log', 'logfile'},
                 'attribute': 'logfile',
                 'default': None,
-                'valid': lambda attribute, value: self.init_logger(value),
                 'help': 'Path to the log file'
             },
             {
@@ -43,6 +43,10 @@ class Status(AttributeLoader):
                 'module_help': 'The status messaging module'
             }
         ]
+
+    def __init__(self, parameters: Namespace):
+        self.init_logger()
+        super().__init__(parameters)
 
     @staticmethod
     def set_position(position: tuple[int, int] | None = None) -> None:
@@ -101,26 +105,17 @@ class Status(AttributeLoader):
         self.log(level=log_level, msg=f"{emoji}{caller}: {message}")
 
     def log(self, level: int = logging.INFO, msg: str = "") -> None:
-        if self.logger:
-            self.logger.log(level, msg)
+        self.logger.log(level, msg)
 
-    def init_logger(self, value: str) -> bool:
-        try:
-            if value and not self.logger:
-                self.logger = logging.getLogger(__name__)
-                self.logger.setLevel(logging.DEBUG)
+    def init_logger(self) -> logger:
+        if not self.logger:
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(logging.DEBUG)
 
-                file_handler = logging.FileHandler(value, encoding='utf-8', mode='w')
-                file_handler.setLevel(logging.DEBUG)
+            handler = logging.FileHandler(self.logfile, encoding='utf-8', mode='w') if self.logfile else logging.NullHandler()
+            handler.setLevel(logging.DEBUG)
 
-                formatter = logging.Formatter('%(levelname)s: %(message)s')
-                file_handler.setFormatter(formatter)
+            formatter = logging.Formatter('%(levelname)s: %(message)s')
+            handler.setFormatter(formatter)
 
-                self.logger.addHandler(file_handler)
-                #
-                # logging.getLogger('PIL.PngImagePlugin').setLevel(logging.CRITICAL + 1)
-                # logging.getLogger('PIL.PngImagePlugin').addHandler(logging.NullHandler())
-            return True
-        except Exception:
-            pass
-        return False
+            self.logger.addHandler(handler)
