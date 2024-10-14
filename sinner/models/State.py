@@ -3,14 +3,15 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List
 
-from sinner.Status import Status, Mood
 from sinner.helpers.FrameHelper import write_to_image, EmptyFrame
 from sinner.models.NumberedFrame import NumberedFrame
+from sinner.models.status.StatusMixin import StatusMixin
+from sinner.models.status.Mood import Mood
 from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class State(Status):
+class State(AttributeLoader, StatusMixin):
     emoji: str = '👀'
     source_path: str | None = None
     initial_target_path: str | None = None

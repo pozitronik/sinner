@@ -3,11 +3,12 @@ from abc import ABC, abstractmethod
 from argparse import Namespace
 from typing import Any
 
-from sinner.Status import Status
+from sinner.models.status.StatusMixin import StatusMixin
 from sinner.utilities import normalize_path, load_class, list_class_descendants
+from sinner.validators.AttributeLoader import AttributeLoader
 
 
-class BaseAudioBackend(Status, ABC):
+class BaseAudioBackend(AttributeLoader, ABC, StatusMixin):
     _media_path: str | None = None
 
     @staticmethod

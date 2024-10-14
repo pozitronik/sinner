@@ -10,7 +10,7 @@ import torch
 from insightface.app.common import Face
 
 from sinner.FaceAnalyser import FaceAnalyser
-from sinner.Status import Mood
+from sinner.models.status.Mood import Mood
 from sinner.helpers.FrameHelper import read_from_image
 from sinner.validators.AttributeLoader import Rules
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor

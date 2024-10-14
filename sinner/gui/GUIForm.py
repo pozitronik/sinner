@@ -9,7 +9,6 @@ from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
 from sinner.models.Event import Event as SinnerEvent
-from sinner.Status import Status
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
@@ -21,12 +20,12 @@ from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
 # GUI View
 
-class GUIForm(Status):
+class GUIForm(AttributeLoader):
     # class attributes
     parameters: Namespace
     GUIModel: GUIModel

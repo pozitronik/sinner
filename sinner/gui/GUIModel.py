@@ -3,12 +3,10 @@ import threading
 import time
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
-from logging import DEBUG
 from tkinter import IntVar
 from typing import List, Callable, Any
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.Status import Status, Mood
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressBarManager import ProgressBarManager
@@ -23,17 +21,19 @@ from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
+from sinner.models.status.StatusMixin import StatusMixin
+from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.typing import FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, seconds_to_hmsms, normalize_path, get_mem_usage
-from sinner.validators.AttributeLoader import Rules
+from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
 
 
-class GUIModel(Status):
+class GUIModel(AttributeLoader, StatusMixin):
     # configuration variables
     frame_processor: List[str]
     _source_path: str
@@ -456,7 +456,7 @@ class GUIModel(Status):
                 if step < 1:  # preventing going backwards
                     step = 1
                 next_frame += step
-                self.log(level=DEBUG, msg=f"NEXT: {next_frame}, STEP: {step}, DELTA: {processing_delta}, LAST: {self.TimeLine.last_added_index}, AVG: {self._average_frame_skip.get_average()} ")
+                # self.status.debug(msg=f"NEXT: {next_frame}, STEP: {step}, DELTA: {processing_delta}, LAST: {self.TimeLine.last_added_index}, AVG: {self._average_frame_skip.get_average()} ")
 
     def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
@@ -473,7 +473,7 @@ class GUIModel(Status):
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
-                self.log(level=DEBUG, msg=f"DONE: {n_frame.index}")
+                # self.status.debug(msg=f"DONE: {n_frame.index}")
         self.TimeLine.add_frame(n_frame)
         return frame_render_time.execution_time, n_frame.index
 
@@ -489,7 +489,7 @@ class GUIModel(Status):
                     break
                 if n_frame is not None:
                     if n_frame.index != last_shown_frame_index:  # check if frame is really changed
-                        self.log(level=DEBUG, msg=f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
+                        # self.status.debug(msg=f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
                         self.Player.show_frame(n_frame.frame)
                         last_shown_frame_index = n_frame.index
                         if self.TimeLine.last_returned_index is None:
