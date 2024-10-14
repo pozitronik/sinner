@@ -20,9 +20,9 @@ class LoggerMixin:
                 terminal_size = shutil.get_terminal_size()
                 lines, columns = terminal_size.lines, terminal_size.columns
                 if y < 0:
-                    y = lines - y
+                    y += lines
                 if x < 0:
-                    x = columns - x
+                    x += columns
 
             sys.stdout.write(f"\033[{y};{x}H")
 
