@@ -5,13 +5,13 @@ from typing import Any, Dict, List
 
 from sinner.helpers.FrameHelper import write_to_image, EmptyFrame
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.models.logger.LoggerMixin import LoggerMixin
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.StatusMixin import StatusMixin
+from sinner.models.status.Mood import Mood
 from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class State(AttributeLoader, LoggerMixin):
+class State(AttributeLoader, StatusMixin):
     emoji: str = '👀'
     source_path: str | None = None
     initial_target_path: str | None = None

@@ -2,33 +2,33 @@ import pytest
 from unittest.mock import patch, MagicMock
 from io import StringIO
 
-from sinner.models.logger.LoggerMixin import LoggerMixin
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.StatusMixin import StatusMixin
+from sinner.models.status.Mood import Mood
 
 
-class TestLoggerMixin:
+class TestStatusMixin:
     @pytest.fixture
     def logger(self):
-        class TestLogger(LoggerMixin):
+        class TestStatus(StatusMixin):
             pass
 
-        return TestLogger()
+        return TestStatus()
 
     def test_set_position(self):
         with patch('sys.stdout.write') as mock_write:
-            LoggerMixin.set_position((5, 10))
+            StatusMixin.set_position((5, 10))
             mock_write.assert_called_once_with("\033[5;10H")
 
     def test_set_position_negative(self):
         with patch('sys.stdout.write') as mock_write, \
                 patch('shutil.get_terminal_size') as mock_get_terminal_size:
             mock_get_terminal_size.return_value = MagicMock(lines=24, columns=80)
-            LoggerMixin.set_position((-1, -1))
+            StatusMixin.set_position((-1, -1))
             mock_write.assert_called_once_with("\033[23;79H")
 
     def test_restore_position(self):
         with patch('sys.stdout.write') as mock_write:
-            LoggerMixin.restore_position((5, 10))
+            StatusMixin.restore_position((5, 10))
             mock_write.assert_called_once_with("\033[u")
 
     @pytest.mark.parametrize("encoding,expected", [
@@ -37,7 +37,7 @@ class TestLoggerMixin:
     ])
     def test_is_emoji_supported(self, encoding, expected):
         with patch('locale.getpreferredencoding', return_value=encoding):
-            assert LoggerMixin.is_emoji_supported() == expected
+            assert StatusMixin.is_emoji_supported() == expected
 
     def test_update_status(self, logger):
         logger.enable_emoji = True

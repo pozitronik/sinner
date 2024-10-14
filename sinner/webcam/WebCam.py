@@ -12,8 +12,8 @@ from psutil import WINDOWS, LINUX, MACOS
 from pyvirtualcam import Camera
 
 from sinner.models.PerfCounter import PerfCounter
-from sinner.models.logger.LoggerMixin import LoggerMixin
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.StatusMixin import StatusMixin
+from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video
@@ -23,7 +23,7 @@ from sinner.webcam.NoDevice import NoDevice
 from sinner.webcam.VideoCamera import VideoCamera
 
 
-class WebCam(AttributeLoader, LoggerMixin):
+class WebCam(AttributeLoader, StatusMixin):
     emoji: str = '🤳'
 
     stop: bool = False

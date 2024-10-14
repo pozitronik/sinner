@@ -4,10 +4,10 @@ import sys
 
 from colorama import Back, Fore
 
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.Mood import Mood
 
 
-class LoggerMixin:
+class StatusMixin:
     enable_emoji: bool = False
     emoji: str
 

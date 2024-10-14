@@ -11,7 +11,7 @@ from numpy import uint8, frombuffer
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.Mood import Mood
 from sinner.typing import NumeratedFramePath
 from sinner.validators.AttributeLoader import Rules
 

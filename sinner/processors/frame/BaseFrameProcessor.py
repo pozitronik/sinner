@@ -6,13 +6,13 @@ from argparse import Namespace
 
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.models.State import State
-from sinner.models.logger.LoggerMixin import LoggerMixin
+from sinner.models.status.StatusMixin import StatusMixin
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 from sinner.typing import Frame
 from sinner.utilities import load_class, suggest_execution_providers, decode_execution_providers
 
 
-class BaseFrameProcessor(ABC, AttributeLoader, LoggerMixin):
+class BaseFrameProcessor(ABC, AttributeLoader, StatusMixin):
     execution_provider: List[str]
     self_processing: bool = False
 

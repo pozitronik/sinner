@@ -5,7 +5,7 @@ from argparse import Namespace
 from moviepy.editor import AudioFileClip
 import pygame
 
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.Mood import Mood
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import get_file_name, normalize_path
 

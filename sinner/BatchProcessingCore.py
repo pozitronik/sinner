@@ -14,15 +14,15 @@ from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.ImageHandler import ImageHandler
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.models.logger.LoggerMixin import LoggerMixin
-from sinner.models.logger.Mood import Mood
+from sinner.models.status.StatusMixin import StatusMixin
+from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.typing import Frame
 from sinner.utilities import list_class_descendants, resolve_relative_path, is_image, is_video, get_mem_usage, suggest_max_memory, path_exists, is_dir, normalize_path, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class BatchProcessingCore(AttributeLoader, LoggerMixin):
+class BatchProcessingCore(AttributeLoader, StatusMixin):
     target_path: str
     output_path: str
     frame_processor: List[str]
