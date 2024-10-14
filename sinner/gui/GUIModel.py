@@ -456,7 +456,7 @@ class GUIModel(AttributeLoader, LoggerMixin):
                 if step < 1:  # preventing going backwards
                     step = 1
                 next_frame += step
-                self.logger.debug(msg=f"NEXT: {next_frame}, STEP: {step}, DELTA: {processing_delta}, LAST: {self.TimeLine.last_added_index}, AVG: {self._average_frame_skip.get_average()} ")
+                # self.logger.debug(msg=f"NEXT: {next_frame}, STEP: {step}, DELTA: {processing_delta}, LAST: {self.TimeLine.last_added_index}, AVG: {self._average_frame_skip.get_average()} ")
 
     def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
@@ -473,7 +473,7 @@ class GUIModel(AttributeLoader, LoggerMixin):
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
-                self.logger.debug(msg=f"DONE: {n_frame.index}")
+                # self.logger.debug(msg=f"DONE: {n_frame.index}")
         self.TimeLine.add_frame(n_frame)
         return frame_render_time.execution_time, n_frame.index
 
@@ -489,7 +489,7 @@ class GUIModel(AttributeLoader, LoggerMixin):
                     break
                 if n_frame is not None:
                     if n_frame.index != last_shown_frame_index:  # check if frame is really changed
-                        self.logger.debug(msg=f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
+                        # self.logger.debug(msg=f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
                         self.Player.show_frame(n_frame.frame)
                         last_shown_frame_index = n_frame.index
                         if self.TimeLine.last_returned_index is None:
