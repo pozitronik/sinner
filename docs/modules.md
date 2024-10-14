@@ -16,10 +16,6 @@
 * `--processors`, `--frame-processor`, `--processor`: the frame processor module or modules that you want to apply to your files. See the [Built-in frame processors](../README.md#built-in-frame-processors) documentation for the list of built-in modules and their possibilities.
 * `--keep-frames`: keeps processed frames in the temp directory after finishing. Defaults to `false`.
 
-# Status: The status messaging module
-* `--logfile`, `--log`: optional path to a logfile where all status messages will be logged (if ignored, no logs will be stored).
-* `--enable-emoji`: enable modules emoji prefixes in their message statuses, if supported in the current console.
-* 
 # GUI: GUI module
 * `--frames-widget`, `--show-frames-widget`: show processed frames widget. It shows all stages of selected frame processing.
 * `--frames-widget-width`, `--fw-width`: processed widget maximum width, -1 to set as 10% of original image size.
