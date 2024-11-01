@@ -1,6 +1,9 @@
 import hashlib
 import os
 import tempfile
+import threading
+from concurrent.futures import ThreadPoolExecutor, Future
+from multiprocessing import cpu_count
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
 from typing import List, Tuple, Callable
 
@@ -24,6 +27,12 @@ class ThumbnailWidget(Frame):
         os.makedirs(self.temp_dir, exist_ok=True)
         super().__init__(master, **kwargs)
         self.thumbnails = []
+
+        self._executor = ThreadPoolExecutor(max_workers=cpu_count())
+        self._pending_futures: List[Future[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]] = []
+        self._processing_lock = threading.Lock()
+        self._is_processing = False
+
         self._canvas = Canvas(self)
         self._canvas.pack(side=LEFT, expand=True, fill=BOTH)
         # self._canvas.grid(row=0, column=0, sticky=NSEW)
@@ -85,32 +94,83 @@ class ThumbnailWidget(Frame):
         :param click_callback: on thumbnail click callback
         """
         if is_image(image_path):
-            img = self.get_cached_thumbnail(image_path)
-            if not img:
-                img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
-                self.set_cached_thumbnail(image_path, img)
-            photo = PhotoImage(img)
+            # Подготавливаем параметры для обработки
+            params = (image_path, caption, click_callback)
 
-            thumbnail_label = Label(self.frame, image=photo)
-            thumbnail_label.image = photo  # type: ignore[attr-defined]
-            thumbnail_label.grid()
+            # Создаём задачу для обработки изображения
+            future = self._executor.submit(self._prepare_thumbnail_data, *params)
 
-            # Create a label for the caption and set its width to match the thumbnail width
-            caption_label = Label(self.frame, wraplength=self.thumbnail_size)
-            if caption is not False:
-                if caption is True:
-                    caption = get_file_name(image_path)
-                caption_label.configure(text=caption)
-            caption_label.grid(sticky=N)
+            with self._processing_lock:
+                self._pending_futures.append(future)
+                if not self._is_processing:
+                    self._is_processing = True
+                    self.after(100, self._process_pending)
 
-            if click_callback:
-                thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
-                caption_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]  #/mypy/issues/4226
+    def _prepare_thumbnail_data(self, image_path: str, caption: str | bool,
+                                click_callback: Callable[[str], None] | None) -> Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]:
+        """
+        Prepare thumbnail data in background thread
+        """
+        img = self.get_cached_thumbnail(image_path)
+        if not img:
+            img = self.get_thumbnail(Image.open(image_path), self.thumbnail_size)
+            self.set_cached_thumbnail(image_path, img)
+        return img, image_path, caption, click_callback
 
-            self.thumbnails.append((thumbnail_label, caption_label, image_path))
+    def _process_pending(self) -> None:
+        """
+        Process completed thumbnail preparations and update GUI when all are done
+        """
+        completed = []
+        ongoing = []
+
+        # Проверяем завершённые задачи
+        with self._processing_lock:
+            for future in self._pending_futures:
+                if future.done():
+                    completed.append(future)
+                else:
+                    ongoing.append(future)
+            self._pending_futures = ongoing
+
+        # Обрабатываем завершённые
+        for future in completed:
+            try:
+                img, image_path, caption, click_callback = future.result()
+                photo = PhotoImage(img)
+
+                thumbnail_label = Label(self.frame, image=photo)
+                thumbnail_label.image = photo  # type: ignore[attr-defined]
+                thumbnail_label.grid()
+
+                # Create a label for the caption and set its width to match the thumbnail width
+                caption_label = Label(self.frame, wraplength=self.thumbnail_size)
+                if caption is not False:
+                    if caption is True:
+                        caption = get_file_name(image_path)
+                    caption_label.configure(text=caption)
+                caption_label.grid(sticky=N)
+
+                if click_callback:
+                    thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]
+                    caption_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]
+
+                self.thumbnails.append((thumbnail_label, caption_label, image_path))
+            except Exception as e:
+                print(f"Error processing thumbnail {image_path}: {e}")
+
+        # Если есть завершённые задачи, обновляем layout
+        if completed:
             self.sort_thumbnails()
             self.update()
             self.master.update()
+
+        # Продолжаем обработку, если есть незавершённые задачи
+        with self._processing_lock:
+            if self._pending_futures:
+                self.after(100, self._process_pending)
+            else:
+                self._is_processing = False
 
     def sort_thumbnails(self, asc: bool = True) -> None:
         # Sort the thumbnails list by the image path
@@ -163,3 +223,6 @@ class ThumbnailWidget(Frame):
             caption.grid_forget()
         self.thumbnails = []
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
+        with self._processing_lock:
+            self._pending_futures.clear()
+            self._is_processing = False

@@ -1,5 +1,4 @@
 from argparse import Namespace
-from threading import Thread
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
 from tkinter.ttk import Spinbox, Label
 from typing import List
@@ -412,11 +411,10 @@ class GUIForm(AttributeLoader):
 
         for path in paths:
             if is_image(path):
-                # Start a new thread for each image
-                Thread(target=add_image, args=(path,)).start()
+                add_image(path)
             elif is_dir(path):
                 for dir_file in get_directory_file_list(path, is_image):
-                    Thread(target=add_image, args=(dir_file,)).start()
+                    add_image(dir_file)
 
     def add_files(self) -> None:
         image_extensions = get_type_extensions('image/')
