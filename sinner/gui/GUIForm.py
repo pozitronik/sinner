@@ -118,7 +118,7 @@ class GUIForm(AttributeLoader):
         self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
 
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-        self.ProcessingProgress = SegmentedProgressBar(self.NavigationFrame, colors={0: 'black', 1: 'red', 2: 'green', 3: 'green'})
+        self.ProcessingProgress = SegmentedProgressBar(self.NavigationFrame, colors={0: 'black', 1: 'yellow', 2: 'green', 3: 'red'})
         self.GUIModel = GUIModel(parameters, pb_control=self.ProcessingProgress, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         def on_player_window_close() -> None:
