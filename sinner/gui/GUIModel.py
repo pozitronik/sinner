@@ -31,6 +31,8 @@ from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
+PROCESSING = 1
+PROCESSED = 2
 
 
 class GUIModel(AttributeLoader, StatusMixin):
@@ -418,7 +420,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                     process_time, frame_index = result
                     self._average_processing_time.update(process_time / self.execution_threads)
                     processing.remove(frame_index)
-                    self.ProgressBar.set_segment_value(next_frame, 2)
+                    self.ProgressBar.set_segment_value(frame_index, PROCESSED)
                     self._processing_fps = 1 / self._average_processing_time.get_average()
                     if self._biggest_processed_frame < frame_index:
                         self._biggest_processed_frame = frame_index
@@ -437,11 +439,10 @@ class GUIModel(AttributeLoader, StatusMixin):
 
                 if next_frame not in processing and not self.TimeLine.has_index(next_frame):
                     processing.append(next_frame)
-                    self.ProgressBar.set_segment_value(next_frame, 1)
                     future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
-
+                    self.ProgressBar.set_segment_value(next_frame, PROCESSING)
                     if len(futures) >= self.execution_threads:
                         futures[:1][0].result()
 
