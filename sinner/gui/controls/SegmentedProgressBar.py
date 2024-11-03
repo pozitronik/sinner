@@ -3,16 +3,7 @@ from typing import List, Dict
 
 
 class SegmentedProgressBar(tk.Canvas):
-    def __init__(
-            self,
-            master,
-            segments: int = 100,
-            width: int = 0,
-            height: int = 10,
-            min_visible_width: int = 1,
-            colors: Dict[int, str] = None,
-            **kwargs
-    ):
+    def __init__(self, master: tk.Misc | None, segments: int = 100, width: int = 0, height: int = 10, min_visible_width: int = 1, colors: Dict[int, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
         """
         Создает сегментированный прогресс-бар
 
@@ -26,15 +17,15 @@ class SegmentedProgressBar(tk.Canvas):
         """
         super().__init__(master, width=width, height=height, **kwargs)
 
-        self.states = None
-        self.segment_width = None
-        self.segments = None
-        self.width = width
-        self.height = height
-        self.colors = colors or {0: 'white', 1: 'blue'}
-        self.min_visible_width = min_visible_width
-        self.auto_width = (width == 0)
-        self.auto_height = (height == 0)
+        self.states: List[int] = []
+        self.segment_width: float = 0
+        self.segments: int = 0
+        self.width: int = width
+        self.height: int = height
+        self.colors: Dict[int, str] = colors or {0: 'white', 1: 'blue'}
+        self.min_visible_width: int = min_visible_width
+        self.auto_width: bool = (width == 0)
+        self.auto_height: bool = (height == 0)
 
         # Инициализация сегментов
         self.set_segments(segments)
@@ -42,12 +33,12 @@ class SegmentedProgressBar(tk.Canvas):
         # Привязываем обработчик изменения размера
         self.bind('<Configure>', self._on_resize)
 
-    def _on_resize(self, event):
+    def _on_resize(self, event: tk.Event) -> None:  # type: ignore[type-arg]
         """Обработчик изменения размера виджета"""
         if self.auto_width or self.auto_height:
             self.update_size()
 
-    def update_size(self):
+    def update_size(self) -> None:
         """Обновляет размеры виджета и пересчитывает сегменты"""
         if self.auto_width:
             self.width = self.winfo_width()
