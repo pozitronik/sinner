@@ -7,12 +7,12 @@ from customtkinter import CTk
 from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
+from sinner.gui.controls.SegmentedProgressBar import SegmentedProgressBar
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.ImageList import ImageList
-from sinner.gui.controls.ProgressBarManager import ProgressBarManager
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
@@ -28,7 +28,6 @@ class GUIForm(AttributeLoader):
     # class attributes
     parameters: Namespace
     GUIModel: GUIModel
-    ProgressBars: ProgressBarManager
     StatusBar: StatusBar
     # SourcesLibraryWnd: SourcesLibraryForm
     SourcesLibrary: ThumbnailWidget
@@ -115,9 +114,12 @@ class GUIForm(AttributeLoader):
         self.GUIWindow.minsize(500, 130)
         self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
         self._event_player_window_closed = SinnerEvent(on_set_callback=lambda: on_player_window_close())
-        self.ProgressBars = ProgressBarManager(self.GUIWindow)
+
+        self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
+
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-        self.GUIModel = GUIModel(parameters, pb_control=self.ProgressBars, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+        self.ProcessingProgress = SegmentedProgressBar(self.NavigationFrame, colors={0: 'black', 1: 'red', 2: 'green', 3: 'green'})
+        self.GUIModel = GUIModel(parameters, pb_control=self.ProcessingProgress, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
@@ -154,7 +156,7 @@ class GUIForm(AttributeLoader):
         self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.GUIWindow, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
+        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
         self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors
@@ -282,7 +284,9 @@ class GUIForm(AttributeLoader):
     # maintain the order of window controls
     def draw_controls(self) -> None:
         # self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
+        self.NavigationFrame.pack(fill=X, expand=False, anchor=NW)
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
+        self.ProcessingProgress.pack(anchor=NW, side=LEFT, expand=True, fill=X)
         self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()
         self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
