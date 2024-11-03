@@ -7,9 +7,9 @@ class SegmentedProgressBar(tk.Canvas):
             self,
             master,
             segments: int = 100,
-            width: int = 400,
+            width: int = 0,
             height: int = 30,
-            min_visible_width: int = 2,
+            min_visible_width: int = 1,
             colors: Dict[int, str] = None,
             **kwargs
     ):
@@ -19,8 +19,8 @@ class SegmentedProgressBar(tk.Canvas):
         Args:
             master: родительский виджет tkinter
             segments: количество сегментов
-            width: общая ширина в пикселях
-            height: высота в пикселях
+            width: общая ширина в пикселях (0 для автоматического размера)
+            height: высота в пикселях (0 для автоматического размера)
             min_visible_width: минимальная видимая ширина группы сегментов в пикселях
             colors: словарь соответствия значений цветам (например {0: 'white', 1: 'blue'})
         """
@@ -30,14 +30,37 @@ class SegmentedProgressBar(tk.Canvas):
         self.segment_width = None
         self.segments = None
         self.width = width
+        self.height = height
         self.colors = colors or {0: 'white', 1: 'blue'}
         self.min_visible_width = min_visible_width
+        self.auto_width = (width == 0)
+        self.auto_height = (height == 0)
 
         # Инициализация сегментов
         self.set_segments(segments)
 
-        # Создание фона
-        self.create_rectangle(0, 0, width, height, fill='white', outline='gray')
+        # Привязываем обработчик изменения размера
+        self.bind('<Configure>', self._on_resize)
+
+    def _on_resize(self, event):
+        """Обработчик изменения размера виджета"""
+        if self.auto_width or self.auto_height:
+            self.update_size()
+
+    def update_size(self):
+        """Обновляет размеры виджета и пересчитывает сегменты"""
+        if self.auto_width:
+            self.width = self.winfo_width()
+        if self.auto_height:
+            self.height = self.winfo_height()
+
+        if self.segments > 0:
+            self.segment_width = self.width / self.segments
+
+        # Обновляем фон и сегменты
+        self.delete("all")  # Удаляем все фигуры
+        self.create_rectangle(0, 0, self.width, self.height, fill='white', outline='gray')
+        self._redraw()
 
     def set_segments(self, segments: int) -> None:
         """
@@ -50,7 +73,7 @@ class SegmentedProgressBar(tk.Canvas):
             raise ValueError("Number of segments must be positive")
 
         self.segments = segments
-        self.segment_width = self.width / segments
+        self.segment_width = self.width / segments if self.width > 0 else 0
         # Сброс состояний
         self.states = [0] * segments
         self._redraw()
@@ -81,6 +104,9 @@ class SegmentedProgressBar(tk.Canvas):
         """Перерисовывает все сегменты с учетом минимальной видимой ширины"""
         # Очищаем все, кроме фона
         self.delete("segment")
+
+        if self.width == 0 or self.height == 0:
+            return  # Пропускаем отрисовку, если размеры еще не определены
 
         # Группируем последовательные сегменты одного цвета
         groups = []
