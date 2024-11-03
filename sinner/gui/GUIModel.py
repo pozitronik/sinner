@@ -9,7 +9,7 @@ from typing import List, Callable, Any
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
-from sinner.gui.controls.ProgressBarManager import ProgressBarManager
+from sinner.gui.controls.SegmentedProgressBar import SegmentedProgressBar
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -51,7 +51,7 @@ class GUIModel(AttributeLoader, StatusMixin):
     # internal/external objects
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
-    ProgressBarsManager: ProgressBarManager
+    ProgressBar: SegmentedProgressBar
     AudioPlayer: BaseAudioBackend | None = None
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -147,7 +147,7 @@ class GUIModel(AttributeLoader, StatusMixin):
             }
         ]
 
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
+    def __init__(self, parameters: Namespace, pb_control: SegmentedProgressBar, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -159,7 +159,8 @@ class GUIModel(AttributeLoader, StatusMixin):
 
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
-        self.ProgressBarsManager = pb_control
+        self.ProgressBar = pb_control
+        self.ProgressBar.set_segments(self.frame_handler.fc)
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
 
@@ -203,6 +204,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.parameters.source = value
         self.reload_parameters()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        self.ProgressBar.set_segments(self.frame_handler.fc)
         if not self.player_is_started:
             self.update_preview()
 
@@ -216,6 +218,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.reload_parameters()
         self.Player.clear()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
+        self.ProgressBar.set_segments(self.frame_handler.fc)
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
@@ -415,6 +418,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                     process_time, frame_index = result
                     self._average_processing_time.update(process_time / self.execution_threads)
                     processing.remove(frame_index)
+                    self.ProgressBar.set_segment_value(next_frame, 2)
                     self._processing_fps = 1 / self._average_processing_time.get_average()
                     if self._biggest_processed_frame < frame_index:
                         self._biggest_processed_frame = frame_index
@@ -433,6 +437,7 @@ class GUIModel(AttributeLoader, StatusMixin):
 
                 if next_frame not in processing and not self.TimeLine.has_index(next_frame):
                     processing.append(next_frame)
+                    self.ProgressBar.set_segment_value(next_frame, 1)
                     future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
