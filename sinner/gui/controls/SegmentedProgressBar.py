@@ -8,7 +8,7 @@ class SegmentedProgressBar(tk.Canvas):
             master,
             segments: int = 100,
             width: int = 0,
-            height: int = 30,
+            height: int = 10,
             min_visible_width: int = 1,
             colors: Dict[int, str] = None,
             **kwargs
