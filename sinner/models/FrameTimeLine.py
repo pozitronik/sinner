@@ -81,6 +81,9 @@ class FrameTimeLine:
             self._last_returned_index = self._last_requested_index  # it is an EXPECTED index, not a real one
         return result_frame
 
+    def get_frame_by_index(self, index: int) -> NumberedFrame | None:
+        return self._FrameBuffer.get_frame(index, False)
+
     def has_index(self, index: int) -> bool:
         return self._FrameBuffer.has_index(index)
 
@@ -152,4 +155,3 @@ class FrameTimeLine:
         :return: the list of already processed frames
         """
         return self._FrameBuffer.get_indices()
-
