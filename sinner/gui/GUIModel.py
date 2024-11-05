@@ -312,6 +312,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                 self.Player.show_frame(frames[-1][0])
             else:
                 self.Player.show_frame(frames[0][0])
+            # self.ProgressBar.set_segment_value(self.position.get(), PROCESSED)  todo: add processed frames to timeline, not to the internal buffer
         else:
             self.Player.clear()
 
