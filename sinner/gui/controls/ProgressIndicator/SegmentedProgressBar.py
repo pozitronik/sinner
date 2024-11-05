@@ -31,6 +31,9 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         self.auto_width: bool = (width == 0)
         self.auto_height: bool = (height == 0)
 
+        # Список для хранения идентификаторов сегментов
+        self.segment_ids: List[int] = []
+
         # Инициализация сегментов
         self.set_segments(segments)
 
@@ -52,10 +55,26 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         if self.segments > 0:
             self.segment_width = self.width / self.segments
 
-        # Обновляем фон и сегменты
-        self.delete("all")  # Удаляем все фигуры
-        self.create_rectangle(0, 0, self.width, self.height, fill='white', outline='gray')
-        self._redraw()
+        # Удаляем все существующие элементы
+        self.delete("all")
+        self.segment_ids.clear()
+
+        # Создаем фон
+        self.create_rectangle(0, 0, self.width, self.height,
+                              fill='white', outline='gray',
+                              tags="background")
+
+        # Создаем сегменты заново с новыми размерами
+        for i in range(self.segments):
+            x1 = i * self.segment_width
+            x2 = (i + 1) * self.segment_width
+            segment_id = self.create_rectangle(
+                x1, 0, x2, self.height,
+                fill=self.colors.get(self.states[i], DEFAULT_SEGMENT_COLOR),
+                outline='',
+                tags=f"segment_{i}"
+            )
+            self.segment_ids.append(segment_id)
 
     def set_segments(self, segments: int) -> None:
         """
@@ -69,9 +88,12 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
 
         self.segments = segments
         self.segment_width = self.width / segments if self.width > 0 else 0
+
         # Сброс состояний
         self.states = [0] * segments
-        self._redraw()
+
+        # Пересоздаем сегменты
+        self.update_size()
 
     def update_states(self, states: List[int]) -> None:
         """Обновляет состояния сегментов и перерисовывает их"""
@@ -123,9 +145,6 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
 
     def _redraw(self) -> None:
         """Перерисовывает все сегменты с учетом минимальной видимой ширины"""
-        # Очищаем все, кроме фона
-        self.delete("segment")
-
         if self.width == 0 or self.height == 0:
             return  # Пропускаем отрисовку, если размеры еще не определены
 
@@ -143,7 +162,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         # Добавляем последнюю группу
         groups.append((current_start, len(self.states), current_value))
 
-        # Отрисовываем группы
+        # Обновляем цвета сегментов для каждой группы
         for start, end, value in groups:
             # Вычисляем координаты группы
             x1 = start * self.segment_width
@@ -151,9 +170,9 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
 
             # Проверяем, достаточно ли группа широкая для отображения
             if x2 - x1 >= self.min_visible_width:
-                self.create_rectangle(
-                    x1, 0, x2, self.winfo_height(),
-                    fill=self.colors.get(value, DEFAULT_SEGMENT_COLOR),
-                    outline='',
-                    tags="segment"
-                )
+                # Обновляем цвета для всех сегментов в группе
+                for i in range(start, end):
+                    if i < len(self.segment_ids):  # Проверка на всякий случай
+                        segment_id = self.segment_ids[i]
+                        self.itemconfig(segment_id,
+                                        fill=self.colors.get(value, DEFAULT_SEGMENT_COLOR))
