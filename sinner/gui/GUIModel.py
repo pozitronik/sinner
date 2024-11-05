@@ -163,6 +163,7 @@ class GUIModel(AttributeLoader, StatusMixin):
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         self.ProgressBar = pb_control
         self.ProgressBar.set_segments(self.frame_handler.fc)
+        self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
 
@@ -207,6 +208,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.reload_parameters()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
         self.ProgressBar.set_segments(self.frame_handler.fc)
+        self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
         if not self.player_is_started:
             self.update_preview()
 
@@ -221,6 +223,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.Player.clear()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         self.ProgressBar.set_segments(self.frame_handler.fc)
+        self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
