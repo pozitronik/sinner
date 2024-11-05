@@ -5,7 +5,7 @@ from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProg
 
 
 class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
-    def __init__(self, master: tk.Misc | None, segments: int = 100, width: int = 0, height: int = 10, min_visible_width: int = 1, colors: Dict[int, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
+    def __init__(self, master: tk.Misc | None, segments: int = 100, width: int = 0, height: int = 10, min_visible_width: int = 0, colors: Dict[int, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
         """
         Создает сегментированный прогресс-бар
 
