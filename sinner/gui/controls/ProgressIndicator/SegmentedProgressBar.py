@@ -3,6 +3,8 @@ from typing import List, Dict
 
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 
+DEFAULT_SEGMENT_COLOR = 'blue'
+
 
 class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
     def __init__(self, master: tk.Misc | None, segments: int = 100, width: int = 0, height: int = 10, min_visible_width: int = 0, colors: Dict[int, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
@@ -24,7 +26,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         self.segments: int = 0
         self.width: int = width
         self.height: int = height
-        self.colors: Dict[int, str] = colors or {0: 'white', 1: 'blue'}
+        self.colors: Dict[int, str] = colors or {0: 'white', 1: DEFAULT_SEGMENT_COLOR}
         self.min_visible_width: int = min_visible_width
         self.auto_width: bool = (width == 0)
         self.auto_height: bool = (height == 0)
@@ -151,7 +153,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
             if x2 - x1 >= self.min_visible_width:
                 self.create_rectangle(
                     x1, 0, x2, self.winfo_height(),
-                    fill=self.colors.get(value, 'gray'),
+                    fill=self.colors.get(value, DEFAULT_SEGMENT_COLOR),
                     outline='',
                     tags="segment"
                 )
