@@ -102,6 +102,9 @@ class FrameDirectoryBuffer:
                 if entry.is_file() and entry.name.endswith(".png"):
                     self._indices.append(int(get_file_name(entry.name)))
 
+    def get_indices(self) -> List[int]:
+        return self._indices
+
     @property
     def miss(self) -> int:
         return self._miss

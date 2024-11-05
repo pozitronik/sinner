@@ -1,5 +1,6 @@
 import threading
 import time
+from typing import List
 
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.NumberedFrame import NumberedFrame
@@ -144,4 +145,11 @@ class FrameTimeLine:
         :return: the current *real* gap between requested frame and returned one
         """
         return self._FrameBuffer.miss
+
+    @property
+    def processed_frames(self) -> List[int]:
+        """
+        :return: the list of already processed frames
+        """
+        return self._FrameBuffer.get_indices()
 
