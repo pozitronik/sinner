@@ -284,11 +284,11 @@ class GUIModel(AttributeLoader, StatusMixin):
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 preview_frame = None
+        else:
+            if not self.TimeLine.has_index(frame_number):
+                self._process_frame(frame_number)
 
-        if not self.TimeLine.has_index(frame_number):
-            self._process_frame(frame_number)
-
-        preview_frame = self.TimeLine.get_frame_by_index(frame_number)
+            preview_frame = self.TimeLine.get_frame_by_index(frame_number)
 
         if preview_frame:
             self.Player.show_frame(preview_frame.frame)
