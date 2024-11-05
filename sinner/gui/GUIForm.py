@@ -7,7 +7,7 @@ from customtkinter import CTk
 from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
-from sinner.gui.controls.SegmentedProgressBar import SegmentedProgressBar
+from sinner.gui.controls.ProgressIndicator.SegmentedProgressBar import SegmentedProgressBar
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition

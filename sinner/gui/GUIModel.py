@@ -9,7 +9,7 @@ from typing import List, Callable, Any
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
-from sinner.gui.controls.SegmentedProgressBar import SegmentedProgressBar
+from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -53,7 +53,7 @@ class GUIModel(AttributeLoader, StatusMixin):
     # internal/external objects
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
-    ProgressBar: SegmentedProgressBar
+    ProgressBar: BaseProgressIndicator
     AudioPlayer: BaseAudioBackend | None = None
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -149,7 +149,7 @@ class GUIModel(AttributeLoader, StatusMixin):
             }
         ]
 
-    def __init__(self, parameters: Namespace, pb_control: SegmentedProgressBar, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
+    def __init__(self, parameters: Namespace, pb_control: BaseProgressIndicator, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
