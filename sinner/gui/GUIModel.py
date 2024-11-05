@@ -25,7 +25,6 @@ from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
-from sinner.typing import FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
@@ -33,6 +32,7 @@ BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
 PROCESSING = 1
 PROCESSED = 2
+EXTRACTED = 3
 
 
 class GUIModel(AttributeLoader, StatusMixin):
@@ -60,8 +60,6 @@ class GUIModel(AttributeLoader, StatusMixin):
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _positionVar: IntVar | None = None
     _volumeVar: IntVar | None = None
-
-    _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
     _status: Callable[[str, str], Any]
 
@@ -172,7 +170,6 @@ class GUIModel(AttributeLoader, StatusMixin):
         self._event_rewind = Event()
 
     def reload_parameters(self) -> None:
-        self.clear_previews()
         self._target_handler = None
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
@@ -277,42 +274,25 @@ class GUIModel(AttributeLoader, StatusMixin):
     def is_processors_loaded(self) -> bool:
         return self._processors != {}
 
-    # returns list of all processed steps for a frame, starting from the original
-    def get_frame_steps(self, frame_number: int, extractor_handler: BaseFrameHandler | None, processed: bool = False) -> FramesList:
-        result: FramesList = []
-        if extractor_handler is None:
-            return result
-        try:
-            n_frame = extractor_handler.extract_frame(frame_number)
-            result.append((n_frame.frame, 'Original'))  # add an original frame
-        except Exception as exception:
-            self.update_status(message=str(exception), mood=Mood.BAD)
-            return result
-        if processed:  # return all processed frames
-            for processor_name, processor in self.processors.items():
-                n_frame.frame = processor.process_frame(n_frame.frame)
-                result.append((n_frame.frame, processor_name))
-        return result
-
-    def get_frames(self, frame_number: int = 0, processed: bool = False) -> FramesList:
-        saved_frames = self.get_previews(frame_number)
-        if saved_frames:  # frame already in the cache
-            return saved_frames
-        frame_steps = self.get_frame_steps(frame_number, self.frame_handler, processed)
-        if processed:
-            self.set_previews(frame_number, frame_steps)  # cache, if processing has requested
-        return frame_steps
-
     def update_preview(self, processed: bool | None = None) -> None:
         if processed is None:
             processed = self.is_processors_loaded
-        frames = self.get_frames(self.position.get(), processed)
-        if frames:
-            if processed:
-                self.Player.show_frame(frames[-1][0])
-            else:
-                self.Player.show_frame(frames[0][0])
-            # self.ProgressBar.set_segment_value(self.position.get(), PROCESSED)  todo: add processed frames to timeline, not to the internal buffer
+        frame_number = self.position.get()
+        if not processed:  # base frame requested
+            try:
+                preview_frame = self.frame_handler.extract_frame(frame_number)
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                preview_frame = None
+
+        if not self.TimeLine.has_index(frame_number):
+            self._process_frame(frame_number)
+
+        preview_frame = self.TimeLine.get_frame_by_index(frame_number)
+
+        if preview_frame:
+            self.Player.show_frame(preview_frame.frame)
+            self.ProgressBar.set_segment_value(self.position.get(), PROCESSED if processed else EXTRACTED)
         else:
             self.Player.clear()
 
@@ -324,15 +304,6 @@ class GUIModel(AttributeLoader, StatusMixin):
             else:
                 self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._target_handler
-
-    def get_previews(self, position: int) -> FramesList | None:
-        return self._previews.get(position)
-
-    def set_previews(self, position: int, previews: FramesList) -> None:
-        self._previews[position] = previews
-
-    def clear_previews(self) -> None:
-        self._previews.clear()
 
     @property
     def player_is_started(self) -> bool:
