@@ -12,7 +12,6 @@ from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
-from sinner.gui.controls.ImageList import ImageList
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
@@ -152,9 +151,6 @@ class GUIForm(AttributeLoader):
             if event.keycode == 32:  # space bar
                 on_self_run_button_press()
 
-        # todo: move to a separate window
-        self.PreviewFrames: ImageList = ImageList(parent=self.GUIWindow, size=(self.fw_width, self.fw_height))  # the preview of processed frames
-
         # Navigation slider
         self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
@@ -287,7 +283,6 @@ class GUIForm(AttributeLoader):
         self.NavigationFrame.pack(fill=X, expand=False, anchor=NW)
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.ProcessingProgress.pack(anchor=NW, side=LEFT, expand=True, fill=X)
-        self.PreviewFrames.pack(fill=X, expand=False, anchor=NW)
         self.update_slider_bounds()
         self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
