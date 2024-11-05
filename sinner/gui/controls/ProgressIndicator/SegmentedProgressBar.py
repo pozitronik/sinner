@@ -93,6 +93,32 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         self.states[index] = value
         self._redraw()
 
+    def set_segment_values(self, indexes: List[int], value: int, reset: bool = True) -> None:
+        """
+        Устанавливает заданное значение для списка сегментов
+
+        Args:
+            indexes: список индексов сегментов
+            value: значение для установки
+            reset: если True, сначала сбрасывает все сегменты в начальное состояние (0)
+        """
+        # Проверяем корректность индексов
+        if not indexes:
+            return
+        if min(indexes) < 0 or max(indexes) >= self.segments:
+            raise ValueError(f"Segment index out of range [0, {self.segments - 1}]")
+
+        # Сбрасываем состояния если нужно
+        if reset:
+            self.states = [0] * self.segments
+
+        # Обновляем состояния
+        for index in indexes:
+            self.states[index] = value
+
+        # Перерисовываем один раз после всех обновлений
+        self._redraw()
+
     def _redraw(self) -> None:
         """Перерисовывает все сегменты с учетом минимальной видимой ширины"""
         # Очищаем все, кроме фона
