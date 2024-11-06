@@ -1,9 +1,22 @@
+import asyncio
 import tkinter as tk
-from typing import List, Dict
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from queue import Queue
+from threading import Lock
+from typing import List, Dict, Optional, Callable
 
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 
 DEFAULT_SEGMENT_COLOR = 'blue'
+
+
+@dataclass
+class UpdateCommand:
+    """Команда обновления сегмента"""
+    index: int
+    value: int
+    callback: Optional[Callable[[], None]] = None
 
 
 class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
@@ -34,11 +47,44 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         # Список для хранения идентификаторов сегментов
         self.segment_ids: List[int] = []
 
+        # Механизмы синхронизации
+        self._states_lock = Lock()
+        self._update_queue: Queue[UpdateCommand] = Queue()
+        self._thread_pool = ThreadPoolExecutor(max_workers=1)
+        self._redraw_pending = False
+
         # Инициализация сегментов
         self.set_segments(segments)
 
         # Привязываем обработчик изменения размера
         self.bind('<Configure>', self._on_resize)
+
+        # Запускаем обработчик очереди обновлений
+        self.after(10, self._process_updates)
+
+    def _process_updates(self) -> None:
+        """Обработчик очереди обновлений"""
+        try:
+            while not self._update_queue.empty():
+                command = self._update_queue.get_nowait()
+                with self._states_lock:
+                    self.states[command.index] = command.value
+                if not self._redraw_pending:
+                    self._redraw_pending = True
+                    self.after_idle(self._do_redraw)
+                if command.callback:
+                    self.after_idle(command.callback)
+        finally:
+            # Планируем следующую проверку
+            self.after(10, self._process_updates)
+
+    def _do_redraw(self) -> None:
+        """Выполняет отложенную перерисовку"""
+        try:
+            with self._states_lock:
+                self._redraw()
+        finally:
+            self._redraw_pending = False
 
     def _on_resize(self, event: tk.Event) -> None:  # type: ignore[type-arg]
         """Обработчик изменения размера виджета"""
@@ -103,9 +149,23 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         self.states = states.copy()
         self._redraw()
 
-    def set_segment_value(self, index: int, value: int) -> None:
+    def set_segment_value(self, index: int, value: int, callback: Optional[Callable[[], None]] = None) -> None:
         """
         Устанавливает значение для определенного сегмента
+
+        Args:
+            index: индекс сегмента (0-based)
+            value: новое значение сегмента
+            callback: функция, вызываемая после применения обновления
+        """
+        if not 0 <= index < self.segments:
+            raise ValueError(f"Index {index} out of range [0, {self.segments - 1}]")
+
+        self._update_queue.put(UpdateCommand(index, value, callback))
+
+    async def set_segment_value_async(self, index: int, value: int) -> None:
+        """
+        Асинхронно устанавливает значение сегмента
 
         Args:
             index: индекс сегмента (0-based)
@@ -114,8 +174,13 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         if not 0 <= index < self.segments:
             raise ValueError(f"Index {index} out of range [0, {self.segments - 1}]")
 
-        self.states[index] = value
-        self._redraw()
+        future = asyncio.Future()
+
+        def callback() -> None:
+            future.set_result(None)
+
+        self.set_segment_value(index, value, callback)
+        await future
 
     def set_segment_values(self, indexes: List[int], value: int, reset: bool = True) -> None:
         """
@@ -132,16 +197,18 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         if min(indexes) < 0 or max(indexes) >= self.segments:
             raise ValueError(f"Segment index out of range [0, {self.segments - 1}]")
 
-        # Сбрасываем состояния если нужно
-        if reset:
-            self.states = [0] * self.segments
+        def update() -> None:
+            # Сбрасываем состояния если нужно
+            if reset:
+                with self._states_lock:
+                    self.states = [0] * self.segments
 
-        # Обновляем состояния
-        for index in indexes:
-            self.states[index] = value
+            # Обновляем состояния
+            for index in indexes:
+                self._update_queue.put(UpdateCommand(index, value))
 
-        # Перерисовываем один раз после всех обновлений
-        self._redraw()
+        # Выполняем обновление в главном потоке
+        self.after_idle(update)
 
     def _redraw(self) -> None:
         """Перерисовывает все сегменты с учетом минимальной видимой ширины"""

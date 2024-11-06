@@ -41,3 +41,13 @@ class BaseProgressIndicator:
             reset: если True, сначала сбрасывает все сегменты в начальное состояние (0)
         """
         pass
+
+    async def set_segment_value_async(self, index: int, value: int) -> None:
+        """
+        Асинхронно устанавливает значение сегмента
+
+        Args:
+            index: индекс сегмента (0-based)
+            value: новое значение сегмента
+        """
+        pass
