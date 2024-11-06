@@ -1,5 +1,6 @@
 import asyncio
 import tkinter as tk
+from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from queue import Queue
@@ -174,7 +175,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         if not 0 <= index < self.segments:
             raise ValueError(f"Index {index} out of range [0, {self.segments - 1}]")
 
-        future = asyncio.Future()
+        future: Future[None] = asyncio.Future()
 
         def callback() -> None:
             future.set_result(None)
