@@ -1,12 +1,12 @@
 from tkinter import Label, StringVar, Frame, X, TOP, NW, DISABLED, NORMAL, IntVar, Misc
 from typing import Union, Callable, Any, Dict
 
-from customtkinter import CTkSlider
 
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
+from sinner.gui.controls.FramePosition.SliderWithProgress import SliderWithProgress
 
 
-class SliderFramePosition(BaseFramePosition, CTkSlider):
+class SliderFramePosition(BaseFramePosition, SliderWithProgress):
     _container: Frame
     _position_label: Label
     _current_position: StringVar
@@ -16,13 +16,13 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
         self._container = Frame(master, borderwidth=2)
         self._current_position = StringVar()
         self._position_label = Label(master)
-        CTkSlider.__init__(self, self._container, **kwargs)
+        SliderWithProgress.__init__(self, self._container, **kwargs)
         self._position_label.configure(textvariable=self._current_position)
         self.update_position()
 
     def pack(self, **kwargs: Dict[str, Any]) -> Any:
         self._container.pack(fill=X)
-        result = CTkSlider.pack(self, **kwargs)
+        result = SliderWithProgress.pack(self, **kwargs)
         self._position_label.pack(anchor=NW, side=TOP, expand=False, fill=X, after=self)
         return result
 
@@ -30,7 +30,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
         self._container.pack_forget()
 
     def _clicked(self, event: Any | None = None) -> None:
-        CTkSlider._clicked(self, event)
+        SliderWithProgress._clicked(self, event)
         self.update_position()
 
     def set(self, output_value: int, from_variable_callback: bool = False) -> None:
@@ -86,7 +86,7 @@ class SliderFramePosition(BaseFramePosition, CTkSlider):
         return self._container
 
     def disable(self) -> None:
-        CTkSlider.configure(self, True, state=DISABLED)
+        SliderWithProgress.configure(self, True, state=DISABLED)
 
     def enable(self) -> None:
-        CTkSlider.configure(self, True, state=NORMAL)
+        SliderWithProgress.configure(self, True, state=NORMAL)
