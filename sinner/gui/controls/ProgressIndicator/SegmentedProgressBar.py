@@ -33,6 +33,8 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
             min_visible_width: минимальная видимая ширина группы сегментов в пикселях
             colors: словарь соответствия значений цветам (например {0: 'white', 1: 'blue'})
         """
+        kwargs['highlightthickness'] = 0  # Убирает внешнюю рамку фокуса
+        kwargs['bd'] = 0  # Убирает бордюр
         super().__init__(master, width=width, height=height, **kwargs)
 
         self.states: List[int] = []
@@ -108,7 +110,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
 
         # Создаем фон
         self.create_rectangle(0, 0, self.width, self.height,
-                              fill='white', outline='gray',
+                              fill='blue', outline='red',
                               tags="background")
 
         # Создаем сегменты заново с новыми размерами
