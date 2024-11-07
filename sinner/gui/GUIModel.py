@@ -509,7 +509,7 @@ class GUIModel(AttributeLoader, StatusMixin):
 
     def set_progress_index_value(self, index: int, value: int) -> None:
         if self._ProgressBar:
-            self._ProgressBar.set_segment_value(index, value)
+            self._ProgressBar.set_segment_value(index - 1, value)
 
     @property
     def progress_control(self) -> BaseProgressIndicator | None:
