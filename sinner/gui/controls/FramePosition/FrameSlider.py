@@ -42,7 +42,7 @@ class FrameSlider(CTkSlider, BaseFramePosition):
 
         self.progress.pass_through = self
 
-    def pack(self, **kwargs) -> Any:
+    def pack(self, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         result = CTkSlider.pack(self, **kwargs)
         return result
 
