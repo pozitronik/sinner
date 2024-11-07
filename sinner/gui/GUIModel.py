@@ -53,7 +53,7 @@ class GUIModel(AttributeLoader, StatusMixin):
     # internal/external objects
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
-    ProgressBar: BaseProgressIndicator | None = None
+    _ProgressBar: BaseProgressIndicator | None = None
     AudioPlayer: BaseAudioBackend | None = None
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
@@ -147,7 +147,7 @@ class GUIModel(AttributeLoader, StatusMixin):
             }
         ]
 
-    def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None, pb_control: BaseProgressIndicator | None = None):
+    def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None, progress_control: BaseProgressIndicator | None = None):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -159,10 +159,8 @@ class GUIModel(AttributeLoader, StatusMixin):
 
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
-        self.ProgressBar = pb_control
-        if self.ProgressBar:
-            self.ProgressBar.set_segments(self.frame_handler.fc)
-            self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+
+        self.progress_control = progress_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
 
@@ -205,9 +203,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.parameters.source = value
         self.reload_parameters()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
-        if self.ProgressBar:
-            self.ProgressBar.set_segments(self.frame_handler.fc)
-            self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+        self.progress_control = self._ProgressBar  # to update segments
         if not self.player_is_started:
             self.update_preview()
 
@@ -221,9 +217,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.reload_parameters()
         self.Player.clear()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
-        if self.ProgressBar:
-            self.ProgressBar.set_segments(self.frame_handler.fc)
-            self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+        self.progress_control = self._ProgressBar  # to update segments
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
@@ -514,5 +508,16 @@ class GUIModel(AttributeLoader, StatusMixin):
         return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
 
     def set_progress_index_value(self, index: int, value: int) -> None:
-        if self.ProgressBar:
-            self.ProgressBar.set_segment_value(index, value)
+        if self._ProgressBar:
+            self._ProgressBar.set_segment_value(index, value)
+
+    @property
+    def progress_control(self) -> BaseProgressIndicator | None:
+        return self._ProgressBar
+
+    @progress_control.setter
+    def progress_control(self, value: BaseProgressIndicator | None) -> None:
+        self._ProgressBar = value
+        if self._ProgressBar:
+            self._ProgressBar.set_segments(self.frame_handler.fc)
+            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
