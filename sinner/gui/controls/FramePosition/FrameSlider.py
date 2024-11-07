@@ -1,4 +1,4 @@
-from tkinter import DISABLED, NORMAL, IntVar, Widget
+from tkinter import DISABLED, NORMAL, IntVar
 from typing import Any
 
 from customtkinter import CTkSlider
