@@ -24,7 +24,7 @@ class FrameSlider(CTkSlider, BaseFramePosition):
             **kwargs
         )
 
-        self.progress: Widget = SegmentedProgressBar(
+        self.progress: SegmentedProgressBar = SegmentedProgressBar(
             self.master,
             height=progress_height,
             borderwidth=0,
