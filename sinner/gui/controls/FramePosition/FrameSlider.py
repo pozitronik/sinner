@@ -24,7 +24,6 @@ class FrameSlider(CTkSlider, BaseFramePosition):
             **kwargs
         )
 
-        # Создаем и размещаем прогрессбар
         self.progress = SegmentedProgressBar(
             self.master,
             height=progress_height,
@@ -40,6 +39,8 @@ class FrameSlider(CTkSlider, BaseFramePosition):
             relwidth=1.0,  # занимает всю ширину
             height=progress_height
         )
+
+        self.progress.pass_through = self
 
     def pack(self, **kwargs) -> Any:
         result = CTkSlider.pack(self, **kwargs)
