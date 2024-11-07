@@ -277,7 +277,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
             Изначально код задумывался для трансляции любых событий в любой виджет, но
             оказалось, что слайдер имеет кастомную обработку, и пришлось это учесть.
         """
-        if not self.pass_through or not hasattr(self._pass_through, '_clicked'):
+        if not self._pass_through or not hasattr(self._pass_through, '_clicked'):
             return ""
 
         # Конвертируем координаты
@@ -287,7 +287,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         rel_y = abs_y - self._pass_through.winfo_rooty()
 
         # Создаем новое событие
-        new_event = tk.Event()
+        new_event = tk.Event()  # type: ignore[var-annotated]
         new_event.x = rel_x
         new_event.y = rel_y
         new_event.x_root = event.x_root
