@@ -477,6 +477,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                                 self.position.set(self.TimeLine.last_returned_index)
                             if self.TimeLine.last_returned_index:
                                 self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
+                                self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
