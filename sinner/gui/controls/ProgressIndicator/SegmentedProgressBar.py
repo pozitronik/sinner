@@ -306,4 +306,4 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
         if event.type in handlers and hasattr(self._pass_through, handlers[event.type]):
             getattr(self._pass_through, handlers[event.type])(new_event)
 
-            return "break"
+        return "break"
