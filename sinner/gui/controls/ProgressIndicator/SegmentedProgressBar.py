@@ -21,6 +21,8 @@ class UpdateCommand:
 
 
 class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
+    _pass_through: tk.Widget | None = None
+
     def __init__(self, master: tk.Misc | None, segments: int = 100, width: int = 0, height: int = 10, min_visible_width: int = 0, colors: Dict[int, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
         """
         Создает сегментированный прогресс-бар
@@ -33,6 +35,8 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
             min_visible_width: минимальная видимая ширина группы сегментов в пикселях
             colors: словарь соответствия значений цветам (например {0: 'white', 1: 'blue'})
         """
+        kwargs['highlightthickness'] = 0  # Убирает внешнюю рамку фокуса
+        kwargs['bd'] = 0  # Убирает бордюр
         super().__init__(master, width=width, height=height, **kwargs)
 
         self.states: List[int] = []
@@ -108,7 +112,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
 
         # Создаем фон
         self.create_rectangle(0, 0, self.width, self.height,
-                              fill='white', outline='gray',
+                              fill='blue', outline='red',
                               tags="background")
 
         # Создаем сегменты заново с новыми размерами
@@ -244,3 +248,62 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas):
                         segment_id = self.segment_ids[i]
                         self.itemconfig(segment_id,
                                         fill=self.colors.get(value, DEFAULT_SEGMENT_COLOR))
+
+    @property
+    def pass_through(self) -> tk.Widget | None:
+        return self._pass_through
+
+    @pass_through.setter
+    def pass_through(self, value: tk.Widget | None) -> None:
+        self._pass_through = value
+        if self._pass_through:
+            # Привязываем события мыши
+            self.bind('<Button-1>', self._handle_mouse_event)
+            self.bind('<ButtonRelease-1>', self._handle_mouse_event)
+            self.bind('<Button-2>', self._handle_mouse_event)
+            self.bind('<ButtonRelease-2>', self._handle_mouse_event)
+            self.bind('<Button-3>', self._handle_mouse_event)
+            self.bind('<ButtonRelease-3>', self._handle_mouse_event)
+            self.bind('<Motion>', self._handle_mouse_event)
+            self.bind('<B1-Motion>', self._handle_mouse_event)
+            self.bind('<B2-Motion>', self._handle_mouse_event)
+            self.bind('<B3-Motion>', self._handle_mouse_event)
+            self.bind('<Enter>', self._handle_mouse_event)
+            self.bind('<Leave>', self._handle_mouse_event)
+
+    def _handle_mouse_event(self, event: tk.Event) -> str:  # type: ignore[type-arg]
+        """
+            Транслирует событие мыши в CTkSlider
+            Изначально код задумывался для трансляции любых событий в любой виджет, но
+            оказалось, что слайдер имеет кастомную обработку, и пришлось это учесть.
+        """
+        if not self.pass_through or not hasattr(self._pass_through, '_clicked'):
+            return ""
+
+        # Конвертируем координаты
+        abs_x = self.winfo_rootx() + event.x
+        abs_y = self.winfo_rooty() + event.y
+        rel_x = abs_x - self._pass_through.winfo_rootx()
+        rel_y = abs_y - self._pass_through.winfo_rooty()
+
+        # Создаем новое событие
+        new_event = tk.Event()
+        new_event.x = rel_x
+        new_event.y = rel_y
+        new_event.x_root = event.x_root
+        new_event.y_root = event.y_root
+        new_event.type = event.type
+        new_event.widget = self._pass_through
+
+        # Словарь соответствия событий методам слайдера
+        handlers = {
+            tk.EventType.ButtonPress: '_clicked',
+            tk.EventType.Motion: '_motion',
+            tk.EventType.ButtonRelease: '_released'
+        }
+
+        # Вызываем соответствующий метод, если он есть
+        if event.type in handlers and hasattr(self._pass_through, handlers[event.type]):
+            getattr(self._pass_through, handlers[event.type])(new_event)
+
+            return "break"

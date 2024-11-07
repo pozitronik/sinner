@@ -7,7 +7,7 @@ from customtkinter import CTk
 from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
-from sinner.gui.controls.ProgressIndicator.SegmentedProgressBar import SegmentedProgressBar
+from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
@@ -117,8 +117,7 @@ class GUIForm(AttributeLoader):
         self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
 
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-        self.ProcessingProgress = SegmentedProgressBar(self.NavigationFrame, colors={0: 'black', 1: 'yellow', 2: 'green', 3: 'red'})
-        self.GUIModel = GUIModel(parameters, pb_control=self.ProcessingProgress, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+        self.GUIModel = GUIModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         def on_player_window_close() -> None:
             self.GUIModel.player_stop(wait=True)
@@ -152,7 +151,7 @@ class GUIForm(AttributeLoader):
                 on_self_run_button_press()
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = SliderFramePosition(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
+        self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
 
         # Controls frame and contents
         self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors
@@ -279,11 +278,12 @@ class GUIForm(AttributeLoader):
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
-        # self.NavigateSlider.pack(anchor=CENTER, side=TOP, expand=False, fill=X)
         self.NavigationFrame.pack(fill=X, expand=False, anchor=NW)
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
-        self.ProcessingProgress.pack(anchor=NW, side=LEFT, expand=True, fill=X)
         self.update_slider_bounds()
+
+        self.GUIModel.progress_control = self.NavigateSlider.progress
+
         self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
         self.BaseFrame.pack(anchor=NW, expand=False, side=TOP, fill=X)
