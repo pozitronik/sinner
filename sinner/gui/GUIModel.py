@@ -520,4 +520,4 @@ class GUIModel(AttributeLoader, StatusMixin):
         self._ProgressBar = value
         if self._ProgressBar:
             self._ProgressBar.set_segments(self.frame_handler.fc)
-            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+            self._ProgressBar.set_segment_values(list(map(lambda x: x - 1, self.TimeLine.processed_frames)), PROCESSED)  # processed frames are 1-based, progressbar indexes are 0-based
