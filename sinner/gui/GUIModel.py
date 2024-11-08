@@ -320,6 +320,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         if self.AudioPlayer:
             self.AudioPlayer.position = int(frame_position * self.frame_handler.frame_time)
         self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
+        self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
 
     def player_start(self, start_frame: int) -> None:
         if not self.player_is_started:
