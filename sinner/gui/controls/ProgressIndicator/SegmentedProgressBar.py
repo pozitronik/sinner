@@ -17,6 +17,7 @@ class UpdateCommand:
     """Команда обновления сегмента"""
     index: int
     value: int
+    update: bool
     callback: Optional[Callable[[], None]] = None
 
 
@@ -73,7 +74,11 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
             while not self._update_queue.empty():
                 command = self._update_queue.get_nowait()
                 with self._states_lock:
-                    self.states[command.index] = command.value
+                    if command.update:
+                        self.states[command.index] = command.value
+                    else:
+                        if self.states[command.index] == 0:
+                            self.states[command.index] = command.value
                 if not self._redraw_pending:
                     self._redraw_pending = True
                     self.after_idle(self._do_redraw)
@@ -166,7 +171,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
         if not 0 <= index < self.segments:
             raise ValueError(f"Index {index} out of range [0, {self.segments - 1}]")
 
-        self._update_queue.put(UpdateCommand(index, value, callback))
+        self._update_queue.put(UpdateCommand(index, value, True, callback))
 
     async def set_segment_value_async(self, index: int, value: int) -> None:
         """
@@ -187,7 +192,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
         self.set_segment_value(index, value, callback)
         await future
 
-    def set_segment_values(self, indexes: List[int], value: int, reset: bool = True) -> None:
+    def set_segment_values(self, indexes: List[int], value: int, reset: bool = True, update: bool = True) -> None:
         """
         Устанавливает заданное значение для списка сегментов
 
@@ -195,6 +200,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
             indexes: список индексов сегментов
             value: значение для установки
             reset: если True, сначала сбрасывает все сегменты в начальное состояние (0)
+            update: если True, обновить любые значения, иначе только пустые
         """
         # Проверяем корректность индексов
         if not indexes:
@@ -202,7 +208,7 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
         if min(indexes) < 0 or max(indexes) >= self.segments:
             raise ValueError(f"Segment index out of range [0, {self.segments - 1}]")
 
-        def update() -> None:
+        def queue_update() -> None:
             # Сбрасываем состояния если нужно
             if reset:
                 with self._states_lock:
@@ -210,10 +216,10 @@ class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
 
             # Обновляем состояния
             for index in indexes:
-                self._update_queue.put(UpdateCommand(index, value))
+                self._update_queue.put(UpdateCommand(index, value, update))
 
         # Выполняем обновление в главном потоке
-        self.after_idle(update)
+        self.after_idle(queue_update)
 
     def _redraw(self) -> None:
         """Перерисовывает все сегменты с учетом минимальной видимой ширины"""

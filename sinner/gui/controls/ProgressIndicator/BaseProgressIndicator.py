@@ -31,7 +31,7 @@ class BaseProgressIndicator:
         """
         pass
 
-    def set_segment_values(self, indexes: List[int], value: int, reset: bool = True) -> None:
+    def set_segment_values(self, indexes: List[int], value: int, reset: bool = True, update: bool = True) -> None:
         """
         Устанавливает заданное значение для списка сегментов
 
@@ -39,6 +39,7 @@ class BaseProgressIndicator:
             indexes: список индексов сегментов
             value: значение для установки
             reset: если True, сначала сбрасывает все сегменты в начальное состояние (0)
+            update: если True, обновить любые значения, иначе только пустые
         """
         pass
 
