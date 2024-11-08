@@ -501,8 +501,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished
             if self._ProgressBar:
-                self._ProgressBar.set_segments(self.frame_handler.fc + 1)
-                self._ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING)
+                self._ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
         return self._is_target_frames_extracted
 
     @staticmethod
