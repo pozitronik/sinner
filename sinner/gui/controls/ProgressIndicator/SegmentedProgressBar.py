@@ -21,7 +21,7 @@ class UpdateCommand:
     callback: Optional[Callable[[], None]] = None
 
 
-class SegmentedProgressBar(BaseProgressIndicator, tk.Canvas, tk.Widget):
+class SegmentedProgressBar(tk.Canvas, tk.Widget, BaseProgressIndicator):
     _pass_through: tk.Widget | None = None
 
     def __init__(self, master: tk.Misc | None, segments: int = 100, width: int = 0, height: int = 10, min_visible_width: int = 0, colors: Dict[int, str] | None = None, **kwargs):  # type: ignore[no-untyped-def]
