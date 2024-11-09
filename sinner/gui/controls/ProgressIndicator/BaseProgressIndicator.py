@@ -1,9 +1,9 @@
 # Base class for all progress indicators
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import List
 
 
-class BaseProgressIndicator:
+class BaseProgressIndicator(ABC):
     @abstractmethod
     def set_segments(self, segments: int) -> None:
         """
@@ -31,6 +31,7 @@ class BaseProgressIndicator:
         """
         pass
 
+    @abstractmethod
     def set_segment_values(self, indexes: List[int], value: int, reset: bool = True, update: bool = True) -> None:
         """
         Устанавливает заданное значение для списка сегментов
@@ -43,6 +44,7 @@ class BaseProgressIndicator:
         """
         pass
 
+    @abstractmethod
     async def set_segment_value_async(self, index: int, value: int) -> None:
         """
         Асинхронно устанавливает значение сегмента
@@ -50,5 +52,13 @@ class BaseProgressIndicator:
         Args:
             index: индекс сегмента (0-based)
             value: новое значение сегмента
+        """
+        pass
+
+    @abstractmethod
+    def place_configure(self, cnf={}, **kw) -> None:  # type: ignore[no-untyped-def]
+        """
+        Этот метод требует реализации только если она не предоставлена
+        другим родительским классом
         """
         pass
