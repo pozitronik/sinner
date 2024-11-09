@@ -4,6 +4,7 @@ from typing import Any
 from customtkinter import CTkSlider
 
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
+from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.controls.ProgressIndicator.SegmentedProgressBar import SegmentedProgressBar
 
 
@@ -24,7 +25,7 @@ class FrameSlider(CTkSlider, BaseFramePosition):
             **kwargs
         )
 
-        self.progress: SegmentedProgressBar = SegmentedProgressBar(
+        self.progress: BaseProgressIndicator = SegmentedProgressBar(
             self.master,
             height=progress_height,
             borderwidth=0,
@@ -32,7 +33,7 @@ class FrameSlider(CTkSlider, BaseFramePosition):
             colors={0: 'orange', 1: 'yellow', 2: 'green', 3: 'red'}
         )
 
-        self.progress.place(
+        self.progress.place_configure(
             in_=self,
             x=0,
             y=self.winfo_reqheight() - progress_height,
