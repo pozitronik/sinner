@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 
@@ -24,4 +24,12 @@ class DummyProgressIndicator(BaseProgressIndicator):
         pass
 
     def place_configure(self, cnf={}, **kw) -> None:  # type: ignore[no-untyped-def]
+        pass
+
+    @property
+    def pass_through(self) -> Any:
+        return None
+
+    @pass_through.setter
+    def pass_through(self, value: Any) -> None:
         pass

@@ -1,6 +1,6 @@
 # Base class for all progress indicators
 from abc import abstractmethod, ABC
-from typing import List
+from typing import List, Any
 
 
 class BaseProgressIndicator(ABC):
@@ -61,4 +61,14 @@ class BaseProgressIndicator(ABC):
         Этот метод требует реализации только если она не предоставлена
         другим родительским классом
         """
+        pass
+
+    @property
+    @abstractmethod
+    def pass_through(self) -> Any:
+        pass
+
+    @pass_through.setter
+    @abstractmethod
+    def pass_through(self, value: Any) -> None:
         pass
