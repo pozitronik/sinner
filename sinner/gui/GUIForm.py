@@ -39,6 +39,7 @@ class GUIForm(AttributeLoader):
     geometry: str
     state: str  # currently ignored, see issue #100
     sources_library: List[str]
+    show_progress: bool = False
 
     _event_player_window_closed: SinnerEvent  # the event when the player window is closed (forwarded via GUIModel)
 
@@ -89,6 +90,12 @@ class GUIForm(AttributeLoader):
                 'parameter': {'sources-library'},
                 'attribute': 'sources_library',
                 'help': 'The paths to the source files/folders to use in the sources library'
+            },
+            {
+                'parameter': {'progress', 'show-progress'},
+                'default': False,
+                'attribute': 'show_progress',
+                'help': 'Show processing progress indicator (experimental)'
             },
             {
                 'module_help': 'GUI Form'
@@ -151,7 +158,7 @@ class GUIForm(AttributeLoader):
                 on_self_run_button_press()
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)))
+        self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)), progress=self.show_progress)
 
         # Controls frame and contents
         self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors

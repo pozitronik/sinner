@@ -5,7 +5,7 @@ from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProg
 
 #  stub to disable progress indicator, when needed
 class DummyProgressIndicator(BaseProgressIndicator):
-    def __init__(self, **kwargs):  # type: ignore[no-untyped-def]
+    def __init__(self, **kwargs) -> None:  # type: ignore[no-untyped-def]
         pass
 
     def set_segments(self, segments: int) -> None:

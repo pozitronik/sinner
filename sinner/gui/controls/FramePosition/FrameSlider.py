@@ -1,18 +1,18 @@
 from tkinter import DISABLED, NORMAL, IntVar
-from typing import Any, TypeVar, Type
+from typing import Any
 
 from customtkinter import CTkSlider
 
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
+from sinner.gui.controls.ProgressIndicator.DummyProgressIndicator import DummyProgressIndicator
 from sinner.gui.controls.ProgressIndicator.SegmentedProgressBar import SegmentedProgressBar
-
-T = TypeVar('T', bound=BaseProgressIndicator)
 
 
 class FrameSlider(CTkSlider, BaseFramePosition):
+    progress: BaseProgressIndicator
 
-    def __init__(self, master: Any, progress: Type[T] = SegmentedProgressBar, **kwargs):  # type: ignore[no-untyped-def]
+    def __init__(self, master: Any, progress: bool = True, **kwargs):  # type: ignore[no-untyped-def]
         progress_height = 10
 
         # Инициализируем базовый слайдер с измененными параметрами
@@ -27,14 +27,16 @@ class FrameSlider(CTkSlider, BaseFramePosition):
             **kwargs
         )
 
-        self.progress: BaseProgressIndicator = progress(
-            master=self.master,
-            height=progress_height,
-            borderwidth=0,
-            border=0,
-            colors={0: 'orange', 1: 'yellow', 2: 'green', 3: 'red'}
-        )
-
+        if progress:
+            self.progress = SegmentedProgressBar(
+                master=self.master,
+                height=progress_height,
+                borderwidth=0,
+                border=0,
+                colors={0: 'orange', 1: 'yellow', 2: 'green', 3: 'red'}
+            )
+        else:
+            self.progress = DummyProgressIndicator()
         self.progress.place_configure(
             in_=self,
             x=0,
