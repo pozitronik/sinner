@@ -1,8 +1,11 @@
 from abc import abstractmethod
 from typing import Any
 
+from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
+
 
 class BaseFramePosition:
+    progress: BaseProgressIndicator
 
     @abstractmethod
     def pack(self, **kwargs) -> Any:  # type: ignore[no-untyped-def]

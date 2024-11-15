@@ -9,7 +9,7 @@ from typing import List, Callable, Any
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
-from sinner.gui.controls.ProgressBarManager import ProgressBarManager
+from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -25,12 +25,14 @@ from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.processors.frame.FrameExtractor import FrameExtractor
-from sinner.typing import FramesList
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
+PROCESSING = 1
+PROCESSED = 2
+EXTRACTED = 3
 
 
 class GUIModel(AttributeLoader, StatusMixin):
@@ -51,15 +53,13 @@ class GUIModel(AttributeLoader, StatusMixin):
     # internal/external objects
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
-    ProgressBarsManager: ProgressBarManager
+    _ProgressBar: BaseProgressIndicator | None = None
     AudioPlayer: BaseAudioBackend | None = None
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
     _positionVar: IntVar | None = None
     _volumeVar: IntVar | None = None
-
-    _previews: dict[int, FramesList] = {}  # position: [frame, caption]  # todo: make a component or modify FrameThumbnails
 
     _status: Callable[[str, str], Any]
 
@@ -147,7 +147,7 @@ class GUIModel(AttributeLoader, StatusMixin):
             }
         ]
 
-    def __init__(self, parameters: Namespace, pb_control: ProgressBarManager, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None):
+    def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None, progress_control: BaseProgressIndicator | None = None):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -159,7 +159,8 @@ class GUIModel(AttributeLoader, StatusMixin):
 
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
-        self.ProgressBarsManager = pb_control
+
+        self.progress_control = progress_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
 
@@ -168,7 +169,6 @@ class GUIModel(AttributeLoader, StatusMixin):
         self._event_rewind = Event()
 
     def reload_parameters(self) -> None:
-        self.clear_previews()
         self._target_handler = None
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
@@ -203,6 +203,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.parameters.source = value
         self.reload_parameters()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        self.progress_control = self._ProgressBar  # to update segments
         if not self.player_is_started:
             self.update_preview()
 
@@ -216,6 +217,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.reload_parameters()
         self.Player.clear()
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
+        self.progress_control = self._ProgressBar  # to update segments
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
@@ -269,41 +271,25 @@ class GUIModel(AttributeLoader, StatusMixin):
     def is_processors_loaded(self) -> bool:
         return self._processors != {}
 
-    # returns list of all processed steps for a frame, starting from the original
-    def get_frame_steps(self, frame_number: int, extractor_handler: BaseFrameHandler | None, processed: bool = False) -> FramesList:
-        result: FramesList = []
-        if extractor_handler is None:
-            return result
-        try:
-            n_frame = extractor_handler.extract_frame(frame_number)
-            result.append((n_frame.frame, 'Original'))  # add an original frame
-        except Exception as exception:
-            self.update_status(message=str(exception), mood=Mood.BAD)
-            return result
-        if processed:  # return all processed frames
-            for processor_name, processor in self.processors.items():
-                n_frame.frame = processor.process_frame(n_frame.frame)
-                result.append((n_frame.frame, processor_name))
-        return result
-
-    def get_frames(self, frame_number: int = 0, processed: bool = False) -> FramesList:
-        saved_frames = self.get_previews(frame_number)
-        if saved_frames:  # frame already in the cache
-            return saved_frames
-        frame_steps = self.get_frame_steps(frame_number, self.frame_handler, processed)
-        if processed:
-            self.set_previews(frame_number, frame_steps)  # cache, if processing has requested
-        return frame_steps
-
     def update_preview(self, processed: bool | None = None) -> None:
         if processed is None:
             processed = self.is_processors_loaded
-        frames = self.get_frames(self.position.get(), processed)
-        if frames:
-            if processed:
-                self.Player.show_frame(frames[-1][0])
-            else:
-                self.Player.show_frame(frames[0][0])
+        frame_number = self.position.get()
+        if not processed:  # base frame requested
+            try:
+                preview_frame = self.frame_handler.extract_frame(frame_number)
+            except Exception as exception:
+                self.update_status(message=str(exception), mood=Mood.BAD)
+                preview_frame = None
+        else:
+            if not self.TimeLine.has_index(frame_number):
+                self._process_frame(frame_number)
+
+            preview_frame = self.TimeLine.get_frame_by_index(frame_number)
+
+        if preview_frame:
+            self.Player.show_frame(preview_frame.frame)
+            self.set_progress_index_value(self.position.get(), PROCESSED if processed else EXTRACTED)
         else:
             self.Player.clear()
 
@@ -315,15 +301,6 @@ class GUIModel(AttributeLoader, StatusMixin):
             else:
                 self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._target_handler
-
-    def get_previews(self, position: int) -> FramesList | None:
-        return self._previews.get(position)
-
-    def set_previews(self, position: int, previews: FramesList) -> None:
-        self._previews[position] = previews
-
-    def clear_previews(self) -> None:
-        self._previews.clear()
 
     @property
     def player_is_started(self) -> bool:
@@ -343,6 +320,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         if self.AudioPlayer:
             self.AudioPlayer.position = int(frame_position * self.frame_handler.frame_time)
         self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
+        self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
 
     def player_start(self, start_frame: int) -> None:
         if not self.player_is_started:
@@ -415,6 +393,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                     process_time, frame_index = result
                     self._average_processing_time.update(process_time / self.execution_threads)
                     processing.remove(frame_index)
+                    self.set_progress_index_value(frame_index, PROCESSED)
                     self._processing_fps = 1 / self._average_processing_time.get_average()
                     if self._biggest_processed_frame < frame_index:
                         self._biggest_processed_frame = frame_index
@@ -436,7 +415,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                     future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
-
+                    self.set_progress_index_value(next_frame, PROCESSING)
                     if len(futures) >= self.execution_threads:
                         futures[:1][0].result()
 
@@ -499,6 +478,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                                 self.position.set(self.TimeLine.last_returned_index)
                             if self.TimeLine.last_returned_index:
                                 self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
+                                self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
                 sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
@@ -521,6 +501,8 @@ class GUIModel(AttributeLoader, StatusMixin):
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished
+            if self._ProgressBar:
+                self._ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
         return self._is_target_frames_extracted
 
     @staticmethod
@@ -528,3 +510,18 @@ class GUIModel(AttributeLoader, StatusMixin):
         mem_rss = get_mem_usage()
         mem_vms = get_mem_usage('vms')
         return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
+
+    def set_progress_index_value(self, index: int, value: int) -> None:
+        if self._ProgressBar:
+            self._ProgressBar.set_segment_value(index, value)
+
+    @property
+    def progress_control(self) -> BaseProgressIndicator | None:
+        return self._ProgressBar
+
+    @progress_control.setter
+    def progress_control(self, value: BaseProgressIndicator | None) -> None:
+        self._ProgressBar = value
+        if self._ProgressBar:
+            self._ProgressBar.set_segments(self.frame_handler.fc + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
+            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)

@@ -21,7 +21,6 @@ class FrameDirectoryBuffer:
         self.temp_dir = temp_dir
         self.frames_count = frames_count
         self._zfill_length = None
-        self.init_indices()
 
     @property
     def temp_dir(self) -> str:
@@ -32,6 +31,7 @@ class FrameDirectoryBuffer:
         if not is_absolute_path(value or ''):
             raise Exception("Relative paths are not supported")
         self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(value or ''), 'preview'))
+        self.init_indices()
 
     @property
     def zfill_length(self) -> int:
@@ -97,10 +97,14 @@ class FrameDirectoryBuffer:
         return index in self._indices
 
     def init_indices(self) -> None:
+        self._indices = []
         with os.scandir(self.path) as entries:
             for entry in entries:
                 if entry.is_file() and entry.name.endswith(".png"):
                     self._indices.append(int(get_file_name(entry.name)))
+
+    def get_indices(self) -> List[int]:
+        return self._indices
 
     @property
     def miss(self) -> int:

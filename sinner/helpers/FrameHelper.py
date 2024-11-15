@@ -39,6 +39,8 @@ def write_to_image(image: Frame, path: str) -> bool:
 
 
 def scale(frame: Frame, scale_: float = 0.2) -> Frame:
+    if 1 == scale_:
+        return frame
     current_height, current_width = frame.shape[:2]
     # note: cv2.resize uses WIDTH, HEIGHT order, instead of frames HEIGHT, WIDTH order
     return cv2.resize(frame, (int(current_width * scale_), int(current_height * scale_)))

@@ -7,7 +7,7 @@ from sinner.helpers.FrameHelper import write_to_image, EmptyFrame
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
-from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path
+from sinner.utilities import is_absolute_path, format_sequences, path_exists, is_file, normalize_path, get_file_name
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
@@ -127,6 +127,15 @@ class State(AttributeLoader, StatusMixin):
                 if entry.is_file() and entry.name.endswith(".png"):
                     png_files.append(entry.path)
         return png_files
+
+    @property
+    def processed_frames_indices(self) -> List[int]:
+        indices = []
+        with os.scandir(self.path) as entries:
+            for entry in entries:
+                if entry.is_file() and entry.name.endswith(".png"):
+                    indices.append((int(get_file_name(entry.name))))
+        return indices
 
     #  Returns count of already processed frame for this target (0, if none).
     @property
