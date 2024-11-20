@@ -13,7 +13,6 @@ class AsyncWriter(Process):
         self.running = True
 
     def run(self) -> None:
-        print(f"Writer process started, PID: {os.getpid()}")
         while self.running:
             try:
                 # Получаем батч кадров
@@ -34,7 +33,6 @@ class AsyncWriter(Process):
 
 class BufferedImageWrite:
     def __init__(self, buffer_size: int = 8):
-        print(f"Main process PID: {os.getpid()}")
         self.frames: List[Tuple[NumberedFrame, str]] = []
         self.buffer_size = buffer_size
         self.write_queue: Queue = Queue()
