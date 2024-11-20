@@ -1,16 +1,17 @@
-import os
 from multiprocessing import Process, Queue
 from typing import List, Tuple, Optional
 
 from sinner.helpers.FrameHelper import write_to_image
 from sinner.models.NumberedFrame import NumberedFrame
 
+QueueItem = Optional[List[Tuple[NumberedFrame, str]]]
+
 
 class AsyncWriter(Process):
-    def __init__(self, write_queue: Queue):
+    def __init__(self, write_queue: "Queue[QueueItem]"):
         super().__init__()
-        self.queue = write_queue
-        self.running = True
+        self.queue: "Queue[QueueItem]" = write_queue
+        self.running: bool = True
 
     def run(self) -> None:
         while self.running:
@@ -35,7 +36,7 @@ class BufferedImageWrite:
     def __init__(self, buffer_size: int = 8):
         self.frames: List[Tuple[NumberedFrame, str]] = []
         self.buffer_size = buffer_size
-        self.write_queue: Queue = Queue()
+        self.write_queue: "Queue[QueueItem]" = Queue()
         self.writer: Optional[AsyncWriter] = None
 
     def start(self) -> None:
