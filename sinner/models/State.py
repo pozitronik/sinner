@@ -28,6 +28,8 @@ class State(AttributeLoader, StatusMixin):
     final_check_empty: bool = True
     final_check_integrity: bool = True
 
+    write_buffer_size: int
+
     def rules(self) -> Rules:
         return [
             {
@@ -41,6 +43,11 @@ class State(AttributeLoader, StatusMixin):
                 'filter': lambda: normalize_path(self.initial_target_path)
             },
             {
+                'parameter': {'write-buffer', 'write-buffer-size'},
+                'attribute': 'write_buffer_size',
+                'default': 100
+            },
+            {
                 'module_help': 'The state control module'
             }
         ]
@@ -52,7 +59,7 @@ class State(AttributeLoader, StatusMixin):
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
-        self._write_buffer: BufferedImageWrite = BufferedImageWrite(100)
+        self._write_buffer: BufferedImageWrite = BufferedImageWrite(self.write_buffer_size)
         state: List[Dict[str, Any]] = [
             {"Source": getattr(self, "source_path", "None")},
             {"Target": self.target_path},
