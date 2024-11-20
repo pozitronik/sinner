@@ -8,6 +8,9 @@ if sys.version_info < (3, 10):
     print('Python version is not supported - please upgrade to 3.10 or higher.')
     quit()
 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'  # disable annoying message
+os.environ['OMP_NUM_THREADS'] = '1'  # single thread doubles cuda performance - needs to be set before torch import
+
 from sinner.Benchmark import Benchmark
 from sinner.Parameters import Parameters
 from sinner.BatchProcessingCore import BatchProcessingCore
@@ -46,9 +49,4 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
-    # todo: remnants of roop code, needs to be checked
-    # single thread doubles cuda performance - needs to be set before torch import
-    if any(arg.startswith('--execution-provider') for arg in sys.argv):
-        os.environ['OMP_NUM_THREADS'] = '1'
-
     Sin().run()
