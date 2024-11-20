@@ -3,7 +3,8 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List
 
-from sinner.helpers.FrameHelper import write_to_image, EmptyFrame
+from sinner.helpers.FrameHelper import EmptyFrame
+from sinner.models.BufferedImageWrite import BufferedImageWrite
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
@@ -51,6 +52,7 @@ class State(AttributeLoader, StatusMixin):
         self.frames_count = frames_count
         self.processor_name = processor_name
         self._zfill_length = None
+        self._write_buffer: BufferedImageWrite = BufferedImageWrite(100)
         state: List[Dict[str, Any]] = [
             {"Source": getattr(self, "source_path", "None")},
             {"Target": self.target_path},
@@ -106,8 +108,7 @@ class State(AttributeLoader, StatusMixin):
         self.make_path(self._path)
 
     def save_temp_frame(self, frame: NumberedFrame) -> None:
-        if not write_to_image(frame.frame, self.get_frame_processed_name(frame)):
-            raise Exception(f"Error saving frame: {self.get_frame_processed_name(frame)}")
+        self._write_buffer.write_frame(frame, self.get_frame_processed_name(frame))
 
     #  Checks if some frame already processed
     @property
@@ -162,6 +163,7 @@ class State(AttributeLoader, StatusMixin):
         return self._zfill_length
 
     def final_check(self) -> tuple[bool, List[int]]:
+        self.flush_write_buffer()
         result = True
         processed_frames_count = self.processed_frames_count
         if self.final_check_state and not self.is_finished:
@@ -192,3 +194,8 @@ class State(AttributeLoader, StatusMixin):
             if not path_exists(f_name):
                 result.append(frame_index)
         return result
+
+    def flush_write_buffer(self) -> None:
+        # Гарантируем корректное завершение writer'а
+        if hasattr(self, '_write_buffer'):
+            self._write_buffer.shutdown()

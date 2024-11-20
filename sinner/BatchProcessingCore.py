@@ -164,6 +164,7 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
                 initial=state.processed_frames_count,
         ) as progress:
             self.multi_process_frame(processor=processor, frames=handler, extract=handler.extract_frame, save=state.save_temp_frame, progress=progress)
+            state.flush_write_buffer()
         _, lost_frames = state.final_check()
         if lost_frames:
             with tqdm(
