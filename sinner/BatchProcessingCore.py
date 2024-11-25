@@ -129,6 +129,7 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
                 if current_processor.self_processing:
                     current_processor.process(handler, state)
                 else:
+                    self.update_status(f'Processing with {processor_name} start')
                     self.process(current_processor, handler, state)
                 current_processor.release_resources()
                 self.update_status(f'{processor_name} release resources done')
@@ -162,6 +163,7 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
 
     def process(self, processor: BaseFrameProcessor, handler: BaseFrameHandler, state: State) -> None:
         handler.current_frame_index = state.processed_frames_count
+        self.update_status(f'Start multiprocessing')
         with tqdm(
                 total=state.frames_count,
                 desc=state.processor_name, unit='frame',
@@ -169,12 +171,14 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]',
                 initial=state.processed_frames_count,
         ) as progress:
+
             self.multi_process_frame(processor=processor, frames=handler, extract=handler.extract_frame, save=state.save_temp_frame, progress=progress)
         self.update_status(f'Processing done')
         _, lost_frames = state.final_check()
         self.update_status(f'Final check done: {lost_frames} lost')
         if lost_frames:
             with tqdm(
+                    disable=True,
                     total=len(lost_frames),
                     desc="Processing lost frames", unit='frame',
                     dynamic_ncols=True,
@@ -187,22 +191,28 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
 
     def multi_process_frame(self, processor: BaseFrameProcessor, frames: Iterable[int], extract: Callable[[int], NumberedFrame], save: Callable[[NumberedFrame], None], progress: tqdm) -> None:  # type: ignore[type-arg]
         def process_done(future_: Future[None]) -> None:
-            futures.remove(future_)
-            progress.set_postfix(self.get_postfix(len(futures)))
-            progress.update()
+            try:
+                futures.remove(future_)
+                progress.set_postfix(self.get_postfix(len(futures)))
+                progress.update()
+            except Exception as E:
+                self.update_status(f'process_done() error: {E} ')
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:
             futures: list[Future[None]] = []
-            for frame_num in frames:
-                future: Future[None] = executor.submit(self.process_frame, frame_num, extract, processor.process_frame, save)
-                future.add_done_callback(process_done)
-                futures.append(future)
-                progress.set_postfix(self.get_postfix(len(futures)))
-                if get_mem_usage('vms', 'g') >= self.max_memory:
-                    futures[:1][0].result()
-                    self._statistics['limits_reaches'] += 1
-            for completed_future in as_completed(futures):
-                completed_future.result()
+            try:
+                for frame_num in frames:
+                    future: Future[None] = executor.submit(self.process_frame, frame_num, extract, processor.process_frame, save)
+                    future.add_done_callback(process_done)
+                    futures.append(future)
+                    progress.set_postfix(self.get_postfix(len(futures)))
+                    if get_mem_usage('vms', 'g') >= self.max_memory:
+                        futures[:1][0].result()
+                        self._statistics['limits_reaches'] += 1
+                for completed_future in as_completed(futures):
+                    completed_future.result()
+            except Exception as E:
+                self.update_status(f'multi_process_frame() error: {E} ')
 
     def get_mem_usage(self) -> str:
         mem_rss = get_mem_usage()
