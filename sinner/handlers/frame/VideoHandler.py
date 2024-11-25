@@ -27,5 +27,7 @@ class VideoHandler(CV2VideoHandler, FFmpegVideoHandler):
 
     def result(self, from_dir: str, filename: str, audio_target: str | None = None) -> bool:
         if FFmpegVideoHandler.available():
+            self.update_status('FFmpegVideoHandler available, resulting')
             return FFmpegVideoHandler.result(self, from_dir, filename, audio_target)
+        self.update_status('FFmpegVideoHandler is not available, fallback to CV2')
         return super().result(from_dir, filename, audio_target)

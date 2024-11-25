@@ -131,19 +131,25 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
                 else:
                     self.process(current_processor, handler, state)
                 current_processor.release_resources()
+                self.update_status(f'{processor_name} release resources done')
             current_target_path = state.path
             temp_resources.append(state.path)
 
         if current_target_path is not None:
             handler = self.suggest_handler(self.target_path, self.parameters)
+            self.update_status(f'{handler.__class__} suggested as handler, resulting')
             handler.result(from_dir=current_target_path, filename=str(self._output_file), audio_target=self.target_path)
+            self.update_status(f'Video should be ready: {current_target_path}')
         else:
             self.update_status('Target path is empty, ignoring', mood=Mood.BAD)
 
         if self.keep_frames is False:
             self.update_status('Deleting temp resources')
             for dir_path in temp_resources:
+                self.update_status(f'rmtree: {dir_path}')
                 shutil.rmtree(dir_path, ignore_errors=True)
+        else:
+            self.update_status('Temp resources kept.')
 
     def process_frame(self, frame_num: int, extract: Callable[[int], NumberedFrame], process: Callable[[Frame], Frame], save: Callable[[NumberedFrame], None]) -> None:
         try:
@@ -164,7 +170,9 @@ class BatchProcessingCore(AttributeLoader, StatusMixin):
                 initial=state.processed_frames_count,
         ) as progress:
             self.multi_process_frame(processor=processor, frames=handler, extract=handler.extract_frame, save=state.save_temp_frame, progress=progress)
+        self.update_status(f'Processing done')
         _, lost_frames = state.final_check()
+        self.update_status(f'Final check done: {lost_frames} lost')
         if lost_frames:
             with tqdm(
                     total=len(lost_frames),
