@@ -162,6 +162,9 @@ class CV2VideoHandler(BaseFrameHandler):
             raise EOutOfRange(frame_number, 0, self.fc)
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
+        # Note: we can get a message like
+        # [mov,mp4,m4a,3gp,3g2,mj2 @ 000001cb3b65c780] stream 1, offset 0x20e8c99: partial file
+        # here, but can't do anything with it (because it is from ffmpeg backend). It means that the file is broken.
         ret, frame = capture.read()
         capture.release()
         if not ret:
