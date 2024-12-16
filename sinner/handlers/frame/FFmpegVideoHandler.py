@@ -8,7 +8,7 @@ from typing import List
 import cv2
 from numpy import uint8, frombuffer
 
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler, FC_UNKNOWN
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.status.Mood import Mood
@@ -85,7 +85,7 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._fc = int(output)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
-                self._fc = 0
+                self._fc = FC_UNKNOWN
         return self._fc
 
     @property

@@ -10,15 +10,17 @@ from sinner.validators.AttributeLoader import Rules, AttributeLoader
 from sinner.typing import NumeratedFramePath
 from sinner.utilities import load_class, get_file_name, is_file, normalize_path
 
+FC_UNKNOWN = LENGTH_UNKNOWN = -1
+
 
 class BaseFrameHandler(AttributeLoader, ABC, StatusMixin):
     current_frame_index: int = 0
 
     _target_path: str
     _fps: float | None = None
-    _fc: int | None = None
+    _fc: int | None = None  # -1 if not determined
     _resolution: tuple[int, int] | None = None
-    _length: float | None = None
+    _length: float | None = None  # -1 if not determined
 
     def rules(self) -> Rules:
         return [
@@ -76,6 +78,8 @@ class BaseFrameHandler(AttributeLoader, ABC, StatusMixin):
         Returns the target play length in seconds if it can be determined, else None
         """
         if self._length is None:
+            if self._fc == FC_UNKNOWN:
+                self._length = LENGTH_UNKNOWN
             self._length = self.fc / self.fps
         return self._length
 

@@ -9,7 +9,7 @@ from cv2 import VideoCapture
 from tqdm import tqdm
 
 from sinner.models.status.Mood import Mood
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler, FC_UNKNOWN
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
@@ -71,21 +71,8 @@ class CV2VideoHandler(BaseFrameHandler):
             header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
             if is_frame_readable(header_frames_count):
                 self._fc = header_frames_count
-                return self._fc
-            else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
-                last_good_position = 1
-                last_bad_position = header_frames_count
-                current_position = int((last_bad_position - last_good_position) / 2)
-                while last_bad_position - last_good_position > 1:
-                    if is_frame_readable(current_position):
-                        last_good_position = current_position
-                        current_position += int((last_bad_position - last_good_position) / 2)
-                    else:
-                        last_bad_position = current_position
-                        current_position -= int((last_bad_position - last_good_position) / 2)
-
-            capture.release()
-            self._fc = last_good_position
+            else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct. In this case FC_UNKNOWN will be returned
+                self._fc = FC_UNKNOWN
         return self._fc
 
     @property
