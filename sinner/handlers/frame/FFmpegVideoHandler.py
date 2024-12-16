@@ -76,6 +76,9 @@ class FFmpegVideoHandler(BaseFrameHandler):
 
     @property
     def fc(self) -> int:
+        def is_frame_readable(position: int) -> bool:
+            return 'nothing was encoded' not in subprocess.check_output(['ffmpeg', '-i', self._target_path, '-vf', f"select='eq(n,{position})", '-f', 'null', '-'], stderr=subprocess.STDOUT).decode('utf-8').strip()
+
         if self._fc is None:
             try:
                 command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
@@ -85,6 +88,8 @@ class FFmpegVideoHandler(BaseFrameHandler):
                 self._fc = int(output)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
+
+            if not is_frame_readable(self._fc):
                 self._fc = FC_UNKNOWN
         return self._fc
 
