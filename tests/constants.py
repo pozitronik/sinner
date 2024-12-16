@@ -19,6 +19,7 @@ multiple_faces_jpg: str = resolve_relative_path('data/sources/multiple_faces.jpg
 target_faces: str = os.path.join(data_targets_dir, 'faces.jpg')
 target_png: str = os.path.join(data_targets_dir, 'target.png')
 target_mp4: str = os.path.join(data_targets_dir, 'target.mp4')
+broken_mp4: str = os.path.join(data_targets_dir, 'broken_frames.mp4')
 silent_target_mp4: str = os.path.join(data_targets_dir, 'target_silent.mp4')
 source_target_png: str = os.path.join(data_targets_dir, 'source-target.png')  # auto result name for image swap
 result_target_png: str = os.path.join(data_targets_dir, 'result-target.png')  # auto result name for image processing

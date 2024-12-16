@@ -8,9 +8,10 @@ from cv2 import VideoCapture
 from numpy import ndarray
 
 from sinner.Parameters import Parameters
+from sinner.handlers.frame.BaseFrameHandler import FC_UNKNOWN
 from sinner.handlers.frame.CV2VideoHandler import CV2VideoHandler
 from sinner.utilities import resolve_relative_path
-from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE, tmp_dir, target_mp4, result_mp4, state_frames_dir, TARGET_RESOLUTION
+from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE, tmp_dir, target_mp4, broken_mp4, result_mp4, state_frames_dir, TARGET_RESOLUTION
 
 parameters: Namespace = Parameters().parameters
 
@@ -27,6 +28,10 @@ def setup_function():
 
 def get_test_object() -> CV2VideoHandler:
     return CV2VideoHandler(parameters=parameters, target_path=target_mp4)
+
+
+def get_broken_object() -> CV2VideoHandler:
+    return CV2VideoHandler(parameters=parameters, target_path=broken_mp4)
 
 
 def test_open() -> None:
@@ -47,6 +52,10 @@ def test_detect_fps() -> None:
 
 def test_detect_fc() -> None:
     assert TARGET_FC == get_test_object().fc
+
+
+def test_detect_broken_fc() -> None:
+    assert FC_UNKNOWN == get_broken_object().fc
 
 
 def test_detect_resolution() -> None:
