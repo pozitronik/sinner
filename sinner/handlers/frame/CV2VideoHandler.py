@@ -1,4 +1,5 @@
 import glob
+import math
 import os.path
 from pathlib import Path
 from typing import List, Any
@@ -9,7 +10,7 @@ from cv2 import VideoCapture
 from tqdm import tqdm
 
 from sinner.models.status.Mood import Mood
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler, FC_UNKNOWN
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
@@ -63,16 +64,33 @@ class CV2VideoHandler(BaseFrameHandler):
     @property
     def fc(self) -> int:  # this value can be inaccurate
         def is_frame_readable(position: int) -> bool:
-            capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)
+            capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)  # zero-based!
             return capture.read()[0]
+
+        def find_last_frame(total_frames: int) -> int:
+            if is_frame_readable(total_frames):
+                return total_frames
+
+            jump_size = int(math.sqrt(total_frames))  # оптимальный размер прыжка
+
+            # Прыжковый поиск
+            current = 1
+            while current < total_frames and is_frame_readable(current):
+                current += jump_size
+
+            # Линейный поиск на последнем интервале
+            left = current - jump_size
+            right = min(current, total_frames)
+
+            while left < right and is_frame_readable(left):
+                left += 1
+
+            return left - 1
 
         if self._fc is None:
             capture = self.open()
-            header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-            if is_frame_readable(header_frames_count):
-                self._fc = header_frames_count
-            else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct. In this case FC_UNKNOWN will be returned
-                self._fc = FC_UNKNOWN
+            self._fc = find_last_frame(int(capture.get(cv2.CAP_PROP_FRAME_COUNT)))  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct. In this case we need to search last good frame
+            capture.release()
         return self._fc
 
     @property

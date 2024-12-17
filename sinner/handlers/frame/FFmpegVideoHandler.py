@@ -1,3 +1,4 @@
+import math
 import os
 import shutil
 import subprocess
@@ -8,7 +9,7 @@ from typing import List
 import cv2
 from numpy import uint8, frombuffer
 
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler, FC_UNKNOWN
+from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.status.Mood import Mood
@@ -77,20 +78,38 @@ class FFmpegVideoHandler(BaseFrameHandler):
     @property
     def fc(self) -> int:
         def is_frame_readable(position: int) -> bool:
-            return 'nothing was encoded' not in subprocess.check_output(['ffmpeg', '-i', self._target_path, '-vf', f"select='eq(n,{position})", '-f', 'null', '-'], stderr=subprocess.STDOUT).decode('utf-8').strip()
+            return 'nothing was encoded' not in subprocess.check_output(['ffmpeg', '-i', self._target_path, '-vf', f"select='eq(n,{position - 1})", '-f', 'null', '-'], stderr=subprocess.STDOUT).decode().strip()  # zer-based index
+
+        def find_last_frame(total_frames: int) -> int:
+            if is_frame_readable(total_frames):
+                return total_frames
+
+            jump_size = int(math.sqrt(total_frames))  # оптимальный размер прыжка
+
+            # Прыжковый поиск
+            current = 1
+            while current < total_frames and is_frame_readable(current):
+                current += jump_size
+
+            # Линейный поиск на последнем интервале
+            left = current - jump_size
+            right = min(current, total_frames)
+
+            while left < right and is_frame_readable(left):
+                left += 1
+
+            return left - 1
 
         if self._fc is None:
             try:
                 command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
-                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode().strip()  # can be very slow!
                 if 'N/A' == output:
                     return 1  # non-frame files, still processable
-                self._fc = int(output)
+                self._fc = find_last_frame(int(output))
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
-
-            if not is_frame_readable(self._fc):
-                self._fc = FC_UNKNOWN
+                self._fc = 0
         return self._fc
 
     @property

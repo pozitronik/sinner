@@ -12,7 +12,7 @@ from sinner.models.State import State
 from sinner.processors.frame.DummyProcessor import DummyProcessor
 from sinner.utilities import limit_resources, suggest_max_memory, get_file_name, get_app_dir, resolve_relative_path
 from sinner.validators.LoaderException import LoadingException
-from tests.constants import target_png, source_jpg, target_mp4, source_target_png, source_target_mp4, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC, images_dir, source_images_result
+from tests.constants import target_png, source_jpg, target_mp4, source_target_png, source_target_mp4, state_frames_dir, result_mp4, tmp_dir, result_png, TARGET_FC, images_dir, source_images_result, broken_mp4
 
 threads_count = multiprocessing.cpu_count()
 
@@ -45,6 +45,12 @@ def test_no_source() -> None:
     limit_resources(suggest_max_memory())
     with pytest.raises(LoadingException):
         BatchProcessingCore(parameters=params.parameters).run()  # source path is fucked up
+
+
+def test_broken_source() -> None:
+    params = Parameters(f'--target_path="{broken_mp4}" --source_path="{source_jpg}"')
+    limit_resources(suggest_max_memory())
+    BatchProcessingCore(parameters=params.parameters).run()
 
 
 def test_swap_image() -> None:
