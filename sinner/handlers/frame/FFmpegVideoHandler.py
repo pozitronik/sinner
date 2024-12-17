@@ -84,21 +84,19 @@ class FFmpegVideoHandler(BaseFrameHandler):
             if is_frame_readable(total_frames):
                 return total_frames
 
-            jump_size = int(math.sqrt(total_frames))  # оптимальный размер прыжка
+            left = 1
+            right = total_frames
+            last_good = 0
 
-            # Прыжковый поиск
-            current = 1
-            while current < total_frames and is_frame_readable(current):
-                current += jump_size
+            while left <= right:
+                mid = (left + right) // 2
+                if is_frame_readable(mid):
+                    last_good = mid
+                    left = mid + 1
+                else:
+                    right = mid - 1
 
-            # Линейный поиск на последнем интервале
-            left = current - jump_size
-            right = min(current, total_frames)
-
-            while left < right and is_frame_readable(left):
-                left += 1
-
-            return left - 1
+            return last_good
 
         if self._fc is None:
             try:
