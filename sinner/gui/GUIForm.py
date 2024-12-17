@@ -8,13 +8,13 @@ from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
 from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
+from sinner.gui.controls.ThumbnailWidget.ImageThumbnailWidget import ImageThumbnailWidget
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
-from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt
@@ -29,7 +29,7 @@ class GUIForm(AttributeLoader):
     GUIModel: GUIModel
     StatusBar: StatusBar
     # SourcesLibraryWnd: SourcesLibraryForm
-    SourcesLibrary: ThumbnailWidget
+    SourcesLibrary: ImageThumbnailWidget
 
     topmost: bool
     show_frames_widget: bool
@@ -207,7 +207,7 @@ class GUIForm(AttributeLoader):
         # Dynamic widgets
 
         self.SourcesLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
-        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
+        self.SourcesLibrary = ImageThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
 
         # self.GUIModel.status_bar = self.StatusBar
 
@@ -413,7 +413,7 @@ class GUIForm(AttributeLoader):
 
         def add_image(image_path: str) -> None:
             if is_image(image_path):
-                self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+                self.SourcesLibrary.add_thumbnail(source_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
 
         for path in paths:
             if is_image(path):

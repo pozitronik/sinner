@@ -5,7 +5,7 @@ from typing import List, Callable
 
 from customtkinter import CTkToplevel
 
-from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
+from sinner.gui.controls.ThumbnailWidget.ImageThumbnailWidget import ImageThumbnailWidget
 from sinner.models.Config import Config
 from sinner.utilities import is_image, is_dir, get_directory_file_list, get_type_extensions
 from sinner.validators.AttributeLoader import AttributeLoader, Rules
@@ -15,7 +15,7 @@ from sinner.validators.AttributeLoader import AttributeLoader, Rules
 class SourcesLibraryForm(AttributeLoader):
     parameters: Namespace
     SourcesLibraryWnd: CTkToplevel
-    SourcesLibrary: ThumbnailWidget
+    SourcesLibrary: ImageThumbnailWidget
     _library: List[str] = []
     _library_is_loaded: bool = False
     _on_thumbnail_click_callback: Callable[[str], None] | None = None
