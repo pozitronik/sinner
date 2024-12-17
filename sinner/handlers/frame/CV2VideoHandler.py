@@ -1,5 +1,4 @@
 import glob
-import math
 import os.path
 from pathlib import Path
 from typing import List, Any
