@@ -8,7 +8,7 @@ from numpy import ndarray
 
 from sinner.handlers.frame.FFmpegVideoHandler import FFmpegVideoHandler
 from sinner.utilities import resolve_relative_path
-from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE, tmp_dir, target_mp4, result_mp4, state_frames_dir, TARGET_RESOLUTION
+from tests.constants import TARGET_FPS, TARGET_FC, FRAME_SHAPE, tmp_dir, target_mp4, result_mp4, state_frames_dir, TARGET_RESOLUTION, broken_mp4, BROKEN_FC
 
 
 def setup():
@@ -25,6 +25,10 @@ def get_test_object() -> FFmpegVideoHandler:
     return FFmpegVideoHandler(target_path=target_mp4, parameters=Namespace())
 
 
+def get_broken_object() -> FFmpegVideoHandler:
+    return FFmpegVideoHandler(parameters=Namespace(), target_path=broken_mp4)
+
+
 def test_available() -> None:
     assert get_test_object().available() is True
 
@@ -35,6 +39,10 @@ def test_detect_fps() -> None:
 
 def test_detect_fc() -> None:
     assert TARGET_FC == get_test_object().fc
+
+
+def test_detect_broken_fc() -> None:
+    assert BROKEN_FC == get_broken_object().fc
 
 
 def test_detect_resolution() -> None:

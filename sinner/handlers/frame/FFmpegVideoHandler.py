@@ -76,13 +76,34 @@ class FFmpegVideoHandler(BaseFrameHandler):
 
     @property
     def fc(self) -> int:
+        def is_frame_readable(position: int) -> bool:
+            return 'nothing was encoded' not in subprocess.check_output(['ffmpeg', '-i', self._target_path, '-vf', f"select='eq(n,{position - 1})", '-f', 'null', '-'], stderr=subprocess.STDOUT).decode().strip()  # zer-based index
+
+        def find_last_frame(total_frames: int) -> int:
+            if is_frame_readable(total_frames):
+                return total_frames
+
+            left = 1
+            right = total_frames
+            last_good = 0
+
+            while left <= right:
+                mid = (left + right) // 2
+                if is_frame_readable(mid):
+                    last_good = mid
+                    left = mid + 1
+                else:
+                    right = mid - 1
+
+            return last_good
+
         if self._fc is None:
             try:
                 command = ['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', '-show_entries', 'stream=nb_frames', '-of', 'default=nokey=1:noprint_wrappers=1', self._target_path]
-                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode('utf-8').strip()  # can be very slow!
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode().strip()  # can be very slow!
                 if 'N/A' == output:
                     return 1  # non-frame files, still processable
-                self._fc = int(output)
+                self._fc = find_last_frame(int(output))
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 self._fc = 0

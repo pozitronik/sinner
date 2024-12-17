@@ -63,29 +63,31 @@ class CV2VideoHandler(BaseFrameHandler):
     @property
     def fc(self) -> int:  # this value can be inaccurate
         def is_frame_readable(position: int) -> bool:
-            capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)
+            capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)  # zero-based!
             return capture.read()[0]
+
+        def find_last_frame(total_frames: int) -> int:
+            if is_frame_readable(total_frames):
+                return total_frames
+
+            left = 1
+            right = total_frames
+            last_good = 0
+
+            while left <= right:
+                mid = (left + right) // 2
+                if is_frame_readable(mid):
+                    last_good = mid
+                    left = mid + 1
+                else:
+                    right = mid - 1
+
+            return last_good
 
         if self._fc is None:
             capture = self.open()
-            header_frames_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-            if is_frame_readable(header_frames_count):
-                self._fc = header_frames_count
-                return self._fc
-            else:  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct, so we can find the right value via binary search
-                last_good_position = 1
-                last_bad_position = header_frames_count
-                current_position = int((last_bad_position - last_good_position) / 2)
-                while last_bad_position - last_good_position > 1:
-                    if is_frame_readable(current_position):
-                        last_good_position = current_position
-                        current_position += int((last_bad_position - last_good_position) / 2)
-                    else:
-                        last_bad_position = current_position
-                        current_position -= int((last_bad_position - last_good_position) / 2)
-
+            self._fc = find_last_frame(int(capture.get(cv2.CAP_PROP_FRAME_COUNT)))  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct. In this case we need to search last good frame
             capture.release()
-            self._fc = last_good_position
         return self._fc
 
     @property
@@ -175,6 +177,9 @@ class CV2VideoHandler(BaseFrameHandler):
             raise EOutOfRange(frame_number, 0, self.fc)
         capture = self.open()
         capture.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)  # zero-based frames
+        # Note: we can get a message like
+        # [mov,mp4,m4a,3gp,3g2,mj2 @ 000001cb3b65c780] stream 1, offset 0x20e8c99: partial file
+        # here, but can't do anything with it (because it is from ffmpeg backend). It means that the file is broken.
         ret, frame = capture.read()
         capture.release()
         if not ret:
