@@ -1,6 +1,6 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
-from tkinter.ttk import Spinbox, Label
+from tkinter.ttk import Spinbox, Label, Notebook
 from typing import List
 
 from customtkinter import CTk
@@ -212,10 +212,14 @@ class GUIForm(AttributeLoader):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
-        # Dynamic widgets
+        # Library widgets
 
-        self.SourcesLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
-        self.TargetsLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
+        self.LibraryNotebook: Notebook = Notebook(self.WidgetsFrame)
+        self.SourcesLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
+        self.LibraryNotebook.add(self.SourcesLibraryFrame, text='Sources')
+
+        self.TargetsLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
+        self.LibraryNotebook.add(self.TargetsLibraryFrame, text='Targets')
         self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
         self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), parameters=self.parameters)
 
@@ -333,12 +337,11 @@ class GUIForm(AttributeLoader):
         self.ControlsFrame.pack(side=TOP, fill=BOTH, expand=True)
 
         self.SourcesLibrary.pack(side=TOP, expand=True, fill=BOTH)
-        self.SourcesLibraryFrame.pack(side=BOTTOM, expand=True, fill=BOTH)
         self.SourcesLibraryFrame.rowconfigure(0, weight=1)
         self.SourcesLibraryFrame.columnconfigure(0, weight=1)
+        self.LibraryNotebook.pack(expand=True, fill='both')
 
         self.TargetsLibrary.pack(side=BOTTOM, expand=True, fill=BOTH)
-        self.TargetsLibraryFrame.pack(side=BOTTOM, expand=True, fill=BOTH)
         self.TargetsLibraryFrame.rowconfigure(0, weight=1)
         self.TargetsLibraryFrame.columnconfigure(0, weight=1)
 
