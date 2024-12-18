@@ -486,16 +486,15 @@ class GUIForm(AttributeLoader):
         if reload:
             self.TargetsLibrary.clear_thumbnails()
 
-        def add_video(image_path: str) -> None:
-            if is_video(image_path):
-                self.TargetsLibrary.add_thumbnail(source_path=image_path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+        def add_file(source_path: str) -> None:
+            self.TargetsLibrary.add_thumbnail(source_path=source_path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
 
         for path in paths:
-            if is_video(path):
-                add_video(path)
-            elif is_dir(path):
+            if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_video):
-                    add_video(dir_file)
+                    add_file(dir_file)
+            else:
+                add_file(path)
 
     def add_target_files(self) -> None:
         file_paths = filedialog.askopenfilenames(
@@ -504,7 +503,7 @@ class GUIForm(AttributeLoader):
             initialdir=self.GUIModel.target_dir
         )
         if file_paths:
-            self.source_library_add(paths=list(file_paths))
+            self.target_library_add(paths=list(file_paths))
 
     def add_target_folder(self) -> None:
         directory = filedialog.askdirectory(
@@ -512,7 +511,7 @@ class GUIForm(AttributeLoader):
             initialdir=self.GUIModel.target_dir
         )
         if directory:
-            self.source_library_add(paths=[directory])
+            self.target_library_add(paths=[directory])
 
     def target_clear(self) -> None:
         self.TargetsLibrary.clear_thumbnails()
