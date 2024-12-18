@@ -1,6 +1,6 @@
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
-from tkinter.ttk import Spinbox, Label
+from tkinter.ttk import Spinbox, Label, Notebook
 from typing import List
 
 from customtkinter import CTk
@@ -8,16 +8,17 @@ from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
 from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
+from sinner.gui.controls.ThumbnailWidget.SourcesThumbnailWidget import SourcesThumbnailWidget
+from sinner.gui.controls.ThumbnailWidget.TargetsThumbnailWidget import TargetsThumbnailWidget
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
-from sinner.gui.controls.ThumbnailWidget import ThumbnailWidget
 from sinner.models.Config import Config
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
-from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt
+from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
@@ -29,7 +30,8 @@ class GUIForm(AttributeLoader):
     GUIModel: GUIModel
     StatusBar: StatusBar
     # SourcesLibraryWnd: SourcesLibraryForm
-    SourcesLibrary: ThumbnailWidget
+    SourcesLibrary: SourcesThumbnailWidget
+    TargetsLibrary: TargetsThumbnailWidget
 
     topmost: bool
     show_frames_widget: bool
@@ -39,6 +41,7 @@ class GUIForm(AttributeLoader):
     geometry: str
     state: str  # currently ignored, see issue #100
     sources_library: List[str]
+    targets_library: List[str]
     show_progress: bool = False
 
     _event_player_window_closed: SinnerEvent  # the event when the player window is closed (forwarded via GUIModel)
@@ -90,6 +93,11 @@ class GUIForm(AttributeLoader):
                 'parameter': {'sources-library'},
                 'attribute': 'sources_library',
                 'help': 'The paths to the source files/folders to use in the sources library'
+            },
+            {
+                'parameter': {'targets-library'},
+                'attribute': 'targets_library',
+                'help': 'The paths to the target files/folders to use in the targets library'
             },
             {
                 'parameter': {'progress', 'show-progress'},
@@ -204,10 +212,16 @@ class GUIForm(AttributeLoader):
         self.SelectTargetDialog = filedialog
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
-        # Dynamic widgets
+        # Library widgets
 
-        self.SourcesLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
-        self.SourcesLibrary = ThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
+        self.LibraryNotebook: Notebook = Notebook(self.WidgetsFrame)
+        self.SourcesLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
+        self.LibraryNotebook.add(self.SourcesLibraryFrame, text='Sources')
+
+        self.TargetsLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
+        self.LibraryNotebook.add(self.TargetsLibraryFrame, text='Targets')
+        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
+        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), parameters=self.parameters)
 
         # self.GUIModel.status_bar = self.StatusBar
 
@@ -274,12 +288,20 @@ class GUIForm(AttributeLoader):
 
         # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
         #
-        self.Library: Menu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.Library, label='Sources library')  # type: ignore[no-untyped-call]  # it is a library method
-        self.Library.add(COMMAND, label='Add files', command=lambda: self.add_files())  # type: ignore[no-untyped-call]  # it is a library method
-        self.Library.add(COMMAND, label='Add a folder', command=lambda: self.add_folder())  # type: ignore[no-untyped-call]  # it is a library method
-        self.Library.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
-        self.Library.add(COMMAND, label='Clear', command=lambda: self.clear())  # type: ignore[no-untyped-call]  # it is a library method
+        self.LibraryMenu: Menu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.LibraryMenu, label='Library')  # type: ignore[no-untyped-call]  # it is a library method
+        self.SourcesLibraryMenu: Menu = Menu(self.LibraryMenu, tearoff=False)
+        self.TargetsLibraryMenu: Menu = Menu(self.LibraryMenu, tearoff=False)
+        self.LibraryMenu.add(CASCADE, menu=self.SourcesLibraryMenu, label='Sources library')  # type: ignore[no-untyped-call]  # it is a library method
+        self.LibraryMenu.add(CASCADE, menu=self.TargetsLibraryMenu, label='Targets library')  # type: ignore[no-untyped-call]  # it is a library method
+        self.SourcesLibraryMenu.add(COMMAND, label='Add files', command=lambda: self.add_source_files())  # type: ignore[no-untyped-call]  # it is a library method
+        self.SourcesLibraryMenu.add(COMMAND, label='Add a folder', command=lambda: self.add_source_folder())  # type: ignore[no-untyped-call]  # it is a library method
+        self.SourcesLibraryMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.SourcesLibraryMenu.add(COMMAND, label='Clear', command=lambda: self.source_clear())  # type: ignore[no-untyped-call]  # it is a library method
+        self.TargetsLibraryMenu.add(COMMAND, label='Add files', command=lambda: self.add_target_files())  # type: ignore[no-untyped-call]  # it is a library method
+        self.TargetsLibraryMenu.add(COMMAND, label='Add a folder', command=lambda: self.add_target_folder())  # type: ignore[no-untyped-call]  # it is a library method
+        self.TargetsLibraryMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.TargetsLibraryMenu.add(COMMAND, label='Clear', command=lambda: self.target_clear())  # type: ignore[no-untyped-call]  # it is a library method
 
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
 
@@ -315,9 +337,13 @@ class GUIForm(AttributeLoader):
         self.ControlsFrame.pack(side=TOP, fill=BOTH, expand=True)
 
         self.SourcesLibrary.pack(side=TOP, expand=True, fill=BOTH)
-        self.SourcesLibraryFrame.pack(side=BOTTOM, expand=True, fill=BOTH)
         self.SourcesLibraryFrame.rowconfigure(0, weight=1)
         self.SourcesLibraryFrame.columnconfigure(0, weight=1)
+        self.LibraryNotebook.pack(expand=True, fill='both')
+
+        self.TargetsLibrary.pack(side=BOTTOM, expand=True, fill=BOTH)
+        self.TargetsLibraryFrame.rowconfigure(0, weight=1)
+        self.TargetsLibraryFrame.columnconfigure(0, weight=1)
 
         self.WidgetsFrame.pack(side=TOP, expand=True, fill=BOTH)
 
@@ -349,7 +375,10 @@ class GUIForm(AttributeLoader):
         if self.state:
             self.GUIWindow.wm_state(self.state)
         if self.sources_library:
-            self.library_add(paths=self.sources_library)
+            self.source_library_add(paths=self.sources_library)
+
+        if self.targets_library:
+            self.target_library_add(paths=self.targets_library)
         return self.GUIWindow
 
     def load_geometry(self) -> None:
@@ -384,6 +413,14 @@ class GUIForm(AttributeLoader):
             return True
         return False
 
+    def _set_target(self, filename: str) -> None:
+        self.GUIModel.target_path = filename
+        self.NavigateSlider.position = 1
+        self.update_slider_bounds()
+        self.TargetPathEntry.set_text(filename)
+        self.on_quality_scale_change(self.GUIModel.quality)
+        self.StatusBar.item('Target resolution', self.format_target_info())
+
     def update_slider_bounds(self) -> None:
         self.NavigateSlider.to = self.GUIModel.frame_handler.fc
         self.NavigateSlider.position = 1
@@ -402,7 +439,7 @@ class GUIForm(AttributeLoader):
             #  the quality applies only when playing, the preview always renders with 100% resolution
             self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
 
-    def library_add(self, paths: List[str], reload: bool = False) -> None:
+    def source_library_add(self, paths: List[str], reload: bool = False) -> None:
         """
         Add something to the sources library
         :param paths: each path can point to an image or a folder with images
@@ -411,34 +448,66 @@ class GUIForm(AttributeLoader):
         if reload:
             self.SourcesLibrary.clear_thumbnails()
 
-        def add_image(image_path: str) -> None:
-            if is_image(image_path):
-                self.SourcesLibrary.add_thumbnail(image_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
-
         for path in paths:
-            if is_image(path):
-                add_image(path)
-            elif is_dir(path):
+            if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_image):
-                    add_image(dir_file)
+                    self.SourcesLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+            else:
+                self.SourcesLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
 
-    def add_files(self) -> None:
+    def add_source_files(self) -> None:
         image_extensions = get_type_extensions('image/')
         file_paths = filedialog.askopenfilenames(
-            title="Select files to add",
+            title="Select files to add to sources",
             filetypes=[('Image files', image_extensions), ('All files', '*.*')],
             initialdir=self.GUIModel.source_dir
         )
         if file_paths:
-            self.library_add(paths=list(file_paths))
+            self.source_library_add(paths=list(file_paths))
 
-    def add_folder(self) -> None:
+    def add_source_folder(self) -> None:
         directory = filedialog.askdirectory(
-            title="Select a directory to add",
+            title="Select a directory to add sources",
             initialdir=self.GUIModel.source_dir
         )
         if directory:
-            self.library_add(paths=[directory])
+            self.source_library_add(paths=[directory])
 
-    def clear(self) -> None:
+    def source_clear(self) -> None:
         self.SourcesLibrary.clear_thumbnails()
+
+    def target_library_add(self, paths: List[str], reload: bool = False) -> None:
+        """
+        Add something to the sources library
+        :param paths: each path can point to an image or a folder with images
+        :param reload: True for reloading library from given paths
+        """
+        if reload:
+            self.TargetsLibrary.clear_thumbnails()
+
+        for path in paths:
+            if is_dir(path):
+                for dir_file in get_directory_file_list(path, is_video):
+                    self.TargetsLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+            else:
+                self.TargetsLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+
+    def add_target_files(self) -> None:
+        file_paths = filedialog.askopenfilenames(
+            title="Select files to add to targets",
+            filetypes=[('All files', '*.*')],
+            initialdir=self.GUIModel.target_dir
+        )
+        if file_paths:
+            self.target_library_add(paths=list(file_paths))
+
+    def add_target_folder(self) -> None:
+        directory = filedialog.askdirectory(
+            title="Select a directory to add targets",
+            initialdir=self.GUIModel.target_dir
+        )
+        if directory:
+            self.target_library_add(paths=[directory])
+
+    def target_clear(self) -> None:
+        self.TargetsLibrary.clear_thumbnails()
