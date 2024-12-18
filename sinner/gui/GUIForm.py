@@ -445,16 +445,12 @@ class GUIForm(AttributeLoader):
         if reload:
             self.SourcesLibrary.clear_thumbnails()
 
-        def add_image(image_path: str) -> None:
-            if is_image(image_path):
-                self.SourcesLibrary.add_thumbnail(source_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
-
         for path in paths:
-            if is_image(path):
-                add_image(path)
-            elif is_dir(path):
+            if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_image):
-                    add_image(dir_file)
+                    self.SourcesLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+            else:
+                self.SourcesLibrary.add_thumbnail(source_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
 
     def add_source_files(self) -> None:
         image_extensions = get_type_extensions('image/')
@@ -486,15 +482,12 @@ class GUIForm(AttributeLoader):
         if reload:
             self.TargetsLibrary.clear_thumbnails()
 
-        def add_file(source_path: str) -> None:
-            self.TargetsLibrary.add_thumbnail(source_path=source_path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
-
         for path in paths:
             if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_video):
-                    add_file(dir_file)
+                    self.TargetsLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
             else:
-                add_file(path)
+                self.TargetsLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
 
     def add_target_files(self) -> None:
         file_paths = filedialog.askopenfilenames(
