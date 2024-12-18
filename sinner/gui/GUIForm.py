@@ -450,7 +450,7 @@ class GUIForm(AttributeLoader):
                 for dir_file in get_directory_file_list(path, is_image):
                     self.SourcesLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
             else:
-                self.SourcesLibrary.add_thumbnail(source_path=image_path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+                self.SourcesLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
 
     def add_source_files(self) -> None:
         image_extensions = get_type_extensions('image/')
