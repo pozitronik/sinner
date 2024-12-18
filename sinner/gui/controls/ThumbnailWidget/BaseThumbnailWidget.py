@@ -10,6 +10,7 @@ from typing import List, Tuple, Callable, Optional
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
+from PIL.PngImagePlugin import PngInfo
 
 from sinner.utilities import get_file_name
 
@@ -54,10 +55,13 @@ class BaseThumbnailWidget(Frame, ABC):
             return Image.open(thumb_path)
         return None
 
-    def set_cached_thumbnail(self, source_path: str, img: Image.Image) -> None:
+    def set_cached_thumbnail(self, source_path: str, img: Image.Image, caption: str | None = None) -> None:
         thumb_name = hashlib.md5(f"{source_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
         thumb_path = os.path.join(self.temp_dir, thumb_name)
-        img.save(thumb_path, 'PNG')
+        metadata_dict = PngInfo()
+        if caption:
+            metadata_dict.add_text("caption", caption)
+        img.save(thumb_path, 'PNG', pnginfo=metadata_dict)
 
     @staticmethod
     def get_thumbnail(image: Image, size: int) -> Image:
