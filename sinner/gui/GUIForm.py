@@ -498,10 +498,9 @@ class GUIForm(AttributeLoader):
                     add_video(dir_file)
 
     def add_target_files(self) -> None:
-        video_extensions = get_type_extensions('video/')
         file_paths = filedialog.askopenfilenames(
             title="Select files to add to targets",
-            filetypes=[('Video files', video_extensions), ('All files', '*.*')],
+            filetypes=[('All files', '*.*')],
             initialdir=self.GUIModel.target_dir
         )
         if file_paths:
