@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 from multiprocessing import cpu_count
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Optional
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
@@ -30,7 +30,7 @@ class BaseThumbnailWidget(Frame, ABC):
         self.thumbnails = []
 
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())
-        self._pending_futures: List[Future[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]] = []
+        self._pending_futures: List[Future[Optional[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]]] = []
         self._processing_lock = threading.Lock()
         self._is_processing = False
 
@@ -157,7 +157,7 @@ class BaseThumbnailWidget(Frame, ABC):
             self._is_processing = False
 
     @abstractmethod
-    def _prepare_thumbnail_data(self, source_path: str, caption: str | bool, click_callback: Callable[[str], None] | None) -> Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]:
+    def _prepare_thumbnail_data(self, source_path: str, caption: str | bool, click_callback: Callable[[str], None] | None) -> Optional[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]:
         """
         Prepare thumbnail data in background thread
         """
@@ -182,7 +182,10 @@ class BaseThumbnailWidget(Frame, ABC):
         # Обрабатываем завершённые
         for future in completed:
             try:
-                img, image_path, caption, click_callback = future.result()
+                result = future.result()
+                if result is None:
+                    continue
+                img, image_path, caption, click_callback = result
                 photo = PhotoImage(img)
 
                 thumbnail_label = Label(self.frame, image=photo)
