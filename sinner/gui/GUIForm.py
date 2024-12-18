@@ -217,7 +217,7 @@ class GUIForm(AttributeLoader):
         self.SourcesLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
         self.TargetsLibraryFrame = Frame(self.WidgetsFrame, borderwidth=2)
         self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
-        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
+        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), parameters=self.parameters)
 
         # self.GUIModel.status_bar = self.StatusBar
 

@@ -15,6 +15,7 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
 
     def __init__(self, master, **kwargs) -> None:  # type: ignore[no-untyped-def]
         self.frame_position: float = kwargs.pop('frame_position', 0.5)  # Position in video (0.0 to 1.0)
+        self.parameters: Namespace = kwargs.pop("parameters", Namespace())
         super().__init__(master, **kwargs)
 
     def add_thumbnail(self, source_path: str, caption: str | bool = True, click_callback: Callable[[str], None] | None = None) -> None:
@@ -43,6 +44,6 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
         return thumbnail, source_path, caption, click_callback
 
     def get_frame(self, video_path: str) -> Frame:
-        handler = VideoHandler(video_path, Namespace())  # todo:
+        handler = VideoHandler(video_path, self.parameters)  # todo:
         fc = int(handler.fc * self.frame_position)
         return handler.extract_frame(fc).frame
