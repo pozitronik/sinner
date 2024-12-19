@@ -46,7 +46,7 @@ class BaseThumbnailWidget(Frame, ABC):
 
         self.grid(row=0, column=0, sticky=NSEW)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
-        self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
+        self.bind_mousewheel()
 
     def get_cached_thumbnail(self, source_path: str) -> Image.Image | None:
         thumb_name = hashlib.md5(f"{source_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
@@ -134,20 +134,41 @@ class BaseThumbnailWidget(Frame, ABC):
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
         self.update_layout()
 
-    def on_mouse_wheel(self, event: Event) -> None:  # type: ignore[type-arg]
-        # Get the bounding box of all items on the canvas
-        bbox = self._canvas.bbox(ALL)
+    def bind_mousewheel(self) -> None:
+        def _bind_wheel(event: Event) -> None:
+            self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 
-        # Compare the canvas content size to the visible area
+        def _unbind_wheel(event: Event) -> None:
+            self._canvas.unbind_all("<MouseWheel>")
+
+        self._canvas.bind("<Enter>", _bind_wheel)
+        self._canvas.bind("<Leave>", _unbind_wheel)
+
+    def on_mouse_wheel(self, event: Event) -> None:
+        # Получаем координаты курсора относительно канваса
+        canvas_x = self._canvas.winfo_rootx()
+        canvas_y = self._canvas.winfo_rooty()
         canvas_width = self._canvas.winfo_width()
         canvas_height = self._canvas.winfo_height()
 
+        # Проверяем, находится ли курсор над канвасом
+        if not (canvas_x <= event.x_root <= canvas_x + canvas_width and
+                canvas_y <= event.y_root <= canvas_y + canvas_height):
+            return
+
+        # Get the bounding box of all items on the canvas
+        bbox = self._canvas.bbox(ALL)
+        if not bbox:
+            return
+
+        # Compare the canvas content size to the visible area
         content_width = bbox[2] - bbox[0]
         content_height = bbox[3] - bbox[1]
 
         # If content fits within the visible area, do not scroll
         if content_width <= canvas_width and content_height <= canvas_height:
             return
+
         self._canvas.yview_scroll(-1 * (event.delta // 120), UNITS)
 
     def clear_thumbnails(self) -> None:
