@@ -135,16 +135,16 @@ class BaseThumbnailWidget(Frame, ABC):
         self.update_layout()
 
     def bind_mousewheel(self) -> None:
-        def _bind_wheel(event: Event) -> None:
+        def _bind_wheel(event: Event) -> None:  # type: ignore[type-arg]
             self._canvas.bind_all("<MouseWheel>", self.on_mouse_wheel)
 
-        def _unbind_wheel(event: Event) -> None:
+        def _unbind_wheel(event: Event) -> None:  # type: ignore[type-arg]
             self._canvas.unbind_all("<MouseWheel>")
 
         self._canvas.bind("<Enter>", _bind_wheel)
         self._canvas.bind("<Leave>", _unbind_wheel)
 
-    def on_mouse_wheel(self, event: Event) -> None:
+    def on_mouse_wheel(self, event: Event) -> None:  # type: ignore[type-arg]
         # Получаем координаты курсора относительно канваса
         canvas_x = self._canvas.winfo_rootx()
         canvas_y = self._canvas.winfo_rooty()
