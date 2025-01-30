@@ -1,0 +1,28 @@
+# this file contains package requirements list for linux/windows PC with CPU and CUDA support for CUDA 11.8 drivers
+
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+numpy>=1.24.3
+opencv-python>=4.8.0.74
+onnx>=1.16.2
+insightface==0.7.3
+psutil>=5.9.5
+tk==0.1.0
+customtkinter>=5.2.0
+pillow>=10.0.0
+protobuf>=4.24.1
+tqdm>=4.65.0
+gfpgan==1.3.8
+tensorflow>=2.13.0
+future==0.18.3
+colorama>=0.4.6
+sympy==1.12
+new-basicsr
+torch==2.1.2
+torchvision==0.16.2
+onnxruntime-gpu>=1.20.1
+pyvirtualcam
+pathvalidate
+pygame
+moviepy
+python-vlc
