@@ -1,4 +1,4 @@
-# this file contains package requirements list for linux/windows PC with CPU and CUDA support
+# this file contains package requirements list for linux/windows PC with CPU and CUDA support for CUDA 11.8 drivers
 
 --extra-index-url https://download.pytorch.org/whl/cu118
 
