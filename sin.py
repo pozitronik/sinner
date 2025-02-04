@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import os
+
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
+
 import signal
 import sys
 from argparse import Namespace
