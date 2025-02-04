@@ -117,8 +117,9 @@ class PygameFramePlayer(BaseFramePlayer):
                 self.show_frame()
 
     def clear(self) -> None:
-        self.screen.fill((0, 0, 0))
-        pygame.display.flip()
+        if self._visible:
+            self.screen.fill((0, 0, 0))
+            pygame.display.flip()
 
     def set_fullscreen(self, fullscreen: bool = True) -> None:
         pygame.display.toggle_fullscreen()
