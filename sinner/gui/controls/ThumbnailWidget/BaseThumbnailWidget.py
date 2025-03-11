@@ -5,13 +5,14 @@ import threading
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 from multiprocessing import cpu_count
-from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
+from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH, TOP, X
 from typing import List, Tuple, Callable, Optional, Set
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 from PIL.PngImagePlugin import PngInfo
 
+from sinner.gui.controls.ThumbnailWidget.SortControlPanel import SortControlPanel
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
 from sinner.gui.controls.ThumbnailWidget.ThumbnailInfo import ThumbnailInfo
 from sinner.gui.controls.ThumbnailWidget.ThumbnailItem import ThumbnailItem
@@ -27,6 +28,9 @@ class BaseThumbnailWidget(Frame, ABC):
     selected_paths: Set[str]
     _highlight_color: str
     _background_color: str
+    _current_sort_field: SortField
+    _current_sort_ascending: bool
+    _sort_control: SortControlPanel
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         # custom parameters
@@ -35,27 +39,60 @@ class BaseThumbnailWidget(Frame, ABC):
         os.makedirs(self.temp_dir, exist_ok=True)
         self._highlight_color = kwargs.pop('highlight_color', '#E3F3FF')  # Светло-голубой цвет фона для выделения
         self._background_color = kwargs.pop('background_color', '#F0F0F0')  # Обычный цвет фона
+        self._show_sort_control = kwargs.pop('show_sort_control', True)  # Показывать ли контрол сортировки
         super().__init__(master, **kwargs)
         self.thumbnails = []
-        self.selected_paths = set()  # Хранит пути выбранных миниатюр вместо индексов
+        self.selected_paths = set()  # Хранит пути выбранных миниатюр
+
+        # Параметры сортировки по умолчанию
+        self._current_sort_field = SortField.NAME
+        self._current_sort_ascending = True
 
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())
         self._pending_futures: List[Future[Optional[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]]] = []
         self._processing_lock = threading.Lock()
         self._is_processing = False
 
-        self._canvas = Canvas(self)
+        # Создаем фрейм для контрола сортировки
+        self.control_frame = Frame(self)
+        if self._show_sort_control:
+            self.control_frame.pack(side=TOP, fill=X, padx=5, pady=5)
+
+            # Создаем контрол сортировки
+            self._sort_control = SortControlPanel(
+                self.control_frame,
+                on_sort_changed=self._on_sort_changed
+            )
+            self._sort_control.pack(side=LEFT)
+
+        # Создаем основной фрейм для виджета
+        self.content_frame = Frame(self)
+        self.content_frame.pack(side=TOP, fill=BOTH, expand=True)
+
+        # Создаем канвас и прокрутку
+        self._canvas = Canvas(self.content_frame)
         self._canvas.pack(side=LEFT, expand=True, fill=BOTH)
         self.frame = Frame(self._canvas)
         self._canvas.create_window((0, 0), window=self.frame, anchor=NW)
 
-        self.vsb = Scrollbar(self, orient="vertical", command=self._canvas.yview)
+        self.vsb = Scrollbar(self.content_frame, orient="vertical", command=self._canvas.yview)
         self.vsb.pack(side=LEFT, fill=Y)
         self._canvas.configure(yscrollcommand=self.vsb.set)
 
         self.grid(row=0, column=0, sticky=NSEW)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self.bind_mousewheel()
+
+    def _on_sort_changed(self, field: SortField, ascending: bool) -> None:
+        """
+        Обработчик изменения параметров сортировки из контрола
+
+        :param field: Выбранное поле сортировки
+        :param ascending: Порядок сортировки (True - по возрастанию)
+        """
+        self._current_sort_field = field
+        self._current_sort_ascending = ascending
+        self.sort_thumbnails(field, ascending)
 
     @property
     def highlight_color(self) -> str:
@@ -180,6 +217,21 @@ class BaseThumbnailWidget(Frame, ABC):
         :param field: Поле для сортировки (из enum SortField)
         :param asc: Направление сортировки (True - по возрастанию, False - по убыванию)
         """
+        # Используем текущие параметры сортировки, если не указаны новые
+        if field is None:
+            field = self._current_sort_field
+        else:
+            self._current_sort_field = field
+
+        if asc is None:
+            asc = self._current_sort_ascending
+        else:
+            self._current_sort_ascending = asc
+
+        # Обновляем контрол сортировки, если он существует
+        if self._show_sort_control:
+            self._sort_control.set_sort(field, asc)
+
         # Выбираем функцию сортировки в зависимости от поля
         if field == SortField.PATH:
             key_func = lambda x: x.info.path
@@ -349,7 +401,7 @@ class BaseThumbnailWidget(Frame, ABC):
 
         # Если есть завершённые задачи, обновляем layout
         if completed:
-            self.sort_thumbnails()
+            self.sort_thumbnails()  # Используем текущие параметры сортировки
             self.update()
             self.master.update()
 
@@ -359,3 +411,15 @@ class BaseThumbnailWidget(Frame, ABC):
                 self.after(100, self._process_pending)
             else:
                 self._is_processing = False
+
+    def set_sort_control_visibility(self, visible: bool) -> None:
+        """
+        Показать или скрыть панель управления сортировкой
+
+        :param visible: True для отображения, False для скрытия
+        """
+        self._show_sort_control = visible
+        if visible and not self.control_frame.winfo_ismapped():
+            self.control_frame.pack(side=TOP, fill=X, padx=5, pady=5)
+        elif not visible and self.control_frame.winfo_ismapped():
+            self.control_frame.pack_forget()
