@@ -66,7 +66,7 @@ class BaseThumbnailWidget(Frame, ABC):
         :param value: Цвет в формате HEX (#RRGGBB) или имя цвета
         """
         self._highlight_color = value
-        self.update_layout()  # Обновляем все элементы с новым цветом
+        self.update_layout(False)  # Обновляем все элементы с новым цветом
 
     def get_cached_thumbnail(self, source_path: str) -> Image.Image | None:
         thumb_name = hashlib.md5(f"{source_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
@@ -136,7 +136,7 @@ class BaseThumbnailWidget(Frame, ABC):
 
         if path in [thumbnail[2] for thumbnail in self.thumbnails]:
             self.selected_paths.add(path)
-            self.update_layout()
+            self.update_layout(False)
 
     def deselect_thumbnail(self, path: str) -> None:
         """
@@ -145,7 +145,7 @@ class BaseThumbnailWidget(Frame, ABC):
         """
         if path in self.selected_paths:
             self.selected_paths.remove(path)
-            self.update_layout()
+            self.update_layout(False)
 
     def toggle_thumbnail_selection(self, path: str) -> None:
         """
@@ -182,16 +182,17 @@ class BaseThumbnailWidget(Frame, ABC):
         self.update_layout()
 
     # noinspection PyTypeChecker
-    def update_layout(self) -> None:
+    def update_layout(self, update_grid: bool = True) -> None:
         if 0 == len(self.thumbnails):
             return
         total_width = self.winfo_width()
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
         for i, (thumbnail, caption, path) in enumerate(self.thumbnails):
-            row = i // self._columns
-            col = i % self._columns
-            thumbnail.grid(row=row * 2, column=col)
-            caption.grid(row=row * 2 + 1, column=col)
+            if update_grid:
+                row = i // self._columns
+                col = i % self._columns
+                thumbnail.grid(row=row * 2, column=col)
+                caption.grid(row=row * 2 + 1, column=col)
 
             # Обновляем состояние выделения для каждой миниатюры
             if path in self.selected_paths:
