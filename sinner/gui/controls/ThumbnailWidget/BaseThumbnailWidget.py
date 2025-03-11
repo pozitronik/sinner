@@ -6,17 +6,20 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 from multiprocessing import cpu_count
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
-from typing import List, Tuple, Callable, Optional, Set, Dict
+from typing import List, Tuple, Callable, Optional, Set
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 from PIL.PngImagePlugin import PngInfo
 
+from sinner.gui.controls.ThumbnailWidget.SortField import SortField
+from sinner.gui.controls.ThumbnailWidget.ThumbnailInfo import ThumbnailInfo
+from sinner.gui.controls.ThumbnailWidget.ThumbnailItem import ThumbnailItem
 from sinner.utilities import get_file_name
 
 
 class BaseThumbnailWidget(Frame, ABC):
-    thumbnails: List[Tuple[Label, Label, str]]
+    thumbnails: List[ThumbnailItem]
     thumbnail_size: int
     temp_dir: str
     _columns: int
@@ -134,7 +137,7 @@ class BaseThumbnailWidget(Frame, ABC):
         if exclusive:
             self.clear_selection()
 
-        if path in [thumbnail[2] for thumbnail in self.thumbnails]:
+        if path in [item.info.path for item in self.thumbnails]:
             self.selected_paths.add(path)
             self.update_layout(False)
 
@@ -162,7 +165,7 @@ class BaseThumbnailWidget(Frame, ABC):
         Снимает выделение со всех выделенных миниатюр
         """
         self.selected_paths.clear()
-        self.update_layout()
+        self.update_layout(False)
 
     def get_selected_thumbnails(self) -> List[str]:
         """
@@ -171,14 +174,30 @@ class BaseThumbnailWidget(Frame, ABC):
         """
         return list(self.selected_paths)
 
-    def sort_thumbnails(self, asc: bool = True) -> None:
-        # Sort the thumbnails list by the image path
-        if asc:
-            self.thumbnails.sort(key=lambda x: x[2])  # Assuming x[2] is the image path
+    def sort_thumbnails(self, field: SortField = SortField.NAME, asc: bool = True) -> None:
+        """
+        Сортирует миниатюры по указанному полю
+        :param field: Поле для сортировки (из enum SortField)
+        :param asc: Направление сортировки (True - по возрастанию, False - по убыванию)
+        """
+        # Выбираем функцию сортировки в зависимости от поля
+        if field == SortField.PATH:
+            key_func = lambda x: x.info.path
+        elif field == SortField.NAME:
+            key_func = lambda x: x.info.filename.lower()
+        elif field == SortField.DATE:
+            key_func = lambda x: x.info.mod_date
+        elif field == SortField.SIZE:
+            key_func = lambda x: x.info.file_size
+        elif field == SortField.PIXELS:
+            key_func = lambda x: x.info.pixel_count
         else:
-            self.thumbnails.sort(key=lambda x: x[2], reverse=True)
+            key_func = lambda x: x.info.path  # По умолчанию сортируем по пути
 
-        # Update the GUI to reflect the new order
+        # Сортируем
+        self.thumbnails.sort(key=key_func, reverse=not asc)
+
+        # Обновляем интерфейс
         self.update_layout()
 
     # noinspection PyTypeChecker
@@ -187,18 +206,18 @@ class BaseThumbnailWidget(Frame, ABC):
             return
         total_width = self.winfo_width()
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
-        for i, (thumbnail, caption, path) in enumerate(self.thumbnails):
+        for i, item in enumerate(self.thumbnails):
             if update_grid:
                 row = i // self._columns
                 col = i % self._columns
-                thumbnail.grid(row=row * 2, column=col)
-                caption.grid(row=row * 2 + 1, column=col)
+                item.thumbnail_label.grid(row=row * 2, column=col)
+                item.caption_label.grid(row=row * 2 + 1, column=col)
 
             # Обновляем состояние выделения для каждой миниатюры
-            if path in self.selected_paths:
-                caption.configure(background=self._highlight_color)
+            if item.info.path in self.selected_paths:
+                item.caption_label.configure(background=self._highlight_color)
             else:
-                caption.configure(background=self._background_color)
+                item.caption_label.configure(background=self._background_color)
 
         self._canvas.update_idletasks()
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
@@ -246,9 +265,9 @@ class BaseThumbnailWidget(Frame, ABC):
         self._canvas.yview_scroll(-1 * (event.delta // 120), UNITS)
 
     def clear_thumbnails(self) -> None:
-        for thumbnail, caption, path in self.thumbnails:
-            thumbnail.grid_forget()
-            caption.grid_forget()
+        for item in self.thumbnails:
+            item.thumbnail_label.grid_forget()
+            item.caption_label.grid_forget()
         self.thumbnails = []
         self.selected_paths.clear()  # Очищаем состояние выделения
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
@@ -300,6 +319,14 @@ class BaseThumbnailWidget(Frame, ABC):
                     caption_label.configure(text=caption)
                 caption_label.grid(sticky=N)
 
+                # Создаем информацию о файле и элемент миниатюры
+                thumbnail_info = ThumbnailInfo.from_path(image_path)
+                thumbnail_item = ThumbnailItem(
+                    thumbnail_label=thumbnail_label,
+                    caption_label=caption_label,
+                    info=thumbnail_info
+                )
+
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
                 def selection_click_handler(event, path=image_path):
                     # Проверяем, нажата ли клавиша Ctrl для множественного выделения
@@ -316,7 +343,7 @@ class BaseThumbnailWidget(Frame, ABC):
                 thumbnail_label.bind("<Button-1>", selection_click_handler)  # type: ignore[misc]
                 caption_label.bind("<Button-1>", selection_click_handler)  # type: ignore[misc]
 
-                self.thumbnails.append((thumbnail_label, caption_label, image_path))
+                self.thumbnails.append(thumbnail_item)
             except Exception as e:
                 print(f"Error processing thumbnail {image_path}: {e}")
 
