@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 from multiprocessing import cpu_count
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH
-from typing import List, Tuple, Callable, Optional
+from typing import List, Tuple, Callable, Optional, Set, Dict
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
@@ -21,14 +21,20 @@ class BaseThumbnailWidget(Frame, ABC):
     temp_dir: str
     _columns: int
     _canvas: Canvas
+    selected_paths: Set[str]
+    _highlight_color: str
+    _background_color: str
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         # custom parameters
         self.thumbnail_size = kwargs.pop('thumbnail_size', 200)
         self.temp_dir = os.path.abspath(os.path.join(os.path.normpath(kwargs.pop('temp_dir', tempfile.gettempdir())), 'thumbnails'))
         os.makedirs(self.temp_dir, exist_ok=True)
+        self._highlight_color = kwargs.pop('highlight_color', '#E3F3FF')  # Светло-голубой цвет фона для выделения
+        self._background_color = kwargs.pop('background_color', '#F0F0F0')  # Обычный цвет фона
         super().__init__(master, **kwargs)
         self.thumbnails = []
+        self.selected_paths = set()  # Хранит пути выбранных миниатюр вместо индексов
 
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())
         self._pending_futures: List[Future[Optional[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]]] = []
@@ -47,6 +53,20 @@ class BaseThumbnailWidget(Frame, ABC):
         self.grid(row=0, column=0, sticky=NSEW)
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self.bind_mousewheel()
+
+    @property
+    def highlight_color(self) -> str:
+        """Возвращает текущий цвет выделения."""
+        return self._highlight_color
+
+    @highlight_color.setter
+    def highlight_color(self, value: str) -> None:
+        """
+        Устанавливает цвет выделения и обновляет все выделенные миниатюры.
+        :param value: Цвет в формате HEX (#RRGGBB) или имя цвета
+        """
+        self._highlight_color = value
+        self.update_layout()  # Обновляем все элементы с новым цветом
 
     def get_cached_thumbnail(self, source_path: str) -> Image.Image | None:
         thumb_name = hashlib.md5(f"{source_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
@@ -105,10 +125,56 @@ class BaseThumbnailWidget(Frame, ABC):
                 self._is_processing = True
                 self.after(100, self._process_pending)
 
+    def select_thumbnail(self, path: str, exclusive: bool = True) -> None:
+        """
+        Выделяет миниатюру по указанному пути к файлу
+        :param path: Путь к файлу миниатюры для выделения
+        :param exclusive: Если True, снимает выделение со всех остальных миниатюр
+        """
+        if exclusive:
+            self.clear_selection()
+
+        if path in [thumbnail[2] for thumbnail in self.thumbnails]:
+            self.selected_paths.add(path)
+            self.update_layout()
+
+    def deselect_thumbnail(self, path: str) -> None:
+        """
+        Снимает выделение с миниатюры по указанному пути к файлу
+        :param path: Путь к файлу миниатюры для снятия выделения
+        """
+        if path in self.selected_paths:
+            self.selected_paths.remove(path)
+            self.update_layout()
+
+    def toggle_thumbnail_selection(self, path: str) -> None:
+        """
+        Переключает состояние выделения миниатюры по указанному пути к файлу
+        :param path: Путь к файлу миниатюры для переключения состояния
+        """
+        if path in self.selected_paths:
+            self.deselect_thumbnail(path)
+        else:
+            self.select_thumbnail(path, exclusive=False)
+
+    def clear_selection(self) -> None:
+        """
+        Снимает выделение со всех выделенных миниатюр
+        """
+        self.selected_paths.clear()
+        self.update_layout()
+
+    def get_selected_thumbnails(self) -> List[str]:
+        """
+        Возвращает пути всех выделенных миниатюр
+        :return: Список путей выделенных миниатюр
+        """
+        return list(self.selected_paths)
+
     def sort_thumbnails(self, asc: bool = True) -> None:
         # Sort the thumbnails list by the image path
         if asc:
-            self.thumbnails.sort(key=lambda x: x[2])  # Assuming x[1] is the image path
+            self.thumbnails.sort(key=lambda x: x[2])  # Assuming x[2] is the image path
         else:
             self.thumbnails.sort(key=lambda x: x[2], reverse=True)
 
@@ -125,7 +191,14 @@ class BaseThumbnailWidget(Frame, ABC):
             row = i // self._columns
             col = i % self._columns
             thumbnail.grid(row=row * 2, column=col)
-            caption.grid(row=row * 2 + 1, column=col, )
+            caption.grid(row=row * 2 + 1, column=col)
+
+            # Обновляем состояние выделения для каждой миниатюры
+            if path in self.selected_paths:
+                caption.configure(background=self._highlight_color)
+            else:
+                caption.configure(background=self._background_color)
+
         self._canvas.update_idletasks()
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
 
@@ -176,6 +249,7 @@ class BaseThumbnailWidget(Frame, ABC):
             thumbnail.grid_forget()
             caption.grid_forget()
         self.thumbnails = []
+        self.selected_paths.clear()  # Очищаем состояние выделения
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
         with self._processing_lock:
             self._pending_futures.clear()
@@ -218,16 +292,28 @@ class BaseThumbnailWidget(Frame, ABC):
                 thumbnail_label.grid()
 
                 # Create a label for the caption and set its width to match the thumbnail width
-                caption_label = Label(self.frame, wraplength=self.thumbnail_size)
+                caption_label = Label(self.frame, wraplength=self.thumbnail_size, background=self._background_color)
                 if caption is not False:
                     if caption is True:
                         caption = get_file_name(image_path)
                     caption_label.configure(text=caption)
                 caption_label.grid(sticky=N)
 
-                if click_callback:
-                    thumbnail_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]
-                    caption_label.bind("<Button-1>", lambda event, path=image_path: click_callback(path))  # type: ignore[misc]
+                # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
+                def selection_click_handler(event, path=image_path):
+                    # Проверяем, нажата ли клавиша Ctrl для множественного выделения
+                    if event.state & 0x0004:  # Ctrl нажат
+                        self.toggle_thumbnail_selection(path)
+                    else:
+                        self.select_thumbnail(path)
+
+                    # Вызываем оригинальный обработчик, если он есть
+                    if click_callback:
+                        click_callback(path)
+
+                # Привязываем обработчик выделения к миниатюре и подписи
+                thumbnail_label.bind("<Button-1>", selection_click_handler)  # type: ignore[misc]
+                caption_label.bind("<Button-1>", selection_click_handler)  # type: ignore[misc]
 
                 self.thumbnails.append((thumbnail_label, caption_label, image_path))
             except Exception as e:
