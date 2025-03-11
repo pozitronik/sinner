@@ -4,7 +4,9 @@ from typing import Callable, Tuple, Optional
 import cv2
 from PIL import Image
 
+from sinner.gui.controls.ThumbnailWidget.BaseThumbnailInfo import BaseThumbnailInfo
 from sinner.gui.controls.ThumbnailWidget.BaseThumbnailWidget import BaseThumbnailWidget
+from sinner.gui.controls.ThumbnailWidget.VideoThumbnailInfo import VideoThumbnailInfo
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
@@ -12,6 +14,7 @@ from sinner.utilities import is_video, is_image, get_file_name
 
 
 class TargetsThumbnailWidget(BaseThumbnailWidget):
+    ThumbnailInfoHandler: BaseThumbnailInfo = VideoThumbnailInfo
 
     def __init__(self, master, **kwargs) -> None:  # type: ignore[no-untyped-def]
         self.frame_position: float = kwargs.pop('frame_position', 0.5)  # Position in video (0.0 to 1.0)

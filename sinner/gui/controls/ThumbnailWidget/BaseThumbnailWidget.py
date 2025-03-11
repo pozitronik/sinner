@@ -12,14 +12,15 @@ from PIL import Image
 from PIL.ImageTk import PhotoImage
 from PIL.PngImagePlugin import PngInfo
 
+from sinner.gui.controls.ThumbnailWidget.BaseThumbnailInfo import BaseThumbnailInfo
 from sinner.gui.controls.ThumbnailWidget.SortControlPanel import SortControlPanel
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
-from sinner.gui.controls.ThumbnailWidget.ThumbnailInfo import ThumbnailInfo
 from sinner.gui.controls.ThumbnailWidget.ThumbnailItem import ThumbnailItem
 from sinner.utilities import get_file_name
 
 
 class BaseThumbnailWidget(Frame, ABC):
+    ThumbnailInfoHandler: BaseThumbnailInfo
     thumbnails: List[ThumbnailItem]
     thumbnail_size: int
     temp_dir: str
@@ -372,7 +373,7 @@ class BaseThumbnailWidget(Frame, ABC):
                 caption_label.grid(sticky=N)
 
                 # Создаем информацию о файле и элемент миниатюры
-                thumbnail_info = ThumbnailInfo.from_path(image_path)
+                thumbnail_info = self.ThumbnailInfoHandler.from_path(image_path)
                 thumbnail_item = ThumbnailItem(
                     thumbnail_label=thumbnail_label,
                     caption_label=caption_label,

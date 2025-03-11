@@ -2,11 +2,14 @@ from typing import Tuple, Callable, Optional
 
 from PIL import Image
 
+from sinner.gui.controls.ThumbnailWidget.BaseThumbnailInfo import BaseThumbnailInfo
 from sinner.gui.controls.ThumbnailWidget.BaseThumbnailWidget import BaseThumbnailWidget
+from sinner.gui.controls.ThumbnailWidget.ImageThumbnailInfo import ImageThumbnailInfo
 from sinner.utilities import is_image
 
 
 class SourcesThumbnailWidget(BaseThumbnailWidget):
+    ThumbnailInfoHandler: BaseThumbnailInfo = ImageThumbnailInfo
 
     def add_thumbnail(self, source_path: str, caption: str | bool = True, click_callback: Callable[[str], None] | None = None) -> None:
         """
