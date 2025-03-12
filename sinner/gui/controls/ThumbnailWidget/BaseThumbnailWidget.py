@@ -427,7 +427,11 @@ class BaseThumbnailWidget(Frame, ABC):
 
         # Обрабатываем завершённые
         for future in completed:
-            thumb_data: Optional[ThumbnailData] = future.result()
+            try:
+                thumb_data: Optional[ThumbnailData] = future.result()
+            except Exception as e:
+                print(f"Error processing thumbnail: {e}")
+                continue
             if thumb_data is None:
                 continue
             try:
