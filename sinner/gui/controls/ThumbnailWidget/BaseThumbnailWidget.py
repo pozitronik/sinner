@@ -350,10 +350,10 @@ class BaseThumbnailWidget(Frame, ABC):
 
         # Обрабатываем завершённые
         for future in completed:
+            thumb_data: Optional[ThumbnailData] = future.result()
+            if thumb_data is None:
+                continue
             try:
-                thumb_data = future.result()
-                if thumb_data is None:
-                    continue
                 photo = PhotoImage(thumb_data.thumbnail)
 
                 thumbnail_label = Label(self.frame, image=photo)
