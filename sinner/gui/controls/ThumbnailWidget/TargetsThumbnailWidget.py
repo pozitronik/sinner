@@ -34,28 +34,31 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
         thumbnail = self.get_cached_thumbnail(source_path)
         if thumbnail:
             caption = thumbnail.info.get("caption")
+            pixel_count = thumbnail.info.get("pixel_count")
         else:
             if is_video(source_path):
-                frame, caption = self.get_frame(source_path)
+                frame, caption, pixel_count = self.get_frame(source_path)
                 thumbnail = Image.fromarray(cv2.cvtColor(resize_proportionally(frame, (self.thumbnail_size, self.thumbnail_size)), cv2.COLOR_BGR2RGB))
             elif is_image(source_path):
                 with Image.open(source_path) as img:
                     thumbnail = img.copy()
+                pixel_count = thumbnail.size[0] * thumbnail.size[1]
                 caption = f"{get_file_name(source_path)} [{thumbnail.size[0]}x{thumbnail.size[1]}]"
                 thumbnail.thumbnail((self.thumbnail_size, self.thumbnail_size))
             else:
                 return None
-            self.set_cached_thumbnail(source_path, thumbnail, caption)
+            self.set_cached_thumbnail(source_path, thumbnail, caption, pixel_count)
         return ThumbnailData(
             thumbnail=thumbnail,
             path=source_path,
             caption=caption,
             click_callback=click_callback,
-            pixel_count=thumbnail.size[0]*thumbnail.size[1]
+            pixel_count=pixel_count
         )
 
-    def get_frame(self, video_path: str) -> Tuple[Frame, str]:
+    def get_frame(self, video_path: str) -> Tuple[Frame, str, int]:
         handler = VideoHandler(video_path, self.parameters)
         fc = int(handler.fc * self.frame_position)
         caption = f"{get_file_name(video_path)} [{handler.resolution[0]}x{handler.resolution[1]}]"
-        return handler.extract_frame(fc).frame, caption
+        pixel_count = handler.resolution[0] * handler.resolution[1]
+        return handler.extract_frame(fc).frame, caption, pixel_count

@@ -25,10 +25,14 @@ class SourcesThumbnailWidget(BaseThumbnailWidget):
         thumbnail = self.get_cached_thumbnail(source_path)
         if not thumbnail:
             thumbnail = self.get_thumbnail(Image.open(source_path), self.thumbnail_size)
-            self.set_cached_thumbnail(source_path, thumbnail, get_file_name(source_path))
+            with Image.open(source_path) as img:
+                pixel_count = img.size[0] * img.size[1]
+            self.set_cached_thumbnail(source_path, thumbnail, caption=get_file_name(source_path), pixel_count=pixel_count)
         caption = thumbnail.info.get("caption") or get_file_name(source_path)
-        with Image.open(source_path) as img:  # todo: считать размеры один раз при получении превью, сохраняя в метаданных
-            pixel_count = img.size[0] * img.size[1]
+        pixel_count = thumbnail.info.get("pixel_count")
+        if not pixel_count:
+            with Image.open(source_path) as img:
+                pixel_count = img.size[0] * img.size[1]
         return ThumbnailData(
             thumbnail=thumbnail,
             path=source_path,

@@ -129,12 +129,14 @@ class BaseThumbnailWidget(Frame, ABC):
                 return img.copy()
         return None
 
-    def set_cached_thumbnail(self, source_path: str, img: Image.Image, caption: str | None = None) -> None:
+    def set_cached_thumbnail(self, source_path: str, img: Image.Image, caption: Optional[str] = None, pixel_count: Optional[int] = None) -> None:
         thumb_name = hashlib.md5(f"{source_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
         thumb_path = os.path.join(self.temp_dir, thumb_name)
         metadata_dict = PngInfo()
         if caption:
             metadata_dict.add_text("caption", caption)
+        if pixel_count:
+            metadata_dict.add_text("pixel_count", pixel_count)
         img.save(thumb_path, 'PNG', pnginfo=metadata_dict)
 
     @staticmethod
