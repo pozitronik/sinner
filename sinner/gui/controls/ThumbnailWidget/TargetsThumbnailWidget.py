@@ -34,7 +34,7 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
         thumbnail = self.get_cached_thumbnail(source_path)
         if thumbnail:
             caption = thumbnail.info.get("caption")
-            pixel_count = thumbnail.info.get("pixel_count")
+            pixel_count = int(thumbnail.info.get("pixel_count")) if thumbnail.info.get("pixel_count") else None
         else:
             if is_video(source_path):
                 frame, caption, pixel_count = self.get_frame(source_path)

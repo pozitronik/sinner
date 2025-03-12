@@ -29,7 +29,7 @@ class SourcesThumbnailWidget(BaseThumbnailWidget):
                 pixel_count = img.size[0] * img.size[1]
             self.set_cached_thumbnail(source_path, thumbnail, caption=get_file_name(source_path), pixel_count=pixel_count)
         caption = thumbnail.info.get("caption") or get_file_name(source_path)
-        pixel_count = thumbnail.info.get("pixel_count")
+        pixel_count = int(thumbnail.info.get("pixel_count")) if thumbnail.info.get("pixel_count") else None
         if not pixel_count:
             with Image.open(source_path) as img:
                 pixel_count = img.size[0] * img.size[1]
