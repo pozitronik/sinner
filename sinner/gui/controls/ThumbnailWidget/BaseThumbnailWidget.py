@@ -6,21 +6,19 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 from multiprocessing import cpu_count
 from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH, TOP, X
-from typing import List, Tuple, Callable, Optional, Set
+from typing import List, Callable, Optional, Set
 
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 from PIL.PngImagePlugin import PngInfo
 
-from sinner.gui.controls.ThumbnailWidget.BaseThumbnailInfo import BaseThumbnailInfo
 from sinner.gui.controls.ThumbnailWidget.SortControlPanel import SortControlPanel
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
+from sinner.gui.controls.ThumbnailWidget.ThumbnailData import ThumbnailData
 from sinner.gui.controls.ThumbnailWidget.ThumbnailItem import ThumbnailItem
-from sinner.utilities import get_file_name
 
 
 class BaseThumbnailWidget(Frame, ABC):
-    ThumbnailInfoHandler: BaseThumbnailInfo
     thumbnails: List[ThumbnailItem]
     thumbnail_size: int
     temp_dir: str
@@ -50,7 +48,7 @@ class BaseThumbnailWidget(Frame, ABC):
         self._current_sort_ascending = True
 
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())
-        self._pending_futures: List[Future[Optional[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]]] = []
+        self._pending_futures: List[Future[ThumbnailData]] = []
         self._processing_lock = threading.Lock()
         self._is_processing = False
 
@@ -70,7 +68,7 @@ class BaseThumbnailWidget(Frame, ABC):
         self.content_frame = Frame(self)
         self.content_frame.pack(side=TOP, fill=BOTH, expand=True)
 
-        # Создаем канвас и прокрутку
+        # Создаем канву и прокрутку
         self._canvas = Canvas(self.content_frame)
         self._canvas.pack(side=LEFT, expand=True, fill=BOTH)
         self.frame = Frame(self._canvas)
@@ -147,15 +145,14 @@ class BaseThumbnailWidget(Frame, ABC):
         return image
 
     @abstractmethod
-    def add_thumbnail(self, source_path: str, caption: str | bool = True, click_callback: Callable[[str], None] | None = None) -> None:
+    def add_thumbnail(self, source_path: str, click_callback: Callable[[str], None] | None = None) -> None:
         """
         Adds an image thumbnail to the widget
         :param source_path: source file path
-        :param caption: the thumbnail caption, True to use the file name, False to ignore caption
         :param click_callback: on thumbnail click callback
         """
         # Подготавливаем параметры для обработки
-        params = (source_path, caption, click_callback)
+        params = (source_path, click_callback)
 
         # Создаём задачу для обработки изображения
         future = self._executor.submit(self._prepare_thumbnail_data, *params)
@@ -175,7 +172,7 @@ class BaseThumbnailWidget(Frame, ABC):
         if exclusive:
             self.clear_selection()
 
-        if path in [item.info.path for item in self.thumbnails]:
+        if path in [item.data.path for item in self.thumbnails]:
             self.selected_paths.add(path)
             self.update_layout(False)
 
@@ -235,17 +232,17 @@ class BaseThumbnailWidget(Frame, ABC):
 
         # Выбираем функцию сортировки в зависимости от поля
         if field == SortField.PATH:
-            key_func = lambda x: x.info.path
+            key_func = lambda x: x.data.path
         elif field == SortField.NAME:
-            key_func = lambda x: x.info.filename.lower()
+            key_func = lambda x: x.data.filename.lower()
         elif field == SortField.DATE:
-            key_func = lambda x: x.info.mod_date
+            key_func = lambda x: x.data.mod_date
         elif field == SortField.SIZE:
-            key_func = lambda x: x.info.file_size
+            key_func = lambda x: x.data.file_size
         elif field == SortField.PIXELS:
-            key_func = lambda x: x.info.pixel_count
+            key_func = lambda x: x.data.pixel_count
         else:
-            key_func = lambda x: x.info.path  # По умолчанию сортируем по пути
+            key_func = lambda x: x.data.path  # По умолчанию сортируем по пути
 
         # Сортируем
         self.thumbnails.sort(key=key_func, reverse=not asc)
@@ -267,7 +264,7 @@ class BaseThumbnailWidget(Frame, ABC):
                 item.caption_label.grid(row=row * 2 + 1, column=col)
 
             # Обновляем состояние выделения для каждой миниатюры
-            if item.info.path in self.selected_paths:
+            if item.data.path in self.selected_paths:
                 item.caption_label.configure(background=self._highlight_color)
             else:
                 item.caption_label.configure(background=self._background_color)
@@ -291,13 +288,13 @@ class BaseThumbnailWidget(Frame, ABC):
         self._canvas.bind("<Leave>", _unbind_wheel)
 
     def on_mouse_wheel(self, event: Event) -> None:  # type: ignore[type-arg]
-        # Получаем координаты курсора относительно канваса
+        # Получаем координаты курсора относительно канвы
         canvas_x = self._canvas.winfo_rootx()
         canvas_y = self._canvas.winfo_rooty()
         canvas_width = self._canvas.winfo_width()
         canvas_height = self._canvas.winfo_height()
 
-        # Проверяем, находится ли курсор над канвасом
+        # Проверяем, находится ли курсор над канвой
         if not (canvas_x <= event.x_root <= canvas_x + canvas_width and
                 canvas_y <= event.y_root <= canvas_y + canvas_height):
             return
@@ -329,7 +326,7 @@ class BaseThumbnailWidget(Frame, ABC):
             self._is_processing = False
 
     @abstractmethod
-    def _prepare_thumbnail_data(self, source_path: str, caption: str | bool, click_callback: Callable[[str], None] | None) -> Optional[Tuple[Image.Image, str, str | bool, Callable[[str], None] | None]]:
+    def _prepare_thumbnail_data(self, source_path: str, click_callback: Optional[Callable[[str], None]] = None) -> Optional[ThumbnailData]:
         """
         Prepare thumbnail data in background thread
         """
@@ -354,11 +351,10 @@ class BaseThumbnailWidget(Frame, ABC):
         # Обрабатываем завершённые
         for future in completed:
             try:
-                result = future.result()
-                if result is None:
+                thumb_data = future.result()
+                if thumb_data is None:
                     continue
-                img, image_path, caption, click_callback = result
-                photo = PhotoImage(img)
+                photo = PhotoImage(thumb_data.thumbnail)
 
                 thumbnail_label = Label(self.frame, image=photo)
                 thumbnail_label.image = photo  # type: ignore[attr-defined]
@@ -366,22 +362,18 @@ class BaseThumbnailWidget(Frame, ABC):
 
                 # Create a label for the caption and set its width to match the thumbnail width
                 caption_label = Label(self.frame, wraplength=self.thumbnail_size, background=self._background_color)
-                if caption is not False:
-                    if caption is True:
-                        caption = get_file_name(image_path)
-                    caption_label.configure(text=caption)
+                caption_label.configure(text=thumb_data.caption)
                 caption_label.grid(sticky=N)
 
                 # Создаем информацию о файле и элемент миниатюры
-                thumbnail_info = self.ThumbnailInfoHandler.from_path(image_path)
-                thumbnail_item = ThumbnailItem(
+                self.thumbnails.append(ThumbnailItem(
                     thumbnail_label=thumbnail_label,
                     caption_label=caption_label,
-                    info=thumbnail_info
-                )
+                    data=thumb_data
+                ))
 
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
-                def selection_click_handler(event, path=image_path):
+                def selection_click_handler(event: Event, path: str = thumb_data.path):
                     # Проверяем, нажата ли клавиша Ctrl для множественного выделения
                     if event.state & 0x0004:  # Ctrl нажат
                         self.toggle_thumbnail_selection(path)
@@ -389,16 +381,15 @@ class BaseThumbnailWidget(Frame, ABC):
                         self.select_thumbnail(path)
 
                     # Вызываем оригинальный обработчик, если он есть
-                    if click_callback:
-                        click_callback(path)
+                    if thumb_data.click_callback:
+                        thumb_data.click_callback(path)
 
                 # Привязываем обработчик выделения к миниатюре и подписи
                 thumbnail_label.bind("<Button-1>", selection_click_handler)  # type: ignore[misc]
                 caption_label.bind("<Button-1>", selection_click_handler)  # type: ignore[misc]
 
-                self.thumbnails.append(thumbnail_item)
             except Exception as e:
-                print(f"Error processing thumbnail {image_path}: {e}")
+                print(f"Error processing thumbnail {thumb_data.path}: {e}")
 
         # Если есть завершённые задачи, обновляем layout
         if completed:
