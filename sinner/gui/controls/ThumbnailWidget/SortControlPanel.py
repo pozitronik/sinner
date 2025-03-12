@@ -31,7 +31,7 @@ class SortControlPanel(Frame):
     def _create_widgets(self):
         """Создает и размещает элементы управления"""
         # Метка "Сортировка:"
-        sort_label = Label(self, text="Сортировка:")
+        sort_label = Label(self, text="Sort by:")
         sort_label.pack(side=LEFT, padx=(0, 5))
 
         # Создаем выпадающее меню для выбора поля сортировки

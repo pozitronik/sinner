@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class SortField(Enum):
-    PATH = "Путь"
-    NAME = "Имя"
-    DATE = "Дата изменения"
-    SIZE = "Размер файла"
-    PIXELS = "Количество пикселей"
+    PATH = "Path"
+    NAME = "Filename"
+    DATE = "Change date"
+    SIZE = "File size"
+    PIXELS = "Area"
