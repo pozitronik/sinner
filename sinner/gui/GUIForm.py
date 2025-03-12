@@ -220,8 +220,8 @@ class GUIForm(AttributeLoader):
 
         self.TargetsLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
         self.LibraryNotebook.add(self.TargetsLibraryFrame, text='Targets')
-        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
-        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), parameters=self.parameters)
+        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), click_callback=self._set_source)
+        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), click_callback=self._set_target)
 
         # self.GUIModel.status_bar = self.StatusBar
 
@@ -451,9 +451,9 @@ class GUIForm(AttributeLoader):
         for path in paths:
             if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_image):
-                    self.SourcesLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+                    self.SourcesLibrary.add_thumbnail(source_path=dir_file)
             else:
-                self.SourcesLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+                self.SourcesLibrary.add_thumbnail(source_path=path)
 
     def add_source_files(self) -> None:
         image_extensions = get_type_extensions('image/')
@@ -488,9 +488,9 @@ class GUIForm(AttributeLoader):
         for path in paths:
             if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_video):
-                    self.TargetsLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+                    self.TargetsLibrary.add_thumbnail(source_path=dir_file)
             else:
-                self.TargetsLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+                self.TargetsLibrary.add_thumbnail(source_path=path)
 
     def add_target_files(self) -> None:
         file_paths = filedialog.askopenfilenames(

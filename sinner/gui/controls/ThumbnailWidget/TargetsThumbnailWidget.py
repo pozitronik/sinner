@@ -23,7 +23,7 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
         """
         Adds an image thumbnail to the widget
         :param source_path: source file path
-        :param click_callback: on thumbnail click callback
+        :param click_callback: on thumbnail click callback. None: global callback will be used
         """
         super().add_thumbnail(source_path, click_callback)
 

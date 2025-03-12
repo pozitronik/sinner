@@ -13,7 +13,7 @@ class SourcesThumbnailWidget(BaseThumbnailWidget):
         """
         Adds an image thumbnail to the widget
         :param source_path: image file path
-        :param click_callback: on thumbnail click callback
+        :param click_callback: on thumbnail click callback. None: global callback will be used
         """
         if is_image(source_path):
             super().add_thumbnail(source_path, click_callback)
@@ -30,7 +30,7 @@ class SourcesThumbnailWidget(BaseThumbnailWidget):
             self.set_cached_thumbnail(source_path, thumbnail, caption=get_file_name(source_path), pixel_count=pixel_count)
         caption = thumbnail.info.get("caption") or get_file_name(source_path)
         pixel_count = int(thumbnail.info.get("pixel_count")) if thumbnail.info.get("pixel_count") else None
-        if not pixel_count:
+        if pixel_count is None:
             with Image.open(source_path) as img:
                 pixel_count = img.size[0] * img.size[1]
         return ThumbnailData(

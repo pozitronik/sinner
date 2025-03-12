@@ -31,6 +31,7 @@ class BaseThumbnailWidget(Frame, ABC):
     _current_sort_field: SortField
     _current_sort_ascending: bool
     _sort_control: SortControlPanel
+    _thumbnail_click_callback: Optional[Callable[[str], None]] = None
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         # custom parameters
@@ -40,6 +41,8 @@ class BaseThumbnailWidget(Frame, ABC):
         self._highlight_color = kwargs.pop('highlight_color', '#E3F3FF')  # Светло-голубой цвет фона для выделения
         self._background_color = kwargs.pop('background_color', '#F0F0F0')  # Обычный цвет фона
         self._show_sort_control = kwargs.pop('show_sort_control', True)  # Показывать ли контрол сортировки
+        self._thumbnail_click_callback = kwargs.pop('click_callback', None)  # Обработчик выбора миниатюры
+
         super().__init__(master, **kwargs)
         self.thumbnails = []
         self.thumbnail_paths = set()
@@ -54,7 +57,7 @@ class BaseThumbnailWidget(Frame, ABC):
         self._processing_lock = threading.Lock()
         self._is_processing = False
 
-        # Создаем фрейм для контрола сортировки
+        # Создаем фрейм для элементов управления
         self.control_frame = Frame(self)
         if self._show_sort_control:
             self.control_frame.pack(side=TOP, fill=X, padx=5, pady=5)
@@ -164,14 +167,14 @@ class BaseThumbnailWidget(Frame, ABC):
         return image
 
     @abstractmethod
-    def add_thumbnail(self, source_path: str, click_callback: Callable[[str], None] | None = None) -> None:
+    def add_thumbnail(self, source_path: str, click_callback: Optional[Callable[[str], None]] = None) -> None:
         """
         Adds an image thumbnail to the widget
         :param source_path: source file path
-        :param click_callback: on thumbnail click callback
+        :param click_callback: on thumbnail click callback. None: global callback will be used
         """
         # Подготавливаем параметры для обработки
-        params = (source_path, click_callback)
+        params = (source_path, click_callback or self._thumbnail_click_callback)
 
         # Создаём задачу для обработки изображения
         future = self._executor.submit(self._prepare_thumbnail_data, *params)
