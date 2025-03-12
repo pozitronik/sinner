@@ -9,4 +9,4 @@ class ThumbnailItem:
     """Элемент миниатюры в виджете"""
     thumbnail_label: Label
     caption_label: Label
-    data: type[ThumbnailData]
+    data: ThumbnailData
