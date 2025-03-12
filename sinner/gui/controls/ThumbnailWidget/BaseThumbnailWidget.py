@@ -406,9 +406,15 @@ class BaseThumbnailWidget(Frame, ABC):
 
         # Если есть завершённые задачи, обновляем layout
         if completed:
-            self.sort_thumbnails()  # Используем текущие параметры сортировки
-            self.update()
-            self.master.update()
+            with self._processing_lock:
+                if self._pending_futures:
+                    # Базовое обновление без полной сортировки
+                    self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
+                else:
+                    # Полная сортировка, когда все задачи завершены
+                    self.sort_thumbnails()
+                    self.update()
+                    self.master.update()
 
         # Продолжаем обработку, если есть незавершённые задачи
         with self._processing_lock:
