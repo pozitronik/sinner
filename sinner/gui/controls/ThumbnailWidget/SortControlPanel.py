@@ -31,42 +31,30 @@ class SortControlPanel(Frame):
     def _create_widgets(self):
         """Создает и размещает элементы управления"""
         # Метка "Сортировка:"
-        sort_label = Label(self, text="Sort by:")
+        sort_label = Label(self, text="Сортировка:")
         sort_label.pack(side=LEFT, padx=(0, 5))
 
-        # Создаем выпадающее меню для выбора поля сортировки
+        # Создаем фрейм для кнопок полей сортировки
         self.field_menu = Frame(self)
-        self.field_menu.pack(side=LEFT, padx=(0, 5))
+        self.field_menu.pack(side=LEFT)
 
-        # Переменная для хранения текущего выделенного поля
+        # Словарь для хранения кнопок
         self.field_buttons = {}
 
         # Создаем кнопки для каждого поля сортировки
         for field in SortField:
-            button = Label(self.field_menu, text=field.value, padx=5, pady=2,
+            # Определяем текст с индикатором для текущего поля
+            button_text = field.value
+            if field == self._current_field:
+                button_text += " " + ("↑" if self._is_ascending else "↓")
+
+            button = Label(self.field_menu, text=button_text, padx=5, pady=2,
                            relief="raised" if field == self._current_field else "flat",
                            cursor="hand2")
             button.field = field
             button.bind("<Button-1>", self._on_field_selected)
             button.pack(side=LEFT)
             self.field_buttons[field] = button
-
-        # Кнопка для переключения порядка сортировки
-        order_text = "↑" if self._is_ascending else "↓"
-        self.order_button = Label(self, text=order_text, padx=5, pady=2,
-                                  cursor="hand2", relief="raised")
-        self.order_button.pack(side=LEFT)
-        self.order_button.bind("<Button-1>", self._toggle_order)
-
-    def _toggle_order(self, event=None):  # type: ignore[type-arg]
-        """Переключает порядок сортировки и обновляет UI"""
-        self._is_ascending = not self._is_ascending
-
-        # Обновляем текст кнопки
-        self.order_button.config(text="↑" if self._is_ascending else "↓")
-
-        # Вызываем функцию обратного вызова
-        self._trigger_sort_changed()
 
     def _on_field_selected(self, event):
         """Обработчик выбора поля сортировки"""
@@ -76,15 +64,18 @@ class SortControlPanel(Frame):
 
         # Если поле уже выбрано - просто переключаем порядок
         if field == self._current_field:
-            self._toggle_order()
-            return
+            self._is_ascending = not self._is_ascending
+            button.config(text=f"{field.value} {'↑' if self._is_ascending else '↓'}")
+        else:
+            # Сбрасываем текст предыдущей кнопки
+            old_button = self.field_buttons[self._current_field]
+            old_button.config(text=self._current_field.value, relief="flat")
 
-        # Меняем выделение кнопок
-        self.field_buttons[self._current_field].config(relief="flat")
-        button.config(relief="raised")
+            # Обновляем текущее поле
+            self._current_field = field
 
-        # Обновляем текущее поле
-        self._current_field = field
+            # Выделяем новую кнопку и добавляем индикатор
+            button.config(text=f"{field.value} {'↑' if self._is_ascending else '↓'}", relief="raised")
 
         # Вызываем функцию обратного вызова
         self._trigger_sort_changed()
@@ -105,13 +96,17 @@ class SortControlPanel(Frame):
         :param field: Поле сортировки
         :param ascending: True для сортировки по возрастанию, False - по убыванию
         """
-        # Если поле меняется, обновляем выделение кнопок
-        if field != self._current_field:
-            self.field_buttons[self._current_field].config(relief="flat")
-            self.field_buttons[field].config(relief="raised")
+        # Если что-то изменилось, обновляем интерфейс
+        if field != self._current_field or ascending != self._is_ascending:
+            # Сбрасываем текст предыдущей кнопки
+            if field != self._current_field:
+                old_button = self.field_buttons[self._current_field]
+                old_button.config(text=self._current_field.value, relief="flat")
 
-        self._current_field = field
-        self._is_ascending = ascending
+            # Обновляем текущие значения
+            self._current_field = field
+            self._is_ascending = ascending
 
-        # Обновляем кнопку порядка
-        self.order_button.config(text="↑" if ascending else "↓")
+            # Обновляем текст и выделение кнопки
+            button = self.field_buttons[field]
+            button.config(text=f"{field.value} {'↑' if ascending else '↓'}", relief="raised")
