@@ -12,9 +12,9 @@ class SortControlPanel(Frame):
         Создает панель управления сортировкой
 
         :param master: Родительский виджет
-        :param on_sort_changed: Функция обратного вызова при изменении сортировки
-                              Принимает поле сортировки и флаг порядка (True - по возрастанию)
-        :param kwargs: Дополнительные параметры для ttk.Frame
+        :param on_sort_changed: Функция обратного вызова при изменении сортировки.
+                Принимает поле сортировки и флаг порядка (True - по возрастанию)
+        :param kwargs: Дополнительные параметры для Frame
         """
         super().__init__(master, **kwargs)
 
@@ -58,7 +58,7 @@ class SortControlPanel(Frame):
         self.order_button.pack(side=LEFT)
         self.order_button.bind("<Button-1>", self._toggle_order)
 
-    def _toggle_order(self, event=None):
+    def _toggle_order(self, event=None):  # type: ignore[type-arg]
         """Переключает порядок сортировки и обновляет UI"""
         self._is_ascending = not self._is_ascending
 
