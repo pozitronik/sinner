@@ -39,7 +39,8 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
                 frame, caption = self.get_frame(source_path)
                 thumbnail = Image.fromarray(cv2.cvtColor(resize_proportionally(frame, (self.thumbnail_size, self.thumbnail_size)), cv2.COLOR_BGR2RGB))
             elif is_image(source_path):
-                thumbnail = Image.open(source_path)
+                with Image.open(source_path) as img:
+                    thumbnail = img.copy()
                 caption = f"{get_file_name(source_path)} [{thumbnail.size[0]}x{thumbnail.size[1]}]"
                 thumbnail.thumbnail((self.thumbnail_size, self.thumbnail_size))
             else:
