@@ -260,6 +260,9 @@ class BaseThumbnailWidget(Frame, ABC):
         if 0 == len(self.thumbnails):
             return
         total_width = self.winfo_width()
+        # Минимальная ширина, если виджет еще не отрисован
+        if total_width <= 1:
+            total_width = 200
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
         for i, item in enumerate(self.thumbnails):
             if update_grid:
