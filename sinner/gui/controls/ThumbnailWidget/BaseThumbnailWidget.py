@@ -116,7 +116,8 @@ class BaseThumbnailWidget(Frame, ABC):
         thumb_name = hashlib.md5(f"{source_path}{self.thumbnail_size}".encode()).hexdigest() + '.png'
         thumb_path = os.path.join(self.temp_dir, thumb_name)
         if os.path.exists(thumb_path):
-            return Image.open(thumb_path)
+            with Image.open(thumb_path) as img:
+                return img.copy()
         return None
 
     def set_cached_thumbnail(self, source_path: str, img: Image.Image, caption: str | None = None) -> None:
