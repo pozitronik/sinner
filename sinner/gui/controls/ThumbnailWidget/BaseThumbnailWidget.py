@@ -24,7 +24,8 @@ class BaseThumbnailWidget(Frame, ABC):
     temp_dir: str
     _columns: int
     _canvas: Canvas
-    selected_paths: Set[str]
+    thumbnail_paths: Set[str]  # отдельный словарь для путей для O(1) поиска
+    selected_paths: Set[str]  # словарь для путей выбранных файлов
     _highlight_color: str
     _background_color: str
     _current_sort_field: SortField
@@ -41,7 +42,8 @@ class BaseThumbnailWidget(Frame, ABC):
         self._show_sort_control = kwargs.pop('show_sort_control', True)  # Показывать ли контрол сортировки
         super().__init__(master, **kwargs)
         self.thumbnails = []
-        self.selected_paths = set()  # Хранит пути выбранных миниатюр
+        self.thumbnail_paths = set()
+        self.selected_paths = set()
 
         # Параметры сортировки по умолчанию
         self._current_sort_field = SortField.NAME
@@ -189,7 +191,7 @@ class BaseThumbnailWidget(Frame, ABC):
         if exclusive:
             self.clear_selection()
 
-        if path in [item.data.path for item in self.thumbnails]:
+        if path in self.thumbnail_paths:
             self.selected_paths.add(path)
             self.update_layout(False)
 
@@ -328,6 +330,7 @@ class BaseThumbnailWidget(Frame, ABC):
             item.thumbnail_label.grid_forget()
             item.caption_label.grid_forget()
         self.thumbnails = []
+        self.thumbnail_paths.clear()
         self.selected_paths.clear()  # Очищаем состояние выделения
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
         with self._processing_lock:
@@ -380,6 +383,7 @@ class BaseThumbnailWidget(Frame, ABC):
                     caption_label=caption_label,
                     data=thumb_data
                 ))
+                self.thumbnail_paths.add(thumb_data.path)
 
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
                 def selection_click_handler(event: Event, path: str = thumb_data.path):
