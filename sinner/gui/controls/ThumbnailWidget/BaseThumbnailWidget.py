@@ -5,7 +5,7 @@ import threading
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 from multiprocessing import cpu_count
-from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH, TOP, X
+from tkinter import Canvas, Frame, Misc, NSEW, Scrollbar, Label, N, UNITS, ALL, Event, NW, LEFT, Y, BOTH, TOP, X, Entry, StringVar
 from typing import List, Callable, Optional, Set
 
 from PIL import Image
@@ -32,6 +32,8 @@ class BaseThumbnailWidget(Frame, ABC):
     _current_sort_ascending: bool
     _sort_control: SortControlPanel
     _thumbnail_click_callback: Optional[Callable[[str], None]] = None
+    _filter_text: StringVar
+    _filtered_thumbnails: List[ThumbnailItem]
 
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         # custom parameters
@@ -43,8 +45,13 @@ class BaseThumbnailWidget(Frame, ABC):
         self._show_sort_control = kwargs.pop('show_sort_control', True)  # Показывать ли контрол сортировки
         self._thumbnail_click_callback = kwargs.pop('click_callback', None)  # Обработчик выбора миниатюры
 
+        # Параметры фильтрации
+        self._filter_text = StringVar()
+        self._filter_text.trace_add("write", self._on_filter_changed)
+
         super().__init__(master, **kwargs)
         self.thumbnails = []
+        self._filtered_thumbnails = self.thumbnails.copy()  # Инициализация фильтрованного списка
         self.thumbnail_paths = set()
         self.selected_paths = set()
 
@@ -59,10 +66,24 @@ class BaseThumbnailWidget(Frame, ABC):
 
         # Создаем фрейм для элементов управления
         self.control_frame = Frame(self)
-        if self._show_sort_control:
-            self.control_frame.pack(side=TOP, fill=X, padx=5, pady=5)
+        self.control_frame.pack(side=TOP, fill=X, padx=5, pady=5)
 
-            # Создаем контрол сортировки
+        # Добавляем фильтр поиска
+        filter_frame = Frame(self.control_frame)
+        filter_frame.pack(side=LEFT, fill=X, expand=True, padx=(0, 10))
+
+        filter_label = Label(filter_frame, text="Фильтр:")
+        filter_label.pack(side=LEFT, padx=(0, 5))
+
+        self.filter_entry = Entry(filter_frame, textvariable=self._filter_text)
+        self.filter_entry.pack(side=LEFT, fill=X, expand=True)
+
+        clear_btn = Label(filter_frame, text="✕", cursor="hand2", padx=5)
+        clear_btn.pack(side=LEFT)
+        clear_btn.bind("<Button-1>", lambda e: self.clear_filter())
+
+        # Создаем контрол сортировки
+        if self._show_sort_control:
             self._sort_control = SortControlPanel(
                 self.control_frame,
                 on_sort_changed=self._on_sort_changed
@@ -111,6 +132,29 @@ class BaseThumbnailWidget(Frame, ABC):
         self._current_sort_field = field
         self._current_sort_ascending = ascending
         self.sort_thumbnails(field, ascending)
+
+    def _on_filter_changed(self, *args):
+        """Обработчик изменения текста фильтра"""
+        self._apply_filter()
+        self.update_layout()
+
+    def _apply_filter(self):
+        """Применяет текущий фильтр к списку миниатюр"""
+        filter_text = self._filter_text.get().lower()
+
+        if not filter_text:
+            # Если фильтр пустой, показываем все миниатюры
+            self._filtered_thumbnails = self.thumbnails.copy()
+        else:
+            # Иначе фильтруем по тексту в заголовке
+            self._filtered_thumbnails = [
+                item for item in self.thumbnails
+                if filter_text in item.data.caption.lower()
+            ]
+
+    def clear_filter(self):
+        """Очищает текущий фильтр"""
+        self._filter_text.set("")
 
     @property
     def highlight_color(self) -> str:
@@ -258,6 +302,9 @@ class BaseThumbnailWidget(Frame, ABC):
         # Сортируем
         self.thumbnails.sort(key=key_func, reverse=not asc)
 
+        # Переприменяем фильтр к отсортированному списку
+        self._apply_filter()
+
         # Обновляем интерфейс
         self.update_layout()
 
@@ -265,12 +312,26 @@ class BaseThumbnailWidget(Frame, ABC):
     def update_layout(self, update_grid: bool = True) -> None:
         if 0 == len(self.thumbnails):
             return
+
+        # Скрываем все миниатюры при обновлении сетки
+        if update_grid:
+            for item in self.thumbnails:
+                item.thumbnail_label.grid_remove()
+                item.caption_label.grid_remove()
+
+        # Если нет видимых миниатюр после фильтрации
+        if 0 == len(self._filtered_thumbnails):
+            self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
+            return
+
         total_width = self.winfo_width()
         # Минимальная ширина, если виджет еще не отрисован
         if total_width <= 1:
             total_width = 200
         self._columns = max(1, total_width // (self.thumbnail_size + 10))
-        for i, item in enumerate(self.thumbnails):
+
+        # Показываем только отфильтрованные миниатюры
+        for i, item in enumerate(self._filtered_thumbnails):
             if update_grid:
                 row = i // self._columns
                 col = i % self._columns
@@ -333,6 +394,7 @@ class BaseThumbnailWidget(Frame, ABC):
             item.thumbnail_label.grid_forget()
             item.caption_label.grid_forget()
         self.thumbnails = []
+        self._filtered_thumbnails = []
         self.thumbnail_paths.clear()
         self.selected_paths.clear()  # Очищаем состояние выделения
         self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
@@ -410,6 +472,9 @@ class BaseThumbnailWidget(Frame, ABC):
         # Если есть завершённые задачи, обновляем layout
         if completed:
             with self._processing_lock:
+                # Переприменяем фильтр к новым миниатюрам
+                self._apply_filter()
+
                 if self._pending_futures:
                     # Базовое обновление без полной сортировки
                     self._canvas.configure(scrollregion=self._canvas.bbox(ALL))
