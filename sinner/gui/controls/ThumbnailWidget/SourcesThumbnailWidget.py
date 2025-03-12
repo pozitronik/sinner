@@ -24,8 +24,8 @@ class SourcesThumbnailWidget(BaseThumbnailWidget):
         """
         thumbnail = self.get_cached_thumbnail(source_path)
         if not thumbnail:
-            thumbnail = self.get_thumbnail(Image.open(source_path), self.thumbnail_size)
             with Image.open(source_path) as img:
+                thumbnail = self.get_thumbnail(img, self.thumbnail_size)
                 pixel_count = img.size[0] * img.size[1]
             self.set_cached_thumbnail(source_path, thumbnail, caption=get_file_name(source_path), pixel_count=pixel_count)
         caption = thumbnail.info.get("caption") or get_file_name(source_path)
