@@ -136,7 +136,7 @@ class BaseThumbnailWidget(Frame, ABC):
         if caption:
             metadata_dict.add_text("caption", caption)
         if pixel_count:
-            metadata_dict.add_text("pixel_count", pixel_count)
+            metadata_dict.add_text("pixel_count", str(pixel_count))
         img.save(thumb_path, 'PNG', pnginfo=metadata_dict)
 
     @staticmethod
