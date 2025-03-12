@@ -82,6 +82,15 @@ class BaseThumbnailWidget(Frame, ABC):
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self.bind_mousewheel()
 
+        # Предопределенные функции сортировки
+        self._sort_keys = {
+            SortField.PATH: lambda x: x.data.path,
+            SortField.NAME: lambda x: x.data.filename.lower(),
+            SortField.DATE: lambda x: x.data.mod_date,
+            SortField.SIZE: lambda x: x.data.file_size,
+            SortField.PIXELS: lambda x: x.data.pixel_count
+        }
+
     def destroy(self):
         """Clean up resources when widget is destroyed"""
         self._executor.shutdown(wait=False)
@@ -236,19 +245,8 @@ class BaseThumbnailWidget(Frame, ABC):
         if self._show_sort_control:
             self._sort_control.set_sort(field, asc)
 
-        # Выбираем функцию сортировки в зависимости от поля
-        if field == SortField.PATH:
-            key_func = lambda x: x.data.path
-        elif field == SortField.NAME:
-            key_func = lambda x: x.data.filename.lower()
-        elif field == SortField.DATE:
-            key_func = lambda x: x.data.mod_date
-        elif field == SortField.SIZE:
-            key_func = lambda x: x.data.file_size
-        elif field == SortField.PIXELS:
-            key_func = lambda x: x.data.pixel_count
-        else:
-            key_func = lambda x: x.data.path  # По умолчанию сортируем по пути
+        # Получаем функцию сортировки из предопределенного словаря
+        key_func = self._sort_keys.get(field, self._sort_keys[SortField.PATH])
 
         # Сортируем
         self.thumbnails.sort(key=key_func, reverse=not asc)
