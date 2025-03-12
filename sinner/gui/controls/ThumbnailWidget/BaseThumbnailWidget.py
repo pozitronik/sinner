@@ -82,6 +82,11 @@ class BaseThumbnailWidget(Frame, ABC):
         self._canvas.bind("<Configure>", self.on_canvas_resize)
         self.bind_mousewheel()
 
+    def destroy(self):
+        """Clean up resources when widget is destroyed"""
+        self._executor.shutdown(wait=False)
+        super().destroy()
+
     def _on_sort_changed(self, field: SortField, ascending: bool) -> None:
         """
         Обработчик изменения параметров сортировки из контрола
