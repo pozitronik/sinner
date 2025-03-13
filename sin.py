@@ -3,21 +3,21 @@ import os
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
 
-import signal
-import sys
-from argparse import Namespace
+import signal  # noqa: E402
+import sys  # noqa: E402
+from argparse import Namespace  # noqa: E402
 
 if sys.version_info < (3, 10):
     print('Python version is not supported - please upgrade to 3.10 or higher.')
     quit()
 
-from sinner.Benchmark import Benchmark
-from sinner.Parameters import Parameters
-from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.Sinner import Sinner
-from sinner.gui.GUIForm import GUIForm
-from sinner.webcam.WebCam import WebCam
-from sinner.utilities import limit_resources
+from sinner.Benchmark import Benchmark  # noqa: E402
+from sinner.Parameters import Parameters  # noqa: E402
+from sinner.BatchProcessingCore import BatchProcessingCore  # noqa: E402
+from sinner.Sinner import Sinner  # noqa: E402
+from sinner.gui.GUIForm import GUIForm  # noqa: E402
+from sinner.webcam.WebCam import WebCam  # noqa: E402
+from sinner.utilities import limit_resources  # noqa: E402
 
 
 class Sin(Sinner):
@@ -49,9 +49,7 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
-    # todo: remnants of roop code, needs to be checked
     # single thread doubles cuda performance - needs to be set before torch import
     if any(arg.startswith('--execution-provider') for arg in sys.argv):
         os.environ['OMP_NUM_THREADS'] = '1'
-
     Sin().run()

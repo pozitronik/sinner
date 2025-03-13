@@ -1,3 +1,4 @@
+import tempfile
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
 from tkinter.ttk import Spinbox, Label, Notebook
@@ -220,8 +221,8 @@ class GUIForm(AttributeLoader):
 
         self.TargetsLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
         self.LibraryNotebook.add(self.TargetsLibraryFrame, text='Targets')
-        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'))
-        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), parameters=self.parameters)
+        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir', tempfile.gettempdir()), click_callback=self._set_source)
+        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir', tempfile.gettempdir()), click_callback=self._set_target)
 
         # self.GUIModel.status_bar = self.StatusBar
 
@@ -404,18 +405,13 @@ class GUIForm(AttributeLoader):
     def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
-            self.NavigateSlider.position = 1
-            self.GUIModel.target_path = selected_file
-            self.update_slider_bounds()
-            self.TargetPathEntry.set_text(selected_file)
-            self.on_quality_scale_change(self.GUIModel.quality)
-            self.StatusBar.item('Target resolution', self.format_target_info())
+            self._set_target(selected_file)
             return True
         return False
 
     def _set_target(self, filename: str) -> None:
-        self.GUIModel.target_path = filename
         self.NavigateSlider.position = 1
+        self.GUIModel.target_path = filename
         self.update_slider_bounds()
         self.TargetPathEntry.set_text(filename)
         self.on_quality_scale_change(self.GUIModel.quality)
@@ -451,9 +447,9 @@ class GUIForm(AttributeLoader):
         for path in paths:
             if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_image):
-                    self.SourcesLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+                    self.SourcesLibrary.add_thumbnail(source_path=dir_file)
             else:
-                self.SourcesLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_source(filename))  # type: ignore[misc]  # callback is always defined
+                self.SourcesLibrary.add_thumbnail(source_path=path)
 
     def add_source_files(self) -> None:
         image_extensions = get_type_extensions('image/')
@@ -488,9 +484,9 @@ class GUIForm(AttributeLoader):
         for path in paths:
             if is_dir(path):
                 for dir_file in get_directory_file_list(path, is_video):
-                    self.TargetsLibrary.add_thumbnail(source_path=dir_file, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+                    self.TargetsLibrary.add_thumbnail(source_path=dir_file)
             else:
-                self.TargetsLibrary.add_thumbnail(source_path=path, click_callback=lambda filename: self._set_target(filename))  # type: ignore[misc]  # callback is always defined
+                self.TargetsLibrary.add_thumbnail(source_path=path)
 
     def add_target_files(self) -> None:
         file_paths = filedialog.askopenfilenames(

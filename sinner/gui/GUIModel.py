@@ -219,6 +219,8 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         self.progress_control = self._ProgressBar  # to update segments
         if self._enable_sound:
+            if self.AudioPlayer:
+                self.AudioPlayer.stop()
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
             self.player_stop(reload_frames=True)
