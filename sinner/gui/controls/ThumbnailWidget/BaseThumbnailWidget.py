@@ -149,7 +149,7 @@ class BaseThumbnailWidget(Frame, ABC):
             # Иначе фильтруем по тексту в заголовке
             self._filtered_thumbnails = [
                 item for item in self.thumbnails
-                if filter_text in item.data.caption.lower()
+                if item.data.caption is not None and filter_text in item.data.caption.lower()
             ]
 
     def clear_filter(self) -> None:
