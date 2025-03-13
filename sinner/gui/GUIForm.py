@@ -405,18 +405,13 @@ class GUIForm(AttributeLoader):
     def change_target(self) -> bool:
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
-            self.NavigateSlider.position = 1
-            self.GUIModel.target_path = selected_file
-            self.update_slider_bounds()
-            self.TargetPathEntry.set_text(selected_file)
-            self.on_quality_scale_change(self.GUIModel.quality)
-            self.StatusBar.item('Target resolution', self.format_target_info())
+            self._set_target(selected_file)
             return True
         return False
 
     def _set_target(self, filename: str) -> None:
-        self.GUIModel.target_path = filename
         self.NavigateSlider.position = 1
+        self.GUIModel.target_path = filename
         self.update_slider_bounds()
         self.TargetPathEntry.set_text(filename)
         self.on_quality_scale_change(self.GUIModel.quality)
