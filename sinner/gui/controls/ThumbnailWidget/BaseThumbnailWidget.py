@@ -117,7 +117,7 @@ class BaseThumbnailWidget(Frame, ABC):
             SortField.PIXELS: lambda x: x.data.pixel_count
         }
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Clean up resources when widget is destroyed"""
         self._executor.shutdown(wait=False)
         super().destroy()
@@ -133,12 +133,12 @@ class BaseThumbnailWidget(Frame, ABC):
         self._current_sort_ascending = ascending
         self.sort_thumbnails(field, ascending)
 
-    def _on_filter_changed(self, *args):
+    def _on_filter_changed(self) -> None:
         """Обработчик изменения текста фильтра"""
         self._apply_filter()
         self.update_layout()
 
-    def _apply_filter(self):
+    def _apply_filter(self) -> None:
         """Применяет текущий фильтр к списку миниатюр"""
         filter_text = self._filter_text.get().lower()
 
@@ -152,7 +152,7 @@ class BaseThumbnailWidget(Frame, ABC):
                 if filter_text in item.data.caption.lower()
             ]
 
-    def clear_filter(self):
+    def clear_filter(self) -> None:
         """Очищает текущий фильтр"""
         self._filter_text.set("")
 
@@ -455,7 +455,7 @@ class BaseThumbnailWidget(Frame, ABC):
                 self.thumbnail_paths.add(thumb_data.path)
 
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
-                def selection_click_handler(event: Event, path: str = thumb_data.path):
+                def selection_click_handler(event: Event, path: str = thumb_data.path) -> None:
                     # Проверяем, нажата ли клавиша Ctrl для множественного выделения
                     if event.state & 0x0004:  # Ctrl нажат
                         self.toggle_thumbnail_selection(path)

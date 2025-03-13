@@ -20,7 +20,7 @@ class ThumbnailData:
     filename: str = field(init=False)  # Имя исходного файла
     click_callback: Optional[Callable[[str], None]] = None  # Опциональный обработчик клика
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Выполняется после инициализации объекта для заполнения производных полей"""
         self.filename = get_file_name(self.path)
         stat_info = os.stat(self.path)

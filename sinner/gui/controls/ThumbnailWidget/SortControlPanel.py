@@ -1,4 +1,4 @@
-from tkinter import Frame, Label, LEFT
+from tkinter import Frame, Label, LEFT, Event
 from typing import Callable
 
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
@@ -7,7 +7,7 @@ from sinner.gui.controls.ThumbnailWidget.SortField import SortField
 class SortControlPanel(Frame):
     """Панель управления сортировкой для виджета эскизов"""
 
-    def __init__(self, master, on_sort_changed: Callable[[SortField, bool], None], **kwargs):
+    def __init__(self, master, on_sort_changed: Callable[[SortField, bool], None], **kwargs):   # type: ignore[no-untyped-def]
         """
         Создает панель управления сортировкой
 
@@ -28,7 +28,7 @@ class SortControlPanel(Frame):
         # Создаем элементы управления
         self._create_widgets()
 
-    def _create_widgets(self):
+    def _create_widgets(self) -> None:
         """Создает и размещает элементы управления"""
         # Метка "Сортировка:"
         sort_label = Label(self, text="Sort by:")
@@ -56,7 +56,7 @@ class SortControlPanel(Frame):
             button.pack(side=LEFT)
             self.field_buttons[field] = button
 
-    def _on_field_selected(self, event):
+    def _on_field_selected(self, event: Event) -> None:
         """Обработчик выбора поля сортировки"""
         # Получаем кнопку, на которую нажали
         button = event.widget
@@ -80,7 +80,7 @@ class SortControlPanel(Frame):
         # Вызываем функцию обратного вызова
         self._trigger_sort_changed()
 
-    def _trigger_sort_changed(self):
+    def _trigger_sort_changed(self) -> None:
         """Вызывает функцию обратного вызова с текущими параметрами сортировки"""
         if self._on_sort_changed:
             self._on_sort_changed(self._current_field, self._is_ascending)
@@ -89,7 +89,7 @@ class SortControlPanel(Frame):
         """Возвращает текущие параметры сортировки"""
         return self._current_field, self._is_ascending
 
-    def set_sort(self, field: SortField, ascending: bool = True):
+    def set_sort(self, field: SortField, ascending: bool = True) -> None:
         """
         Устанавливает параметры сортировки без вызова обратного вызова
 
