@@ -54,7 +54,7 @@ class SortControlPanel(Frame):
             button.pack(side=LEFT)
             self.field_buttons[field] = button
 
-    def _on_field_selected(self, event: Event) -> None:
+    def _on_field_selected(self, event: Event[SortButton]) -> None:
         """Обработчик выбора поля сортировки"""
         # Получаем кнопку, на которую нажали
         button = cast(SortButton, event.widget)
