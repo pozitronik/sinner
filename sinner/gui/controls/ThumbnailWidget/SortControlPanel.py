@@ -19,11 +19,11 @@ class SortControlPanel(Frame):
         super().__init__(master, **kwargs)
 
         # Функция обратного вызова
-        self._on_sort_changed = on_sort_changed
+        self._on_sort_changed: Callable[[SortField, bool], None] = on_sort_changed
 
         # Текущее состояние сортировки
-        self._current_field = SortField.NAME  # По умолчанию - имя файла
-        self._is_ascending = True
+        self._current_field: SortField = SortField.NAME  # По умолчанию - имя файла
+        self._is_ascending: bool = True
 
         # Создаем элементы управления
         self._create_widgets()
@@ -82,8 +82,7 @@ class SortControlPanel(Frame):
 
     def _trigger_sort_changed(self) -> None:
         """Вызывает функцию обратного вызова с текущими параметрами сортировки"""
-        if self._on_sort_changed:
-            self._on_sort_changed(self._current_field, self._is_ascending)
+        self._on_sort_changed(self._current_field, self._is_ascending)
 
     def get_current_sort(self) -> tuple[SortField, bool]:
         """Возвращает текущие параметры сортировки"""
