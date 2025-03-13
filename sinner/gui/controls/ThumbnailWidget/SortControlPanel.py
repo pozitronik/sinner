@@ -1,13 +1,14 @@
 from tkinter import Frame, Label, LEFT, Event
-from typing import Callable
+from typing import Callable, cast, Dict, Tuple
 
+from sinner.gui.controls.ThumbnailWidget.SortButton import SortButton
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
 
 
 class SortControlPanel(Frame):
     """Панель управления сортировкой для виджета эскизов"""
 
-    def __init__(self, master, on_sort_changed: Callable[[SortField, bool], None], **kwargs):   # type: ignore[no-untyped-def]
+    def __init__(self, master, on_sort_changed: Callable[[SortField, bool], None], **kwargs):  # type: ignore[no-untyped-def]
         """
         Создает панель управления сортировкой
 
@@ -39,7 +40,7 @@ class SortControlPanel(Frame):
         self.field_menu.pack(side=LEFT)
 
         # Словарь для хранения кнопок
-        self.field_buttons = {}
+        self.field_buttons: Dict[SortField, SortButton] = {}
 
         # Создаем кнопки для каждого поля сортировки
         for field in SortField:
@@ -48,10 +49,7 @@ class SortControlPanel(Frame):
             if field == self._current_field:
                 button_text += " " + ("↑" if self._is_ascending else "↓")
 
-            button = Label(self.field_menu, text=button_text, padx=5, pady=2,
-                           relief="raised" if field == self._current_field else "flat",
-                           cursor="hand2")
-            button.field = field
+            button = SortButton(self.field_menu, field=field, text=button_text, padx=5, pady=2, relief="raised" if field == self._current_field else "flat", cursor="hand2")
             button.bind("<Button-1>", self._on_field_selected)
             button.pack(side=LEFT)
             self.field_buttons[field] = button
@@ -59,7 +57,7 @@ class SortControlPanel(Frame):
     def _on_field_selected(self, event: Event) -> None:
         """Обработчик выбора поля сортировки"""
         # Получаем кнопку, на которую нажали
-        button = event.widget
+        button = cast(SortButton, event.widget)
         field = button.field
 
         # Если поле уже выбрано - просто переключаем порядок
@@ -84,7 +82,7 @@ class SortControlPanel(Frame):
         """Вызывает функцию обратного вызова с текущими параметрами сортировки"""
         self._on_sort_changed(self._current_field, self._is_ascending)
 
-    def get_current_sort(self) -> tuple[SortField, bool]:
+    def get_current_sort(self) -> Tuple[SortField, bool]:
         """Возвращает текущие параметры сортировки"""
         return self._current_field, self._is_ascending
 
