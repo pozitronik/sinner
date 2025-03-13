@@ -16,7 +16,7 @@ class Parameters:
         if 'h' in self.parameters or 'help' in self.parameters:
             AttributeDocumenter().show_help()
         # add values from the ini file
-        file_configuration_dict = vars(Config(self.parameters).read_section('sinner'))
+        file_configuration_dict = vars(Config(self.parameters).read_section('sinner') or Namespace())
         for key, value in file_configuration_dict.items():
             if key not in self.parameters:
                 self.parameters.__setattr__(key, value)

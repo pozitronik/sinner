@@ -1,3 +1,4 @@
+import tempfile
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
 from tkinter.ttk import Spinbox, Label, Notebook
@@ -220,8 +221,8 @@ class GUIForm(AttributeLoader):
 
         self.TargetsLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
         self.LibraryNotebook.add(self.TargetsLibraryFrame, text='Targets')
-        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), click_callback=self._set_source)
-        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir'), click_callback=self._set_target)
+        self.SourcesLibrary = SourcesThumbnailWidget(self.SourcesLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir', tempfile.gettempdir()), click_callback=self._set_source)
+        self.TargetsLibrary = TargetsThumbnailWidget(self.TargetsLibraryFrame, temp_dir=vars(self.parameters).get('temp_dir', tempfile.gettempdir()), click_callback=self._set_target)
 
         # self.GUIModel.status_bar = self.StatusBar
 
