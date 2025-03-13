@@ -1,24 +1,15 @@
 #!/usr/bin/env python3
 import os
-import signal
-import sys
-from argparse import Namespace
 
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
 
-def init_environment() -> None:
-    """Инициализация переменных окружения перед импортами."""
-    os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
+import signal  # noqa: E402
+import sys  # noqa: E402
+from argparse import Namespace  # noqa: E402
 
-    # single thread doubles cuda performance - needs to be set before torch import
-    if any(arg.startswith('--execution-provider') for arg in sys.argv):
-        os.environ['OMP_NUM_THREADS'] = '1'
-
-    if sys.version_info < (3, 10):
-        print('Python version is not supported - please upgrade to 3.10 or higher.')
-        sys.exit(1)
-
-
-init_environment()
+if sys.version_info < (3, 10):
+    print('Python version is not supported - please upgrade to 3.10 or higher.')
+    sys.exit(1)
 
 from sinner.Benchmark import Benchmark  # noqa: E402
 from sinner.Parameters import Parameters  # noqa: E402
@@ -58,4 +49,7 @@ class Sin(Sinner):
 
 
 if __name__ == '__main__':
+    # single thread doubles cuda performance - needs to be set before torch import
+    if any(arg.startswith('--execution-provider') for arg in sys.argv):
+        os.environ['OMP_NUM_THREADS'] = '1'
     Sin().run()
