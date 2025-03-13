@@ -133,7 +133,7 @@ class BaseThumbnailWidget(Frame, ABC):
         self._current_sort_ascending = ascending
         self.sort_thumbnails(field, ascending)
 
-    def _on_filter_changed(self) -> None:
+    def _on_filter_changed(self, *args) -> None:  # type: ignore[no-untyped-def]
         """Обработчик изменения текста фильтра"""
         self._apply_filter()
         self.update_layout()
