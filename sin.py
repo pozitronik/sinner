@@ -9,7 +9,7 @@ from argparse import Namespace  # noqa: E402
 
 if sys.version_info < (3, 10):
     print('Python version is not supported - please upgrade to 3.10 or higher.')
-    sys.exit(1)
+    quit()
 
 from sinner.Benchmark import Benchmark  # noqa: E402
 from sinner.Parameters import Parameters  # noqa: E402
