@@ -443,7 +443,8 @@ class BaseThumbnailWidget(Frame, ABC):
 
                 # Create a label for the caption and set its width to match the thumbnail width
                 caption_label = Label(self.frame, wraplength=self.thumbnail_size, background=self._background_color)
-                caption_label.configure(text=thumb_data.caption)
+                if thumb_data.caption is not None:
+                    caption_label.configure(text=thumb_data.caption)
                 caption_label.grid(sticky=N)
 
                 # Создаем информацию о файле и элемент миниатюры
