@@ -60,7 +60,7 @@ class BaseThumbnailWidget(Frame, ABC):
         self._current_sort_ascending = True
 
         self._executor = ThreadPoolExecutor(max_workers=cpu_count())
-        self._pending_futures: List[Future[ThumbnailData]] = []
+        self._pending_futures: List[Future[ThumbnailData | None]] = []
         self._processing_lock = threading.Lock()
         self._is_processing = False
 
