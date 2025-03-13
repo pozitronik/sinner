@@ -14,7 +14,7 @@ class ThumbnailData:
     thumbnail: Image.Image  # Обработанное изображение миниатюры
     path: str  # Путь к исходному файлу
     caption: Optional[str]  # Подпись под миниатюрой
-    pixel_count: int  # Количество пикселей (WxH) в исходном изображении
+    pixel_count: Optional[int]  # Количество пикселей (WxH) в исходном изображении
     mod_date: float = field(init=False)  # Время изменения исходного файла
     file_size: int = field(init=False)  # Размер исходного файла
     filename: str = field(init=False)  # Имя исходного файла
