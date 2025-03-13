@@ -72,7 +72,7 @@ class BaseThumbnailWidget(Frame, ABC):
         filter_frame = Frame(self.control_frame)
         filter_frame.pack(side=LEFT, fill=X, expand=True, padx=(0, 10))
 
-        filter_label = Label(filter_frame, text="Фильтр:")
+        filter_label = Label(filter_frame, text="Filter:")
         filter_label.pack(side=LEFT, padx=(0, 5))
 
         self.filter_entry = Entry(filter_frame, textvariable=self._filter_text)
