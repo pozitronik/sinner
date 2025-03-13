@@ -457,7 +457,7 @@ class BaseThumbnailWidget(Frame, ABC):
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
                 def selection_click_handler(event: Event, path: str = thumb_data.path) -> None:
                     # Проверяем, нажата ли клавиша Ctrl для множественного выделения
-                    if event.state & 0x0004:  # Ctrl нажат
+                    if int(event.state) & 0x0004:  # Ctrl нажат
                         self.toggle_thumbnail_selection(path)
                     else:
                         self.select_thumbnail(path)
