@@ -214,10 +214,22 @@ class BaseThumbnailWidget(Frame, ABC):
     @abstractmethod
     def add_thumbnail(self, source_path: str, click_callback: Optional[Callable[[str], None]] = None) -> None:
         """
-        Adds an image thumbnail to the widget
-        :param source_path: source file path
-        :param click_callback: on thumbnail click callback. None: global callback will be used
-        """
+        Adds an image thumbnail to the widget if it doesn't already exist
+            :param source_path: source file path
+            :param click_callback: on thumbnail click callback. None: global callback will be used
+            """
+        # Normalize the path for consistent comparison
+        normalized_path = str(normalize_path(source_path))
+
+        # Check if this normalized path already exists in our thumbnails
+        # Direct comparison allow same path to be added, but any other way will increase code complexity to O(log(n)))
+        if normalized_path in self.thumbnail_paths:
+            # We already have this path, skip processing
+            return
+
+        # Add the normalized path to our tracking set
+        self.thumbnail_paths.add(normalized_path)
+
         # Подготавливаем параметры для обработки
         params = (source_path, click_callback or self._thumbnail_click_callback)
 
