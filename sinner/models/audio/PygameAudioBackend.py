@@ -2,7 +2,7 @@ import os.path
 import tempfile
 from argparse import Namespace
 
-from moviepy.editor import AudioFileClip
+from moviepy import AudioFileClip
 import pygame
 
 from sinner.models.status.Mood import Mood
