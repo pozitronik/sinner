@@ -67,7 +67,7 @@ jobs:
           pip install pyvirtualcam
           pip install pathvalidate
           pip install pygame
-          pip install moviepy==1.0.4
+          pip install moviepy>=1.0.4
           pip install python-vlc
       - run: |
           export DISPLAY=:1:0
