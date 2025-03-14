@@ -2,7 +2,7 @@ import os.path
 import tempfile
 from argparse import Namespace
 
-from moviepy.editor import AudioFileClip
+from moviepy import AudioFileClip
 import pygame
 
 from sinner.models.status.Mood import Mood
@@ -19,7 +19,7 @@ class PygameAudioBackend(BaseAudioBackend):
     _position: int | None = None
 
     def __init__(self, parameters: Namespace, media_path: str | None = None) -> None:
-        self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(vars(parameters).get('temp_dir', tempfile.gettempdir())), 'extracted_audio'))
+        self._temp_dir = os.path.abspath(os.path.join(str(normalize_path(vars(parameters).get('temp_dir', tempfile.gettempdir()))), 'extracted_audio'))
         os.makedirs(self._temp_dir, exist_ok=True)
         pygame.mixer.init()
         super().__init__(parameters, media_path)

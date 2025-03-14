@@ -16,6 +16,7 @@ from sinner.gui.controls.ThumbnailWidget.SortControlPanel import SortControlPane
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
 from sinner.gui.controls.ThumbnailWidget.ThumbnailData import ThumbnailData
 from sinner.gui.controls.ThumbnailWidget.ThumbnailItem import ThumbnailItem
+from sinner.utilities import normalize_path
 
 
 class BaseThumbnailWidget(Frame, ABC):
@@ -38,7 +39,7 @@ class BaseThumbnailWidget(Frame, ABC):
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         # custom parameters
         self.thumbnail_size = kwargs.pop('thumbnail_size', 200)
-        self.temp_dir = os.path.abspath(os.path.join(os.path.normpath(kwargs.pop('temp_dir', tempfile.gettempdir())), 'thumbnails'))
+        self.temp_dir = os.path.abspath(os.path.join(str(normalize_path(kwargs.pop('temp_dir', tempfile.gettempdir()))), 'thumbnails'))
         os.makedirs(self.temp_dir, exist_ok=True)
         self._highlight_color = kwargs.pop('highlight_color', '#E3F3FF')  # Светло-голубой цвет фона для выделения
         self._background_color = kwargs.pop('background_color', '#F0F0F0')  # Обычный цвет фона
@@ -213,10 +214,22 @@ class BaseThumbnailWidget(Frame, ABC):
     @abstractmethod
     def add_thumbnail(self, source_path: str, click_callback: Optional[Callable[[str], None]] = None) -> None:
         """
-        Adds an image thumbnail to the widget
-        :param source_path: source file path
-        :param click_callback: on thumbnail click callback. None: global callback will be used
-        """
+        Adds an image thumbnail to the widget if it doesn't already exist
+            :param source_path: source file path
+            :param click_callback: on thumbnail click callback. None: global callback will be used
+            """
+        # Normalize the path for consistent comparison
+        normalized_path = str(normalize_path(source_path))
+
+        # Check if this normalized path already exists in our thumbnails
+        # Direct comparison allow same path to be added, but any other way will increase code complexity to O(log(n)))
+        if normalized_path in self.thumbnail_paths:
+            # We already have this path, skip processing
+            return
+
+        # Add the normalized path to our tracking set
+        self.thumbnail_paths.add(normalized_path)
+
         # Подготавливаем параметры для обработки
         params = (source_path, click_callback or self._thumbnail_click_callback)
 
@@ -453,7 +466,7 @@ class BaseThumbnailWidget(Frame, ABC):
                     caption_label=caption_label,
                     data=thumb_data
                 ))
-                self.thumbnail_paths.add(thumb_data.path)
+                self.thumbnail_paths.add(str(normalize_path(thumb_data.path)))
 
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
                 def selection_click_handler(event: Event, path: str = thumb_data.path) -> None:  # type: ignore[union-attr, type-arg]  # thumb_data always defined here

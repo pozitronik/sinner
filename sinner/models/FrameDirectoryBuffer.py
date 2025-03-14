@@ -5,7 +5,7 @@ from typing import List
 
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
-from sinner.utilities import is_absolute_path, path_exists, get_file_name
+from sinner.utilities import is_absolute_path, path_exists, get_file_name, normalize_path
 
 
 class FrameDirectoryBuffer:
@@ -30,7 +30,7 @@ class FrameDirectoryBuffer:
     def temp_dir(self, value: str | None) -> None:
         if not is_absolute_path(value or ''):
             raise Exception("Relative paths are not supported")
-        self._temp_dir = os.path.abspath(os.path.join(os.path.normpath(value or ''), 'preview'))
+        self._temp_dir = os.path.abspath(os.path.join(str(normalize_path(value or '')), 'preview'))
         self.init_indices()
 
     @property

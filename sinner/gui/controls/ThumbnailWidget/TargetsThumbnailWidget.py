@@ -9,7 +9,7 @@ from sinner.gui.controls.ThumbnailWidget.ThumbnailData import ThumbnailData
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.helpers.FrameHelper import resize_proportionally
 from sinner.typing import Frame
-from sinner.utilities import is_video, is_image, get_file_name
+from sinner.utilities import is_video, is_image, get_file_name, normalize_path
 
 
 class TargetsThumbnailWidget(BaseThumbnailWidget):
@@ -31,6 +31,7 @@ class TargetsThumbnailWidget(BaseThumbnailWidget):
         """
         Prepare thumbnail data in background thread
         """
+        source_path = str(normalize_path(source_path))
         thumbnail = self.get_cached_thumbnail(source_path)
         if thumbnail:
             caption = thumbnail.info.get("caption")
