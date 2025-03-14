@@ -16,6 +16,7 @@ from sinner.gui.controls.ThumbnailWidget.SortControlPanel import SortControlPane
 from sinner.gui.controls.ThumbnailWidget.SortField import SortField
 from sinner.gui.controls.ThumbnailWidget.ThumbnailData import ThumbnailData
 from sinner.gui.controls.ThumbnailWidget.ThumbnailItem import ThumbnailItem
+from sinner.utilities import normalize_path
 
 
 class BaseThumbnailWidget(Frame, ABC):
@@ -38,7 +39,7 @@ class BaseThumbnailWidget(Frame, ABC):
     def __init__(self, master: Misc, **kwargs):  # type: ignore[no-untyped-def]
         # custom parameters
         self.thumbnail_size = kwargs.pop('thumbnail_size', 200)
-        self.temp_dir = os.path.abspath(os.path.join(os.path.normpath(kwargs.pop('temp_dir', tempfile.gettempdir())), 'thumbnails'))
+        self.temp_dir = os.path.abspath(os.path.join(str(normalize_path(kwargs.pop('temp_dir', tempfile.gettempdir()))), 'thumbnails'))
         os.makedirs(self.temp_dir, exist_ok=True)
         self._highlight_color = kwargs.pop('highlight_color', '#E3F3FF')  # Светло-голубой цвет фона для выделения
         self._background_color = kwargs.pop('background_color', '#F0F0F0')  # Обычный цвет фона
@@ -453,7 +454,7 @@ class BaseThumbnailWidget(Frame, ABC):
                     caption_label=caption_label,
                     data=thumb_data
                 ))
-                self.thumbnail_paths.add(thumb_data.path)
+                self.thumbnail_paths.add(str(normalize_path(thumb_data.path)))
 
                 # Создаем обработчик клика, учитывающий модификаторы клавиатуры для множественного выделения
                 def selection_click_handler(event: Event, path: str = thumb_data.path) -> None:  # type: ignore[union-attr, type-arg]  # thumb_data always defined here

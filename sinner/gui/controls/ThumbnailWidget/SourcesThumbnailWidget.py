@@ -4,7 +4,7 @@ from PIL import Image
 
 from sinner.gui.controls.ThumbnailWidget.BaseThumbnailWidget import BaseThumbnailWidget
 from sinner.gui.controls.ThumbnailWidget.ThumbnailData import ThumbnailData
-from sinner.utilities import is_image, get_file_name
+from sinner.utilities import is_image, get_file_name, normalize_path
 
 
 class SourcesThumbnailWidget(BaseThumbnailWidget):
@@ -22,6 +22,7 @@ class SourcesThumbnailWidget(BaseThumbnailWidget):
         """
         Prepare thumbnail data in background thread
         """
+        source_path = str(normalize_path(source_path))
         thumbnail = self.get_cached_thumbnail(source_path)
         if not thumbnail:
             with Image.open(source_path) as img:

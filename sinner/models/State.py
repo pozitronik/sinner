@@ -67,7 +67,7 @@ class State(AttributeLoader, StatusMixin):
     def temp_dir(self, value: str | None) -> None:
         if not is_absolute_path(value or ''):
             raise Exception("Relative paths is not supported")
-        self._temp_dir = os.path.abspath(os.path.normpath(value or ''))
+        self._temp_dir = os.path.abspath(str(normalize_path(value or '')))
 
     @property
     def target_path(self) -> str | None:
@@ -75,7 +75,7 @@ class State(AttributeLoader, StatusMixin):
 
     @target_path.setter
     def target_path(self, value: str | None) -> None:
-        self._target_path = os.path.abspath(os.path.normpath(value)) if value is not None else None
+        self._target_path = os.path.abspath(str(normalize_path(value))) if value is not None else None
 
     @staticmethod
     def make_path(path: str) -> str:
