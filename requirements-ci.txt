@@ -17,5 +17,5 @@ colorama~=0.4.6
 pyvirtualcam
 pathvalidate
 pygame
-moviepy
+moviepy>=1.0.4
 python-vlc
