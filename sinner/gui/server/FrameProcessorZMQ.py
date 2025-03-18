@@ -5,7 +5,7 @@ from typing import Dict, Any, List
 import zmq
 
 
-class FrameProcessorZMQ:
+class FrameProcessorZMQ: # todo: API model interface
     """Base class for ZeroMQ communication for the frame processor system."""
 
     def __init__(self, endpoint: str = "tcp://127.0.0.1:5555"):

@@ -31,7 +31,29 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
 
         self.update_status(f"Frame processor client connected to {self.endpoint}")
 
-    """Client component for interacting with the frame processor server."""
+    @property
+    def source_path(self) -> str | None:
+        pass
+
+    @source_path.setter
+    def source_path(self, value: str | None) -> None:
+        request = {
+            "action": "source_path",
+            "source_path": value,
+        }
+        self._send_request(request)
+
+    @property
+    def target_path(self) -> str | None:
+        pass
+
+    @target_path.setter
+    def target_path(self, value: str | None) -> None:
+        request = {
+            "action": "target_path",
+            "target_path": value,
+        }
+        self._send_request(request)
 
     def request_frame_processing(self, frame_index: int) -> bool:
         """
@@ -61,24 +83,6 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
         bool: True if update was successful, False otherwise
         """
         request = {"action": "update_requested_index", "index": index}
-        return self._send_request(request)
-
-    def set_source_target(self, source_path: str, target_path: str) -> bool:
-        """
-        Set source and target paths on the server.
-
-        Parameters:
-        source_path (str): Path to source file/directory
-        target_path (str): Path to target file/directory
-
-        Returns:
-        bool: True if setting was successful, False otherwise
-        """
-        request = {
-            "action": "set_source_target",
-            "source_path": source_path,
-            "target_path": target_path
-        }
         return self._send_request(request)
 
     def get_server_status(self) -> Optional[Dict[str, Any]]:

@@ -251,8 +251,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self.progress_control = self._ProgressBar
 
         # Update source in processor client
-        if self._processor_client and self._source_path and self._target_path:
-            self._processor_client.set_source_target(self._source_path, self._target_path)
+        self._processor_client.source_path = self.source_path
 
         # Update preview if not playing
         if not self.player_is_started:
@@ -281,8 +280,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
                 self.AudioPlayer.stop()
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         # Update target in processor client
-        if self._processor_client and self._source_path and self._target_path:
-            self._processor_client.set_source_target(self._source_path, self._target_path)
+        self._processor_client.target_path = self.target_path
 
         # Update playback state
         if self.player_is_started:
