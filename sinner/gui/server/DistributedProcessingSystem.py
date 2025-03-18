@@ -100,8 +100,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         elif self.server_mode == "external":
             self._initialize_external_mode()
         else:
-            self.update_status(f"Unknown server mode: {self.server_mode}, falling back to external mode",
-                               mood=Mood.BAD)
+            self.update_status(f"Unknown server mode: {self.server_mode}, falling back to external mode", mood=Mood.BAD)
             self._initialize_external_mode()
 
     def _initialize_integrated_mode(self) -> None:
