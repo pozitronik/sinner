@@ -43,7 +43,7 @@ class GUIModel(AttributeLoader, StatusMixin):
     temp_dir: str
     execution_threads: int
     bootstrap_processors: bool  # bootstrap_processors processors on startup
-    _prepare_frames: bool  # True: always extract and use, False: newer extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
+    _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _enable_sound: bool
     _audio_backend: str  # the current audio backend class name, used to create it in the factory
