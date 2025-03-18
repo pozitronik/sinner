@@ -1,42 +1,42 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 """
-Script to run the Frame Processor Server in a separate process.
+Main entry point for running the application in distributed mode.
 """
 
 import logging
 import signal
 import sys
-import time
 from argparse import Namespace
 
-from FrameProcessorServer import FrameProcessorServer
 from sinner.Parameters import Parameters
 from sinner.Sinner import Sinner
+from sinner.gui.server.DistributedGUIForm import DistributedGUIForm
 from sinner.utilities import suggest_max_memory, limit_resources
 from sinner.validators.AttributeLoader import Rules
 
 
-class Server(Sinner):
+class Client(Sinner):
     gui: bool
     benchmark: bool
     camera: bool
     max_memory: int
     parameters: Namespace
-    host: str
-    port: int
+    zmq_endpoint: str
+    server_mode: list[str]
     logger: logging.Logger
 
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'host',
-                'attribute': 'host',
-                'default': "127.0.0.1"
+                'parameter': 'zmq-endpoint',
+                'attribute': 'zmq_endpoint',
+                'default': "tcp://127.0.0.1:5555"
             },
             {
-                'parameter': 'port',
-                'attribute': 'port',
-                'default': 5555
+                'parameter': 'server-mode',
+                'attribute': 'server_mode',
+                'choices': ["integrated", "subprocess", "external"],
+                'default': "external"
             },
             {
                 'parameter': 'max-memory',
@@ -69,38 +69,16 @@ class Server(Sinner):
         self.logger = logging.getLogger('frame_processor_server')
 
     def run(self):
-        """Main function to run the server."""
+        self.logger.info(f"Starting distributed application with endpoint {self.parameters.zmq_endpoint}")
 
-        # Create endpoint from host and port
-        endpoint = f"tcp://{self.parameters.host}:{self.parameters.port}"
-        self.logger.info(f"Starting Frame Processor Server at {endpoint}")
+        # Create and run the distributed GUI form
+        gui_form = DistributedGUIForm(self.parameters)
+        window = gui_form.show()
 
-        # Create and start server
-        server = FrameProcessorServer(self.parameters, endpoint=endpoint)
-
-        # Set up signal handlers for graceful shutdown
-        def signal_handler(sig, frame):
-            self.logger.info("Shutting down server...")
-            server.stop_server()
-            sys.exit(0)
-
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-
-        # Start the server
-        server.start_server()
-        self.logger.info("Server started successfully")
-
-        # Keep the script running
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self.logger.info("Interrupted by user")
-        finally:
-            server.stop_server()
-            self.logger.info("Server shut down")
+        # Start the main loop
+        self.logger.info("Starting main application loop")
+        window.mainloop()
 
 
 if __name__ == "__main__":
-    Server().run()
+    Client().run()

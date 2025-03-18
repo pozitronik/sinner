@@ -1,4 +1,3 @@
-
 import threading
 from argparse import Namespace
 from concurrent.futures import ProcessPoolExecutor, Future
@@ -6,7 +5,10 @@ from typing import Dict, Any, List, Set, Optional, Tuple
 
 import zmq
 
+from sinner.BatchProcessingCore import BatchProcessingCore
+from sinner.gui.server.FrameProcessorZMQ import FrameProcessorZMQ
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
+from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
@@ -16,8 +18,6 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.helpers.FrameHelper import scale
 from sinner.utilities import suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
-
-from FrameProcessorZMQ import FrameProcessorZMQ
 
 
 class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
@@ -34,7 +34,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
 
     # internal objects
     _processors: Dict[str, BaseFrameProcessor]
-    _frame_handler: Optional[BaseFrameHandler] = None
+    _target_handler: Optional[BaseFrameHandler] = None
     _buffer: Optional[FrameDirectoryBuffer] = None
 
     # processing state
@@ -148,23 +148,19 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
             for processor_name in self.frame_processor:
                 if processor_name not in self._processors:
                     self._processors[processor_name] = BaseFrameProcessor.create(processor_name, self.parameters)
-        except Exception as exception:
+        except Exception as exception:  # skip, if parameters is not enough for processor
             self.update_status(message=str(exception), mood=Mood.BAD)
+            pass
         return self._processors
 
     @property
-    def frame_handler(self) -> Optional[BaseFrameHandler]:
-        """Get the frame handler for the current target."""
-        return self._frame_handler
-
-    @frame_handler.setter
-    def frame_handler(self, handler: BaseFrameHandler) -> None:
-        """Set the frame handler."""
-        self._frame_handler = handler
-        # Initialize buffer when handler is set
-        if handler is not None and self._target_path and self._source_path:
-            self._buffer = FrameDirectoryBuffer(self._source_path, self._target_path,
-                                                self.temp_dir, handler.fc)
+    def frame_handler(self) -> BaseFrameHandler:
+        if self._target_handler is None:
+            if self._target_path is None:
+                self._target_handler = NoneHandler('', self.parameters)
+            else:
+                self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
+        return self._target_handler
 
     def start_server(self) -> None:
         """Start the server in a separate thread."""
