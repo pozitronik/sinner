@@ -141,13 +141,17 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
         """
         try:
             with self._lock:
+                self.update_status(f"Request: {request}")
                 self.socket.send(self._serialize_message(request))
                 response_data = self.socket.recv()
                 response = self._deserialize_message(response_data)
+                self.update_status(f"Response: {response}")
                 return response.get("status") == "ok"
         except zmq.ZMQError as e:
-            self.update_status(f"ZeroMQ error: {e}", mood=Mood.BAD)
-            return False
+            self.update_status(f"ZeroMQ error: {e}, resetting", mood=Mood.BAD)
+            # Автоматически сбрасываем соединение при ошибке
+            self.reset_connection()
+            return self._send_request(request)
         except Exception as e:
             self.update_status(f"Error sending request: {e}", mood=Mood.BAD)
             self.logger.exception("Client request error")

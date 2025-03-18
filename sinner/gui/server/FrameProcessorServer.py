@@ -194,16 +194,16 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
             while self._running:
                 try:
                     # Use poll to check for messages with timeout
-                    if self.socket.poll(100) == 0:  # 100ms timeout
-                        # Check completed futures
-                        self._check_completed_futures(futures)
-                        continue
+                    # if self.socket.poll(100) == 0:  # 100ms timeout
+                    #     # Check completed futures
+                    #     self._check_completed_futures(futures)
+                    #     continue
 
                     # Process incoming message
                     message_data = self.socket.recv()
                     message = self._deserialize_message(message_data)
 
-                    self.logger.debug(f"Received message: {message}")
+                    self.logger.info(f"Received message: {message}")
                     response = self._handle_request(message, executor, futures)
 
                     # Send response
@@ -220,9 +220,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
 
         self.update_status("Server loop ended")
 
-    def _handle_request(self, message: Dict[str, Any],
-                        executor: ProcessPoolExecutor,
-                        futures: List[Future]) -> Dict[str, Any]:
+    def _handle_request(self, message: Dict[str, Any], executor: ProcessPoolExecutor, futures: List[Future]) -> Dict[str, Any]:
         """Handle client request and return response."""
         action = message.get("action", "")
 
@@ -238,10 +236,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
             return self.build_response("ok", message=f"Processing frame {frame_index}")
 
         elif action == "status":
-            return self.build_response("ok",
-                                       processing_count=len(self._processing),
-                                       processed_count=len(self._processed),
-                                       processing_fps=self._processing_fps)
+            return self.build_response("ok", processing_count=len(self._processing), processed_count=len(self._processed), processing_fps=self._processing_fps)
 
         elif action == "list_processed":
             return self.build_response("ok", processed_frames=sorted(list(self._processed)))
@@ -263,9 +258,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         else:
             return self.build_response("error", message=f"Unknown action: {action}")
 
-    def _submit_frame_processing(self, frame_index: int,
-                                 executor: ProcessPoolExecutor,
-                                 futures: List[Future]) -> None:
+    def _submit_frame_processing(self, frame_index: int, executor: ProcessPoolExecutor, futures: List[Future]) -> None:
         """Submit a frame for processing to the process pool."""
         if self.frame_handler is None:
             self.update_status("Cannot process frame: frame handler not set", mood=Mood.BAD)
