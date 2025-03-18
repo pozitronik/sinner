@@ -638,7 +638,3 @@ class DistributedGUIForm(AttributeLoader):
         if self._distributed_system:
             self._distributed_system.shutdown()
 
-
-def create_distributed_gui_form(parameters: Namespace) -> DistributedGUIForm:
-    """Create a distributed GUI form instance."""
-    return DistributedGUIForm(parameters)

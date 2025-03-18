@@ -8,7 +8,7 @@ import signal
 import sys
 from argparse import Namespace
 
-from DistributedGUIForm import create_distributed_gui_form
+from DistributedGUIForm import DistributedGUIForm
 from sinner.Parameters import Parameters
 from sinner.Sinner import Sinner
 from sinner.utilities import suggest_max_memory, limit_resources
@@ -72,7 +72,7 @@ class Client(Sinner):
         self.logger.info(f"Starting distributed application with endpoint {self.parameters.zmq_endpoint}")
 
         # Create and run the distributed GUI form
-        gui_form = create_distributed_gui_form(self.parameters)
+        gui_form = DistributedGUIForm(self.parameters)
         window = gui_form.show()
 
         # Start the main loop
