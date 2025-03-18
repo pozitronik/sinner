@@ -19,14 +19,15 @@ class FrameProcessorZMQ:
         self.context = zmq.Context()
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def _serialize_message(self, message: Dict[str, Any]) -> bytes:
+    @staticmethod
+    def _serialize_message(message: Dict[str, Any]) -> bytes:
         """Serialize message to JSON and encode to bytes."""
-        return json.dumps(message).encode('utf-8')
+        return json.dumps(message).encode()
 
     def _deserialize_message(self, message: bytes) -> Dict[str, Any]:
         """Deserialize message from bytes to JSON."""
         try:
-            return json.loads(message.decode('utf-8'))
+            return json.loads(message.decode())
         except json.JSONDecodeError as e:
             self.logger.error(f"Failed to deserialize message: {e}")
             return {"status": "error", "message": "Invalid message format"}
@@ -49,6 +50,7 @@ class FrameProcessorZMQ:
         """Build a request to list processed frames."""
         return {"action": "list_processed"}
 
+    @staticmethod
     def build_response(self, status: str, **kwargs) -> Dict[str, Any]:
         """Build a response message."""
         response = {"status": status}
