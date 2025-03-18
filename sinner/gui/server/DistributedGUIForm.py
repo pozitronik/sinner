@@ -21,8 +21,7 @@ from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
-from DistributedGUIModel import DistributedGUIModel, create_distributed_gui_model
-from DistributedProcessingSystem import DistributedProcessingSystem
+from DistributedGUIModel import DistributedGUIModel
 
 
 class DistributedGUIForm(AttributeLoader):
@@ -52,7 +51,6 @@ class DistributedGUIForm(AttributeLoader):
     server_mode: str
 
     _event_player_window_closed: SinnerEvent
-    _distributed_system: Optional[DistributedProcessingSystem] = None
 
     def rules(self) -> Rules:
         return [
@@ -145,9 +143,6 @@ class DistributedGUIForm(AttributeLoader):
         self.parameters = parameters
         super().__init__(parameters)
 
-        # Initialize distributed processing system
-        self._initialize_distributed_system()
-
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
         if self.geometry:
@@ -221,20 +216,10 @@ class DistributedGUIForm(AttributeLoader):
         # Menus
         self.setup_menus()
 
-    def _initialize_distributed_system(self) -> None:
-        """Initialize the distributed processing system."""
-        # Create the distributed system
-        self._distributed_system = DistributedProcessingSystem(self.parameters)
-
     def create_gui_model(self) -> None:
         """Create and initialize the distributed GUI model."""
         # Create distributed GUI model
-        self.GUIModel = create_distributed_gui_model(
-            self.parameters,
-            status_callback=lambda name, value: self.StatusBar.item(name, value),
-            on_close_event=self._event_player_window_closed,
-            progress_control=None  # Will be set after NavigateSlider is created
-        )
+        self.GUIModel = DistributedGUIModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
     def setup_menus(self) -> None:
         """Setup application menus."""
@@ -307,13 +292,7 @@ class DistributedGUIForm(AttributeLoader):
     # Event handlers
     def on_player_window_close(self) -> None:
         """Handle player window close event."""
-        self.GUIModel.player_stop(wait=True)
-
-        # Shutdown distributed system if enabled
-        if self._distributed_system:
-            self._distributed_system.shutdown()
-
-        halt()
+        self.GUIModel.player_stop(wait=True, shutdown=True)
 
     def on_player_window_configure(self, event: Event) -> None:  # type: ignore[type-arg]
         """Handle window configure (resize/move) event."""
@@ -633,7 +612,3 @@ class DistributedGUIForm(AttributeLoader):
                 else:
                     self.StatusBar.item("Server Connection", "Reconnection failed")
 
-    def shutdown(self) -> None:
-        """Shutdown the distributed system."""
-        if self._distributed_system:
-            self._distributed_system.shutdown()

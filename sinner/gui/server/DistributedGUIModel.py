@@ -9,6 +9,7 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
+from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.Event import Event
@@ -56,6 +57,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     _processor_client: Optional[FrameProcessorClient] = None
 
     # Internal state
+    _distributed_system: Optional[DistributedProcessingSystem] = None  # Client side
     _processors: Dict[str, BaseFrameProcessor]  # Cached processors for visualization
     _target_handler: Optional[BaseFrameHandler] = None  # Initial handler for the target file
     _positionVar: Optional[IntVar] = None
@@ -145,10 +147,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             }
         ]
 
-    def __init__(self, parameters: Namespace,
-                 status_callback: Callable[[str, str], Any],
-                 on_close_event: Optional[Event] = None,
-                 progress_control: Optional[BaseProgressIndicator] = None):
+    def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any], on_close_event: Optional[Event] = None, progress_control: Optional[BaseProgressIndicator] = None):
         """
         Initialize the distributed GUI model.
 
@@ -161,24 +160,21 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self.parameters = parameters
         super().__init__(parameters)
 
+        # Initialize distributed processing system
+        self._distributed_system = DistributedProcessingSystem(self.parameters)
+
         # Initialize processors dictionary
         self._processors = {}
         if self.bootstrap_processors:
             self._processors = self.processors
 
         # Set up the timeline and player
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path,
-                                      temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
-        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0],
-                                        height=self.frame_handler.resolution[1],
-                                        caption='sinner distributed player',
-                                        on_close_event=on_close_event)
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
+        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
 
         # Initialize audio if enabled
         if self._enable_sound:
-            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend,
-                                                       parameters=self.parameters,
-                                                       media_path=self._target_path)
+            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
 
         # Initialize processor client
         self._processor_client = FrameProcessorClient(endpoint=self.zmq_endpoint)
@@ -219,9 +215,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         if enable is not None:
             self._enable_sound = enable
             if self._enable_sound and not self.AudioPlayer:
-                self.AudioPlayer = BaseAudioBackend.create(self._audio_backend,
-                                                           parameters=self.parameters,
-                                                           media_path=self._target_path)
+                self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
             elif self.AudioPlayer:
                 self.AudioPlayer.stop()
                 self.AudioPlayer = None
@@ -251,12 +245,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self.reload_parameters()
 
         # Update timeline
-        self.TimeLine = FrameTimeLine(source_name=self._source_path,
-                                      target_name=self._target_path,
-                                      temp_dir=self.temp_dir,
-                                      frame_time=self.frame_handler.frame_time,
-                                      start_frame=self.TimeLine.last_requested_index,
-                                      end_frame=self.frame_handler.fc)
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
 
         # Update progress control
         self.progress_control = self._ProgressBar
@@ -282,13 +271,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
 
         # Clear player and reset timeline
         self.Player.clear()
-        self.TimeLine = FrameTimeLine(source_name=self._source_path,
-                                      target_name=self._target_path,
-                                      temp_dir=self.temp_dir,
-                                      frame_time=self.frame_handler.frame_time,
-                                      start_frame=1,
-                                      end_frame=self.frame_handler.fc)
-
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         # Update progress control
         self.progress_control = self._ProgressBar
 
@@ -296,10 +279,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         if self._enable_sound:
             if self.AudioPlayer:
                 self.AudioPlayer.stop()
-            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend,
-                                                       parameters=self.parameters,
-                                                       media_path=self._target_path)
-
+            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         # Update target in processor client
         if self._processor_client and self._source_path and self._target_path:
             self._processor_client.set_source_target(self._source_path, self._target_path)
@@ -453,10 +433,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         start_frame (int): Frame to start playback from
         """
         if not self.player_is_started:
-            self.TimeLine.reload(frame_time=self.frame_handler.frame_time,
-                                 start_frame=start_frame - 1,
-                                 end_frame=self.frame_handler.fc)
-
+            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
             if self.AudioPlayer:
                 self.AudioPlayer.position = int(start_frame * self.frame_handler.frame_time)
 
@@ -467,7 +444,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             if self.AudioPlayer:
                 self.AudioPlayer.play()
 
-    def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
+    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
         """
         Stop playback.
 
@@ -484,6 +461,10 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
 
             if self.TimeLine:
                 self.TimeLine.stop()
+
+            # Shutdown distributed system if enabled
+            if shutdown and self._distributed_system:
+                self._distributed_system.shutdown()
 
             if wait:
                 time.sleep(1)  # Allow time for threads to stop
@@ -651,24 +632,3 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         if self._ProgressBar:
             self._ProgressBar.set_segments(self.frame_handler.fc + 1)
             self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
-
-
-def create_distributed_gui_model(
-        parameters: Namespace,
-        status_callback: Callable[[str, str], Any],
-        on_close_event: Optional[Event] = None,
-        progress_control: Optional[BaseProgressIndicator] = None
-) -> DistributedGUIModel:
-    """
-    Factory function to create a distributed GUI model instance.
-
-    Parameters:
-    parameters (Namespace): Application parameters
-    status_callback (Callable): Function to call with status updates
-    on_close_event (Event, optional): Event to trigger on close
-    progress_control (BaseProgressIndicator, optional): Progress indicator
-
-    Returns:
-    DistributedGUIModel: Initialized distributed GUI model
-    """
-    return DistributedGUIModel(parameters, status_callback, on_close_event, progress_control)

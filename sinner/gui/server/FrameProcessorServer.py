@@ -1,6 +1,5 @@
 import threading
 from argparse import Namespace
-from concurrent.futures import ProcessPoolExecutor, Future
 from typing import Dict, Any, List, Set, Optional, Tuple
 
 import zmq
@@ -10,12 +9,11 @@ from sinner.gui.server.FrameProcessorZMQ import FrameProcessorZMQ
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
+from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MovingAverage import MovingAverage
-from sinner.models.PerfCounter import PerfCounter
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
-from sinner.helpers.FrameHelper import scale
 from sinner.utilities import suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
@@ -33,6 +31,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
     port: int
 
     # internal objects
+    TimeLine: FrameTimeLine
     _processors: Dict[str, BaseFrameProcessor]
     _target_handler: Optional[BaseFrameHandler] = None
     _buffer: Optional[FrameDirectoryBuffer] = None
@@ -188,155 +187,72 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         """Main server loop to process requests."""
         self.update_status("Server loop started")
 
-        with ProcessPoolExecutor(max_workers=self.execution_threads) as executor:
-            futures: List[Future] = []
+        while self._running:
+            try:
+                # Use poll to check for messages with timeout
+                # if self.socket.poll(100) == 0:  # 100ms timeout
+                #     # Check completed futures
+                #     self._check_completed_futures(futures)
+                #     continue
 
-            while self._running:
-                try:
-                    # Use poll to check for messages with timeout
-                    # if self.socket.poll(100) == 0:  # 100ms timeout
-                    #     # Check completed futures
-                    #     self._check_completed_futures(futures)
-                    #     continue
+                # Process incoming message
+                message_data = self.socket.recv()
+                message = self._deserialize_message(message_data)
 
-                    # Process incoming message
-                    message_data = self.socket.recv()
-                    message = self._deserialize_message(message_data)
+                self.logger.info(f"Received message: {message}")
+                response = self._handle_request(message)
 
-                    self.logger.info(f"Received message: {message}")
-                    response = self._handle_request(message, executor, futures)
+                # Send response
+                self.socket.send(self._serialize_message(response))
 
-                    # Send response
-                    self.socket.send(self._serialize_message(response))
+                # Check completed futures
+                # self._check_completed_futures(futures)
 
-                    # Check completed futures
-                    self._check_completed_futures(futures)
-
-                except zmq.ZMQError as e:
-                    self.update_status(f"ZMQ error: {e}", mood=Mood.BAD)
-                except Exception as e:
-                    self.update_status(f"Error in server loop: {e}", mood=Mood.BAD)
-                    self.logger.exception("Server error")
+            except zmq.ZMQError as e:
+                self.update_status(f"ZMQ error: {e}", mood=Mood.BAD)
+            except Exception as e:
+                self.update_status(f"Error in server loop: {e}", mood=Mood.BAD)
+                self.logger.exception("Server error")
 
         self.update_status("Server loop ended")
 
-    def _handle_request(self, message: Dict[str, Any], executor: ProcessPoolExecutor, futures: List[Future]) -> Dict[str, Any]:
+    def _handle_request(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Handle client request and return response."""
         action = message.get("action", "")
 
-        if action == "process":
-            frame_index = message.get("frame_index")
-            if frame_index is None:
-                return self.build_response("error", message="Missing frame_index")
+        if action == "source_path":
+            self.source_path = message.get("source_path")
+            return self.build_response("ok", message="Source path set")
 
-            if frame_index in self._processing or frame_index in self._processed:
-                return self.build_response("ok", message=f"Frame {frame_index} already in processing or processed")
-
-            self._submit_frame_processing(frame_index, executor, futures)
-            return self.build_response("ok", message=f"Processing frame {frame_index}")
-
-        elif action == "status":
-            return self.build_response("ok", processing_count=len(self._processing), processed_count=len(self._processed), processing_fps=self._processing_fps)
-
-        elif action == "list_processed":
-            return self.build_response("ok", processed_frames=sorted(list(self._processed)))
-
-        elif action == "set_handler":
-            # This would be a more complex operation requiring passing handler information
-            # For simplicity, we're not implementing full serialization of handlers here
-            return self.build_response("error", message="Handler setting not supported in basic mode")
-
-        elif action == "set_source_target":
-            self._source_path = message.get("source_path")
-            self._target_path = message.get("target_path")
-            return self.build_response("ok", message="Source and target paths set")
-
-        elif action == "update_requested_index":
-            self._last_requested_index = message.get("index", self._last_requested_index)
-            return self.build_response("ok", last_requested_index=self._last_requested_index)
+        if action == "target_path":
+            self.target_path = message.get("target_path")
+            return self.build_response("ok", message="Target path set")
 
         else:
             return self.build_response("error", message=f"Unknown action: {action}")
 
-    def _submit_frame_processing(self, frame_index: int, executor: ProcessPoolExecutor, futures: List[Future]) -> None:
-        """Submit a frame for processing to the process pool."""
-        if self.frame_handler is None:
-            self.update_status("Cannot process frame: frame handler not set", mood=Mood.BAD)
-            return
+    def reload_parameters(self) -> None:
+        self._target_handler = None
+        super().__init__(self.parameters)
+        for _, processor in self.processors.items():
+            processor.load(self.parameters)
 
-        self._processing.add(frame_index)
-        future = executor.submit(self._process_frame_worker, frame_index)
-        futures.append(future)
+    @property
+    def source_path(self) -> str | None:
+        return self._source_path
 
-        # Update processing metrics
-        self._update_processing_metrics()
+    @source_path.setter
+    def source_path(self, value: str | None) -> None:
+        self.parameters.source = value
+        self.reload_parameters()
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
 
-    def _check_completed_futures(self, futures: List[Future]) -> None:
-        """Check and handle completed futures."""
-        completed_futures = [f for f in futures if f.done()]
+    @property
+    def target_path(self) -> str | None:
+        return self._target_path
 
-        for future in completed_futures:
-            try:
-                result = future.result()
-                if result:
-                    process_time, frame_index = result
-                    self._average_processing_time.update(process_time / self.execution_threads)
-
-                    # Update states
-                    if frame_index in self._processing:
-                        self._processing.remove(frame_index)
-                    self._processed.add(frame_index)
-
-                    # Update metrics
-                    self._processing_fps = 1 / self._average_processing_time.get_average()
-                    self._last_added_index = max(self._last_added_index, frame_index)
-
-                    self.update_status(f"Processed frame {frame_index}, {self._processing_fps:.2f} FPS")
-            except Exception as e:
-                self.update_status(f"Error processing frame: {e}", mood=Mood.BAD)
-
-            futures.remove(future)
-
-    def _process_frame_worker(self, frame_index: int) -> Optional[Tuple[float, int]]:
-        """
-        Worker function for processing a single frame.
-        This is designed to be called in a ProcessPoolExecutor.
-
-        Returns:
-            Tuple containing (process_time, frame_index) or None if failed
-        """
-        if self.frame_handler is None or self._buffer is None:
-            return None
-
-        try:
-            # Extract frame from the handler
-            n_frame = self.frame_handler.extract_frame(frame_index)
-
-            # Scale the frame if needed
-            n_frame.frame = scale(n_frame.frame, self._scale_quality)
-
-            # Process the frame
-            with PerfCounter() as frame_render_time:
-                for processor in self.processors.values():
-                    n_frame.frame = processor.process_frame(n_frame.frame)
-
-            # Save the processed frame
-            self._buffer.add_frame(n_frame)
-
-            return frame_render_time.execution_time, n_frame.index
-
-        except Exception as e:
-            self.logger.error(f"Error processing frame {frame_index}: {e}")
-            return None
-
-    def _update_processing_metrics(self) -> None:
-        """Update processing metrics based on current state."""
-        if self._processing_fps > 0:
-            self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps if self.frame_handler else 1.0)
-
-        # Adjust processing delta based on current state
-        if (self._last_added_index > self._last_requested_index and
-                self._processing_delta > self._average_frame_skip.get_average()):
-            self._processing_delta -= 1
-        elif self._last_added_index < self._last_requested_index:
-            self._processing_delta += 1
+    @target_path.setter
+    def target_path(self, value: str | None) -> None:
+        self.parameters.target = value
+        self.reload_parameters()
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
