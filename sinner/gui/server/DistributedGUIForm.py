@@ -22,7 +22,7 @@ from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image,
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 from DistributedGUIModel import DistributedGUIModel, create_distributed_gui_model
-from DistributedProcessingSystem import DistributedProcessingSystem, create_distributed_system
+from DistributedProcessingSystem import DistributedProcessingSystem
 
 
 class DistributedGUIForm(AttributeLoader):
@@ -224,7 +224,7 @@ class DistributedGUIForm(AttributeLoader):
     def _initialize_distributed_system(self) -> None:
         """Initialize the distributed processing system."""
         # Create the distributed system
-        self._distributed_system = create_distributed_system(self.parameters)
+        self._distributed_system = DistributedProcessingSystem(self.parameters)
 
     def create_gui_model(self) -> None:
         """Create and initialize the distributed GUI model."""
@@ -637,4 +637,3 @@ class DistributedGUIForm(AttributeLoader):
         """Shutdown the distributed system."""
         if self._distributed_system:
             self._distributed_system.shutdown()
-

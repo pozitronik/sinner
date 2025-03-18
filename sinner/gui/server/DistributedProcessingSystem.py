@@ -214,16 +214,3 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
                 self.update_status("Server subprocess killed", mood=Mood.BAD)
             except Exception as e:
                 self.update_status(f"Error terminating server subprocess: {e}", mood=Mood.BAD)
-
-
-def create_distributed_system(parameters: Namespace) -> DistributedProcessingSystem:
-    """
-    Factory function to create the distributed processing system.
-
-    Parameters:
-    parameters (Namespace): Application parameters
-
-    Returns:
-    DistributedProcessingSystem: Initialized system
-    """
-    return DistributedProcessingSystem(parameters)
