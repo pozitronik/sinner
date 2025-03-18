@@ -50,7 +50,6 @@ class FrameProcessorZMQ:
         """Build a request to list processed frames."""
         return {"action": "list_processed"}
 
-    @staticmethod
     def build_response(self, status: str, **kwargs) -> Dict[str, Any]:
         """Build a response message."""
         response = {"status": status}
