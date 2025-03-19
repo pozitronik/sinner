@@ -67,7 +67,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     _event_processing: Event  # Flag to control processing thread
     _event_playback: Event  # Flag to control playback thread
     _event_rewind: Event  # Flag to control if playback was rewound
-    _process_frames_thread: Optional[threading.Thread] = None
+    _synchronize_frames_thread: Optional[threading.Thread] = None
     _show_frames_thread: Optional[threading.Thread] = None
 
     # Processing metrics
@@ -377,12 +377,8 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             # Check if frame is already in timeline
             if not self.TimeLine.has_index(frame_number):
                 # If not, check if it's processed on the server
-                if self._processor_client:
-                    if not self._processor_client.is_frame_processed(frame_number):
-                        # Request processing and wait briefly
-                        self._processor_client.request_frame_processing(frame_number)
-                        time.sleep(0.1)  # Give a bit of time for processing
-
+                # todo: request frame processing on server immediately
+                pass
             # Try to get the frame from timeline
             preview_frame = self.TimeLine.get_frame_by_index(frame_number)
 
@@ -477,20 +473,20 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         if not self._event_processing.is_set():
             self._event_processing.set()
 
-            self._process_frames_thread = threading.Thread(
-                target=self._request_frames_loop,
+            self._synchronize_frames_thread = threading.Thread(
+                target=self._synchronize_frames,
                 name="_request_frames",
                 kwargs={'start_frame': start_frame, 'end_frame': self.frame_handler.fc}
             )
-            self._process_frames_thread.daemon = True
-            self._process_frames_thread.start()
+            self._synchronize_frames_thread.daemon = True
+            self._synchronize_frames_thread.start()
 
     def __stop_processing(self) -> None:
         """Stop the processing thread."""
-        if self._event_processing.is_set() and self._process_frames_thread:
+        if self._event_processing.is_set() and self._synchronize_frames_thread:
             self._event_processing.clear()
-            self._process_frames_thread.join(1)
-            self._process_frames_thread = None
+            self._synchronize_frames_thread.join(1)
+            self._synchronize_frames_thread = None
 
     def __start_playback(self) -> None:
         """Start the playback thread."""
@@ -508,76 +504,14 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             self._show_frames_thread.join(1)
             self._show_frames_thread = None
 
-    def _request_frames_loop(self, start_frame: int, end_frame: int) -> None:
+    def _synchronize_frames(self, start_frame: Optional[int], end_frame: Optional[int]) -> None:
         """
-        Thread that requests frames from the processor server.
+        Thread that constantly synchronizes frame state.
 
-        Parameters:
-        start_frame (int): First frame to process
-        end_frame (int): Last frame to process
         """
-        next_frame = start_frame
-        processing_delta = 0
-        average_frame_skip = MovingAverage(window_size=10)
-
-        while self._event_processing.is_set() and next_frame <= end_frame:
-            # Handle rewind requests
-            if self._event_rewind.is_set():
-                next_frame = self._event_rewind.tag or 0
-                self._event_rewind.clear()
-
-            # Update the server with the current requested index
-            if self._processor_client:
-                self._processor_client.update_requested_index(self.TimeLine.last_requested_index)
-
-                # Get current list of processed frames
-                processed_frames = self._processor_client.get_processed_frames()
-
-                # Update the timeline with processed frames
-                for frame_idx in processed_frames:
-                    if not self.TimeLine.has_index(frame_idx):
-                        frame = self.TimeLine.get_frame_by_index(frame_idx)
-                        if frame:
-                            self.set_progress_index_value(frame_idx, PROCESSED)
-
-                # Request the next frame if not already processed or being processed
-                if not self._processor_client.is_frame_processed(next_frame):
-                    # Request this frame
-                    success = self._processor_client.request_frame_processing(next_frame)
-                    if success:
-                        self.set_progress_index_value(next_frame, PROCESSING)
-
-                    # Get server status to update processing FPS
-                    status = self._processor_client.get_server_status()
-                    if status and "processing_fps" in status:
-                        processing_fps = status.get("processing_fps", 1.0)
-
-                        # Update average frame skip calculation
-                        average_frame_skip.update(self.frame_handler.fps / max(processing_fps, 0.1))
-
-                        # Show FPS info
-                        self._status("Processing speed", f"{processing_fps:.2f} FPS")
-                        self._processing_fps = processing_fps
-
-                # Calculate next frame to process using similar logic to original
-                last_added_index = max(processed_frames) if processed_frames else 0
-
-                # Adjust processing delta based on processing vs. playback position
-                if (last_added_index > self.TimeLine.last_requested_index and
-                        processing_delta > average_frame_skip.get_average()):
-                    processing_delta -= 1
-                elif last_added_index < self.TimeLine.last_requested_index:
-                    processing_delta += 1
-
-                # Calculate step with processing delta
-                step = int(average_frame_skip.get_average()) + processing_delta
-                if step < 1:
-                    step = 1
-
-                next_frame += step
-
-            # Sleep to avoid overloading with requests
-            time.sleep(0.1)
+        # todo
+        # Sleep to avoid overloading with requests
+        time.sleep(0.1)
 
     def _show_frames(self) -> None:
         """Thread that displays frames for playback."""

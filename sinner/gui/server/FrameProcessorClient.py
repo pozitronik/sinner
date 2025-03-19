@@ -37,11 +37,10 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
 
     @source_path.setter
     def source_path(self, value: str | None) -> None:
-        request = {
+        self._send_request({
             "action": "source_path",
             "source_path": value,
-        }
-        self._send_request(request)
+        })
 
     @property
     def target_path(self) -> str | None:
@@ -49,27 +48,38 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
 
     @target_path.setter
     def target_path(self, value: str | None) -> None:
-        request = {
+        self._send_request({
             "action": "target_path",
             "target_path": value,
-        }
-        self._send_request(request)
+        })
 
-    def request_frame_processing(self, frame_index: int) -> bool:
-        """
-        Request processing of a specific frame.
+    @property
+    def quality(self) -> int:
+        pass
 
-        Parameters:
-        frame_index (int): Frame index to process
+    @quality.setter
+    def quality(self, value: int) -> None:
+        self._send_request({
+            "action": "quality",
+            "quality": value,
+        })
 
-        Returns:
-        bool: True if request was successful, False otherwise
-        """
-        if frame_index in self._processed_frames:
-            return True
+    def rewind(self, value: int) -> None:
+        self._send_request({
+            "action": "position",
+            "position": value,
+        })
 
-        request = self.build_process_request(frame_index)
-        return self._send_request(request)
+    def start(self, start_frame: int) -> None:
+        self._send_request({
+            "action": "start",
+            "position": start_frame
+        })
+
+    def stop(self) -> None:
+        self._send_request({
+            "action": "stop",
+        })
 
     def update_requested_index(self, index: int) -> bool:
         """
@@ -92,9 +102,9 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
         Returns:
         Dict or None: Server status information or None if request failed
         """
-        request = self.build_status_request()
-        response = self._send_request_with_response(request)
-        return response
+        return self._send_request_with_response({
+            "action": "status",
+        })
 
     def get_processed_frames(self, force_update: bool = False) -> Set[int]:
         """
