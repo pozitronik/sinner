@@ -179,7 +179,9 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         # Initialize processor client
         self._processor_client = FrameProcessorClient(endpoint=self.zmq_endpoint)
         if self._source_path and self._target_path:
-            self._processor_client.set_source_target(self._source_path, self._target_path)
+            self._processor_client.source_path = self._source_path
+        if self._target_path:
+            self._processor_client.target_path = self._target_path
 
         # Set progress control and status callback
         self.progress_control = progress_control

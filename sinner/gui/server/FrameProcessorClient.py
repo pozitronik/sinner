@@ -81,6 +81,7 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
             "action": "stop",
         })
 
+
     def update_requested_index(self, index: int) -> bool:
         """
         Update the server with the latest requested frame index.
@@ -155,17 +156,28 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
         """
         try:
             with self._lock:
-                self.update_status(f"Request: {request}")
+                self.update_status(f"Sending request: {request}")
                 self.socket.send(self._serialize_message(request))
-                response_data = self.socket.recv()
-                response = self._deserialize_message(response_data)
-                self.update_status(f"Response: {response}")
-                return response.get("status") == "ok"
+
+                # Wait for response with timeout
+                try:
+                    response_data = self.socket.recv()
+                    response = self._deserialize_message(response_data)
+                    self.update_status(f"Received response: {response}")
+                    return response.get("status") == "ok"
+                except zmq.ZMQError as e:
+                    if e.errno == zmq.EAGAIN:  # Timeout
+                        self.update_status(f"Timeout waiting for response", mood=Mood.BAD)
+                    else:
+                        self.update_status(f"ZMQ error receiving response: {e}", mood=Mood.BAD)
+                    # Reset connection and retry on error
+                    self.reset_connection()
+                    return False
         except zmq.ZMQError as e:
-            self.update_status(f"ZeroMQ error: {e}, resetting", mood=Mood.BAD)
-            # Автоматически сбрасываем соединение при ошибке
+            self.update_status(f"ZMQ error sending request: {e}, resetting", mood=Mood.BAD)
+            # Reset connection and retry on error
             self.reset_connection()
-            return self._send_request(request)
+            return False
         except Exception as e:
             self.update_status(f"Error sending request: {e}", mood=Mood.BAD)
             self.logger.exception("Client request error")
