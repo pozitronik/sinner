@@ -4,10 +4,9 @@ from typing import Dict, Any, Optional, Set
 
 import zmq
 
+from sinner.gui.server.FrameProcessorZMQ import FrameProcessorZMQ
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
-
-from FrameProcessorZMQ import FrameProcessorZMQ
 
 
 class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
@@ -80,7 +79,6 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
         self._send_request({
             "action": "stop",
         })
-
 
     def update_requested_index(self, index: int) -> bool:
         """
@@ -168,10 +166,11 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
                 except zmq.ZMQError as e:
                     if e.errno == zmq.EAGAIN:  # Timeout
                         self.update_status(f"Timeout waiting for response", mood=Mood.BAD)
+
                     else:
                         self.update_status(f"ZMQ error receiving response: {e}", mood=Mood.BAD)
                     # Reset connection and retry on error
-                    self.reset_connection()
+                    # self.reset_connection()
                     return False
         except zmq.ZMQError as e:
             self.update_status(f"ZMQ error sending request: {e}, resetting", mood=Mood.BAD)

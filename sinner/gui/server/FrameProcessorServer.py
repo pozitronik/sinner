@@ -100,6 +100,12 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                 'help': 'Processing scale quality'
             },
             {
+                'parameter': {'prepare-frames'},
+                'attribute': '_prepare_frames',
+                'default': None,
+                'help': 'Extract target frames to files to make realtime player run smoother'
+            },
+            {
                 'parameter': ['bootstrap_processors', 'bootstrap'],
                 'attribute': 'bootstrap_processors',
                 'default': True,
@@ -157,6 +163,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
 
         self.update_status(f"Frame processor server initialized at {self.endpoint}")
 
+        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self._event_processing = Event()
         self._event_rewind = Event()
 
@@ -251,10 +258,13 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                 return self.build_response("ok", message="Quality set")
             case "rewind":
                 self.rewind(message.get("position"))
-                return self.build_response("ok", message="Quality set")
+                return self.build_response("ok", message="Position set")
             case "start":
-                self.rewind(message.get("position"))
-                return self.build_response("ok", message="Quality set")
+                self.start(message.get("position"))
+                return self.build_response("ok", message="Started")
+            case "stop":
+                self.stop()
+                return self.build_response("ok", message="Stopped")
 
             case _:
                 return self.build_response("error", message=f"Unknown action: {action}")

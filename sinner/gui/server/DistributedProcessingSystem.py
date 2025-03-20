@@ -5,12 +5,11 @@ import time
 from argparse import Namespace
 from typing import Optional
 
+from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
+from sinner.gui.server.FrameProcessorServer import FrameProcessorServer
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
-
-from FrameProcessorClient import FrameProcessorClient
-from FrameProcessorServer import FrameProcessorServer
 
 
 class DistributedProcessingSystem(AttributeLoader, StatusMixin):

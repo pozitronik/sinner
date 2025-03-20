@@ -2,7 +2,7 @@ import tempfile
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
 from tkinter.ttk import Spinbox, Label, Notebook
-from typing import List, Optional
+from typing import List
 
 from customtkinter import CTk
 from psutil import WINDOWS
@@ -11,6 +11,7 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE,
 from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
 from sinner.gui.controls.ThumbnailWidget.SourcesThumbnailWidget import SourcesThumbnailWidget
 from sinner.gui.controls.ThumbnailWidget.TargetsThumbnailWidget import TargetsThumbnailWidget
+from sinner.gui.server.DistributedGUIModel import DistributedGUIModel
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
@@ -20,8 +21,6 @@ from sinner.models.Config import Config
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
-
-from DistributedGUIModel import DistributedGUIModel
 
 
 class DistributedGUIForm(AttributeLoader):

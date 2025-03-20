@@ -10,6 +10,7 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
+from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.Event import Event
@@ -22,7 +23,6 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import normalize_path, seconds_to_hmsms, list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
-from FrameProcessorClient import FrameProcessorClient
 
 PROCESSING = 1
 PROCESSED = 2
@@ -64,9 +64,8 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     _volumeVar: Optional[IntVar] = None
 
     # Internal processing state
-    _event_processing: Event  # Flag to control processing thread
     _event_playback: Event  # Flag to control playback thread
-    _event_rewind: Event  # Flag to control if playback was rewound
+    _event_synchronizing: Event  # Flag to control synchronizing threa
     _synchronize_frames_thread: Optional[threading.Thread] = None
     _show_frames_thread: Optional[threading.Thread] = None
 
@@ -189,9 +188,8 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self._status("Time position", seconds_to_hmsms(0))
 
         # Initialize event flags
-        self._event_processing = Event()
         self._event_playback = Event()
-        self._event_rewind = Event()
+        self._event_synchronizing = Event()
 
         self.update_status("Distributed GUI model initialized")
 
@@ -355,7 +353,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     @property
     def player_is_started(self) -> bool:
         """Check if playback is active."""
-        return self._event_processing.is_set() or self._event_playback.is_set()
+        return self._event_playback.is_set()
 
     def update_preview(self, processed: bool | None = None) -> None:
         """
@@ -405,7 +403,6 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         """
         if self.player_is_started:
             self.TimeLine.rewind(frame_position - 1)
-            self._event_rewind.set(tag=frame_position - 1)
         else:
             self.update_preview()
 
@@ -472,8 +469,11 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         Parameters:
         start_frame (int): Frame to start processing from
         """
-        if not self._event_processing.is_set():
-            self._event_processing.set()
+
+        self._processor_client.start(start_frame)
+        return
+        if not self._event_synchronizing.is_set():
+            self._event_synchronizing.set()
 
             self._synchronize_frames_thread = threading.Thread(
                 target=self._synchronize_frames,
@@ -485,8 +485,8 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
 
     def __stop_processing(self) -> None:
         """Stop the processing thread."""
-        if self._event_processing.is_set() and self._synchronize_frames_thread:
-            self._event_processing.clear()
+        if self._event_synchronizing.is_set() and self._synchronize_frames_thread:
+            self._event_synchronizing.clear()
             self._synchronize_frames_thread.join(1)
             self._synchronize_frames_thread = None
 
@@ -536,8 +536,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
                         if self.TimeLine.last_returned_index is None:
                             self._status("Time position", "There are no ready frames")
                         else:
-                            if not self._event_rewind.is_set():
-                                self.position.set(self.TimeLine.last_returned_index)
+                            self.position.set(self.TimeLine.last_returned_index)
 
                             if self.TimeLine.last_returned_index:
                                 self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
