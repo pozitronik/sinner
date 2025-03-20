@@ -257,7 +257,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
             case "quality":
                 self.quality = message.get("quality")
                 return self.build_response("ok", message="Quality set")
-            case "rewind":
+            case "position":
                 self.rewind(message.get("position"))
                 return self.build_response("ok", message="Position set")
             case "start":

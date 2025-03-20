@@ -80,20 +80,6 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
             "action": "stop",
         })
 
-    def update_requested_index(self, index: int) -> bool:
-        """
-        Update the server with the latest requested frame index.
-        This helps the server prioritize processing.
-
-        Parameters:
-        index (int): Current requested frame index
-
-        Returns:
-        bool: True if update was successful, False otherwise
-        """
-        request = {"action": "update_requested_index", "index": index}
-        return self._send_request(request)
-
     def get_server_status(self) -> Optional[Dict[str, Any]]:
         """
         Get current server status.

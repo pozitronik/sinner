@@ -416,7 +416,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
 
         # Update server with new requested position
         if self._processor_client:
-            self._processor_client.update_requested_index(frame_position)
+            self._processor_client.rewind(frame_position)
 
     def player_start(self, start_frame: int) -> None:
         """
