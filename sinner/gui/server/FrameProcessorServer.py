@@ -47,6 +47,9 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
     _target_handler: Optional[BaseFrameHandler] = None
     _buffer: Optional[FrameDirectoryBuffer] = None
     _is_target_frames_extracted: bool = False
+    _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
+    _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
+    _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
 
     # processing state
     _processing: Set[int] = set()  # frames currently in processing
@@ -56,8 +59,6 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
     _position: int = 0  # player frame position
 
     # metrics
-    _average_processing_time: MovingAverage = MovingAverage(window_size=10)
-    _average_frame_skip: MovingAverage = MovingAverage(window_size=10)
     _processing_fps: float = 1.0
     _processing_delta: int = 0
     _last_requested_index: int = 0
@@ -271,7 +272,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
 
     def reload_parameters(self) -> None:
         self._target_handler = None
-        super().__init__(self.parameters)
+        AttributeLoader.__init__(self, self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
 
