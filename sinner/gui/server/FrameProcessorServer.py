@@ -266,7 +266,9 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
             case "stop":
                 self.stop()
                 return self.build_response("ok", message="Stopped")
-
+            case "frame":  # process a frame immediately
+                self._process_frame(message.get("position"))
+                return self.build_response("ok", message="Processed")
             case _:
                 return self.build_response("error", message=f"Unknown action: {action}")
 

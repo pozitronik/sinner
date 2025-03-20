@@ -23,7 +23,6 @@ from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import normalize_path, seconds_to_hmsms, list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
-
 PROCESSING = 1
 PROCESSED = 2
 EXTRACTED = 3
@@ -378,9 +377,9 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             if not self.TimeLine.has_index(frame_number):
                 # If not, check if it's processed on the server
                 # todo: request frame processing on server immediately
-                pass
-            # Try to get the frame from timeline
-            preview_frame = self.TimeLine.get_frame_by_index(frame_number)
+                self._processor_client.await_frame(frame_number)
+                # Try to get the frame from timeline
+        preview_frame = self.TimeLine.get_frame_by_index(frame_number)
 
         # Display frame if available
         if preview_frame:

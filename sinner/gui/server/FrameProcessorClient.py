@@ -69,6 +69,17 @@ class FrameProcessorClient(FrameProcessorZMQ, StatusMixin):
             "position": value,
         })
 
+    def await_frame(self, value: int) -> None:
+        """
+        Send frame request to the server and wait until it's done
+        :param value:
+        :return:
+        """
+        self._send_request_with_response({
+            "action": "frame",
+            "position": value,
+        })
+
     def start(self, start_frame: int) -> None:
         self._send_request({
             "action": "start",
