@@ -3,13 +3,10 @@ import time
 from argparse import Namespace
 from concurrent.futures import Future
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import Dict, Any, List, Set, Optional, Tuple
-import platform
-import asyncio
-import zmq.asyncio
+from typing import Dict, Any, List, Set, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.server.FrameProcessorZMQ import FrameProcessorZMQ
+from sinner.gui.server.api.ZMQREPPUBAPI import ZMQREPPUBAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
@@ -29,7 +26,7 @@ from sinner.utilities import suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
+class FrameProcessorServer(AttributeLoader, StatusMixin):
     """Server component for processing frames in a separate process."""
 
     # configuration variables
@@ -39,8 +36,6 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
     bootstrap_processors: bool
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
     _scale_quality: float  # the processed frame size scale from 0 to 1
-    host: str
-    port: int
 
     # internal objects
     TimeLine: FrameTimeLine
@@ -72,6 +67,8 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
     # threads control events
     _event_processing: Event  # the flag to control start/stop processing thread
     _event_rewind: Event  # the flag to control if playback was rewound
+
+    _APIHandler: ZMQREPPUBAPI  # for now
 
     def rules(self) -> Rules:
         return [
@@ -119,23 +116,11 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                 'help': 'Select the directory for temporary files'
             },
             {
-                'parameter': 'host',
-                'attribute': 'host',
-                'default': "127.0.0.1",
-                'help': 'Host for ZeroMQ binding'
-            },
-            {
-                'parameter': 'port',
-                'attribute': 'port',
-                'default': 5555,
-                'help': 'Port for ZeroMQ binding'
-            },
-            {
                 'module_help': 'The server for frame processing'
             }
         ]
 
-    def __init__(self, parameters: Namespace, endpoint: Optional[str] = None):
+    def __init__(self, parameters: Namespace):
         """
         Initialize the frame processor server.
 
@@ -146,15 +131,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         # Initialize attribute loader first
         AttributeLoader.__init__(self, parameters)
 
-        # Use explicit endpoint if provided, otherwise construct from host/port
-        if endpoint is None:
-            endpoint = f"tcp://{self.host}:{self.port}"
-
-        if platform.system().lower() == 'windows':
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-        # Initialize ZMQ
-        FrameProcessorZMQ.__init__(self, endpoint)
+        self._APIHandler = ZMQREPPUBAPI(handler=self._handle_request)
 
         self.parameters = parameters
         self._processors = {}
@@ -162,16 +139,6 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         # Initialize processors if bootstrap is enabled
         if self.bootstrap_processors:
             self._processors = self.processors
-
-        self.context = zmq.asyncio.Context()
-        self.rep_socket = self.context.socket(zmq.REP)
-        self.rep_socket.bind(self.endpoint)
-
-        pub_context = zmq.Context.instance()
-        self.pub_socket = pub_context.socket(zmq.PUB)
-        self.pub_socket.connect(f"tcp://{self.host}:{self.port + 1}")
-
-        self.update_status(f"Frame processor server initialized at {self.endpoint}")
 
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self._event_processing = Event()
@@ -198,79 +165,33 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                 self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
         return self._target_handler
 
-    async def start_server(self) -> None:
-        """Start the async server."""
-
-        self._running = True
-        self.update_status("Frame processor server started")
-
-        await asyncio.gather(
-            self._message_handler()
-        )
-
-    async def _message_handler(self):
-        """Async message handler that responds to requests."""
-        while self._running:
-            try:
-                # Асинхронно ждем сообщения - НЕ блокирует поток!
-                message_data = await self.rep_socket.recv()
-                message = self._deserialize_message(message_data)
-
-                self.logger.info(f"Received message: {message}")
-                response = self._handle_request(message)
-
-                # Асинхронно отправляем ответ
-                await self.rep_socket.send(self._serialize_message(response))
-
-            except Exception as e:
-                self.update_status(f"Error handling message: {e}", mood=Mood.BAD)
-
-    async def stop_server(self) -> None:
-        """Асинхронно останавливает сервер."""
-        self._running = False
-        # Остановка обработки кадров
-        if self._event_processing.is_set():
-            self._stop_processing()
-
-        # Закрытие сокетов
-        if hasattr(self, 'socket'):
-            self.rep_socket.close()
-        if hasattr(self, 'pub_socket'):
-            self.pub_socket.close()
-
-        # Закрытие контекста
-        if hasattr(self, 'context'):
-            self.context.term()
-
-        self.update_status("Server stopped")
-
     def _handle_request(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Handle client request and return response."""
         action = message.get("action", "")
         match action:
             case "source_path":  # todo: make constants
                 self.source_path = message.get("source_path")
-                return self.build_response("ok", message="Source path set")
+                return self._APIHandler.build_response("ok", message="Source path set")
             case "target_path":
                 self.target_path = message.get("target_path")
-                return self.build_response("ok", message="Target path set")
+                return self._APIHandler.build_response("ok", message="Target path set")
             case "quality":
                 self.quality = message.get("quality")
-                return self.build_response("ok", message="Quality set")
+                return self._APIHandler.build_response("ok", message="Quality set")
             case "position":
                 self.rewind(message.get("position"))
-                return self.build_response("ok", message="Position set")
+                return self._APIHandler.build_response("ok", message="Position set")
             case "start":
                 self.start(message.get("position"))
-                return self.build_response("ok", message="Started")
+                return self._APIHandler.build_response("ok", message="Started")
             case "stop":
                 self.stop()
-                return self.build_response("ok", message="Stopped")
+                return self._APIHandler.build_response("ok", message="Stopped")
             case "frame":  # process a frame immediately
                 self._process_frame(message.get("position"))
-                return self.build_response("ok", message="Processed")
+                return self._APIHandler.build_response("ok", message="Processed")
             case _:
-                return self.build_response("error", message=f"Unknown action: {action}")
+                return self._APIHandler.build_response("error", message=f"Unknown action: {action}")
 
     def reload_parameters(self) -> None:
         self._target_handler = None
@@ -329,6 +250,13 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                 time.sleep(1)  # Allow time for the thread to respond
             if reload_frames:
                 self._is_target_frames_extracted = False
+
+    async def start_server(self) -> None:
+        await self._APIHandler.connect()
+
+    def stop_server(self) -> None:
+        self._APIHandler.disconnect()
+        self.stop(True)
 
     def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
         """
@@ -411,17 +339,12 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                         self._biggest_processed_frame = frame_index
 
                     # Отправляем уведомление о завершении обработки
-                    notification = {
+                    self._APIHandler.notify({
                         "type": "frame_processed",
                         "frame": frame_index,
                         "time": process_time,
                         "fps": self._processing_fps
-                    }
-                    try:
-                        self.pub_socket.send(self._serialize_message(notification), zmq.NOBLOCK)
-                        # self.update_status(f"Frame {frame_index} notified")
-                    except Exception as e:
-                        self.logger.error(f"Failed to send notification: {e}")
+                    })
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed

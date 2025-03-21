@@ -71,12 +71,10 @@ class Server(Sinner):
     def run(self):
         """Main function to run the server."""
 
-        # Create endpoint from host and port
-        endpoint = f"tcp://{self.parameters.host}:{self.parameters.port}"
-        self.logger.info(f"Starting Frame Processor Server at {endpoint}")
+        self.logger.info(f"Starting Frame Processor Server")
 
         # Create and start server
-        server = FrameProcessorServer(self.parameters, endpoint=endpoint)
+        server = FrameProcessorServer(self.parameters)
 
         # Set up signal handlers for graceful shutdown
         def signal_handler(sig, frame):
