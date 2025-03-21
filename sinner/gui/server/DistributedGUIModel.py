@@ -441,17 +441,6 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         """
 
         self._processor_client.start(start_frame)
-        return
-        if not self._event_synchronizing.is_set():
-            self._event_synchronizing.set()
-
-            self._synchronize_frames_thread = threading.Thread(
-                target=self._synchronize_frames,
-                name="_request_frames",
-                kwargs={'start_frame': start_frame, 'end_frame': self.frame_handler.fc}
-            )
-            self._synchronize_frames_thread.daemon = True
-            self._synchronize_frames_thread.start()
 
     def __stop_processing(self) -> None:
         """Stop the processing thread."""
@@ -475,15 +464,6 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             self._event_playback.clear()
             self._show_frames_thread.join(1)
             self._show_frames_thread = None
-
-    def _synchronize_frames(self, start_frame: Optional[int], end_frame: Optional[int]) -> None:
-        """
-        Thread that constantly synchronizes frame state.
-
-        """
-        # todo
-        # Sleep to avoid overloading with requests
-        time.sleep(0.1)
 
     def _show_frames(self) -> None:
         """Thread that displays frames for playback."""
