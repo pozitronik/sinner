@@ -327,12 +327,12 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         """Check if playback is active."""
         return self._event_playback.is_set()
 
-    def update_preview(self, processed: bool | None = None) -> None:
+    def update_preview(self, processed: bool = True) -> None:
         """
         Update the preview image.
 
         Parameters:
-        processed (bool, optional): If True, shows processed frame, otherwise shows original frame
+        processed (bool): If True, shows processed frame, otherwise shows original frame
         """
         frame_number = self.position.get()
 
@@ -349,7 +349,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
                 # todo: request frame processing on server immediately
                 self._processor_client.await_frame(frame_number)
                 # Try to get the frame from timeline
-        preview_frame = self.TimeLine.get_frame_by_index(frame_number)
+            preview_frame = self.TimeLine.get_frame_by_index(frame_number)
 
         # Display frame if available
         if preview_frame:

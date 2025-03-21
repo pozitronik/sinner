@@ -228,7 +228,7 @@ class DistributedGUIForm(AttributeLoader):
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')  # type: ignore[no-untyped-call]
         self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: self.save_current_frame())  # type: ignore[no-untyped-call]
-        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview(True))  # type: ignore[no-untyped-call]
+        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview())  # type: ignore[no-untyped-call]
 
         # Rotate submenu
         self.RotateModeVar: StringVar = StringVar(value="0°")
