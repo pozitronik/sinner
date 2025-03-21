@@ -4,8 +4,9 @@ from argparse import Namespace
 from concurrent.futures import Future
 from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, Any, List, Set, Optional, Tuple
-
-import zmq
+import platform
+import asyncio
+import zmq.asyncio
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.server.FrameProcessorZMQ import FrameProcessorZMQ
@@ -149,6 +150,9 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         if endpoint is None:
             endpoint = f"tcp://{self.host}:{self.port}"
 
+        if platform.system().lower() == 'windows':
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
         # Initialize ZMQ
         FrameProcessorZMQ.__init__(self, endpoint)
 
@@ -159,8 +163,12 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         if self.bootstrap_processors:
             self._processors = self.processors
 
+        self.context = zmq.asyncio.Context()
         self.socket = self.context.socket(zmq.REP)
         self.socket.bind(self.endpoint)
+
+        self.pub_socket = self.context.socket(zmq.PUB)
+        self.pub_socket.bind(f"tcp://{self.host}:{self.port + 1}")
 
         self.update_status(f"Frame processor server initialized at {self.endpoint}")
 
@@ -189,60 +197,51 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                 self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
         return self._target_handler
 
-    def start_server(self) -> None:
-        """Start the server in a separate thread."""
-        if self._server_thread is not None and self._server_thread.is_alive():
-            self.update_status("Server is already running")
-            return
+    async def start_server(self) -> None:
+        """Start the async server."""
 
         self._running = True
-        self._server_thread = threading.Thread(target=self._server_loop, daemon=True)
-        self._server_thread.start()
         self.update_status("Frame processor server started")
 
-    def stop_server(self) -> None:
-        """Stop the server thread."""
-        self._running = False
-        if self._server_thread:
-            self._server_thread.join(timeout=2.0)
-            if self._server_thread.is_alive():
-                self.update_status("Server thread did not terminate gracefully", mood=Mood.BAD)
-            else:
-                self.update_status("Server stopped")
-        self.close()
+        await asyncio.gather(
+            self._message_handler()
+        )
 
-    def _server_loop(self) -> None:
-        """Main server loop to process requests."""
-        self.update_status("Server loop started")
-
+    async def _message_handler(self):
+        """Async message handler that responds to requests."""
         while self._running:
             try:
-                # Use poll to check for messages with timeout
-                # if self.socket.poll(100) == 0:  # 100ms timeout
-                #     # Check completed futures
-                #     self._check_completed_futures(futures)
-                #     continue
-
-                # Process incoming message
-                message_data = self.socket.recv()
+                # Асинхронно ждем сообщения - НЕ блокирует поток!
+                message_data = await self.socket.recv()
                 message = self._deserialize_message(message_data)
 
                 self.logger.info(f"Received message: {message}")
                 response = self._handle_request(message)
 
-                # Send response
-                self.socket.send(self._serialize_message(response))
+                # Асинхронно отправляем ответ
+                await self.socket.send(self._serialize_message(response))
 
-                # Check completed futures
-                # self._check_completed_futures(futures)
-
-            except zmq.ZMQError as e:
-                self.update_status(f"ZMQ error: {e}", mood=Mood.BAD)
             except Exception as e:
-                self.update_status(f"Error in server loop: {e}", mood=Mood.BAD)
-                self.logger.exception("Server error")
+                self.update_status(f"Error handling message: {e}", mood=Mood.BAD)
 
-        self.update_status("Server loop ended")
+    async def stop_server(self) -> None:
+        """Асинхронно останавливает сервер."""
+        self._running = False
+        # Остановка обработки кадров
+        if self._event_processing.is_set():
+            self._stop_processing()
+
+        # Закрытие сокетов
+        if hasattr(self, 'socket'):
+            self.socket.close()
+        if hasattr(self, 'pub_socket'):
+            self.pub_socket.close()
+
+        # Закрытие контекста
+        if hasattr(self, 'context'):
+            self.context.term()
+
+        self.update_status("Server stopped")
 
     def _handle_request(self, message: Dict[str, Any]) -> Dict[str, Any]:
         """Handle client request and return response."""
@@ -409,6 +408,18 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                     self._processing_fps = 1 / self._average_processing_time.get_average()
                     if self._biggest_processed_frame < frame_index:
                         self._biggest_processed_frame = frame_index
+
+                    # Отправляем уведомление о завершении обработки
+                    notification = {
+                        "type": "frame_processed",
+                        "frame": frame_index,
+                        "time": process_time,
+                        "fps": self._processing_fps
+                    }
+                    try:
+                        self.pub_socket.send(self._serialize_message(notification), zmq.NOBLOCK)
+                    except zmq.ZMQError as e:
+                        self.logger.error(f"Failed to send notification: {e}")
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed

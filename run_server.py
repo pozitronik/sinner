@@ -2,7 +2,7 @@
 """
 Script to run the Frame Processor Server in a separate process.
 """
-
+import asyncio
 import logging
 import signal
 import sys
@@ -88,7 +88,7 @@ class Server(Sinner):
         signal.signal(signal.SIGTERM, signal_handler)
 
         # Start the server
-        server.start_server()
+        asyncio.run(server.start_server())
         self.logger.info("Server started successfully")
 
         # Keep the script running
