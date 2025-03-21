@@ -3,7 +3,7 @@ import threading
 import time
 from argparse import Namespace
 from tkinter import IntVar
-from typing import List, Callable, Any, Optional, Dict
+from typing import List, Callable, Any, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
@@ -19,7 +19,6 @@ from sinner.models.MovingAverage import MovingAverage
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
-from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
 from sinner.utilities import normalize_path, seconds_to_hmsms, list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
@@ -53,11 +52,10 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     Player: BaseFramePlayer
     _ProgressBar: Optional[BaseProgressIndicator] = None
     AudioPlayer: Optional[BaseAudioBackend] = None
-    _processor_client: Optional[FrameProcessorClient] = None
+    _processor_client: Optional[FrameProcessorClient] = None  # Client side
 
     # Internal state
-    _distributed_system: Optional[DistributedProcessingSystem] = None  # Client side
-    _processors: Dict[str, BaseFrameProcessor]  # Cached processors for visualization
+    _distributed_system: Optional[DistributedProcessingSystem] = None
     _target_handler: Optional[BaseFrameHandler] = None  # Initial handler for the target file
     _positionVar: Optional[IntVar] = None
     _volumeVar: Optional[IntVar] = None
@@ -161,11 +159,6 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         # Initialize distributed processing system
         self._distributed_system = DistributedProcessingSystem(self.parameters)
 
-        # Initialize processors dictionary
-        self._processors = {}
-        if self.bootstrap_processors:
-            self._processors = self.processors
-
         # Set up the timeline and player
         self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
@@ -195,11 +188,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     def reload_parameters(self) -> None:
         """Reload parameters and update components."""
         self._target_handler = None
-        super().__init__(self.parameters)
-
-        # Reload processors
-        for _, processor in self.processors.items():
-            processor.load(self.parameters)
+        AttributeLoader().__init__(self.parameters)
 
     def enable_sound(self, enable: bool | None = None) -> bool:
         """
@@ -324,22 +313,6 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         return self._volumeVar
 
     @property
-    def processors(self) -> Dict[str, BaseFrameProcessor]:
-        """Get or initialize frame processors."""
-        try:
-            for processor_name in self.frame_processor:
-                if processor_name not in self._processors:
-                    self._processors[processor_name] = BaseFrameProcessor.create(processor_name, self.parameters)
-        except Exception as exception:
-            self.update_status(message=str(exception), mood=Mood.BAD)
-        return self._processors
-
-    @property
-    def is_processors_loaded(self) -> bool:
-        """Check if processors are loaded."""
-        return len(self._processors) > 0
-
-    @property
     def frame_handler(self) -> BaseFrameHandler:
         """Get the frame handler for the current target."""
         if self._target_handler is None:
@@ -361,9 +334,6 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         Parameters:
         processed (bool, optional): If True, shows processed frame, otherwise shows original frame
         """
-        if processed is None:
-            processed = self.is_processors_loaded
-
         frame_number = self.position.get()
 
         if not processed:  # base frame requested
@@ -525,6 +495,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
                     n_frame = self.TimeLine.get_frame()
                 except EOFError:
                     self._event_playback.clear()
+
                     break
 
                 if n_frame is not None:
