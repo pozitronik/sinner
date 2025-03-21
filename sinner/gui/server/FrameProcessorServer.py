@@ -252,7 +252,7 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
                 self._is_target_frames_extracted = False
 
     async def start_server(self) -> None:
-        await self._APIHandler.connect()
+        await self._APIHandler.bind()
 
     def stop_server(self) -> None:
         self._APIHandler.disconnect()
