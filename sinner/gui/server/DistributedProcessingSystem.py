@@ -7,6 +7,7 @@ from typing import Optional
 
 from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
 from sinner.gui.server.FrameProcessorServer import FrameProcessorServer
+from sinner.gui.server.api.ZMQAPI import ZMQAPI
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
@@ -19,7 +20,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
     """
 
     # Configuration
-    zmq_endpoint: str
+    endpoint: str
     server_mode: str
     server_python_executable: str
     server_script_path: str
@@ -32,10 +33,10 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
     def rules(self) -> Rules:
         return [
             {
-                'parameter': 'zmq-endpoint',
-                'attribute': 'zmq_endpoint',
+                'parameter': 'endpoint',
+                'attribute': 'endpoint',
                 'default': "tcp://127.0.0.1:5555",
-                'help': 'ZeroMQ endpoint for the frame processor server'
+                'help': 'Endpoint for the frame processor server'
             },
             {
                 'parameter': 'server-mode',
@@ -81,14 +82,13 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         """Parse host and port from the ZMQ endpoint."""
         # Assuming format like tcp://127.0.0.1:5555
         try:
-            parts = self.zmq_endpoint.split(":")
+            parts = self.endpoint.split(":")
             self.host = parts[1].replace("//", "")
             self.port = int(parts[2])
         except (IndexError, ValueError):
             self.host = "127.0.0.1"
             self.port = 5555
-            self.update_status(f"Invalid endpoint format: {self.zmq_endpoint}, using {self.host}:{self.port}",
-                               mood=Mood.BAD)
+            self.update_status(f"Invalid endpoint format: {self.endpoint}, using {self.host}:{self.port}", mood=Mood.BAD)
 
     def _initialize_system(self) -> None:
         """Initialize the processing system based on server mode."""
@@ -107,11 +107,11 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self.update_status("Initializing integrated mode")
 
         # Create server
-        self._server = FrameProcessorServer(self.parameters, endpoint=self.zmq_endpoint)
+        self._server = FrameProcessorServer(self.parameters, endpoint=self.endpoint)
         self._server.start_server()
 
         # Create client
-        self._client = FrameProcessorClient(endpoint=self.zmq_endpoint)
+        self._client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
 
         # Wait for server to be ready
         time.sleep(0.5)
@@ -155,7 +155,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
             self.update_status(f"Server subprocess started with PID {self._server_process.pid}")
 
             # Create client
-            self._client = FrameProcessorClient(endpoint=self.zmq_endpoint)
+            self._client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
 
             # Wait for server to be ready
             time.sleep(1.0)
@@ -169,7 +169,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self.update_status("Initializing external mode - connecting to existing server")
 
         # Create client only
-        self._client = FrameProcessorClient(endpoint=self.zmq_endpoint)
+        self._client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
 
         # Test connection
         try:

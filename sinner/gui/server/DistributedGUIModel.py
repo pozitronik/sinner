@@ -11,6 +11,7 @@ from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
 from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
+from sinner.gui.server.api.ZMQAPI import ZMQAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.Event import Event
@@ -44,7 +45,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     _scale_quality: float  # Process frame size scale from 0 to 1
     _enable_sound: bool
     _audio_backend: str  # Current audio backend class name
-    zmq_endpoint: str
+    endpoint: str
 
     # Components
     parameters: Namespace
@@ -133,10 +134,10 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
                 'help': 'Select the directory for temporary files'
             },
             {
-                'parameter': 'zmq-endpoint',
-                'attribute': 'zmq_endpoint',
+                'parameter': 'endpoint',
+                'attribute': 'endpoint',
                 'default': "tcp://127.0.0.1:5555",
-                'help': 'ZeroMQ endpoint for the frame processor server'
+                'help': 'Endpoint for the frame processor server'
             },
             {
                 'module_help': 'Distributed GUI processing model'
@@ -168,7 +169,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
 
         # Initialize processor client
-        self._processor_client = FrameProcessorClient(endpoint=self.zmq_endpoint)
+        self._processor_client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
         if self._source_path and self._target_path:
             self._processor_client.source_path = self._source_path
         if self._target_path:
