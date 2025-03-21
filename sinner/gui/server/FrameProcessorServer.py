@@ -164,11 +164,12 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
             self._processors = self.processors
 
         self.context = zmq.asyncio.Context()
-        self.socket = self.context.socket(zmq.REP)
-        self.socket.bind(self.endpoint)
+        self.rep_socket = self.context.socket(zmq.REP)
+        self.rep_socket.bind(self.endpoint)
 
-        self.pub_socket = self.context.socket(zmq.PUB)
-        self.pub_socket.bind(f"tcp://{self.host}:{self.port + 1}")
+        pub_context = zmq.Context.instance()
+        self.pub_socket = pub_context.socket(zmq.PUB)
+        self.pub_socket.connect(f"tcp://{self.host}:{self.port + 1}")
 
         self.update_status(f"Frame processor server initialized at {self.endpoint}")
 
@@ -212,14 +213,14 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
         while self._running:
             try:
                 # Асинхронно ждем сообщения - НЕ блокирует поток!
-                message_data = await self.socket.recv()
+                message_data = await self.rep_socket.recv()
                 message = self._deserialize_message(message_data)
 
                 self.logger.info(f"Received message: {message}")
                 response = self._handle_request(message)
 
                 # Асинхронно отправляем ответ
-                await self.socket.send(self._serialize_message(response))
+                await self.rep_socket.send(self._serialize_message(response))
 
             except Exception as e:
                 self.update_status(f"Error handling message: {e}", mood=Mood.BAD)
@@ -233,7 +234,7 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
 
         # Закрытие сокетов
         if hasattr(self, 'socket'):
-            self.socket.close()
+            self.rep_socket.close()
         if hasattr(self, 'pub_socket'):
             self.pub_socket.close()
 
@@ -418,7 +419,8 @@ class FrameProcessorServer(FrameProcessorZMQ, AttributeLoader, StatusMixin):
                     }
                     try:
                         self.pub_socket.send(self._serialize_message(notification), zmq.NOBLOCK)
-                    except zmq.ZMQError as e:
+                        # self.update_status(f"Frame {frame_index} notified")
+                    except Exception as e:
                         self.logger.error(f"Failed to send notification: {e}")
             futures.remove(future_)
 
