@@ -34,7 +34,7 @@ class ZMQREPPUBAPI:
         self._reply_endpoint = reply_endpoint
         self._context = zmq.asyncio.Context()
         self._reply_socket = self._context.socket(zmq.REP)
-        self._reply_socket.setsockopt(zmq.RCVTIMEO, self._timeout)
+        # self._reply_socket.setsockopt(zmq.RCVTIMEO, self._timeout)  # Асинхронный ZMQ сам управляет ожиданием через asyncio.
 
         self._publish_endpoint = publish_endpoint
         self._publish_socket = self._context.socket(zmq.PUB)
@@ -81,9 +81,16 @@ class ZMQREPPUBAPI:
 
                 # Асинхронно отправляем ответ
                 await self._reply_socket.send(self._serialize_message(response))
-
+            except zmq.ZMQError as e:
+                if e.errno == zmq.EAGAIN:  # Тайм-аут
+                    self._logger.error(f"Timeout handling message: {e}")
+                    await asyncio.sleep(0.01)
+                else:
+                    self._logger.error(f"ZMQ error in message handler: {e}")
             except Exception as e:
                 self._logger.error(f"Error handling message: {e}")
+                # Пауза при ошибке, чтобы не загружать процессор
+                await asyncio.sleep(0.1)
 
     def notify(self, notification: MessageData) -> None:
         try:
