@@ -11,7 +11,7 @@ from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
 from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
-from sinner.gui.server.api.ZMQAPI import ZMQAPI
+from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.Event import Event
@@ -169,7 +169,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
 
         # Initialize processor client
-        self._processor_client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
+        self._processor_client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
         if self._source_path and self._target_path:
             self._processor_client.source_path = self._source_path
         if self._target_path:

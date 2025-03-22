@@ -1,12 +1,12 @@
 from typing import Dict, Any, Optional
 
-from sinner.gui.server.api.BaseAPI import BaseAPI
+from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
 
 
 class FrameProcessorClient:
-    _APIClient: BaseAPI
+    _APIClient: BaseClientAPI
 
-    def __init__(self, APIClient: BaseAPI):
+    def __init__(self, APIClient: BaseClientAPI):
         self._APIClient = APIClient
         self._APIClient.connect()
 

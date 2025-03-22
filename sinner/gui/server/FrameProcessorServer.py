@@ -6,8 +6,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, Any, List, Set, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.server.api.BaseAPI import STATUS_OK
-from sinner.gui.server.api.ZMQREPPUBAPI import ZMQREPPUBAPI
+from sinner.gui.server.api.APITypes import MessageData
+from sinner.gui.server.api.BaseClientAPI import STATUS_OK
+from sinner.gui.server.api.ZMQServerAPI import ZMQServerAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
@@ -69,7 +70,7 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
     _event_processing: Event  # the flag to control start/stop processing thread
     _event_rewind: Event  # the flag to control if playback was rewound
 
-    _APIHandler: ZMQREPPUBAPI  # for now
+    _APIHandler: ZMQServerAPI  # for now
 
     def rules(self) -> Rules:
         return [
@@ -132,7 +133,7 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
         # Initialize attribute loader first
         AttributeLoader.__init__(self, parameters)
 
-        self._APIHandler = ZMQREPPUBAPI(handler=self._handle_request)
+        self._APIHandler = ZMQServerAPI(handler=self._handle_request)
 
         self.parameters = parameters
         self._processors = {}
@@ -166,7 +167,7 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
                 self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
         return self._target_handler
 
-    def _handle_request(self, message: Dict[str, Any]) -> Dict[str, Any]:
+    def _handle_request(self, message: MessageData) -> MessageData:
         """Handle client request and return response."""
         action = message.get("action", "")
         match action:

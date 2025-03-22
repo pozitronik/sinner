@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 
-STATUS_OK: str = "ok"
-STATUS_ERROR: str = "error"
+from sinner.gui.server.api.APITypes import STATUS_OK, MessageData
 
 
-class BaseAPI(ABC):
+class BaseClientAPI(ABC):
     _endpoint: str
 
     def __init__(self, endpoint: str):
@@ -32,7 +31,7 @@ class BaseAPI(ABC):
         pass
 
     @staticmethod
-    def build_response(status: str = STATUS_OK, **kwargs) -> Dict[str, Any]:
+    def build_response(status: str = STATUS_OK, **kwargs) -> MessageData:
         """Build a response message."""
         response = {"status": status}
         response.update(kwargs)

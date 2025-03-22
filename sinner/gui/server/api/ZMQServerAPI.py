@@ -8,12 +8,14 @@ import zmq.asyncio
 from zmq import ZMQError
 from zmq.asyncio import Socket as AsyncSocket
 
-from sinner.gui.server.api.BaseAPI import STATUS_ERROR
-
-MessageData: TypeAlias = Dict[str, Any]
+from sinner.gui.server.api.APITypes import MessageData, STATUS_ERROR
 
 
-class ZMQREPPUBAPI:
+class BaseServerAPI:
+    pass
+
+
+class ZMQServerAPI(BaseServerAPI):
     _timeout: int = 1000
     _reply_endpoint: str = "tcp://127.0.0.1:5555"
     _context: zmq.asyncio.Context

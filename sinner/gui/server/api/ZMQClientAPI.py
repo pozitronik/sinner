@@ -3,36 +3,38 @@ import logging
 import threading
 
 import zmq
-from typing import Dict, Any, Optional, Callable
+from typing import Any, Optional, Callable
 
 from zmq import Socket, ZMQError
 
-from sinner.gui.server.api.BaseAPI import BaseAPI, STATUS_OK
+from sinner.gui.server.api.APITypes import MessageData, STATUS_OK
+from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
 
 
-class ZMQAPI(BaseAPI):
-    _timeout: int = 1000
+class ZMQClientAPI(BaseClientAPI):
+    _sub_endpoint: str = "tcp://127.0.0.1:5556"  # Эндпоинт для подписки на нотификации
+    _timeout: int = 5000
     _context: zmq.Context
     _req_socket: Socket
     _sub_socket: Optional[Socket] = None
     _logger: logging.Logger
     _lock: threading.Lock
 
-    _notification_thread: Optional[threading.Thread] = None
-    _notification_callback: Optional[Callable[[Dict[str, Any]], None]] = None
+    _notification_thread: Optional[threading.Thread] = None  # тред подписки на нотификации
+    _notification_handler: Optional[Callable[[MessageData], None]] = None  # Колбэк обработки нотификаций от сервера
     _notification_running: bool = False
-    _sub_endpoint: str = "tcp://127.0.0.1:5556"  # Эндпоинт для подписки
 
-    def __init__(self, endpoint: str = "tcp://127.0.0.1:5555", sub_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 5000):
+    def __init__(self, notification_handler: Optional[Callable[[MessageData], MessageData]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", sub_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 5000):
         """
         Initialize ZeroMQ communication.
 
         Parameters:
-        endpoint (str): ZeroMQ endpoint for REQ/REP communication
+        rep_endpoint (str): ZeroMQ endpoint for REQ/REP communication
         sub_endpoint (str): ZeroMQ endpoint for SUB/PUB notifications
         timeout (int): Socket timeout in milliseconds
         """
-        super().__init__(endpoint)
+        super().__init__(reply_endpoint)
+        self._notification_handler = notification_handler
         self._timeout = timeout
         self._sub_endpoint = sub_endpoint
         self._context = zmq.Context()
@@ -61,15 +63,6 @@ class ZMQAPI(BaseAPI):
         if self._context:
             self._context.term()
 
-    def set_notification_callback(self, callback: Callable[[Dict[str, Any]], None]) -> None:
-        """
-        Set callback function for handling incoming notifications.
-
-        Parameters:
-        callback (callable): Function that takes notification dict as parameter
-        """
-        self._notification_callback = callback
-
     def start_notification_listener(self) -> bool:
         """Start listening for notifications in background thread."""
         # Создаем SUB сокет если еще не создан
@@ -84,10 +77,7 @@ class ZMQAPI(BaseAPI):
 
             # Запускаем фоновый поток для получения нотификаций
             self._notification_running = True
-            self._notification_thread = threading.Thread(
-                target=self._notification_listener,
-                daemon=True
-            )
+            self._notification_thread = threading.Thread(target=self._notification_listener, daemon=True)
             self._notification_thread.start()
             self._logger.info(f"Started notification listener on {self._sub_endpoint}")
             return True
@@ -113,22 +103,23 @@ class ZMQAPI(BaseAPI):
             try:
                 # Неблокирующий прием с коротким таймаутом для возможности выхода из цикла
                 if self._sub_socket.poll(timeout=100):  # Ожидание 100мс
-                    message_data = self._sub_socket.recv()
-                    notification = self._deserialize_message(message_data)
-
-                    # Вызов колбэка для обработки нотификации
-                    if self._notification_callback:
-                        try:
-                            self._notification_callback(notification)
-                        except Exception as e:
-                            self._logger.error(f"Error in notification callback: {e}")
+                    self._handle_notification(self._deserialize_message(self._sub_socket.recv()))
             except zmq.ZMQError as e:
                 if e.errno != zmq.EAGAIN:  # Не таймаут
                     self._logger.error(f"Error receiving notification: {e}")
             except Exception as e:
                 self._logger.error(f"Error processing notification: {e}")
 
-    def send_message(self, message: Dict[str, Any]) -> bool:
+    def _handle_notification(self, notification: MessageData) -> None:
+        if self._notification_handler is None:
+            self._logger.error(f"No handler defined for notification: {notification}")
+        else:
+            try:
+                self._notification_handler(notification)
+            except Exception as e:
+                self._logger.error(f"Error in notification callback: {e}")
+
+    def send_message(self, message: MessageData) -> bool:
         try:
             with self._lock:
                 try:
@@ -161,7 +152,7 @@ class ZMQAPI(BaseAPI):
         self._req_socket.setsockopt(zmq.RCVTIMEO, self._timeout)
         self._req_socket.connect(self._endpoint)
 
-    def send_request(self, request: Dict[str, Any]) -> Any:
+    def send_request(self, request: MessageData) -> Any:
         try:
             with self._lock:
                 try:
@@ -182,11 +173,11 @@ class ZMQAPI(BaseAPI):
         return False
 
     @staticmethod
-    def _serialize_message(message: Dict[str, Any]) -> bytes:
+    def _serialize_message(message: MessageData) -> bytes:  # todo: вынести MessageData в dataclass
         """Serialize message to JSON and encode to bytes."""
         return json.dumps(message).encode()
 
-    def _deserialize_message(self, message: bytes) -> Dict[str, Any]:
+    def _deserialize_message(self, message: bytes) -> MessageData:
         """Deserialize message from bytes to JSON."""
         try:
             return json.loads(message.decode())

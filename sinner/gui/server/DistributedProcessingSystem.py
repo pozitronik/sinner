@@ -7,7 +7,7 @@ from typing import Optional
 
 from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
 from sinner.gui.server.FrameProcessorServer import FrameProcessorServer
-from sinner.gui.server.api.ZMQAPI import ZMQAPI
+from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
@@ -111,7 +111,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self._server.start_server()
 
         # Create client
-        self._client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
+        self._client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
 
         # Wait for server to be ready
         time.sleep(0.5)
@@ -155,7 +155,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
             self.update_status(f"Server subprocess started with PID {self._server_process.pid}")
 
             # Create client
-            self._client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
+            self._client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
 
             # Wait for server to be ready
             time.sleep(1.0)
@@ -169,7 +169,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self.update_status("Initializing external mode - connecting to existing server")
 
         # Create client only
-        self._client = FrameProcessorClient(ZMQAPI(endpoint=self.endpoint))
+        self._client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
 
         # Test connection
         try:
