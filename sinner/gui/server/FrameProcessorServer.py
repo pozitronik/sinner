@@ -6,6 +6,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, Any, List, Set, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
+from sinner.gui.server.api.BaseAPI import STATUS_OK
 from sinner.gui.server.api.ZMQREPPUBAPI import ZMQREPPUBAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -169,27 +170,29 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
         """Handle client request and return response."""
         action = message.get("action", "")
         match action:
+            case "status":
+                return self._APIHandler.build_response(STATUS_OK, message="Alive")
             case "source_path":  # todo: make constants
                 self.source_path = message.get("source_path")
-                return self._APIHandler.build_response("ok", message="Source path set")
+                return self._APIHandler.build_response(STATUS_OK, message="Source path set")
             case "target_path":
                 self.target_path = message.get("target_path")
-                return self._APIHandler.build_response("ok", message="Target path set")
+                return self._APIHandler.build_response(STATUS_OK, message="Target path set")
             case "quality":
                 self.quality = message.get("quality")
-                return self._APIHandler.build_response("ok", message="Quality set")
+                return self._APIHandler.build_response(STATUS_OK, message="Quality set")
             case "position":
                 self.rewind(message.get("position"))
-                return self._APIHandler.build_response("ok", message="Position set")
+                return self._APIHandler.build_response(STATUS_OK, message="Position set")
             case "start":
                 self.start(message.get("position"))
-                return self._APIHandler.build_response("ok", message="Started")
+                return self._APIHandler.build_response(STATUS_OK, message="Started")
             case "stop":
                 self.stop()
-                return self._APIHandler.build_response("ok", message="Stopped")
+                return self._APIHandler.build_response(STATUS_OK, message="Stopped")
             case "frame":  # process a frame immediately
                 self._process_frame(message.get("position"))
-                return self._APIHandler.build_response("ok", message="Processed")
+                return self._APIHandler.build_response(STATUS_OK, message="Processed")
             case _:
                 return self._APIHandler.build_response("error", message=f"Unknown action: {action}")
 

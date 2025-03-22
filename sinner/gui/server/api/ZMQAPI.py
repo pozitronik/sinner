@@ -72,8 +72,7 @@ class ZMQAPI(BaseAPI):
                 try:
                     self._req_socket.send(self._serialize_message(request))
                     response = self._deserialize_message(self._req_socket.recv())
-                    if response.get("status") == STATUS_OK:
-                        return response.get("response")
+                    return response.get("status") == STATUS_OK
                 except zmq.ZMQError as e:
                     if e.errno == zmq.EAGAIN:  # Timeout
                         self._logger.error(f"Timeout waiting for response when sending to {self._endpoint}: {e}")
