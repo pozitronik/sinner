@@ -17,6 +17,7 @@ class ZMQREPPUBAPI:
     _timeout: int = 1000
     _reply_endpoint: str = "tcp://127.0.0.1:5555"
     _context: zmq.asyncio.Context
+    _publish_context: zmq.Context
     _reply_socket: AsyncSocket  # the listening socket
     _publish_endpoint: str = "tcp://127.0.0.1:5556"
     _publish_socket: zmq.Socket  # the publishing socket
@@ -37,8 +38,11 @@ class ZMQREPPUBAPI:
         # self._reply_socket.setsockopt(zmq.RCVTIMEO, self._timeout)  # Асинхронный ZMQ сам управляет ожиданием через asyncio.
 
         self._publish_endpoint = publish_endpoint
-        self._publish_socket = self._context.socket(zmq.PUB)
-        self._publish_socket.setsockopt(zmq.RCVTIMEO, self._timeout)
+
+        # Синхронный контекст и сокет для PUB (изменено!)
+        self._publish_context = zmq.Context.instance()  # Синхронный контекст
+        self._publish_socket = self._publish_context.socket(zmq.PUB)
+        self._publish_socket.setsockopt(zmq.LINGER, 0)  # Быстрое закрытие
 
         self._logger = logging.getLogger(self.__class__.__name__)
 
@@ -65,6 +69,8 @@ class ZMQREPPUBAPI:
             self._publish_socket.close()
         if self._context:
             self._context.term()
+        if self._publish_context:
+            self._publish_context.term()
 
         self._server_running = False
 
