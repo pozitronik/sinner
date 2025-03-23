@@ -113,14 +113,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         # Initialize distributed processing system
         self._distributed_system = DistributedProcessingSystem(self.parameters)
 
-        # Set up the timeline and player
-        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
-        self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
-
-        # Initialize audio if enabled
-        if self._enable_sound:
-            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
-
         # Initialize processor client
         self.ProcessingClient = FrameProcessingClient(
             ZMQClientAPI(
@@ -130,6 +122,15 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 timeout=self._timeout
             )
         )
+        # Set up the timeline and player
+        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
+        self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
+
+        # Initialize audio if enabled
+        if self._enable_sound:
+            self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
+
+
         if self._source_path and self._target_path:
             self.ProcessingClient.source_path = self._source_path
         if self._target_path:
