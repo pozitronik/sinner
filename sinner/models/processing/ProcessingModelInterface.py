@@ -1,11 +1,21 @@
+import threading
 from abc import ABC, abstractmethod
 from argparse import Namespace
 from tkinter import IntVar
 from typing import Optional, Any, Callable
 
+from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.models.Event import Event
+from sinner.models.FrameTimeLine import FrameTimeLine
+from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
+
+BUFFERING_PROGRESS_NAME = "Buffering"
+EXTRACTING_PROGRESS_NAME = "Extracting"
+PROCESSING = 1
+PROCESSED = 2
+EXTRACTED = 3
 
 
 class ProcessingModelInterface(ABC):
@@ -13,6 +23,29 @@ class ProcessingModelInterface(ABC):
     Interface for frame processing models.
     Defines the common API for local and remote processing implementations.
     """
+    parameters: Namespace
+
+    _source_path: str
+    _target_path: str
+    temp_dir: str
+    _scale_quality: float  # the processed frame size scale from 0 to 1
+    _enable_sound: bool
+    _audio_backend: str  # the current audio backend class name, used to create it in the factory
+
+    # internal/external objects
+    TimeLine: FrameTimeLine
+    Player: BaseFramePlayer
+    _ProgressBar: Optional[BaseProgressIndicator] = None
+    AudioPlayer: Optional[BaseAudioBackend] = None
+
+    _status: Callable[[str, str], Any]  # status callback
+
+    _positionVar: Optional[IntVar] = None
+    _volumeVar: Optional[IntVar] = None
+
+    # Playback thread & control event
+    _event_playback: Event  # Flag to control playback thread
+    _show_frames_thread: Optional[threading.Thread] = None
 
     @abstractmethod
     def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any],

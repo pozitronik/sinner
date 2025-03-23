@@ -4,10 +4,9 @@ import time
 from argparse import Namespace
 from concurrent.futures import ThreadPoolExecutor, Future
 from tkinter import IntVar
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
@@ -21,7 +20,7 @@ from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
-from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface
+from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface, PROCESSED, EXTRACTED, PROCESSING
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -29,40 +28,18 @@ from sinner.processors.frame.FrameExtractor import FrameExtractor
 from sinner.utilities import list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir, seconds_to_hmsms, normalize_path, get_mem_usage
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
-BUFFERING_PROGRESS_NAME = "Buffering"
-EXTRACTING_PROGRESS_NAME = "Extracting"
-PROCESSING = 1
-PROCESSED = 2
-EXTRACTED = 3
-
 
 class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterface):
+    """Processes in the same process"""
+
     # configuration variables
     frame_processor: List[str]
-    _source_path: str
-    _target_path: str
-    temp_dir: str
     execution_threads: int
     bootstrap_processors: bool  # bootstrap_processors processors on startup
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
-    _scale_quality: float  # the processed frame size scale from 0 to 1
-    _enable_sound: bool
-    _audio_backend: str  # the current audio backend class name, used to create it in the factory
-
-    parameters: Namespace
-
-    # internal/external objects
-    TimeLine: FrameTimeLine
-    Player: BaseFramePlayer
-    _ProgressBar: BaseProgressIndicator | None = None
-    AudioPlayer: BaseAudioBackend | None = None
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
-    _positionVar: IntVar | None = None
-    _volumeVar: IntVar | None = None
-
-    _status: Callable[[str, str], Any]
 
     # player counters
     _framedrop: int = -1  # the manual value of dropped frames
@@ -76,12 +53,10 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
 
     # threads
-    _process_frames_thread: threading.Thread | None = None
-    _show_frames_thread: threading.Thread | None = None
+    _process_frames_thread: Optional[threading.Thread] = None
 
     # threads control events
     _event_processing: Event  # the flag to control start/stop processing thread
-    _event_playback: Event  # the flag to control start/stop processed frames playback thread
     _event_rewind: Event  # the flag to control if playback was rewound
 
     def rules(self) -> Rules:

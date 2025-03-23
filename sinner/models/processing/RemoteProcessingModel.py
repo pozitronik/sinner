@@ -3,10 +3,9 @@ import threading
 import time
 from argparse import Namespace
 from tkinter import IntVar
-from typing import List, Callable, Any, Optional
+from typing import Callable, Any, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
@@ -17,17 +16,12 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
-from sinner.models.MovingAverage import MovingAverage
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
-from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface
+from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface, PROCESSED, EXTRACTED
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
-from sinner.utilities import normalize_path, seconds_to_hmsms, list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
+from sinner.utilities import normalize_path, seconds_to_hmsms, list_class_descendants, resolve_relative_path, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
-
-PROCESSING = 1
-PROCESSED = 2
-EXTRACTED = 3
 
 
 class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterface):
@@ -37,60 +31,17 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     """
 
     # Configuration parameters
-    frame_processor: List[str]
-    _source_path: str
-    _target_path: str
-    temp_dir: str
-    execution_threads: int
-    bootstrap_processors: bool
-    _prepare_frames: bool  # True: always extract and use, False: never extract nor use, None: never extract, use if exists
-    _scale_quality: float  # Process frame size scale from 0 to 1
-    _enable_sound: bool
-    _audio_backend: str  # Current audio backend class name
-    endpoint: str
-
-    # Components
-    parameters: Namespace
-    TimeLine: FrameTimeLine
-    Player: BaseFramePlayer
-    _ProgressBar: Optional[BaseProgressIndicator] = None
-    AudioPlayer: Optional[BaseAudioBackend] = None
-    _processor_client: FrameProcessorClient  # Client side
 
     # Internal state
     _distributed_system: Optional[DistributedProcessingSystem] = None
     _target_handler: Optional[BaseFrameHandler] = None  # Initial handler for the target file
-    _positionVar: Optional[IntVar] = None
-    _volumeVar: Optional[IntVar] = None
 
-    # Internal processing state
-    _event_playback: Event  # Flag to control playback thread
-    _event_synchronizing: Event  # Flag to control synchronizing threa
-    _synchronize_frames_thread: Optional[threading.Thread] = None
-    _show_frames_thread: Optional[threading.Thread] = None
-
-    # Processing metrics
-    _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Average frame skip calculator
-    _processing_fps: float = 1.0  # Processing speed in FPS
-
-    # Status callback
-    _status: Callable[[str, str], Any]
+    # Client-server
+    _processor_client: FrameProcessorClient  # Client side
+    endpoint: str
 
     def rules(self) -> Rules:
         return [
-            {
-                'parameter': {'frame-processor', 'processor', 'processors'},
-                'attribute': 'frame_processor',
-                'default': ['FaceSwapper'],
-                'required': True,
-                'choices': list_class_descendants(resolve_relative_path('../../processors/frame'), 'BaseFrameProcessor'),
-                'help': 'The set of frame processors to handle the target'
-            },
-            {
-                'parameter': 'execution-threads',
-                'default': suggest_execution_threads(),
-                'help': 'The count of simultaneous processing threads'
-            },
             {
                 'parameter': {'source', 'source-path'},
                 'attribute': '_source_path'
@@ -184,8 +135,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
         # Initialize event flags
         self._event_playback = Event()
-        self._event_synchronizing = Event()
-
         self.update_status("Distributed GUI model initialized")
 
     def reload_parameters(self) -> None:
@@ -349,7 +298,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             # Check if frame is already in timeline
             if not self.TimeLine.has_index(frame_number):
                 # If not, check if it's processed on the server
-                # todo: request frame processing on server immediately
                 self._processor_client.await_frame(frame_number)
                 # Try to get the frame from timeline
             preview_frame = self.TimeLine.get_frame_by_index(frame_number)
@@ -446,10 +394,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
     def __stop_processing(self) -> None:
         """Stop the processing thread."""
-        if self._event_synchronizing.is_set() and self._synchronize_frames_thread:
-            self._event_synchronizing.clear()
-            self._synchronize_frames_thread.join(1)
-            self._synchronize_frames_thread = None
+        self._processor_client.stop()
 
     def __start_playback(self) -> None:
         """Start the playback thread."""
