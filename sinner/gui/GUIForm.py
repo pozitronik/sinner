@@ -128,36 +128,37 @@ class GUIForm(AttributeLoader):
         # self.GUIWindow.iconphoto(True, PhotoImage(file=get_app_dir("sinner/gui/icons/sinner_64.png")))  # the taskbar icon may not be changed due tkinter limitations
         self.GUIWindow.title('sinner controls')
         self.GUIWindow.minsize(500, 130)
-        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: on_player_window_close())
-        self._event_player_window_closed = SinnerEvent(on_set_callback=lambda: on_player_window_close())
+        self.GUIWindow.protocol('WM_DELETE_WINDOW', lambda: _window_close_handler())
+        self._event_player_window_closed = SinnerEvent(on_set_callback=lambda: _window_close_handler())
+
+        def _window_close_handler() -> None:
+            self.GUIModel.player_stop(wait=True)
+            halt()
 
         self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
 
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
         self.GUIModel = GUIModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
-        def on_player_window_close() -> None:
-            self.GUIModel.player_stop(wait=True)
-            halt()
-
-        self.GUIWindow.bind("<Configure>", lambda event: on_player_window_configure(event))
-        self.GUIWindow.bind("<FocusIn>", lambda event: on_player_window_focus_in(event))
+        self.GUIWindow.bind("<Configure>", lambda event: _window_configure_handler(event))
+        self.GUIWindow.bind("<FocusIn>", lambda event: _window_on_focus_handler(event))
 
         # noinspection PyUnusedLocal
-        def on_player_window_configure(event: Event) -> None:  # type: ignore[type-arg]
+        def _window_configure_handler(event: Event) -> None:  # type: ignore[type-arg]
             if self.GUIWindow.wm_state() != 'zoomed':
                 Config(self.parameters).set_key(self.__class__.__name__, 'controls-geometry', self.GUIWindow.geometry())
             Config(self.parameters).set_key(self.__class__.__name__, 'controls-state', self.GUIWindow.wm_state())
 
         # noinspection PyUnusedLocal
-        def on_player_window_focus_in(event: Event) -> None:  # type: ignore[type-arg]
+        def _window_on_focus_handler(event: Event) -> None:  # type: ignore[type-arg]
             if self.GUIModel:
                 self.GUIModel.Player.bring_to_front()
 
         self.GUIWindow.resizable(width=True, height=True)
-        self.GUIWindow.bind("<KeyRelease>", lambda event: on_player_window_key_release(event))
+        self.GUIWindow.bind("<KeyRelease>", lambda event: _window_key_release_handler(event))
 
-        def on_player_window_key_release(event: Event) -> None:  # type: ignore[type-arg]
+        def _window_key_release_handler(event: Event) -> None:  # type: ignore[type-arg]
+            """Define hotkeys here"""
             if event.keycode == 37:  # left arrow
                 self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to // 100)
                 self.GUIModel.rewind(self.NavigateSlider.position)
@@ -165,7 +166,7 @@ class GUIForm(AttributeLoader):
                 self.GUIModel.rewind(self.NavigateSlider.position)
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to // 100)
             if event.keycode == 32:  # space bar
-                on_self_run_button_press()
+                _run_button_command()
 
         # Navigation slider
         self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)), progress=self.show_progress)
@@ -175,9 +176,9 @@ class GUIForm(AttributeLoader):
         self.WidgetsFrame: Frame = Frame(self.GUIWindow)  # it is a frame for dynamic controls which can be hidden, like library widget
 
         self.ButtonsFrame = Frame(self.BaseFrame)
-        self.RunButton: Button = Button(self.ButtonsFrame, text="PLAY", width=10, command=lambda: on_self_run_button_press())
+        self.RunButton: Button = Button(self.ButtonsFrame, text="PLAY", width=10, command=lambda: _run_button_command())
 
-        def on_self_run_button_press() -> None:
+        def _run_button_command() -> None:
             if self.GUIModel.player_is_started:
                 self.GUIModel.player_stop()
                 self.RunButton.configure(text="PLAY")
@@ -229,10 +230,10 @@ class GUIForm(AttributeLoader):
         self.MainMenu: Menu = Menu(self.GUIWindow)
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')  # type: ignore[no-untyped-call]  # it is a library method
-        self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: save_current_frame())  # type: ignore[no-untyped-call]  # it is a library method
+        self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: _save_current_frame_command())  # type: ignore[no-untyped-call]  # it is a library method
         self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview(True))  # type: ignore[no-untyped-call]  # it is a library method
 
-        def save_current_frame() -> None:
+        def _save_current_frame_command() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
             if save_file != '':
                 self.GUIModel.Player.save_to_file(save_file)
@@ -241,12 +242,12 @@ class GUIForm(AttributeLoader):
 
         self.RotateSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.RotateSubMenu, label='Rotation')  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="0°", command=lambda: set_rotate_mode(None))  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="90°", command=lambda: set_rotate_mode(ROTATE_90_CLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="180°", command=lambda: set_rotate_mode(ROTATE_180))  # type: ignore[no-untyped-call]  # it is a library method
-        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="270°", command=lambda: set_rotate_mode(ROTATE_90_COUNTERCLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="0°", command=lambda: _set_rotate_mode_command(None))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="90°", command=lambda: _set_rotate_mode_command(ROTATE_90_CLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="180°", command=lambda: _set_rotate_mode_command(ROTATE_180))  # type: ignore[no-untyped-call]  # it is a library method
+        self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="270°", command=lambda: _set_rotate_mode_command(ROTATE_90_COUNTERCLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
 
-        def set_rotate_mode(mode: int | None) -> None:
+        def _set_rotate_mode_command(mode: int | None) -> None:
             self.GUIModel.Player.rotate = mode
 
         self.SoundEnabledVar: BooleanVar = BooleanVar(value=self.GUIModel.enable_sound())
@@ -255,14 +256,14 @@ class GUIForm(AttributeLoader):
         self.MainMenu.add(CASCADE, menu=self.SoundSubMenu, label='Sound')  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(CHECKBUTTON, variable=self.SoundEnabledVar, label='Enable sound', command=lambda: self.GUIModel.enable_sound(self.SoundEnabledVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
-        self.SoundSubMenu.add(COMMAND, label='Volume up', command=lambda: increase_volume())  # type: ignore[no-untyped-call]  # it is a library method
-        self.SoundSubMenu.add(COMMAND, label='Volume down', command=lambda: decrease_volume())  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(COMMAND, label='Volume up', command=lambda: _increase_volume_command())  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(COMMAND, label='Volume down', command=lambda: _decrease_volume_command())  # type: ignore[no-untyped-call]  # it is a library method
 
-        def increase_volume() -> None:
+        def _increase_volume_command() -> None:
             if self.GUIModel.volume.get() < 100:
                 self.GUIModel.volume.set(self.GUIModel.volume.get() + 1)
 
-        def decrease_volume() -> None:
+        def _decrease_volume_command() -> None:
             if self.GUIModel.volume.get() > 0:
                 self.GUIModel.volume.set(self.GUIModel.volume.get() - 1)
 
@@ -271,9 +272,9 @@ class GUIForm(AttributeLoader):
 
         self.AudioBackendSelectionMenu: Menu = Menu(self.SoundSubMenu, tearoff=False)
         for available_backend in BaseAudioBackend.list():
-            self.AudioBackendSelectionMenu.add(RADIOBUTTON, variable=self.AudioBackendVar, label=available_backend, command=lambda: switch_audio_backend(available_backend))  # type: ignore[no-untyped-call]  # it is a library method
+            self.AudioBackendSelectionMenu.add(RADIOBUTTON, variable=self.AudioBackendVar, label=available_backend, command=lambda: _switch_audio_backend_command(available_backend))  # type: ignore[no-untyped-call]  # it is a library method
 
-        def switch_audio_backend(backend: str) -> None:
+        def _switch_audio_backend_command(backend: str) -> None:
             self.GUIModel.audio_backend = backend
 
         self.SoundSubMenu.add(CASCADE, menu=self.AudioBackendSelectionMenu, label='Audio backend')  # type: ignore[no-untyped-call]  # it is a library method
@@ -284,10 +285,7 @@ class GUIForm(AttributeLoader):
         self.ToolsSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.ToolsSubMenu, label='Tools')  # type: ignore[no-untyped-call]  # it is a library method
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
-        # self.ToolsSubMenu.add(CHECKBUTTON, label='Sources library', variable=self.SourceLibraryVar, command=lambda: self.SourcesLibraryWnd.show(show=self.SourceLibraryVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
-        # self.ToolsSubMenu.add(CHECKBUTTON, label='go fullscreen', command=lambda: self.player.set_fullscreen())
-        #
         self.LibraryMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.LibraryMenu, label='Library')  # type: ignore[no-untyped-call]  # it is a library method
         self.SourcesLibraryMenu: Menu = Menu(self.LibraryMenu, tearoff=False)
