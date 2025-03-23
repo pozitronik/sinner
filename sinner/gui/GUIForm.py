@@ -117,6 +117,7 @@ class GUIForm(AttributeLoader):
             ctypes.windll.shcore.SetProcessDpiAwareness(1)  # type: ignore[attr-defined]  # it is a library method fixes the issue with different DPIs. Check ignored for non-windows PC like GitHub CI
         self.parameters = parameters
         super().__init__(parameters)
+
         #  Main window
         self.GUIWindow: CTk = CTk()  # the main window
         if self.geometry:
@@ -194,15 +195,14 @@ class GUIForm(AttributeLoader):
         self.QualityScaleSpinbox.bind('<KeyRelease>', lambda event: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
         self.QualityScaleSpinbox.set(self.GUIModel.quality)
 
-        # empty space to divide controls
-
+        # Empty space to divide controls
         self.EmptyDivisor: Label = Label(self.SubControlsFrame)
 
         # Volume slider
         self.VolumeLabel: Label = Label(self.SubControlsFrame, text="Vol:")
         self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
 
-        # source/target selection controls
+        # Source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
         self.SourcePathEntry: TextBox = TextBox(self.SourcePathFrame, state='readonly')
         self.SelectSourceDialog = filedialog
@@ -214,7 +214,6 @@ class GUIForm(AttributeLoader):
         self.ChangeTargetButton: Button = Button(self.TargetPathFrame, text="Browse for target", width=20, command=lambda: self.change_target())
 
         # Library widgets
-
         self.LibraryNotebook: Notebook = Notebook(self.WidgetsFrame)
         self.SourcesLibraryFrame = Frame(self.LibraryNotebook, borderwidth=2)
         self.LibraryNotebook.add(self.SourcesLibraryFrame, text='Sources')
@@ -308,6 +307,7 @@ class GUIForm(AttributeLoader):
 
     # maintain the order of window controls
     def draw_controls(self) -> None:
+        """Draw controls in the window."""
         self.NavigationFrame.pack(fill=X, expand=False, anchor=NW)
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.update_slider_bounds()
@@ -350,24 +350,22 @@ class GUIForm(AttributeLoader):
 
         self.StatusBar.pack(fill=X, side=BOTTOM, expand=False)
 
-    # initialize all secondary windows
-    def create_windows(self) -> None:
-        pass
-
     def format_target_info(self) -> str:
+        """Format target resolution and framerate info."""
         return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
 
     def set_topmost(self, on_top: bool = True) -> None:
+        """Set window to stay on top."""
         self.GUIWindow.wm_attributes("-topmost", on_top)
         self.GUIModel.Player.set_topmost(on_top)
 
     def show(self) -> CTk:
+        """Show the GUI window and initialize components."""
         self.draw_controls()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
         self.StatusBar.item('Target resolution', self.format_target_info())
         self.GUIModel.update_preview()
-        self.create_windows()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.bring_to_front()
         self.GUIModel.Player.set_topmost(self.topmost)
@@ -383,6 +381,7 @@ class GUIForm(AttributeLoader):
         return self.GUIWindow
 
     def load_geometry(self) -> None:
+        """Load window geometry from settings."""
         self.GUIWindow.update()
         self.GUIWindow.update_idletasks()
         current_size_part, _ = self.GUIWindow.geometry().split('+', 1)
@@ -391,7 +390,9 @@ class GUIForm(AttributeLoader):
         requested_width = int(size_part.split('x')[0])
         self.GUIWindow.geometry(f"{requested_width}x{current_height}+{position_part}")
 
+    # Source and target handling
     def change_source(self) -> bool:
+        """Change source file through file dialog."""
         selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
         if selected_file != '':
             self._set_source(selected_file)
@@ -399,10 +400,12 @@ class GUIForm(AttributeLoader):
         return False
 
     def _set_source(self, filename: str) -> None:
+        """Set source file path."""
         self.GUIModel.source_path = filename
         self.SourcePathEntry.set_text(filename)
 
     def change_target(self) -> bool:
+        """Change target file through file dialog."""
         selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
         if selected_file != '':
             self._set_target(selected_file)
@@ -410,6 +413,7 @@ class GUIForm(AttributeLoader):
         return False
 
     def _set_target(self, filename: str) -> None:
+        """Set target file path."""
         self.NavigateSlider.position = 1
         self.GUIModel.target_path = filename
         self.update_slider_bounds()
@@ -418,6 +422,7 @@ class GUIForm(AttributeLoader):
         self.StatusBar.item('Target resolution', self.format_target_info())
 
     def update_slider_bounds(self) -> None:
+        """Update navigation slider bounds based on frame count."""
         self.NavigateSlider.to = self.GUIModel.frame_handler.fc
         self.NavigateSlider.position = 1
         if self.NavigateSlider.to > 1:
@@ -426,6 +431,7 @@ class GUIForm(AttributeLoader):
             self.NavigateSlider.disable()
 
     def on_quality_scale_change(self, frame_value: int) -> None:
+        """Handle change in quality scale."""
         if frame_value > self.QualityScaleSpinbox.cget('to'):
             frame_value = self.QualityScaleSpinbox.cget('to')
         if frame_value < self.QualityScaleSpinbox.cget('from'):
