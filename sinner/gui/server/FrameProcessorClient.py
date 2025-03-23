@@ -1,6 +1,7 @@
 from typing import Dict, Any, Optional
 
 from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
+from sinner.gui.server.api.RequestMessage import RequestMessage
 
 
 class FrameProcessorClient:
@@ -12,30 +13,30 @@ class FrameProcessorClient:
 
     @property
     def source_path(self) -> Optional[str]:
-        return self._APIClient.send_request({"action": "source_path"})
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_SOURCE))
 
     @source_path.setter
     def source_path(self, value: Optional[str]) -> None:
-        self._APIClient.send_message({"action": "source_path", "source_path": value})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_SOURCE, source_path=value))
 
     @property
     def target_path(self) -> Optional[str]:
-        return self._APIClient.send_request({"action": "target_path"})
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_TARGET))
 
     @target_path.setter
     def target_path(self, value: Optional[str]) -> None:
-        self._APIClient.send_message({"action": "target_path", "target_path": value})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_TARGET, target_path=value))
 
     @property
     def quality(self) -> int:
-        return self._APIClient.send_request({"action": "quality"})
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_QUALITY))
 
     @quality.setter
     def quality(self, value: int) -> None:
-        self._APIClient.send_message({"action": "quality", "quality": value})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_QUALITY, quality=value))
 
     def rewind(self, value: int) -> None:
-        self._APIClient.send_message({"action": "position", "position": value})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_POSITION, position=value))
 
     def await_frame(self, value: int) -> None:
         """
@@ -43,13 +44,13 @@ class FrameProcessorClient:
         :param value:
         :return:
         """
-        self._APIClient.send_message({"action": "frame", "position": value})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_FRAME, position=value))
 
     def start(self, start_frame: int) -> None:
-        self._APIClient.send_message({"action": "start", "position": start_frame})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.START_PROCESSING, position=start_frame))
 
     def stop(self) -> None:
-        self._APIClient.send_message({"action": "stop"})
+        self._APIClient.send_request(RequestMessage.create(RequestMessage.STOP_PROCESSING))
 
     def get_server_status(self) -> Optional[Dict[str, Any]]:
         """
@@ -58,7 +59,7 @@ class FrameProcessorClient:
         Returns:
         Dict or None: Server status information or None if request failed
         """
-        return self._APIClient.send_request({"action": "status"})
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_STATUS))
 
     def close(self) -> None:
         self._APIClient.disconnect()

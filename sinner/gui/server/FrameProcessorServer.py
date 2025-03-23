@@ -3,11 +3,12 @@ import time
 from argparse import Namespace
 from concurrent.futures import Future
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import Dict, Any, List, Set, Optional
+from typing import Dict, List, Set, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.server.api.APITypes import MessageData
-from sinner.gui.server.api.BaseClientAPI import STATUS_OK
+
+from sinner.gui.server.api.RequestMessage import RequestMessage
+from sinner.gui.server.api.ResponseMessage import ResponseMessage
 from sinner.gui.server.api.ZMQServerAPI import ZMQServerAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -167,35 +168,34 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
                 self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
         return self._target_handler
 
-    def _handle_request(self, message: MessageData) -> MessageData:
+    def _handle_request(self, request: RequestMessage) -> ResponseMessage:
         """Handle client request and return response."""
-        action = message.get("action", "")
-        match action:
-            case "status":
-                return self._APIHandler.build_response(STATUS_OK, message="Alive")
-            case "source_path":  # todo: make constants
-                self.source_path = message.get("source_path")
-                return self._APIHandler.build_response(STATUS_OK, message="Source path set")
-            case "target_path":
-                self.target_path = message.get("target_path")
-                return self._APIHandler.build_response(STATUS_OK, message="Target path set")
-            case "quality":
-                self.quality = message.get("quality")
-                return self._APIHandler.build_response(STATUS_OK, message="Quality set")
-            case "position":
-                self.rewind(message.get("position"))
-                return self._APIHandler.build_response(STATUS_OK, message="Position set")
-            case "start":
-                self.start(message.get("position"))
-                return self._APIHandler.build_response(STATUS_OK, message="Started")
-            case "stop":
+        match request.request:
+            case request.REQ_STATUS:
+                return ResponseMessage.ok_response(message="Alive")
+            case request.SET_SOURCE:
+                self.source_path = request.get("source_path")
+                return ResponseMessage.ok_response(message="Source path set")
+            case request.SET_TARGET:
+                self.target_path = request.get("target_path")
+                return ResponseMessage.ok_response(message="Target path set")
+            case request.SET_QUALITY:
+                self.quality = request.get("quality")
+                return ResponseMessage.ok_response(message="Quality set")
+            case request.SET_POSITION:
+                self.rewind(request.get("position"))
+                return ResponseMessage.ok_response(message="Position set")
+            case request.START_PROCESSING:
+                self.start(request.get("position"))
+                return ResponseMessage.ok_response(message="Started")
+            case request.START_PROCESSING:
                 self.stop()
-                return self._APIHandler.build_response(STATUS_OK, message="Stopped")
-            case "frame":  # process a frame immediately
-                self._process_frame(message.get("position"))
-                return self._APIHandler.build_response(STATUS_OK, message="Processed")
+                return ResponseMessage.ok_response(message="Stopped")
+            case request.REQ_FRAME:  # process a frame immediately
+                self._process_frame(request.get("position"))
+                return ResponseMessage.ok_response(message="Processed")
             case _:
-                return self._APIHandler.build_response("error", message=f"Unknown action: {action}")
+                return ResponseMessage.error_response(message=f"Not implemented: {request.request}")
 
     def reload_parameters(self) -> None:
         self._target_handler = None
@@ -343,12 +343,12 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
                         self._biggest_processed_frame = frame_index
 
                     # Отправляем уведомление о завершении обработки
-                    self._APIHandler.notify({
+                    self._APIHandler.notify(RequestMessage.from_dict({
                         "type": "frame_processed",
                         "frame": frame_index,
                         "time": process_time,
                         "fps": self._processing_fps
-                    })
+                    }))
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed

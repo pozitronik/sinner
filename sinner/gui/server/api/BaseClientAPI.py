@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any
 
-from sinner.gui.server.api.APITypes import STATUS_OK, MessageData
+from sinner.gui.server.api.RequestMessage import RequestMessage
 
 
 class BaseClientAPI(ABC):
@@ -21,18 +21,6 @@ class BaseClientAPI(ABC):
         pass
 
     @abstractmethod
-    def send_message(self, message: Dict[str, Any]) -> bool:
-        """Sends a message to the endpoint and awaits the response"""
-        pass
-
-    @abstractmethod
-    def send_request(self, request: Dict[str, Any]) -> Any:
+    def send_request(self, request: RequestMessage) -> Any:
         """Sends a request to the endpoint and returns the response"""
         pass
-
-    @staticmethod
-    def build_response(status: str = STATUS_OK, **kwargs) -> MessageData:
-        """Build a response message."""
-        response = {"status": status}
-        response.update(kwargs)
-        return response
