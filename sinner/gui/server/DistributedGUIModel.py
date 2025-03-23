@@ -190,7 +190,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     def reload_parameters(self) -> None:
         """Reload parameters and update components."""
         self._target_handler = None
-        AttributeLoader().__init__(self.parameters)
+        super().__init__(self.parameters)
 
     def enable_sound(self, enable: bool | None = None) -> bool:
         """
