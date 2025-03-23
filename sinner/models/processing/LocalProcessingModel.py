@@ -493,14 +493,3 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def set_progress_index_value(self, index: int, value: int) -> None:
         if self._ProgressBar:
             self._ProgressBar.set_segment_value(index, value)
-
-    @property
-    def progress_control(self) -> BaseProgressIndicator | None:
-        return self._ProgressBar
-
-    @progress_control.setter
-    def progress_control(self, value: BaseProgressIndicator | None) -> None:
-        self._ProgressBar = value
-        if self._ProgressBar:
-            self._ProgressBar.set_segments(self.frame_handler.fc + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
-            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)

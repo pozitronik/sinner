@@ -209,13 +209,14 @@ class ProcessingModelInterface(ABC):
         pass
 
     @property
-    @abstractmethod
     def progress_control(self) -> Optional[BaseProgressIndicator]:
         """Get the current progress indicator control."""
-        pass
+        return self._ProgressBar
 
     @progress_control.setter
-    @abstractmethod
     def progress_control(self, value: Optional[BaseProgressIndicator]) -> None:
         """Set the progress indicator control."""
-        pass
+        self._ProgressBar = value
+        if self._ProgressBar:
+            self._ProgressBar.set_segments(self.frame_handler.fc + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
+            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)

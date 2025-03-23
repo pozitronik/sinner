@@ -459,19 +459,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         if self._ProgressBar:
             self._ProgressBar.set_segment_value(index, value)
 
-    @property
-    def progress_control(self) -> Optional[BaseProgressIndicator]:
-        """Get the current progress indicator control."""
-        return self._ProgressBar
-
-    @progress_control.setter
-    def progress_control(self, value: Optional[BaseProgressIndicator]) -> None:
-        """Set the progress indicator control."""
-        self._ProgressBar = value
-        if self._ProgressBar:
-            self._ProgressBar.set_segments(self.frame_handler.fc + 1)
-            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
-
     def notification_handler(self, notification: NotificationMessage) -> None:
         """Incoming notifications handler"""
         match notification.notification:
