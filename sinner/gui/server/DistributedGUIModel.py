@@ -520,4 +520,9 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
 
     def notification_handler(self, notification: NotificationMessage) -> None:
         """Incoming notifications handler"""
-        self._status("Incoming notification", f"index={notification.index}, time={notification.time}, fps={notification.fps}")
+        match notification.notification:
+            case notification.NTF_FRAME:  # add frame index to timeline
+                self.TimeLine.add_frame_index(notification.index)
+                self._status("Average processing speed", f"{round(notification.fps, 4)} FPS")
+            case _:
+                self.update_status(f"Handler is not implemented for notification {notification.notification}")

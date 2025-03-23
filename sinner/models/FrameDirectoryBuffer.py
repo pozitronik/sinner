@@ -106,6 +106,10 @@ class FrameDirectoryBuffer:
     def get_indices(self) -> List[int]:
         return self._indices
 
+    def add_index(self, index: int) -> None:
+        """Adds index internally. Introduced for remote processing"""
+        self._indices.append(index)
+
     @property
     def miss(self) -> int:
         return self._miss

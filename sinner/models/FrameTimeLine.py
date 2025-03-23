@@ -65,6 +65,11 @@ class FrameTimeLine:
             self._FrameBuffer.add_frame(frame)
             self._last_added_index = frame.index
 
+    def add_frame_index(self, index: int) -> None:
+        with threading.Lock():
+            self._FrameBuffer.add_index(index)
+            self._last_added_index = index
+
     # return the frame at current time position, or None, if there's no frame
     def get_frame(self, time_aligned: bool = True) -> NumberedFrame | None:
         if not self._is_started:
