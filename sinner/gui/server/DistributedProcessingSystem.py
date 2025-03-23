@@ -107,7 +107,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self.update_status("Initializing integrated mode")
 
         # Create server
-        self._server = FrameProcessorServer(self.parameters, endpoint=self.endpoint)
+        self._server = FrameProcessorServer(self.parameters)
         self._server.start_server()
 
         # Create client
