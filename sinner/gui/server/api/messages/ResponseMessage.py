@@ -21,7 +21,7 @@ class ResponseMessage(BaseMessage):
     STATUS_OK: ClassVar[str] = STATUS_OK
     STATUS_ERROR: ClassVar[str] = STATUS_ERROR
 
-    def __init__(self, status: str = None, message: Optional[str] = None):
+    def __init__(self, status: str, message: Optional[str] = None):
         """
         Инициализация ответа с указанием статуса и сообщения.
 
