@@ -30,7 +30,7 @@ from sinner.utilities import suggest_execution_threads, suggest_temp_dir
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
-class FrameProcessorServer(AttributeLoader, StatusMixin):
+class FrameProcessingServer(AttributeLoader, StatusMixin):
     """Server component for processing frames in a separate process."""
 
     # configuration variables

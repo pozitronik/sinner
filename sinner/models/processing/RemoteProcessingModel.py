@@ -9,7 +9,7 @@ from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
-from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
+from sinner.gui.server.FrameProcessingClient import FrameProcessingClient
 from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
 from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
@@ -36,7 +36,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     _target_handler: Optional[BaseFrameHandler] = None  # Initial handler for the target file
 
     # Client-server
-    _processor_client: FrameProcessorClient  # Client side
+    ProcessingClient: FrameProcessingClient  # Client side
     _reply_endpoint: str
     _sub_endpoint: str
     _timeout: int
@@ -123,7 +123,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
 
         # Initialize processor client
-        self._processor_client = FrameProcessorClient(
+        self.ProcessingClient = FrameProcessingClient(
             ZMQClientAPI(
                 notification_handler=self.notification_handler,
                 sub_endpoint=self._sub_endpoint,
@@ -132,9 +132,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             )
         )
         if self._source_path and self._target_path:
-            self._processor_client.source_path = self._source_path
+            self.ProcessingClient.source_path = self._source_path
         if self._target_path:
-            self._processor_client.target_path = self._target_path
+            self.ProcessingClient.target_path = self._target_path
 
         # Set progress control and status callback
         self.progress_control = progress_control
@@ -199,7 +199,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.progress_control = self.ProgressBar
 
         # Update source in processor client
-        self._processor_client.source_path = self._source_path
+        self.ProcessingClient.source_path = self._source_path
 
         # Update preview if not playing
         if not self.player_is_started:
@@ -228,7 +228,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 self.AudioPlayer.stop()
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         # Update target in processor client
-        self._processor_client.target_path = self.target_path
+        self.ProcessingClient.target_path = self.target_path
 
         # Update playback state
         if self.player_is_started:
@@ -306,7 +306,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             # Check if frame is already in timeline
             if not self.TimeLine.has_index(frame_number):
                 # If not, check if it's processed on the server
-                self._processor_client.await_frame(frame_number)
+                self.ProcessingClient.await_frame(frame_number)
                 # Try to get the frame from timeline
             preview_frame = self.TimeLine.get_frame_by_index(frame_number)
 
@@ -343,8 +343,8 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
 
         # Update server with new requested position
-        if self._processor_client:
-            self._processor_client.rewind(frame_position)
+        if self.ProcessingClient:
+            self.ProcessingClient.rewind(frame_position)
 
     def player_start(self, start_frame: int) -> None:
         """
@@ -398,11 +398,11 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         start_frame (int): Frame to start processing from
         """
 
-        self._processor_client.start(start_frame)
+        self.ProcessingClient.start(start_frame)
 
     def __stop_processing(self) -> None:
         """Stop the processing thread."""
-        self._processor_client.stop()
+        self.ProcessingClient.stop()
 
     def __start_playback(self) -> None:
         """Start the playback thread."""

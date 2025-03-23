@@ -4,7 +4,7 @@ from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
 from sinner.gui.server.api.messages.RequestMessage import RequestMessage
 
 
-class FrameProcessorClient:
+class FrameProcessingClient:
     _APIClient: BaseClientAPI
 
     def __init__(self, APIClient: BaseClientAPI):

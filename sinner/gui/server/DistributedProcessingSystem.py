@@ -5,8 +5,8 @@ import time
 from argparse import Namespace
 from typing import Optional
 
-from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
-from sinner.gui.server.FrameProcessorServer import FrameProcessorServer
+from sinner.gui.server.FrameProcessingClient import FrameProcessingClient
+from sinner.gui.server.FrameProcessingServer import FrameProcessingServer
 from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
@@ -26,8 +26,8 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
     server_script_path: str
 
     # Components
-    _server: Optional[FrameProcessorServer] = None
-    _client: Optional[FrameProcessorClient] = None
+    _server: Optional[FrameProcessingServer] = None
+    _client: Optional[FrameProcessingClient] = None
     _server_process: Optional[subprocess.Popen[str]] = None
 
     def rules(self) -> Rules:
@@ -107,11 +107,11 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self.update_status("Initializing integrated mode")
 
         # Create server
-        self._server = FrameProcessorServer(self.parameters)
+        self._server = FrameProcessingServer(self.parameters)
         self._server.start_server()
 
         # Create client
-        self._client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
+        self._client = FrameProcessingClient(ZMQClientAPI(reply_endpoint=self.endpoint))
 
         # Wait for server to be ready
         time.sleep(0.5)
@@ -155,7 +155,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
             self.update_status(f"Server subprocess started with PID {self._server_process.pid}")
 
             # Create client
-            self._client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
+            self._client = FrameProcessingClient(ZMQClientAPI(reply_endpoint=self.endpoint))
 
             # Wait for server to be ready
             time.sleep(1.0)
@@ -169,7 +169,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         self.update_status("Initializing external mode - connecting to existing server")
 
         # Create client only
-        self._client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
+        self._client = FrameProcessingClient(ZMQClientAPI(reply_endpoint=self.endpoint))
 
         # Test connection
         try:
@@ -181,11 +181,11 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
         except Exception as e:
             self.update_status(f"Error connecting to external server: {e}", mood=Mood.BAD)
 
-    def get_client(self) -> Optional[FrameProcessorClient]:
+    def get_client(self) -> Optional[FrameProcessingClient]:
         """Get the frame processor client."""
         return self._client
 
-    def get_server(self) -> Optional[FrameProcessorServer]:
+    def get_server(self) -> Optional[FrameProcessingServer]:
         """Get the frame processor server (only available in integrated mode)."""
         return self._server
 

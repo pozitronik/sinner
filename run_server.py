@@ -11,7 +11,7 @@ from argparse import Namespace
 
 from sinner.Parameters import Parameters
 from sinner.Sinner import Sinner
-from sinner.gui.server.FrameProcessorServer import FrameProcessorServer
+from sinner.gui.server.FrameProcessingServer import FrameProcessingServer
 from sinner.utilities import suggest_max_memory, limit_resources
 from sinner.validators.AttributeLoader import Rules
 
@@ -74,7 +74,7 @@ class Server(Sinner):
         self.logger.info(f"Starting Frame Processor Server")
 
         # Create and start server
-        server = FrameProcessorServer(self.parameters)
+        server = FrameProcessingServer(self.parameters)
 
         # Set up signal handlers for graceful shutdown
         def signal_handler(sig, frame):
