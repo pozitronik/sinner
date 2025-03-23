@@ -12,11 +12,7 @@ from sinner.gui.server.api.messages.RequestMessage import RequestMessage
 from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
 
 
-class BaseServerAPI:
-    pass
-
-
-class ZMQServerAPI(BaseServerAPI):
+class ZMQServerAPI:
     _timeout: int = 1000
     _reply_endpoint: str = "tcp://127.0.0.1:5555"
     _context: zmq.asyncio.Context
@@ -49,7 +45,7 @@ class ZMQServerAPI(BaseServerAPI):
 
         self._logger = logging.getLogger(self.__class__.__name__)
 
-    async def bind(self) -> bool:
+    async def start(self) -> bool:
         try:
             self._reply_socket.bind(self._reply_endpoint)
             self._publish_socket.bind(self._publish_endpoint)
@@ -64,7 +60,7 @@ class ZMQServerAPI(BaseServerAPI):
         except ZMQError:
             return False
 
-    def disconnect(self) -> None:
+    def stop(self) -> None:
         """Close ZeroMQ context and sockets."""
         if self._reply_socket:
             self._reply_socket.close()
