@@ -26,8 +26,7 @@ from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterface):
     """
-    GUI model that uses distributed processing.
-    This is a complete implementation without inheriting from GUIModel.
+    GUI model that uses remote processing.
     """
 
     # Configuration parameters
@@ -38,7 +37,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
     # Client-server
     _processor_client: FrameProcessorClient  # Client side
-    endpoint: str
+    _reply_endpoint: str
+    _sub_endpoint: str
+    _timeout: int
 
     def rules(self) -> Rules:
         return [
@@ -55,18 +56,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 'attribute': '_scale_quality',
                 'default': 1,
                 'help': 'Initial processing scale quality'
-            },
-            {
-                'parameter': {'prepare-frames'},
-                'attribute': '_prepare_frames',
-                'default': None,
-                'help': 'Extract target frames to files to make realtime player run smoother'
-            },
-            {
-                'parameter': ['bootstrap_processors', 'bootstrap'],
-                'attribute': 'bootstrap_processors',
-                'default': True,
-                'help': 'Bootstrap frame processors on startup'
             },
             {
                 'parameter': ['sound', 'enable-sound'],
@@ -87,10 +76,22 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 'help': 'Select the directory for temporary files'
             },
             {
-                'parameter': 'endpoint',
-                'attribute': 'endpoint',
+                'parameter': ['endpoint', 'reply-endpoint'],
+                'attribute': '_reply_endpoint',
                 'default': "tcp://127.0.0.1:5555",
                 'help': 'Endpoint for the frame processor server'
+            },
+            {
+                'parameter': ['sub-endpoint'],
+                'attribute': '_sub_endpoint',
+                'default': "tcp://127.0.0.1:5556",
+                'help': 'Endpoint for the frame processor server reply notifications'
+            },
+            {
+                'parameter': ['timeout'],
+                'attribute': '_timeout',
+                'default': 5000,
+                'help': 'Network communications timeout'
             },
             {
                 'module_help': 'Distributed GUI processing model'
@@ -122,7 +123,14 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
 
         # Initialize processor client
-        self._processor_client = FrameProcessorClient(ZMQClientAPI(notification_handler=self.notification_handler, reply_endpoint=self.endpoint))
+        self._processor_client = FrameProcessorClient(
+            ZMQClientAPI(
+                notification_handler=self.notification_handler,
+                sub_endpoint=self._sub_endpoint,
+                reply_endpoint=self._reply_endpoint,
+                timeout=self._timeout
+            )
+        )
         if self._source_path and self._target_path:
             self._processor_client.source_path = self._source_path
         if self._target_path:
