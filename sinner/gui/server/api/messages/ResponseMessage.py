@@ -97,7 +97,7 @@ class ResponseMessage(BaseMessage):
         return instance
 
     @classmethod
-    def ok_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:
+    def ok_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создание успешного ответа"""
         instance = cls(status=STATUS_OK, message=message)
 
@@ -108,7 +108,7 @@ class ResponseMessage(BaseMessage):
         return instance
 
     @classmethod
-    def error_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:
+    def error_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создание ответа с ошибкой"""
         instance = cls(status=STATUS_ERROR, message=message)
 

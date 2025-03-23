@@ -75,7 +75,7 @@ class NotificationMessage(BaseMessage):
         return instance
 
     @classmethod
-    def create(cls: Type[T], notification_type: str, **kwargs) -> T:
+    def create(cls: Type[T], notification_type: str, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создать запрос с параметрами"""
         instance = cls(notification=notification_type)
 

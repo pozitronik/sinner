@@ -98,7 +98,7 @@ class RequestMessage(BaseMessage):
         return instance
 
     @classmethod
-    def create(cls: Type[T], request_type: str, **kwargs) -> T:
+    def create(cls: Type[T], request_type: str, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создать запрос с параметрами"""
         instance = cls(request=request_type)
 
