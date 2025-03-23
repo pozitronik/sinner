@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional
 
 from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
-from sinner.gui.server.api.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.RequestMessage import RequestMessage
 
 
 class FrameProcessorClient:

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, Any, ClassVar, Optional, Type, TypeVar
 
-from sinner.gui.server.api.BaseMessage import BaseMessage
+from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
 # Константы статусов
 STATUS_OK: str = "ok"

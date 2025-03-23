@@ -7,8 +7,9 @@ from typing import Optional, Callable
 from zmq import Socket, ZMQError
 
 from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
-from sinner.gui.server.api.RequestMessage import RequestMessage
-from sinner.gui.server.api.ResponseMessage import ResponseMessage
+from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
+from sinner.gui.server.api.messages.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
 
 
 class ZMQClientAPI(BaseClientAPI):
@@ -21,10 +22,10 @@ class ZMQClientAPI(BaseClientAPI):
     _lock: threading.Lock
 
     _notification_thread: Optional[threading.Thread] = None  # тред подписки на нотификации
-    _notification_handler: Optional[Callable[[RequestMessage], None]] = None  # Колбэк обработки нотификаций от сервера
+    _notification_handler: Optional[Callable[[NotificationMessage], None]] = None  # Колбэк обработки нотификаций от сервера
     _notification_running: bool = False
 
-    def __init__(self, notification_handler: Optional[Callable[[RequestMessage], None]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", sub_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 5000):
+    def __init__(self, notification_handler: Optional[Callable[[NotificationMessage], None]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", sub_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 5000):
         """
         Initialize ZeroMQ communication.
 
@@ -103,18 +104,19 @@ class ZMQClientAPI(BaseClientAPI):
             try:
                 # Неблокирующий прием с коротким таймаутом для возможности выхода из цикла
                 if self._sub_socket.poll(timeout=100):  # Ожидание 100мс
-                    self._handle_notification(RequestMessage.deserialize(self._sub_socket.recv()))
+                    self._handle_notification(NotificationMessage.deserialize(self._sub_socket.recv()))
             except zmq.ZMQError as e:
                 if e.errno != zmq.EAGAIN:  # Не таймаут
                     self._logger.error(f"Error receiving notification: {e}")
             except Exception as e:
                 self._logger.error(f"Error processing notification: {e}")
 
-    def _handle_notification(self, notification: RequestMessage) -> None:
+    def _handle_notification(self, notification: NotificationMessage) -> None:
         if self._notification_handler is None:
-            self._logger.error(f"No handler defined for notification: {notification}")
+            self._logger.error(f"No handler defined for notification: {notification.request}")
         else:
             try:
+                self._logger.debug(f"Handling notification: {notification}")
                 self._notification_handler(notification)
             except Exception as e:
                 self._logger.error(f"Error in notification callback: {e}")

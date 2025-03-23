@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from sinner.gui.server.api.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.RequestMessage import RequestMessage
 
 
 class BaseClientAPI(ABC):

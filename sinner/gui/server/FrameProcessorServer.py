@@ -6,9 +6,10 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, List, Set, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
+from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage, NTF_FRAME
 
-from sinner.gui.server.api.RequestMessage import RequestMessage, NTF_FRAME
-from sinner.gui.server.api.ResponseMessage import ResponseMessage
+from sinner.gui.server.api.messages.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
 from sinner.gui.server.api.ZMQServerAPI import ZMQServerAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
@@ -343,7 +344,7 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
                         self._biggest_processed_frame = frame_index
 
                     # Отправляем уведомление о завершении обработки
-                    self._APIHandler.notify(RequestMessage.create(NTF_FRAME, index=frame_index, time=process_time, fps = self._processing_fps))
+                    self._APIHandler.notify(NotificationMessage.create(notification_type=NTF_FRAME, index=frame_index, time=process_time, fps=self._processing_fps))
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed

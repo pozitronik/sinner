@@ -11,6 +11,7 @@ from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
 from sinner.gui.server.FrameProcessorClient import FrameProcessorClient
+from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
 from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
@@ -169,7 +170,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
 
         # Initialize processor client
-        self._processor_client = FrameProcessorClient(ZMQClientAPI(reply_endpoint=self.endpoint))
+        self._processor_client = FrameProcessorClient(ZMQClientAPI(notification_handler=self.notification_handler, reply_endpoint=self.endpoint))
         if self._source_path and self._target_path:
             self._processor_client.source_path = self._source_path
         if self._target_path:
@@ -516,3 +517,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         if self._ProgressBar:
             self._ProgressBar.set_segments(self.frame_handler.fc + 1)
             self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+
+    def notification_handler(self, notification: NotificationMessage) -> None:
+        """Incoming notifications handler"""
+        self._status("Incoming notification", f"index={notification.index}, time={notification.time}, fps={notification.fps}")

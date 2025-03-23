@@ -7,8 +7,9 @@ import zmq.asyncio
 from zmq import ZMQError
 from zmq.asyncio import Socket as AsyncSocket
 
-from sinner.gui.server.api.RequestMessage import RequestMessage
-from sinner.gui.server.api.ResponseMessage import ResponseMessage
+from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
+from sinner.gui.server.api.messages.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
 
 
 class BaseServerAPI:
@@ -100,7 +101,7 @@ class ZMQServerAPI(BaseServerAPI):
                 # Пауза при ошибке, чтобы не загружать процессор
                 await asyncio.sleep(0.1)
 
-    def notify(self, notification: RequestMessage) -> None:
+    def notify(self, notification: NotificationMessage) -> None:
         try:
             self._publish_socket.send(notification.serialize(), zmq.NOBLOCK)
         except Exception as e:
