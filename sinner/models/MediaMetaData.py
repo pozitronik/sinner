@@ -1,25 +1,35 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 @dataclass
-class VideoMetadata:
+class MediaMetaData:
     """
     Data class for storing video metadata and parameters.
     """
-    resolution: Tuple[int, int]  # (width, height)
-    fps: float  # Frames per second
-    frames_count: int  # Total number of frames
+    resolution: Tuple[int, int] = (0, 0)  # (width, height)
+    fps: float = 0  # Frames per second
+    frames_count: int = 0  # Total number of frames
 
     @property
-    def length(self) -> float:
+    def length(self) -> Optional[float]:
         """
         Calculate video length in seconds.
 
         Returns:
             float: Video duration in seconds
         """
-        return self.frames_count / self.fps if self.fps > 0 else 0.0
+        return self.frames_count / self.fps if self.fps > 0 else None
+
+    @property
+    def frame_time(self) -> float:
+        """
+        Calculate frame time in seconds.
+
+        Returns:
+            float: Frame time in seconds
+        """
+        return 1 / self.fps if self.fps > 0 else 0.0
 
     def get_formatted_length(self) -> str:
         """
