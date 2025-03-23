@@ -5,7 +5,7 @@ from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
 NTF_FRAME = "NTF_FRAME"  # оповещение о готовности фрейма
 
-T = TypeVar('T', bound='notificationMessage')
+T = TypeVar('T', bound='NotificationMessage')
 
 
 @dataclass

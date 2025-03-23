@@ -19,7 +19,7 @@ from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.models.Config import Config
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
-from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt, is_video
+from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
 
