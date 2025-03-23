@@ -292,8 +292,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         frame_number = self.position.get()
 
         if not processed:  # base frame requested
-            try:
-                preview_frame = self.frame_handler.extract_frame(frame_number)
+            try:  # todo: добавить механизм получения целого кадра от сервера
+                preview_frame = None
+                self.update_status("Not implemented")
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 preview_frame = None
