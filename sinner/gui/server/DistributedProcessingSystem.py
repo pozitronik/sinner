@@ -28,7 +28,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
     # Components
     _server: Optional[FrameProcessorServer] = None
     _client: Optional[FrameProcessorClient] = None
-    _server_process: Optional[subprocess.Popen] = None
+    _server_process: Optional[subprocess.Popen[str]] = None
 
     def rules(self) -> Rules:
         return [
