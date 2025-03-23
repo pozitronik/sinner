@@ -33,7 +33,7 @@ class ProcessingModelInterface(ABC):
     _audio_backend: str  # the current audio backend class name, used to create it in the factory
 
     # internal/external objects
-    MetaData: Optional[MediaMetaData]  # dataclass to store target mediainfo
+    MetaData: Optional[MediaMetaData] = None  # dataclass to store target mediainfo
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
     ProgressBar: Optional[BaseProgressIndicator] = None
@@ -48,7 +48,6 @@ class ProcessingModelInterface(ABC):
     _event_playback: Event  # Flag to control playback thread
     _show_frames_thread: Optional[threading.Thread] = None
 
-    @abstractmethod
     def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any],
                  on_close_event: Optional[Event] = None,
                  progress_control: Optional[BaseProgressIndicator] = None):
@@ -208,7 +207,6 @@ class ProcessingModelInterface(ABC):
     def metadata(self) -> MediaMetaData:
         """Processed target mediadata"""
         pass
-
 
     @property
     def progress_control(self) -> Optional[BaseProgressIndicator]:
