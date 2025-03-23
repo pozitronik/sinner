@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional
 
 from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
 from sinner.gui.server.api.messages.RequestMessage import RequestMessage
+from sinner.models.MediaMetaData import MediaMetaData
 
 
 class FrameProcessingClient:
@@ -52,7 +53,7 @@ class FrameProcessingClient:
     def stop(self) -> None:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.STOP_PROCESSING))
 
-    def get_server_status(self) -> Optional[Dict[str, Any]]:
+    def get_server_status(self) -> Optional[Dict[str, Any]]:  # todo can be property
         """
         Get current server status.
 
@@ -60,6 +61,10 @@ class FrameProcessingClient:
         Dict or None: Server status information or None if request failed
         """
         return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_STATUS))
+
+    @property
+    def metadata(self) -> MediaMetaData:
+        return MediaMetaData(self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_METADATA)))
 
     def close(self) -> None:
         self._APIClient.disconnect()

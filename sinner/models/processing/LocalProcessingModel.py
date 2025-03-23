@@ -16,6 +16,7 @@ from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.helpers.FrameHelper import scale
 from sinner.models.Event import Event
+from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
@@ -130,8 +131,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         if self.bootstrap_processors:
             self._processors = self.processors
 
-        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir).load(source_name=self._source_path, target_name=self._target_path, end_frame=self.frame_handler.fc)
-        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player', on_close_event=on_close_event)
+        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir).load(source_name=self._source_path, target_name=self._target_path, end_frame=self.metadata.frames_count)
+        self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner player', on_close_event=on_close_event)
 
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
@@ -146,6 +147,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
 
     def reload_parameters(self) -> None:
         self._target_handler = None
+        self.MetaData = None
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
@@ -178,7 +180,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def source_path(self, value: str | None) -> None:
         self.parameters.source = value
         self.reload_parameters()
-        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.metadata.frames_count)
 
         self.progress_control = self.ProgressBar  # to update segments
         if not self.player_is_started:
@@ -193,7 +195,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self.parameters.target = value
         self.reload_parameters()
         self.Player.clear()
-        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
         self.progress_control = self.ProgressBar  # to update segments
         if self._enable_sound:
             if self.AudioPlayer:
@@ -256,7 +258,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         frame_number = self.position.get()
         if not processed:  # base frame requested
             try:
-                preview_frame = self.frame_handler.extract_frame(frame_number)
+                preview_frame = self.get_frame_handler().extract_frame(frame_number)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 preview_frame = None
@@ -273,17 +275,18 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.Player.clear()
 
     @property
-    def frame_handler(self) -> BaseFrameHandler:
-        if self._target_handler is None:
-            if self.target_path is None:
-                self._target_handler = NoneHandler('', self.parameters)
-            else:
-                self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
-        return self._target_handler
-
-    @property
     def player_is_started(self) -> bool:
         return self._event_processing.is_set() or self._event_playback.is_set()
+
+    @property
+    def metadata(self) -> MediaMetaData:
+        if self.MetaData is None:
+            self.MetaData = MediaMetaData(
+                resolution=self.get_frame_handler().resolution,
+                fps=self.get_frame_handler().fps,
+                frames_count=self.get_frame_handler().fc
+            )
+        return self.MetaData
 
     def set_volume(self, volume: int) -> None:
         if self.AudioPlayer:
@@ -297,15 +300,15 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.update_preview()
         self.position.set(frame_position)
         if self.AudioPlayer:
-            self.AudioPlayer.position = int(frame_position * self.frame_handler.frame_time)
-        self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
-        self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
+            self.AudioPlayer.position = int(frame_position * self.metadata.frame_time)
+        self._status("Time position", seconds_to_hmsms(self.metadata.frame_time * (frame_position - 1)))
+        self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
     def player_start(self, start_frame: int) -> None:
         if not self.player_is_started:
-            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
+            self.TimeLine.reload(frame_time=self.metadata.frame_time, start_frame=start_frame - 1, end_frame=self.metadata.frames_count)
             if self.AudioPlayer:
-                self.AudioPlayer.position = int(start_frame * self.frame_handler.frame_time)
+                self.AudioPlayer.position = int(start_frame * self.metadata.frame_time)
             self.extract_frames()
             self.__start_processing(start_frame)  # run the main rendering process
             self.__start_playback()  # run the separate playback
@@ -334,7 +337,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self._event_processing.set()
             self._process_frames_thread = threading.Thread(target=self._process_frames, name="_process_frames", kwargs={
                 'next_frame': start_frame,
-                'end_frame': self.frame_handler.fc
+                'end_frame': self.metadata.frames_count
             })
             self._process_frames_thread.daemon = True
             self._process_frames_thread.start()
@@ -404,7 +407,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                     executor.shutdown(wait=False, cancel_futures=True)
                     break
 
-                self._average_frame_skip.update(self.frame_handler.fps / self._processing_fps)
+                self._average_frame_skip.update(self.metadata.fps / self._processing_fps)
 
                 if self.TimeLine.last_added_index > self.TimeLine.last_requested_index + self.TimeLine.current_frame_miss and processing_delta > self._average_frame_skip.get_average():
                     processing_delta -= 1
@@ -423,7 +426,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         :return: the [render time, frame index], or None on error
         """
         try:
-            n_frame = self.frame_handler.extract_frame(frame_index)
+            n_frame = self.get_frame_handler().extract_frame(frame_index)
         except EOutOfRange:
             self.update_status(f"There's no frame {frame_index}")
             return None
@@ -456,17 +459,17 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                             if not self._event_rewind.is_set():
                                 self.position.set(self.TimeLine.last_returned_index)
                             if self.TimeLine.last_returned_index:
-                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                                self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
+                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.metadata.frame_time))
+                                self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
                 loop_time = time.perf_counter() - start_time  # time for the current loop, sec
-                sleep_time = self.frame_handler.frame_time - loop_time  # time to wait for the next loop, sec
+                sleep_time = self.metadata.frame_time - loop_time  # time to wait for the next loop, sec
                 if sleep_time > 0:
                     time.sleep(sleep_time)
 
     def extract_frames(self) -> bool:
         if self._prepare_frames is not False and not self._is_target_frames_extracted:
             frame_extractor = FrameExtractor(self.parameters)
-            state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
+            state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.metadata.frames_count, processor_name=frame_extractor.__class__.__name__)
             frame_extractor.configure_state(state)
             state_is_finished = state.is_finished
 
@@ -475,10 +478,10 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             elif self._prepare_frames is True:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-                frame_extractor.process(self.frame_handler, state)  # todo: return the GUI progressbar
+                frame_extractor.process(self.get_frame_handler(), state)  # todo: return the GUI progressbar
                 frame_extractor.release_resources()
             if state_is_finished:
-                self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
+                self._target_handler = DirectoryHandler(state.path, self.parameters, self.metadata.fps, self.metadata.frames_count, self.metadata.resolution)
             self._is_target_frames_extracted = state_is_finished
             if self.ProgressBar:
                 self.ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
@@ -489,3 +492,11 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         mem_rss = get_mem_usage()
         mem_vms = get_mem_usage('vms')
         return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
+
+    def get_frame_handler(self) -> BaseFrameHandler:
+        if self._target_handler is None:
+            if self.target_path is None:
+                self._target_handler = NoneHandler('', self.parameters)
+            else:
+                self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
+        return self._target_handler

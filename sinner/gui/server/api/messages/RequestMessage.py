@@ -16,6 +16,7 @@ SET_POSITION = "SET_POSITION"
 START_PROCESSING = "START_PROCESSING"
 STOP_PROCESSING = "STOP_PROCESSING"
 REQ_FRAME = "REQ_FRAME"  # запрос на генерацию кадра
+REQ_METADATA = "REQ_METADATA"  # запрос метаданных цели
 
 T = TypeVar('T', bound='RequestMessage')
 
@@ -40,6 +41,7 @@ class RequestMessage(BaseMessage):
     START_PROCESSING: ClassVar[str] = START_PROCESSING
     STOP_PROCESSING: ClassVar[str] = STOP_PROCESSING
     REQ_FRAME: ClassVar[str] = REQ_FRAME
+    REQ_METADATA: ClassVar[str] = REQ_METADATA
 
     def __init__(self, request: str) -> None:
         """

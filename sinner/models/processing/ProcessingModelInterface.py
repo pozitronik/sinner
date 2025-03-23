@@ -6,9 +6,9 @@ from typing import Optional, Any, Callable
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import BaseFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
+from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 
 BUFFERING_PROGRESS_NAME = "Buffering"
@@ -33,6 +33,7 @@ class ProcessingModelInterface(ABC):
     _audio_backend: str  # the current audio backend class name, used to create it in the factory
 
     # internal/external objects
+    MetaData: Optional[MediaMetaData]  # dataclass to store target mediainfo
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
     ProgressBar: Optional[BaseProgressIndicator] = None
@@ -198,15 +199,16 @@ class ProcessingModelInterface(ABC):
 
     @property
     @abstractmethod
-    def frame_handler(self) -> BaseFrameHandler:
-        """Get the frame handler for the current target."""
+    def player_is_started(self) -> bool:
+        """Check if playback is active."""
         pass
 
     @property
     @abstractmethod
-    def player_is_started(self) -> bool:
-        """Check if playback is active."""
+    def metadata(self) -> MediaMetaData:
+        """Processed target mediadata"""
         pass
+
 
     @property
     def progress_control(self) -> Optional[BaseProgressIndicator]:
@@ -218,5 +220,5 @@ class ProcessingModelInterface(ABC):
         """Set the progress indicator control."""
         self.ProgressBar = value
         if self.ProgressBar:
-            self.ProgressBar.set_segments(self.frame_handler.fc + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
+            self.ProgressBar.set_segments(self.metadata.frames_count + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
             self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)

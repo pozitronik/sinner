@@ -5,7 +5,6 @@ from argparse import Namespace
 from tkinter import IntVar
 from typing import Callable, Any, Optional
 
-from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
@@ -13,9 +12,9 @@ from sinner.gui.server.FrameProcessingClient import FrameProcessingClient
 from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
 from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
-from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
+from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface, PROCESSED, EXTRACTED
 from sinner.models.status.StatusMixin import StatusMixin
@@ -116,7 +115,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
         # Set up the timeline and player
         self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
-        self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
+        self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
 
         # Initialize audio if enabled
         if self._enable_sound:
@@ -193,7 +192,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.reload_parameters()
 
         # Update timeline
-        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.metadata.frames_count)
 
         # Update progress control
         self.progress_control = self.ProgressBar
@@ -218,7 +217,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
         # Clear player and reset timeline
         self.Player.clear()
-        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
         # Update progress control
         self.progress_control = self.ProgressBar
 
@@ -249,12 +248,12 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         return normalize_path(os.path.dirname(self._target_path)) if self._target_path else None
 
     @property
-    def quality(self) -> int:
+    def quality(self) -> int:  # todo
         """Get the processing quality as a percentage (0-100)."""
         return int(self._scale_quality * 100)
 
     @quality.setter
-    def quality(self, value: int) -> None:
+    def quality(self, value: int) -> None:  # todo
         """Set the processing quality from a percentage."""
         self._scale_quality = value / 100
 
@@ -273,14 +272,10 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         return self._volumeVar
 
     @property
-    def frame_handler(self) -> BaseFrameHandler:
-        """Get the frame handler for the current target."""
-        if self._target_handler is None:
-            if self.target_path is None:
-                self._target_handler = NoneHandler('', self.parameters)
-            else:
-                self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
-        return self._target_handler
+    def metadata(self) -> MediaMetaData:
+        if self.MetaData is None:
+            self.MetaData = self.ProcessingClient.metadata
+        return self.MetaData
 
     @property
     def player_is_started(self) -> bool:
@@ -337,10 +332,10 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.position.set(frame_position)
 
         if self.AudioPlayer:
-            self.AudioPlayer.position = int(frame_position * self.frame_handler.frame_time)
+            self.AudioPlayer.position = int(frame_position * self.metadata.frame_time)
 
-        self._status("Time position", seconds_to_hmsms(self.frame_handler.frame_time * (frame_position - 1)))
-        self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
+        self._status("Time position", seconds_to_hmsms(self.metadata.frame_time * (frame_position - 1)))
+        self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
         # Update server with new requested position
         if self.ProcessingClient:
@@ -354,9 +349,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         start_frame (int): Frame to start playback from
         """
         if not self.player_is_started:
-            self.TimeLine.reload(frame_time=self.frame_handler.frame_time, start_frame=start_frame - 1, end_frame=self.frame_handler.fc)
+            self.TimeLine.reload(frame_time=self.metadata.frame_time, start_frame=start_frame - 1, end_frame=self.metadata.frames_count)
             if self.AudioPlayer:
-                self.AudioPlayer.position = int(start_frame * self.frame_handler.frame_time)
+                self.AudioPlayer.position = int(start_frame * self.metadata.frame_time)
 
             # Start processing and playback threads
             self.__start_processing(start_frame)
@@ -445,11 +440,11 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                             self.position.set(self.TimeLine.last_returned_index)
 
                             if self.TimeLine.last_returned_index:
-                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.frame_handler.frame_time))
-                                self._status("Frame position", f'{self.position.get()}/{self.frame_handler.fc}')
+                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.metadata.frame_time))
+                                self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
                 loop_time = time.perf_counter() - start_time  # Time for the current loop
-                sleep_time = self.frame_handler.frame_time - loop_time  # Time to wait for next loop
+                sleep_time = self.metadata.frame_time - loop_time  # Time to wait for next loop
 
                 if sleep_time > 0:
                     time.sleep(sleep_time)
