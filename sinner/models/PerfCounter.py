@@ -1,6 +1,6 @@
 import time
 from types import TracebackType
-from typing import Optional, Type
+from typing import Optional, Type, Self
 
 
 class PerfCounter:
@@ -9,7 +9,7 @@ class PerfCounter:
         self.execution_time: float = 0
         self.ns_mode: bool = ns_mode
 
-    def __enter__(self) -> 'PerfCounter':
+    def __enter__(self) -> Self:
         self.start_time = time.perf_counter_ns() if self.ns_mode else time.perf_counter()
         return self
 
