@@ -103,6 +103,8 @@ class ZMQClientAPI(BaseClientAPI):
         while self._notification_running:
             try:
                 # Неблокирующий прием с коротким таймаутом для возможности выхода из цикла
+                if self._sub_socket is None:
+                    raise Exception("Subscription socket is not initialized")
                 if self._sub_socket.poll(timeout=100):  # Ожидание 100мс
                     self._handle_notification(NotificationMessage.deserialize(self._sub_socket.recv()))
             except zmq.ZMQError as e:
