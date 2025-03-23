@@ -18,7 +18,7 @@ class NotificationMessage(BaseMessage):
     # Константы доступны в классе
     NTF_FRAME: ClassVar[str] = NTF_FRAME
 
-    def __init__(self, notification: str = None):
+    def __init__(self, notification: str) -> None:
         """
         Инициализация запроса с указанием типа запроса.
 
@@ -32,7 +32,10 @@ class NotificationMessage(BaseMessage):
     @property
     def notification(self) -> str:
         """Получение типа запроса"""
-        return self._notification if hasattr(self, '_notification') else None
+        if hasattr(self, '_notification'):
+            return self._notification
+        else:
+            raise ValueError("Field 'notification' is required")
 
     @notification.setter
     def notification(self, value: str) -> None:

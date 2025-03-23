@@ -21,7 +21,7 @@ class ResponseMessage(BaseMessage):
     STATUS_OK: ClassVar[str] = STATUS_OK
     STATUS_ERROR: ClassVar[str] = STATUS_ERROR
 
-    def __init__(self, status: str, message: Optional[str] = None):
+    def __init__(self, status: str = STATUS_OK, message: Optional[str] = None) -> None:
         """
         Инициализация ответа с указанием статуса и сообщения.
 
@@ -38,7 +38,10 @@ class ResponseMessage(BaseMessage):
     @property
     def status(self) -> str:
         """Получение статуса ответа"""
-        return self._status if hasattr(self, '_status') else None
+        if hasattr(self, '_status'):
+            return self._status
+        else:
+            raise ValueError("Field 'status' is required")
 
     @status.setter
     def status(self, value: str) -> None:

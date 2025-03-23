@@ -41,7 +41,7 @@ class RequestMessage(BaseMessage):
     STOP_PROCESSING: ClassVar[str] = STOP_PROCESSING
     REQ_FRAME: ClassVar[str] = REQ_FRAME
 
-    def __init__(self, request: str = None):
+    def __init__(self, request: str) -> None:
         """
         Инициализация запроса с указанием типа запроса.
 
@@ -55,7 +55,10 @@ class RequestMessage(BaseMessage):
     @property
     def request(self) -> str:
         """Получение типа запроса"""
-        return self._request if hasattr(self, '_request') else None
+        if hasattr(self, '_request'):
+            return self._request
+        else:
+            raise ValueError("Field 'request' is required")
 
     @request.setter
     def request(self, value: str) -> None:

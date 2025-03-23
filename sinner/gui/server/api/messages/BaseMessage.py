@@ -10,9 +10,9 @@ class BaseMessage(ABC):
     Абстрактный базовый класс для представления сообщений обмена между клиентом и сервером.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Инициализация базового класса"""
-        self._extra_fields = {}
+        self._extra_fields: Dict[str, Any] = {}
 
     def __getattr__(self, name: str) -> Any:
         """Доступ к дополнительным полям через атрибуты"""
