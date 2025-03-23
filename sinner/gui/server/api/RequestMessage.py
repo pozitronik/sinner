@@ -15,7 +15,8 @@ REQ_POSITION = "REQ_POSITION"
 SET_POSITION = "SET_POSITION"
 START_PROCESSING = "START_PROCESSING"
 STOP_PROCESSING = "STOP_PROCESSING"
-REQ_FRAME = "REQ_FRAME"
+REQ_FRAME = "REQ_FRAME"  # запрос на генерацию кадра
+NTF_FRAME = "NTF_FRAME"  # оповещение о готовности фрейм
 
 T = TypeVar('T', bound='RequestMessage')
 
@@ -23,7 +24,7 @@ T = TypeVar('T', bound='RequestMessage')
 @dataclass
 class RequestMessage(BaseMessage):
     """
-    Класс для представления запросов к серверу.
+    Класс для отправки запросов на сервер и нотификаций от сервера (входящее сообщение)
     Обязательно содержит поле request с типом запроса.
     """
 
@@ -40,6 +41,7 @@ class RequestMessage(BaseMessage):
     START_PROCESSING: ClassVar[str] = START_PROCESSING
     STOP_PROCESSING: ClassVar[str] = STOP_PROCESSING
     REQ_FRAME: ClassVar[str] = REQ_FRAME
+    NTF_FRAME: ClassVar[str] = NTF_FRAME
 
     def __init__(self, request: str = None):
         """
