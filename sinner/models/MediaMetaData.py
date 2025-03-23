@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Optional
+from typing import Tuple
 
 
 @dataclass
@@ -12,24 +12,24 @@ class MediaMetaData:
     frames_count: int = 0  # Total number of frames
 
     @property
-    def length(self) -> Optional[float]:
+    def length(self) -> float:
         """
         Calculate video length in seconds.
 
         Returns:
-            float: Media duration in seconds, if applicable, None for non-playable media
+            float: Media duration in seconds, if applicable, 1 for non-playable media
         """
-        return self.frames_count / self.fps if self.fps > 0 else None
+        return self.frames_count / self.fps if self.fps > 0 else 1
 
     @property
-    def frame_time(self) -> Optional[float]:
+    def frame_time(self) -> float:
         """
         Calculate frame time in seconds.
 
         Returns:
             float: Frame time in seconds, if applicable, none for non-playable media
         """
-        return 1 / self.fps if self.fps > 0 else None
+        return 1 / self.fps if self.fps > 0 else 1
 
     def get_formatted_length(self) -> str:
         """
