@@ -1,6 +1,6 @@
 import threading
 import time
-from typing import List
+from typing import List, Optional, Self
 
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.NumberedFrame import NumberedFrame
@@ -9,22 +9,28 @@ from sinner.models.NumberedFrame import NumberedFrame
 class FrameTimeLine:
     _FrameBuffer: FrameDirectoryBuffer
     _timer: float = 0
-    _frame_time: float
-    _start_frame_index: int
-    _end_frame_index: int
+    _frame_time: float = 0
+    _start_frame_index: int = 0
+    _end_frame_index: int = 0
     _start_frame_time: float = 0
 
-    _is_started: bool
+    _is_started: bool = False
     _last_added_index: int = 0
     _last_requested_index: int = 0
-    _last_returned_index: int | None = None
+    _last_returned_index: Optional[int] = None
+    _temp_dir: str
 
-    def __init__(self, source_name: str, target_name: str, temp_dir: str, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0):
+    def __init__(self, temp_dir: str) -> None:
+        self._temp_dir = temp_dir
+
+    def load(self, source_name: str, target_name: str, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0) -> Self:
+        """Loads source/target pair to the timeline"""
         self.reload(frame_time, start_frame, end_frame)
-        self._is_started = False
-        self._FrameBuffer = FrameDirectoryBuffer(source_name, target_name, temp_dir, end_frame)
+        self._FrameBuffer = FrameDirectoryBuffer(source_name, target_name, self._temp_dir, end_frame)
+        return self
 
     def reload(self, frame_time: float, start_frame: int, end_frame: int) -> None:
+        """Reloads the same source/target pair"""
         self._frame_time = frame_time
         self._start_frame_index = start_frame
         self._end_frame_index = end_frame

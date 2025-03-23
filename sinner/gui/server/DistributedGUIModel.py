@@ -162,7 +162,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self._distributed_system = DistributedProcessingSystem(self.parameters)
 
         # Set up the timeline and player
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
+        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
 
         # Initialize audio if enabled
@@ -235,7 +235,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self.reload_parameters()
 
         # Update timeline
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
 
         # Update progress control
         self.progress_control = self._ProgressBar
@@ -260,7 +260,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
 
         # Clear player and reset timeline
         self.Player.clear()
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         # Update progress control
         self.progress_control = self._ProgressBar
 

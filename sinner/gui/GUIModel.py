@@ -154,7 +154,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         if self.bootstrap_processors:
             self._processors = self.processors
 
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, end_frame=self.frame_handler.fc)
+        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir).load(source_name=self._source_path, target_name=self._target_path, end_frame=self.frame_handler.fc)
         self.Player = PygameFramePlayer(width=self.frame_handler.resolution[0], height=self.frame_handler.resolution[1], caption='sinner player', on_close_event=on_close_event)
 
         if self._enable_sound:
@@ -202,7 +202,8 @@ class GUIModel(AttributeLoader, StatusMixin):
     def source_path(self, value: str | None) -> None:
         self.parameters.source = value
         self.reload_parameters()
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
+
         self.progress_control = self._ProgressBar  # to update segments
         if not self.player_is_started:
             self.update_preview()
@@ -216,7 +217,7 @@ class GUIModel(AttributeLoader, StatusMixin):
         self.parameters.target = value
         self.reload_parameters()
         self.Player.clear()
-        self.TimeLine = FrameTimeLine(source_name=self._source_path, target_name=self._target_path, temp_dir=self.temp_dir, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
+        self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         self.progress_control = self._ProgressBar  # to update segments
         if self._enable_sound:
             if self.AudioPlayer:
