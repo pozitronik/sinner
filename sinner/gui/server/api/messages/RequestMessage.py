@@ -81,6 +81,10 @@ class RequestMessage(BaseMessage):
     def from_dict(cls: Type[T], data: Dict[str, Any]) -> T:
         """Создание объекта из словаря"""
         request_value = data.get('request')
+
+        if request_value is None:
+            raise ValueError("Field 'request' is required")
+
         instance = cls(request=request_value)
 
         # Копируем данные без поля request

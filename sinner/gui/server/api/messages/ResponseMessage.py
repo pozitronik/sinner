@@ -79,6 +79,9 @@ class ResponseMessage(BaseMessage):
         status_value = data.get('status')
         message_value = data.get('message')
 
+        if status_value is None:
+            raise ValueError("Field 'status' is required")
+
         instance = cls(status=status_value, message=message_value)
 
         # Копируем данные без полей status и message

@@ -58,6 +58,10 @@ class NotificationMessage(BaseMessage):
     def from_dict(cls: Type[T], data: Dict[str, Any]) -> T:
         """Создание объекта из словаря"""
         notification_value = data.get('notification')
+
+        if notification_value is None:
+            raise ValueError("Field 'notification' is required")
+
         instance = cls(notification=notification_value)
 
         # Копируем данные без поля notification
