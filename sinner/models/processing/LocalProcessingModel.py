@@ -21,6 +21,7 @@ from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
+from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.processors.frame.BaseFrameProcessor import BaseFrameProcessor
@@ -35,7 +36,7 @@ PROCESSED = 2
 EXTRACTED = 3
 
 
-class LocalProcessingModel(AttributeLoader, StatusMixin):
+class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterface):
     # configuration variables
     frame_processor: List[str]
     _source_path: str

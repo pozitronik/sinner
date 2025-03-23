@@ -19,6 +19,7 @@ from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MovingAverage import MovingAverage
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
+from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface
 from sinner.models.status.StatusMixin import StatusMixin
 from sinner.models.status.Mood import Mood
 from sinner.utilities import normalize_path, seconds_to_hmsms, list_class_descendants, resolve_relative_path, suggest_execution_threads, suggest_temp_dir
@@ -29,7 +30,7 @@ PROCESSED = 2
 EXTRACTED = 3
 
 
-class RemoteProcessingModel(AttributeLoader, StatusMixin):
+class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterface):
     """
     GUI model that uses distributed processing.
     This is a complete implementation without inheriting from GUIModel.
