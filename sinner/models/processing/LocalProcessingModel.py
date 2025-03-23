@@ -489,7 +489,3 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         mem_rss = get_mem_usage()
         mem_vms = get_mem_usage('vms')
         return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
-
-    def set_progress_index_value(self, index: int, value: int) -> None:
-        if self._ProgressBar:
-            self._ProgressBar.set_segment_value(index, value)

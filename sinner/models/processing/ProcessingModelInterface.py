@@ -118,10 +118,10 @@ class ProcessingModelInterface(ABC):
         """
         pass
 
-    @abstractmethod
     def set_progress_index_value(self, index: int, value: int) -> None:
         """Update the progress indicator for a frame."""
-        pass
+        if self._ProgressBar:
+            self._ProgressBar.set_segment_value(index, value)
 
     # Properties
     @property

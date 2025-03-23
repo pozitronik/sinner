@@ -454,11 +454,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 if sleep_time > 0:
                     time.sleep(sleep_time)
 
-    def set_progress_index_value(self, index: int, value: int) -> None:
-        """Update the progress indicator for a frame."""
-        if self._ProgressBar:
-            self._ProgressBar.set_segment_value(index, value)
-
     def notification_handler(self, notification: NotificationMessage) -> None:
         """Incoming notifications handler"""
         match notification.notification:
