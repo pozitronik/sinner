@@ -65,8 +65,7 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
     _last_added_index: int = 0
 
     # threading
-    _running: bool = False
-    _server_thread: Optional[threading.Thread] = None
+    _process_frames_thread: Optional[threading.Thread] = None
 
     # threads control events
     _event_processing: Event  # the flag to control start/stop processing thread
