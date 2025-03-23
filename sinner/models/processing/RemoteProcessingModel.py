@@ -29,7 +29,7 @@ PROCESSED = 2
 EXTRACTED = 3
 
 
-class DistributedGUIModel(AttributeLoader, StatusMixin):
+class RemoteProcessingModel(AttributeLoader, StatusMixin):
     """
     GUI model that uses distributed processing.
     This is a complete implementation without inheriting from GUIModel.
@@ -126,7 +126,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
                 'parameter': ['audio-backend', 'audio'],
                 'attribute': '_audio_backend',
                 'default': 'VLCAudioBackend',
-                'choices': list_class_descendants(resolve_relative_path('../../models/audio'), 'BaseAudioBackend'),
+                'choices': list_class_descendants(resolve_relative_path('../audio'), 'BaseAudioBackend'),
                 'help': 'Audio backend to use'
             },
             {

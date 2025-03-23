@@ -11,7 +11,7 @@ from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE,
 from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
 from sinner.gui.controls.ThumbnailWidget.SourcesThumbnailWidget import SourcesThumbnailWidget
 from sinner.gui.controls.ThumbnailWidget.TargetsThumbnailWidget import TargetsThumbnailWidget
-from sinner.gui.server.DistributedGUIModel import DistributedGUIModel
+from sinner.models.processing.RemoteProcessingModel import RemoteProcessingModel
 from sinner.models.Event import Event as SinnerEvent
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
@@ -31,7 +31,7 @@ class DistributedGUIForm(AttributeLoader):
 
     # Configuration variables
     parameters: Namespace
-    GUIModel: DistributedGUIModel
+    GUIModel: RemoteProcessingModel
     StatusBar: StatusBar
     SourcesLibrary: SourcesThumbnailWidget
     TargetsLibrary: TargetsThumbnailWidget
@@ -218,7 +218,7 @@ class DistributedGUIForm(AttributeLoader):
     def create_gui_model(self) -> None:
         """Create and initialize the distributed GUI model."""
         # Create distributed GUI model
-        self.GUIModel = DistributedGUIModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+        self.GUIModel = RemoteProcessingModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
     def setup_menus(self) -> None:
         """Setup application menus."""
