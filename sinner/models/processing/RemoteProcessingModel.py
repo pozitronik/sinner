@@ -196,7 +196,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
 
         # Update progress control
-        self.progress_control = self._ProgressBar
+        self.progress_control = self.ProgressBar
 
         # Update source in processor client
         self._processor_client.source_path = self._source_path
@@ -220,7 +220,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.Player.clear()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
         # Update progress control
-        self.progress_control = self._ProgressBar
+        self.progress_control = self.ProgressBar
 
         # Update audio if enabled
         if self._enable_sound:

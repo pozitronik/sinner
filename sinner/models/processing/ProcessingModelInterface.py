@@ -35,7 +35,7 @@ class ProcessingModelInterface(ABC):
     # internal/external objects
     TimeLine: FrameTimeLine
     Player: BaseFramePlayer
-    _ProgressBar: Optional[BaseProgressIndicator] = None
+    ProgressBar: Optional[BaseProgressIndicator] = None
     AudioPlayer: Optional[BaseAudioBackend] = None
 
     _status: Callable[[str, str], Any]  # status callback
@@ -120,8 +120,8 @@ class ProcessingModelInterface(ABC):
 
     def set_progress_index_value(self, index: int, value: int) -> None:
         """Update the progress indicator for a frame."""
-        if self._ProgressBar:
-            self._ProgressBar.set_segment_value(index, value)
+        if self.ProgressBar:
+            self.ProgressBar.set_segment_value(index, value)
 
     # Properties
     @property
@@ -211,12 +211,12 @@ class ProcessingModelInterface(ABC):
     @property
     def progress_control(self) -> Optional[BaseProgressIndicator]:
         """Get the current progress indicator control."""
-        return self._ProgressBar
+        return self.ProgressBar
 
     @progress_control.setter
     def progress_control(self, value: Optional[BaseProgressIndicator]) -> None:
         """Set the progress indicator control."""
-        self._ProgressBar = value
-        if self._ProgressBar:
-            self._ProgressBar.set_segments(self.frame_handler.fc + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
-            self._ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+        self.ProgressBar = value
+        if self.ProgressBar:
+            self.ProgressBar.set_segments(self.frame_handler.fc + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
+            self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)

@@ -180,7 +180,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self.reload_parameters()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
 
-        self.progress_control = self._ProgressBar  # to update segments
+        self.progress_control = self.ProgressBar  # to update segments
         if not self.player_is_started:
             self.update_preview()
 
@@ -194,7 +194,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self.reload_parameters()
         self.Player.clear()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
-        self.progress_control = self._ProgressBar  # to update segments
+        self.progress_control = self.ProgressBar  # to update segments
         if self._enable_sound:
             if self.AudioPlayer:
                 self.AudioPlayer.stop()
@@ -480,8 +480,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
             self._is_target_frames_extracted = state_is_finished
-            if self._ProgressBar:
-                self._ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
+            if self.ProgressBar:
+                self.ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
         return self._is_target_frames_extracted
 
     @staticmethod
