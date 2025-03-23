@@ -12,7 +12,7 @@ from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
 from sinner.gui.controls.ThumbnailWidget.SourcesThumbnailWidget import SourcesThumbnailWidget
 from sinner.gui.controls.ThumbnailWidget.TargetsThumbnailWidget import TargetsThumbnailWidget
 from sinner.models.Event import Event as SinnerEvent
-from sinner.gui.GUIModel import GUIModel
+from sinner.models.processing.GUIModel import GUIModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.StatusBar import StatusBar

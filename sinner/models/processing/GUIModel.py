@@ -90,7 +90,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                 'attribute': 'frame_processor',
                 'default': ['FaceSwapper'],
                 'required': True,
-                'choices': list_class_descendants(resolve_relative_path('../processors/frame'), 'BaseFrameProcessor'),
+                'choices': list_class_descendants(resolve_relative_path('../../processors/frame'), 'BaseFrameProcessor'),
                 'help': 'The set of frame processors to handle the target'
             },
             {
@@ -134,7 +134,7 @@ class GUIModel(AttributeLoader, StatusMixin):
                 'parameter': ['audio-backend', 'audio'],
                 'attribute': '_audio_backend',
                 'default': 'VLCAudioBackend',
-                'choices': list_class_descendants(resolve_relative_path('../models/audio'), 'BaseAudioBackend'),
+                'choices': list_class_descendants(resolve_relative_path('../audio'), 'BaseAudioBackend'),
                 'help': 'Audio backend to use'
             },
             {

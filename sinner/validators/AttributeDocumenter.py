@@ -6,7 +6,7 @@ from sinner.Benchmark import Benchmark
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.Sinner import Sinner
 from sinner.gui.GUIForm import GUIForm
-from sinner.gui.GUIModel import GUIModel
+from sinner.models.processing.GUIModel import GUIModel
 from sinner.webcam.WebCam import WebCam
 from sinner.handlers.frame.VideoHandler import VideoHandler
 from sinner.processors.frame.FaceEnhancer import FaceEnhancer
