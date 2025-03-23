@@ -35,7 +35,7 @@ PROCESSED = 2
 EXTRACTED = 3
 
 
-class GUIModel(AttributeLoader, StatusMixin):
+class LocalProcessingModel(AttributeLoader, StatusMixin):
     # configuration variables
     frame_processor: List[str]
     _source_path: str

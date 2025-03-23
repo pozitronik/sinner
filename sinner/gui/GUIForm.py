@@ -12,7 +12,7 @@ from sinner.gui.controls.FramePosition.FrameSlider import FrameSlider
 from sinner.gui.controls.ThumbnailWidget.SourcesThumbnailWidget import SourcesThumbnailWidget
 from sinner.gui.controls.ThumbnailWidget.TargetsThumbnailWidget import TargetsThumbnailWidget
 from sinner.models.Event import Event as SinnerEvent
-from sinner.models.processing.GUIModel import GUIModel
+from sinner.models.processing.LocalProcessingModel import LocalProcessingModel
 from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePosition
 from sinner.gui.controls.FramePosition.SliderFramePosition import SliderFramePosition
 from sinner.gui.controls.StatusBar import StatusBar
@@ -28,7 +28,7 @@ from sinner.validators.AttributeLoader import Rules, AttributeLoader
 class GUIForm(AttributeLoader):
     # class attributes
     parameters: Namespace
-    GUIModel: GUIModel
+    GUIModel: LocalProcessingModel
     StatusBar: StatusBar
     # SourcesLibraryWnd: SourcesLibraryForm
     SourcesLibrary: SourcesThumbnailWidget
@@ -138,7 +138,7 @@ class GUIForm(AttributeLoader):
         self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
 
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-        self.GUIModel = GUIModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+        self.GUIModel = LocalProcessingModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
 
         self.GUIWindow.bind("<Configure>", lambda event: _window_configure_handler(event))
         self.GUIWindow.bind("<FocusIn>", lambda event: _window_on_focus_handler(event))
