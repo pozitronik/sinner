@@ -54,8 +54,8 @@ class FrameProcessorServer(AttributeLoader, StatusMixin):
     # processing state
     _processing: Set[int] = set()  # frames currently in processing
     _processed: Set[int] = set()  # frames that have been processed
-    _source_path: Optional[str] = None
-    _target_path: Optional[str] = None
+    _source_path: str
+    _target_path: str
     _position: int = 0  # player frame position
 
     # metrics

@@ -54,7 +54,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
     Player: BaseFramePlayer
     _ProgressBar: Optional[BaseProgressIndicator] = None
     AudioPlayer: Optional[BaseAudioBackend] = None
-    _processor_client: Optional[FrameProcessorClient] = None  # Client side
+    _processor_client: FrameProcessorClient  # Client side
 
     # Internal state
     _distributed_system: Optional[DistributedProcessingSystem] = None
@@ -241,7 +241,7 @@ class DistributedGUIModel(AttributeLoader, StatusMixin):
         self.progress_control = self._ProgressBar
 
         # Update source in processor client
-        self._processor_client.source_path = self.source_path
+        self._processor_client.source_path = self._source_path
 
         # Update preview if not playing
         if not self.player_is_started:
