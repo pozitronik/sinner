@@ -85,7 +85,7 @@ class ZMQServerAPI(BaseServerAPI):
                 message_data = await self._reply_socket.recv()
                 message = RequestMessage.deserialize(message_data)
 
-                self._logger.info(f"Received message: {message}")
+                self._logger.info(f"Received message: {message_data}")
                 response = self._handle_request(message)
 
                 # Асинхронно отправляем ответ
