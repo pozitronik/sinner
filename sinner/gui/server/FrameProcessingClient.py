@@ -15,7 +15,11 @@ class FrameProcessingClient:
 
     @property
     def source_path(self) -> Optional[str]:
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_SOURCE))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_SOURCE))
+        if response.is_ok():
+            return response.source_path
+        else:
+            return None
 
     @source_path.setter
     def source_path(self, value: Optional[str]) -> None:
@@ -23,7 +27,11 @@ class FrameProcessingClient:
 
     @property
     def target_path(self) -> Optional[str]:
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_TARGET))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_TARGET))
+        if response.is_ok():
+            return response.target_path
+        else:
+            return None
 
     @target_path.setter
     def target_path(self, value: Optional[str]) -> None:
@@ -31,7 +39,11 @@ class FrameProcessingClient:
 
     @property
     def quality(self) -> int:
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_QUALITY))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_QUALITY))
+        if response.is_ok():
+            return response.quality
+        else:
+            return 100
 
     @quality.setter
     def quality(self, value: int) -> None:
