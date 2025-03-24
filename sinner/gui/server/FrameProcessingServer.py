@@ -19,6 +19,7 @@ from sinner.helpers.FrameHelper import scale
 from sinner.models.Event import Event
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.FrameTimeLine import FrameTimeLine
+from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
@@ -194,6 +195,14 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.REQ_FRAME:  # process a frame immediately
                 self._process_frame(request.get("position"))
                 return ResponseMessage.ok_response(message="Processed")
+            case request.REQ_METADATA:  # return the target metadata
+                response = ResponseMessage.ok_response(message="metadata")
+                response.update(MediaMetaData(
+                    resolution=self._target_handler.resolution,
+                    fps=self._target_handler.fps,
+                    frames_count=self._target_handler.fc
+                ).to_dict())
+                return response
             case _:
                 return ResponseMessage.error_response(message=f"Not implemented: {request.request}")
 

@@ -128,7 +128,9 @@ class ZMQClientAPI(BaseClientAPI):
             with self._lock:
                 try:
                     self._req_socket.send(request.serialize())
-                    return ResponseMessage.deserialize(self._req_socket.recv()).is_ok()
+                    result = ResponseMessage.deserialize(self._req_socket.recv())
+
+                    return result.is_ok()
                 except zmq.ZMQError as e:
                     if e.errno == zmq.EAGAIN:  # Timeout
                         self._logger.error(f"Timeout waiting for response when sending to {self._endpoint}: {e}")
