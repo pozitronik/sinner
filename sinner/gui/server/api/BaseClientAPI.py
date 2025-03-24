@@ -22,5 +22,5 @@ class BaseClientAPI(ABC):
 
     @abstractmethod
     def send_request(self, request: RequestMessage) -> Any:
-        """Sends a request to the endpoint and returns the response"""
+        """Sends a request to the endpoint and returns the response when it is ready"""
         pass
