@@ -198,9 +198,9 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.REQ_METADATA:  # return the target metadata
                 response = ResponseMessage.ok_response(message="metadata")
                 response.update(MediaMetaData(
-                    resolution=self._target_handler.resolution,
-                    fps=self._target_handler.fps,
-                    frames_count=self._target_handler.fc
+                    resolution=self.frame_handler.resolution,
+                    fps=self.frame_handler.fps,
+                    frames_count=self.frame_handler.fc
                 ).to_dict())
                 return response
             case _:
