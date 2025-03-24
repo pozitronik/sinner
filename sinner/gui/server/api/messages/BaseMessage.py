@@ -23,7 +23,7 @@ class BaseMessage(ABC):
     def __setattr__(self, name: str, value: Any) -> None:
         """Установка значений как атрибутов класса или дополнительных полей"""
         # Служебные поля устанавливаем напрямую
-        if name.startswith('_'):
+        if name.startswith('_') or hasattr(type(self), name) and isinstance(getattr(type(self), name), property):
             super().__setattr__(name, value)
         else:
             # Проверяем, есть ли атрибут в классе
