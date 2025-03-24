@@ -1,7 +1,7 @@
 import os
 import threading
 from pathlib import Path
-from typing import List
+from typing import List, Optional, ClassVar
 
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
@@ -9,15 +9,19 @@ from sinner.utilities import is_absolute_path, path_exists, get_file_name, norma
 
 
 class FrameDirectoryBuffer:
+    endpoint_name: ClassVar[str] = 'preview'
     _temp_dir: str
-    _zfill_length: int | None
-    _path: str | None = None
+
+    _source_name: Optional[str]
+    _target_name: Optional[str]
+    _zfill_length: Optional[int]
+    _path: Optional[str] = None
     _indices: List[int] = []
     _miss: int = 0  # the current miss between requested frame and the returned one
 
     def __init__(self, source_name: str, target_name: str, temp_dir: str, frames_count: int):
-        self.source_name = source_name
-        self.target_name = target_name
+        self._source_name = source_name
+        self._target_name = target_name
         self.temp_dir = temp_dir
         self.frames_count = frames_count
         self._zfill_length = None
@@ -30,7 +34,7 @@ class FrameDirectoryBuffer:
     def temp_dir(self, value: str | None) -> None:
         if not is_absolute_path(value or ''):
             raise Exception("Relative paths are not supported")
-        self._temp_dir = os.path.abspath(os.path.join(str(normalize_path(value or '')), 'preview'))
+        self._temp_dir = os.path.abspath(os.path.join(str(normalize_path(value or '')), self.endpoint_name))
         self.init_indices()
 
     @property
@@ -48,7 +52,7 @@ class FrameDirectoryBuffer:
     @property
     def path(self) -> str:
         if self._path is None:
-            sub_path = (os.path.basename(self.target_name or ''), os.path.basename(self.source_name or ''))
+            sub_path = (os.path.basename(self._target_name or ''), os.path.basename(self._source_name or ''))
             self._path = os.path.abspath(os.path.join(self.temp_dir, *sub_path))
             self.make_path(self._path)
         return self._path
