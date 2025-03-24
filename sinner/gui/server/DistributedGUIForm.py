@@ -279,12 +279,6 @@ class DistributedGUIForm(AttributeLoader):
         self.TargetsLibraryMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]
         self.TargetsLibraryMenu.add(COMMAND, label='Clear', command=lambda: self.target_clear())  # type: ignore[no-untyped-call]
 
-        # Add distributed processing submenu
-        self.DistributedMenu: Menu = Menu(self.MainMenu, tearoff=False)
-        self.MainMenu.add(CASCADE, menu=self.DistributedMenu, label='Distributed')  # type: ignore[no-untyped-call]
-        self.DistributedMenu.add(COMMAND, label='Server Status', command=lambda: self.show_server_status())  # type: ignore[no-untyped-call]
-        self.DistributedMenu.add(COMMAND, label='Reconnect', command=lambda: self.reconnect_to_server())  # type: ignore[no-untyped-call]
-
         # Set menu
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
 
@@ -553,57 +547,4 @@ class DistributedGUIForm(AttributeLoader):
     def target_clear(self) -> None:
         """Clear the targets library."""
         self.TargetsLibrary.clear_thumbnails()
-
-    # Distributed-specific methods
-    def show_server_status(self) -> None:
-        """Show server status information."""
-        if hasattr(self.GUIModel, "_processor_client"):
-            client = getattr(self.GUIModel, "_processor_client")
-            if client:
-                status = client.server_status
-                if status:
-                    processed_count = status.get("processed_count", 0)
-                    processing_count = status.get("processing_count", 0)
-                    processing_fps = status.get("processing_fps", 0.0)
-
-                    # Format detailed status text
-                    status_text = f"Server Status:\n" \
-                                  f"Processed frames: {processed_count}\n" \
-                                  f"Processing frames: {processing_count}\n" \
-                                  f"Processing speed: {processing_fps:.2f} FPS"
-
-                    # Update status bar with brief info
-                    self.StatusBar.item("Server Status", f"Processed: {processed_count}, FPS: {processing_fps:.2f}")
-
-                    # Show detailed status in a dialog
-                    from tkinter import Toplevel, Label, Button
-
-                    status_window = Toplevel(self.GUIWindow)
-                    status_window.title("Distributed Processing Status")
-                    status_window.geometry("300x150")
-                    status_window.resizable(False, False)
-                    status_window.transient(self.GUIWindow)
-                    status_window.grab_set()
-
-                    Label(status_window, text=status_text, justify='left', padx=20, pady=20).pack(expand=True)
-                    Button(status_window, text="Close", command=status_window.destroy).pack(pady=10)
-
-                    # Center window on parent
-                    status_window.update_idletasks()
-                    x = self.GUIWindow.winfo_rootx() + (self.GUIWindow.winfo_width() - status_window.winfo_width()) // 2
-                    y = self.GUIWindow.winfo_rooty() + (self.GUIWindow.winfo_height() - status_window.winfo_height()) // 2
-                    status_window.geometry(f"+{x}+{y}")
-                else:
-                    self.StatusBar.item("Server Status", "Failed to get server status")
-
-    def reconnect_to_server(self) -> None:
-        """Reconnect to the processing server."""
-        if hasattr(self.GUIModel, "_processor_client"):
-            client = getattr(self.GUIModel, "_processor_client")
-            if client and hasattr(client, "reset_connection"):
-                success = client.reset_connection()
-                if success:
-                    self.StatusBar.item("Server Connection", "Reconnected successfully")
-                else:
-                    self.StatusBar.item("Server Connection", "Reconnection failed")
 
