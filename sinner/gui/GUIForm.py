@@ -19,16 +19,20 @@ from sinner.gui.controls.StatusBar import StatusBar
 from sinner.gui.controls.TextBox import TextBox
 from sinner.models.Config import Config
 from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
+from sinner.models.processing.ProcessingModelInterface import ProcessingModelInterface
+from sinner.models.processing.RemoteProcessingModel import RemoteProcessingModel
 from sinner.utilities import is_int, get_app_dir, get_type_extensions, is_image, is_dir, get_directory_file_list, halt, is_video
 from sinner.validators.AttributeLoader import Rules, AttributeLoader
 
+MODE_STANDALONE = "standalone"
+MODE_DISTRIBUTED = "distributed"
+
 
 # GUI View
-
 class GUIForm(AttributeLoader):
     # class attributes
     parameters: Namespace
-    GUIModel: LocalProcessingModel
+    GUIModel: ProcessingModelInterface
     StatusBar: StatusBar
     # SourcesLibraryWnd: SourcesLibraryForm
     SourcesLibrary: SourcesThumbnailWidget
@@ -44,6 +48,7 @@ class GUIForm(AttributeLoader):
     sources_library: List[str]
     targets_library: List[str]
     show_progress: bool = False
+    processing_mode: str  # standalone/remote
 
     _event_player_window_closed: SinnerEvent  # the event when the player window is closed (forwarded via GUIModel)
 
@@ -107,6 +112,13 @@ class GUIForm(AttributeLoader):
                 'help': 'Show processing progress indicator (experimental)'
             },
             {
+                'parameter': {'mode', 'processing-mode'},
+                'attribute': 'processing_mode',
+                'default': 'standalone',
+                'choices': [MODE_STANDALONE, MODE_DISTRIBUTED],
+                'help': 'Processing mode'
+            },
+            {
                 'module_help': 'GUI Form'
             }
         ]
@@ -136,9 +148,14 @@ class GUIForm(AttributeLoader):
             halt()
 
         self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
-
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
-        self.GUIModel = LocalProcessingModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+
+        if self.processing_mode == MODE_STANDALONE:
+            self.GUIModel = LocalProcessingModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+        elif self.processing_mode == MODE_DISTRIBUTED:
+            self.GUIModel = RemoteProcessingModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+        else:
+            raise Exception(f"Unknown mode: {self.processing_mode}")
 
         self.GUIWindow.bind("<Configure>", lambda event: _window_configure_handler(event))
         self.GUIWindow.bind("<FocusIn>", lambda event: _window_on_focus_handler(event))
