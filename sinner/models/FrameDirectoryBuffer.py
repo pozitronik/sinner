@@ -24,6 +24,7 @@ class FrameDirectoryBuffer:
         self.temp_dir = temp_dir
 
     def load(self, source_name: str, target_name: str, frames_count: int) -> Self:
+        self._path = None
         self._source_name = source_name
         self._target_name = target_name
         self._frames_count = frames_count
