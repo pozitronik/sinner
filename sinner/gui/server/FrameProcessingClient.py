@@ -1,7 +1,8 @@
-from typing import Dict, Any, Optional
+from typing import Optional
 
 from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
 from sinner.gui.server.api.messages.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
 from sinner.models.MediaMetaData import MediaMetaData
 
 
@@ -54,22 +55,22 @@ class FrameProcessingClient:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.STOP_PROCESSING))
 
     @property
-    def server_status(self) -> Optional[Dict[str, Any]]:
+    def server_status(self) -> bool:
         """
         Get current server status.
 
         Returns:
-        Dict or None: Server status information or None if request failed
+        Dict or None: Server status information or None if request failed todo
         """
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_STATUS))
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_STATUS)).is_ok()
 
     @property
     def metadata(self) -> MediaMetaData:
-        remote_data = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_METADATA))
-        if not remote_data:
-            return None
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_METADATA))
+        if response.is_ok():
+            return MediaMetaData(resolution=response.resolution, fps=response.fps, frames_count=response.frames_count)
         else:
-            return MediaMetaData(remote_data)  # todo
+            return MediaMetaData()
 
     def close(self) -> None:
         self._APIClient.disconnect()

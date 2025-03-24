@@ -123,14 +123,12 @@ class ZMQClientAPI(BaseClientAPI):
             except Exception as e:
                 self._logger.error(f"Error in notification callback: {e}")
 
-    def send_request(self, request: RequestMessage) -> bool:
+    def send_request(self, request: RequestMessage) -> ResponseMessage:
         try:
             with self._lock:
                 try:
                     self._req_socket.send(request.serialize())
-                    result = ResponseMessage.deserialize(self._req_socket.recv())
-
-                    return result.is_ok()
+                    return ResponseMessage.deserialize(self._req_socket.recv())
                 except zmq.ZMQError as e:
                     if e.errno == zmq.EAGAIN:  # Timeout
                         self._logger.error(f"Timeout waiting for response when sending to {self._endpoint}: {e}")

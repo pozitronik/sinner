@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 from sinner.gui.server.api.messages.RequestMessage import RequestMessage
+from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
 
 
 class BaseClientAPI(ABC):
@@ -21,6 +21,6 @@ class BaseClientAPI(ABC):
         pass
 
     @abstractmethod
-    def send_request(self, request: RequestMessage) -> Any:
+    def send_request(self, request: RequestMessage) -> ResponseMessage:
         """Sends a request to the endpoint and returns the response when it is ready"""
         pass
