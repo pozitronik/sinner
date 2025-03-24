@@ -315,7 +315,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             if self.AudioPlayer:
                 self.AudioPlayer.play()
 
-    def player_stop(self, wait: bool = False, reload_frames: bool = False) -> None:
+    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
         if self.player_is_started:
             if self.AudioPlayer:
                 self.AudioPlayer.stop()
