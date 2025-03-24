@@ -78,6 +78,8 @@ class FrameDirectoryBuffer:
             self._indices.append(frame.index)
 
     def get_frame(self, index: int, return_previous: bool = True) -> NumberedFrame | None:
+        if not self._indices:  # not loaded
+            return None
         filename = str(index).zfill(self.zfill_length) + '.png'
         filepath = str(os.path.join(self.path, filename))
         if path_exists(filepath):  # todo: check within indexes should be faster
