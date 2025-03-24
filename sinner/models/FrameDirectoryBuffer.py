@@ -1,7 +1,7 @@
 import os
 import threading
 from pathlib import Path
-from typing import List, Optional, ClassVar
+from typing import List, Optional, ClassVar, Self
 
 from sinner.helpers.FrameHelper import write_to_image, read_from_image
 from sinner.models.NumberedFrame import NumberedFrame
@@ -14,17 +14,20 @@ class FrameDirectoryBuffer:
 
     _source_name: Optional[str]
     _target_name: Optional[str]
-    _zfill_length: Optional[int]
+    _frames_count: int = 0
+    _zfill_length: Optional[int] = None
     _path: Optional[str] = None
     _indices: List[int] = []
     _miss: int = 0  # the current miss between requested frame and the returned one
 
-    def __init__(self, source_name: str, target_name: str, temp_dir: str, frames_count: int):
+    def __init__(self, temp_dir: str):
+        self.temp_dir = temp_dir
+
+    def load(self, source_name: str, target_name: str, frames_count: int) -> Self:
         self._source_name = source_name
         self._target_name = target_name
-        self.temp_dir = temp_dir
-        self.frames_count = frames_count
-        self._zfill_length = None
+        self._frames_count = frames_count
+        self.init_indices()
 
     @property
     def temp_dir(self) -> str:
@@ -35,12 +38,11 @@ class FrameDirectoryBuffer:
         if not is_absolute_path(value or ''):
             raise Exception("Relative paths are not supported")
         self._temp_dir = os.path.abspath(os.path.join(str(normalize_path(value or '')), self.endpoint_name))
-        self.init_indices()
 
     @property
     def zfill_length(self) -> int:
         if self._zfill_length is None:
-            self._zfill_length = len(str(self.frames_count))
+            self._zfill_length = len(str(self._frames_count))
         return self._zfill_length
 
     @staticmethod

@@ -22,11 +22,12 @@ class FrameTimeLine:
 
     def __init__(self, temp_dir: str) -> None:
         self._temp_dir = temp_dir
+        self._FrameBuffer = FrameDirectoryBuffer(self._temp_dir)
 
     def load(self, source_name: str, target_name: str, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0) -> Self:
         """Loads source/target pair to the timeline"""
         self.reload(frame_time, start_frame, end_frame)
-        self._FrameBuffer = FrameDirectoryBuffer(source_name, target_name, self._temp_dir, end_frame)
+        self._FrameBuffer.load(source_name, target_name, end_frame)
         return self
 
     def reload(self, frame_time: float, start_frame: int, end_frame: int) -> None:
