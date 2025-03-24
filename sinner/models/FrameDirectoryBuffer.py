@@ -29,6 +29,7 @@ class FrameDirectoryBuffer:
         self._target_name = target_name
         self._frames_count = frames_count
         self.init_indices()
+        return self
 
     @property
     def temp_dir(self) -> str:
