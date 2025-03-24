@@ -122,6 +122,12 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 timeout=self._timeout
             )
         )
+
+        if self._source_path and self._target_path:
+            self.ProcessingClient.source_path = self._source_path
+        if self._target_path:
+            self.ProcessingClient.target_path = self._target_path
+
         # Set up the timeline and player
         self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
         self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
@@ -129,12 +135,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         # Initialize audio if enabled
         if self._enable_sound:
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
-
-
-        if self._source_path and self._target_path:
-            self.ProcessingClient.source_path = self._source_path
-        if self._target_path:
-            self.ProcessingClient.target_path = self._target_path
 
         # Set progress control and status callback
         self.progress_control = progress_control
@@ -275,7 +275,11 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     @property
     def metadata(self) -> MediaMetaData:
         if self.MetaData is None:
-            self.MetaData = self.ProcessingClient.metadata
+            remote_metadata = self.ProcessingClient.metadata
+            if remote_metadata is None:  # isn't ready
+                return MediaMetaData()
+            else:
+                self.MetaData = remote_metadata
         return self.MetaData
 
     @property
