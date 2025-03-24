@@ -64,7 +64,11 @@ class FrameProcessingClient:
 
     @property
     def metadata(self) -> MediaMetaData:
-        return MediaMetaData(self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_METADATA)))
+        remote_data = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_METADATA))
+        if not remote_data:
+            return None
+        else:
+            return MediaMetaData(remote_data)  # todo
 
     def close(self) -> None:
         self._APIClient.disconnect()
