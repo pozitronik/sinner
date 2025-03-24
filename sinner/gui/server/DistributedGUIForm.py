@@ -560,7 +560,7 @@ class DistributedGUIForm(AttributeLoader):
         if hasattr(self.GUIModel, "_processor_client"):
             client = getattr(self.GUIModel, "_processor_client")
             if client:
-                status = client.get_server_status()
+                status = client.server_status
                 if status:
                     processed_count = status.get("processed_count", 0)
                     processing_count = status.get("processing_count", 0)

@@ -53,7 +53,8 @@ class FrameProcessingClient:
     def stop(self) -> None:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.STOP_PROCESSING))
 
-    def get_server_status(self) -> Optional[Dict[str, Any]]:  # todo can be property
+    @property
+    def server_status(self) -> Optional[Dict[str, Any]]:
         """
         Get current server status.
 

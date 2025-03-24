@@ -173,7 +173,7 @@ class DistributedProcessingSystem(AttributeLoader, StatusMixin):
 
         # Test connection
         try:
-            status = self._client.get_server_status()
+            status = self._client.server_status
             if status:
                 self.update_status("Connected to external server successfully")
             else:
