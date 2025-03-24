@@ -12,8 +12,8 @@ class FrameDirectoryBuffer:
     endpoint_name: ClassVar[str] = 'preview'
     _temp_dir: str
 
-    _source_name: Optional[str]
-    _target_name: Optional[str]
+    _source_name: Optional[str] = None
+    _target_name: Optional[str] = None
     _frames_count: int = 0
     _zfill_length: Optional[int] = None
     _path: Optional[str] = None
