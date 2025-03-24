@@ -123,7 +123,7 @@ class ZMQClientAPI(BaseClientAPI):
             except Exception as e:
                 self._logger.error(f"Error in notification callback: {e}")
 
-    def send_request(self, request: RequestMessage) -> ResponseMessage:
+    def send_request(self, request: RequestMessage) -> Optional[ResponseMessage]:
         try:
             with self._lock:
                 try:
@@ -137,13 +137,12 @@ class ZMQClientAPI(BaseClientAPI):
                     else:
                         self._logger.error(f"ZMQ error {e} when sending to {self._endpoint}")
                         self._recreate_socket()
-                    return False
         except zmq.ZMQError as e:
             self._logger.error(f"ZMQ error sending request: {e}")
         except Exception as e:
             self._logger.error(f"Error sending request: {e}")
             self._logger.exception("Client request error")
-        return False
+        return None
 
     def _recreate_socket(self) -> None:
         """Пересоздание REQ сокета после ошибки."""
