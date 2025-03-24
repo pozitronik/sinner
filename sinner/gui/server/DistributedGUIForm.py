@@ -394,10 +394,6 @@ class DistributedGUIForm(AttributeLoader):
         """Switch audio backend."""
         self.GUIModel.audio_backend = backend
 
-    def format_target_info(self) -> str:
-        """Format target resolution and framerate info."""
-        return f"{self.GUIModel.frame_handler.resolution[0]}x{self.GUIModel.frame_handler.resolution[1]}@{round(self.GUIModel.frame_handler.fps, ndigits=3)}"
-
     def set_topmost(self, on_top: bool = True) -> None:
         """Set window to stay on top."""
         self.GUIWindow.wm_attributes("-topmost", on_top)
@@ -408,7 +404,7 @@ class DistributedGUIForm(AttributeLoader):
         self.draw_controls()
         self.SourcePathEntry.set_text(self.GUIModel.source_path)
         self.TargetPathEntry.set_text(self.GUIModel.target_path)
-        self.StatusBar.item('Target resolution', self.format_target_info())
+        self.StatusBar.item('Target resolution', str(self.GUIModel.metadata))
         self.GUIModel.update_preview()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.GUIModel.Player.bring_to_front()
@@ -465,11 +461,11 @@ class DistributedGUIForm(AttributeLoader):
         self.update_slider_bounds()
         self.TargetPathEntry.set_text(filename)
         self.on_quality_scale_change(self.GUIModel.quality)
-        self.StatusBar.item('Target resolution', self.format_target_info())
+        self.StatusBar.item('Target resolution', str(self.GUIModel.metadata))
 
     def update_slider_bounds(self) -> None:
         """Update navigation slider bounds based on frame count."""
-        self.NavigateSlider.to = self.GUIModel.frame_handler.fc
+        self.NavigateSlider.to = self.GUIModel.metadata.frames_count
         self.NavigateSlider.position = 1
         if self.NavigateSlider.to > 1:
             self.NavigateSlider.enable()
@@ -483,8 +479,8 @@ class DistributedGUIForm(AttributeLoader):
         if frame_value < self.QualityScaleSpinbox.cget('from'):
             frame_value = self.QualityScaleSpinbox.cget('from')
         self.GUIModel.quality = frame_value
-        if self.GUIModel.frame_handler.resolution:
-            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.frame_handler.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.frame_handler.resolution[1] * self.GUIModel.quality / 100)})")
+        if self.GUIModel.metadata.resolution:
+            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.metadata.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.metadata.resolution[1] * self.GUIModel.quality / 100)})")
 
     # Library handling
     def source_library_add(self, paths: List[str], reload: bool = False) -> None:
