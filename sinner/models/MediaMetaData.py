@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Dict, Any
 
 
 @dataclass
@@ -63,3 +63,11 @@ class MediaMetaData:
         """
         """Format target resolution and framerate info."""
         return f"{self.resolution[0]}x{self.resolution[1]}@{round(self.fps, ndigits=3)}"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Преобразование в обычный словарь"""
+        return {
+            "resolution": self.resolution,
+            "fps": self.fps,
+            "frames_count": self.frames_count
+        }
