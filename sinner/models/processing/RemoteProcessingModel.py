@@ -7,7 +7,6 @@ from typing import Callable, Any, Optional
 
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
-from sinner.gui.server.DistributedProcessingSystem import DistributedProcessingSystem
 from sinner.gui.server.FrameProcessingClient import FrameProcessingClient
 from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
 from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
@@ -31,7 +30,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     # Configuration parameters
 
     # Internal state
-    _distributed_system: Optional[DistributedProcessingSystem] = None
     _target_handler: Optional[BaseFrameHandler] = None  # Initial handler for the target file
 
     # Client-server
@@ -109,9 +107,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         """
         self.parameters = parameters
         super().__init__(parameters)
-
-        # Initialize distributed processing system
-        self._distributed_system = DistributedProcessingSystem(self.parameters)
 
         # Initialize processor client
         self.ProcessingClient = FrameProcessingClient(
@@ -383,10 +378,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
             if self.TimeLine:
                 self.TimeLine.stop()
-
-            # Shutdown distributed system if enabled
-            if shutdown and self._distributed_system:
-                self._distributed_system.shutdown()
 
             if wait:
                 time.sleep(1)  # Allow time for threads to stop
