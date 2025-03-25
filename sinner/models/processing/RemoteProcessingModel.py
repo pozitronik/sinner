@@ -118,7 +118,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             )
         )
 
-        if self._source_path and self._target_path:
+        if self._source_path:
             self.ProcessingClient.source_path = self._source_path
         if self._target_path:
             self.ProcessingClient.target_path = self._target_path
