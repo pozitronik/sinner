@@ -74,7 +74,7 @@ def resize_proportionally(frame: Frame, new_shape: tuple[int, int]) -> Frame:
 
 
 def to_b64(frame: Frame) -> str:
-    return base64.b64encode(frame).decode()
+    return base64.b64encode(frame).decode()  # type: ignore[arg-type]
 
 
 def from_b64(base64_str: str, dtype: single = uint8, shape: Optional[SupportsIndex] = None) -> Frame:
