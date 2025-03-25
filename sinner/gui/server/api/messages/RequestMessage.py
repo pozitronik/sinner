@@ -15,7 +15,8 @@ REQ_POSITION = "REQ_POSITION"
 SET_POSITION = "SET_POSITION"
 START_PROCESSING = "START_PROCESSING"
 STOP_PROCESSING = "STOP_PROCESSING"
-REQ_FRAME = "REQ_FRAME"  # запрос на генерацию кадра
+REQ_FRAME_PROCESSED = "REQ_FRAME_PROCESSED"  # запрос на генерацию кадра
+REQ_FRAME = "REQ_FRAME"  # запрос на получение бинарного необработанного кадра
 REQ_METADATA = "REQ_METADATA"  # запрос метаданных цели
 SET_SOURCE_FILE = "SET_SOURCE_FILE"  # Передача бинарного файла в источник
 SET_TARGET_FILE = "SET_TARGET_FILE"  # Передача бинарного файла в цель
@@ -42,6 +43,7 @@ class RequestMessage(BaseMessage):
     SET_POSITION: ClassVar[str] = SET_POSITION
     START_PROCESSING: ClassVar[str] = START_PROCESSING
     STOP_PROCESSING: ClassVar[str] = STOP_PROCESSING
+    REQ_FRAME_PROCESSED: ClassVar[str] = REQ_FRAME_PROCESSED
     REQ_FRAME: ClassVar[str] = REQ_FRAME
     REQ_METADATA: ClassVar[str] = REQ_METADATA
     SET_SOURCE_FILE: ClassVar[str] = SET_SOURCE_FILE
