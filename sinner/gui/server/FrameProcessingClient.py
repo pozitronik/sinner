@@ -3,7 +3,9 @@ from typing import Optional
 from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
 from sinner.gui.server.api.messages.RequestMessage import RequestMessage
 from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
+from sinner.helpers.FrameHelper import from_b64
 from sinner.models.MediaMetaData import MediaMetaData
+from sinner.models.NumberedFrame import NumberedFrame
 
 
 class FrameProcessingClient:
@@ -52,13 +54,27 @@ class FrameProcessingClient:
     def rewind(self, value: int) -> None:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_POSITION, position=value))
 
-    def await_frame(self, value: int) -> bool:
+    def get_processed_frame(self, value: int) -> bool:
         """
-        Send frame request to the server and wait until it's done
+        Send frame generation request to the server and wait until it's done.
         :param value:
         :return: bool Frame ready status
         """
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_FRAME, position=value)).is_ok()
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_FRAME_PROCESSED, position=value)).is_ok()
+
+    def get_frame(self, value: int) -> Optional[NumberedFrame]:
+        """
+        Send initial frame request to the server and wait until it's done
+        Assumed it is some kind of fallback mode
+        :param value:
+        :return: Optional[NumberedFrame] The requested unprocessed frame
+        """
+        response = self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_FRAME, position=value))
+        if response.is_ok():
+            frame = from_b64(response.frame, shape=response.shape)
+            return NumberedFrame(index=value, frame=frame)
+        else:
+            return None
 
     def start(self, start_frame: int) -> None:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.START_PROCESSING, position=start_frame))

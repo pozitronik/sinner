@@ -88,7 +88,7 @@ class ZMQServerAPI:
                     response = self._handle_request(message)
                 elif len(message_parts) == 2:
                     # Бинарное сообщение
-                    message = BinaryDataMessage.deserialize(message_parts[0])
+                    message = RequestMessage.deserialize(message_parts[0])
                     self._logger.info(f"Received binary message: {message_parts[0]}")
                     response = self._handle_request(message, message_parts[1])
                 else:

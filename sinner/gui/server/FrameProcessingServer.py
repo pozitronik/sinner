@@ -16,7 +16,7 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.handlers.frame.NoneHandler import NoneHandler
-from sinner.helpers.FrameHelper import scale
+from sinner.helpers.FrameHelper import scale, to_b64
 from sinner.models.Event import Event
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.FrameTimeLine import FrameTimeLine
@@ -193,7 +193,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.START_PROCESSING:
                 self.stop()
                 return ResponseMessage.ok_response(message="Stopped")
-            case request.REQ_FRAME:  # process a frame immediately
+            case request.REQ_FRAME_PROCESSED:  # process a frame immediately
                 self._process_frame(request.get("position"))
                 return ResponseMessage.ok_response(message="Processed")
             case request.REQ_METADATA:  # return the target metadata
@@ -204,13 +204,16 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                     frames_count=self.frame_handler.fc
                 ).to_dict())
                 return response
-            case request.SET_SOURCE_FILE:
+            case request.REQ_FRAME:
+                frame = self.frame_handler.extract_frame(request.get("position"))
+                return ResponseMessage.ok_response(frame=to_b64(frame.frame), shape=frame.frame.shape)
+            case request.SET_SOURCE_FILE:  # todo: check
                 filename = os.path.join(self.temp_dir, "incoming", "source", request.get("filename"))
                 with open(filename, "wb") as f:
                     f.write(payload)
                 self.source_path = filename
                 return ResponseMessage.ok_response(message="Source file set", filename=self.source_path)
-            case request.SET_TARGET_FILE:
+            case request.SET_TARGET_FILE:  # todo: check
                 filename = os.path.join(self.temp_dir, "incoming", "target", request.get("filename"))
                 with open(filename, "wb") as f:
                     f.write(payload)

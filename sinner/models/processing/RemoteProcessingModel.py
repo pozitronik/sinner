@@ -292,12 +292,14 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         Parameters:
         processed (bool): If True, shows processed frame, otherwise shows original frame
         """
+        if processed is None:  # prevents requesting to process without target
+            processed = self._source_path and self._target_path  # todo: проверить и отладить поведение, в случае, если у сервера нет source/target
+
         frame_number = self.position.get()
 
         if not processed:  # base frame requested
-            try:  # todo: добавить механизм получения целого кадра от сервера
-                preview_frame = None
-                self.update_status("Not implemented")
+            try:
+                preview_frame = self.ProcessingClient.get_frame(frame_number)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 preview_frame = None
@@ -305,7 +307,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             # Check if frame is already in timeline
             if not self.TimeLine.has_index(frame_number):
                 # If not, check if it's processed on the server
-                if self.ProcessingClient.await_frame(frame_number):
+                if self.ProcessingClient.get_processed_frame(frame_number):
                     self.TimeLine.add_frame_index(frame_number)
                 else:
                     self.update_status(message=f"Error awaiting frame {frame_number} from the server", mood=Mood.BAD)
