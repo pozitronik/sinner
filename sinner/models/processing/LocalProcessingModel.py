@@ -258,7 +258,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         frame_number = self.position.get()
         if not processed:  # base frame requested
             try:
-                preview_frame = self.get_frame_handler().extract_frame(frame_number)
+                preview_frame = self.frame_handler.extract_frame(frame_number)
             except Exception as exception:
                 self.update_status(message=str(exception), mood=Mood.BAD)
                 preview_frame = None
@@ -282,9 +282,9 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def metadata(self) -> MediaMetaData:
         if self.MetaData is None:
             self.MetaData = MediaMetaData(
-                resolution=self.get_frame_handler().resolution,
-                fps=self.get_frame_handler().fps,
-                frames_count=self.get_frame_handler().fc
+                resolution=self.frame_handler.resolution,
+                fps=self.frame_handler.fps,
+                frames_count=self.frame_handler.fc
             )
         return self.MetaData
 
@@ -426,7 +426,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         :return: the [render time, frame index], or None on error
         """
         try:
-            n_frame = self.get_frame_handler().extract_frame(frame_index)
+            n_frame = self.frame_handler.extract_frame(frame_index)
         except EOutOfRange:
             self.update_status(f"There's no frame {frame_index}")
             return None
@@ -478,7 +478,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             elif self._prepare_frames is True:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
-                frame_extractor.process(self.get_frame_handler(), state)  # todo: return the GUI progressbar
+                frame_extractor.process(self.frame_handler, state)  # todo: return the GUI progressbar
                 frame_extractor.release_resources()
             if state_is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.metadata.fps, self.metadata.frames_count, self.metadata.resolution)
@@ -493,7 +493,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         mem_vms = get_mem_usage('vms')
         return '{:.2f}'.format(mem_rss).zfill(5) + '/' + '{:.2f}'.format(mem_vms).zfill(5) + ' MB'
 
-    def get_frame_handler(self) -> BaseFrameHandler:
+    @property
+    def frame_handler(self) -> BaseFrameHandler:
         if self._target_handler is None:
             if self.target_path is None:
                 self._target_handler = NoneHandler('', self.parameters)
