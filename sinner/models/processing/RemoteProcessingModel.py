@@ -293,7 +293,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         processed (bool): If True, shows processed frame, otherwise shows original frame
         """
         if processed is None:  # prevents requesting to process without target
-            processed = self._source_path and self._target_path  # todo: проверить и отладить поведение, в случае, если у сервера нет source/target
+            processed = (self._source_path and self._target_path) is not None  # todo: проверить и отладить поведение, в случае, если у сервера нет source/target
 
         frame_number = self.position.get()
 
