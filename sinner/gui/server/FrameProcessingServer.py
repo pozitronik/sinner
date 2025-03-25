@@ -209,13 +209,13 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 with open(filename, "wb") as f:
                     f.write(payload)
                 self.source_path = filename
-                return ResponseMessage.ok_response(message=f"Source file set", filename=self.source_path)
+                return ResponseMessage.ok_response(message="Source file set", filename=self.source_path)
             case request.SET_TARGET_FILE:
                 filename = os.path.join(self.temp_dir, "incoming", "target", request.get("filename"))
                 with open(filename, "wb") as f:
                     f.write(payload)
                 self.target_path = filename
-                return ResponseMessage.ok_response(message=f"Target file set", filename=self.source_path)
+                return ResponseMessage.ok_response(message="Target file set", filename=self.source_path)
             case _:
                 return ResponseMessage.error_response(message=f"Not implemented: {request.request}")
 
