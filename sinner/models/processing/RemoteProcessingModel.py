@@ -305,7 +305,10 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             # Check if frame is already in timeline
             if not self.TimeLine.has_index(frame_number):
                 # If not, check if it's processed on the server
-                self.ProcessingClient.await_frame(frame_number)  # todo: implement wait until frame ready
+                if self.ProcessingClient.await_frame(frame_number):
+                    self.TimeLine.add_frame_index(frame_number)
+                else:
+                    self.update_status(message=f"Error awaiting frame {frame_number} from the server", mood=Mood.BAD)
             # Try to get the frame from timeline
             preview_frame = self.TimeLine.get_frame_by_index(frame_number)
 

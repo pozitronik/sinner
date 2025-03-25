@@ -52,13 +52,13 @@ class FrameProcessingClient:
     def rewind(self, value: int) -> None:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_POSITION, position=value))
 
-    def await_frame(self, value: int) -> None:
+    def await_frame(self, value: int) -> bool:
         """
         Send frame request to the server and wait until it's done
         :param value:
-        :return:
+        :return: bool Frame ready status
         """
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_FRAME, position=value))
+        return self._APIClient.send_request(RequestMessage.create(RequestMessage.REQ_FRAME, position=value)).is_ok()
 
     def start(self, start_frame: int) -> None:
         self._APIClient.send_request(RequestMessage.create(RequestMessage.START_PROCESSING, position=start_frame))
