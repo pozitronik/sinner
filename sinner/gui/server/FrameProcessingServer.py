@@ -201,12 +201,16 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 frame = self.frame_handler.extract_frame(request.get("position"))
                 return ResponseMessage.ok_response(frame=to_b64(frame.frame), shape=frame.frame.shape)
             case request.SET_SOURCE_FILE:  # todo: check
+                if payload is None:
+                    return ResponseMessage.error_response(message="Empty payload")
                 filename = os.path.join(self.temp_dir, "incoming", "source", request.get("filename"))
                 with open(filename, "wb") as f:
                     f.write(payload)
                 self.source_path = filename
                 return ResponseMessage.ok_response(message="Source file set", filename=self.source_path)
             case request.SET_TARGET_FILE:  # todo: check
+                if payload is None:
+                    return ResponseMessage.error_response(message="Empty payload")
                 filename = os.path.join(self.temp_dir, "incoming", "target", request.get("filename"))
                 with open(filename, "wb") as f:
                     f.write(payload)
