@@ -32,7 +32,7 @@ MODE_DISTRIBUTED = "distributed"
 class GUIForm(AttributeLoader):
     # class attributes
     parameters: Namespace
-    GUIModel: ProcessingModelInterface
+    ProcessingModel: ProcessingModelInterface
     StatusBar: StatusBar
     # SourcesLibraryWnd: SourcesLibraryForm
     SourcesLibrary: SourcesThumbnailWidget
@@ -144,16 +144,16 @@ class GUIForm(AttributeLoader):
         self._event_player_window_closed = SinnerEvent(on_set_callback=lambda: _window_close_handler())
 
         def _window_close_handler() -> None:
-            self.GUIModel.player_stop(wait=True)
+            self.ProcessingModel.player_stop(wait=True)
             halt()
 
         self.NavigationFrame: Frame = Frame(self.GUIWindow)  # it is a frame for navigation control and progressbar
         self.StatusBar = StatusBar(self.GUIWindow, borderwidth=1, relief=RIDGE, items={"Target resolution": "", "Render size": ""})
 
         if self.processing_mode == MODE_STANDALONE:
-            self.GUIModel = LocalProcessingModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+            self.ProcessingModel = LocalProcessingModel(parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
         elif self.processing_mode == MODE_DISTRIBUTED:
-            self.GUIModel = RemoteProcessingModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+            self.ProcessingModel = RemoteProcessingModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
         else:
             raise Exception(f"Unknown mode: {self.processing_mode}")
 
@@ -168,8 +168,8 @@ class GUIForm(AttributeLoader):
 
         # noinspection PyUnusedLocal
         def _window_on_focus_handler(event: Event) -> None:  # type: ignore[type-arg]
-            if self.GUIModel:
-                self.GUIModel.Player.bring_to_front()
+            if self.ProcessingModel:
+                self.ProcessingModel.Player.bring_to_front()
 
         self.GUIWindow.resizable(width=True, height=True)
         self.GUIWindow.bind("<KeyRelease>", lambda event: _window_key_release_handler(event))
@@ -178,15 +178,15 @@ class GUIForm(AttributeLoader):
             """Define hotkeys here"""
             if event.keycode == 37:  # left arrow
                 self.NavigateSlider.position = max(1, self.NavigateSlider.position - self.NavigateSlider.to // 100)
-                self.GUIModel.rewind(self.NavigateSlider.position)
+                self.ProcessingModel.rewind(self.NavigateSlider.position)
             if event.keycode == 39:  # right arrow
-                self.GUIModel.rewind(self.NavigateSlider.position)
+                self.ProcessingModel.rewind(self.NavigateSlider.position)
                 self.NavigateSlider.position = min(self.NavigateSlider.to, self.NavigateSlider.position + self.NavigateSlider.to // 100)
             if event.keycode == 32:  # space bar
                 _run_button_command()
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.GUIModel.position, command=lambda position: self.GUIModel.rewind(int(position)), progress=self.show_progress)
+        self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.ProcessingModel.position, command=lambda position: self.ProcessingModel.rewind(int(position)), progress=self.show_progress)
 
         # Controls frame and contents
         self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors
@@ -196,11 +196,11 @@ class GUIForm(AttributeLoader):
         self.RunButton: Button = Button(self.ButtonsFrame, text="PLAY", width=10, command=lambda: _run_button_command())
 
         def _run_button_command() -> None:
-            if self.GUIModel.player_is_started:
-                self.GUIModel.player_stop()
+            if self.ProcessingModel.player_is_started:
+                self.ProcessingModel.player_stop()
                 self.RunButton.configure(text="PLAY")
             else:
-                self.GUIModel.player_start(start_frame=self.NavigateSlider.position)
+                self.ProcessingModel.player_start(start_frame=self.NavigateSlider.position)
                 self.RunButton.configure(text="STOP")
 
         self.ControlsFrame = Frame(self.BaseFrame)
@@ -211,14 +211,14 @@ class GUIForm(AttributeLoader):
 
         self.QualityScaleSpinbox: Spinbox = Spinbox(self.SubControlsFrame, from_=1, to=100, increment=1, command=lambda: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
         self.QualityScaleSpinbox.bind('<KeyRelease>', lambda event: self.on_quality_scale_change(int(self.QualityScaleSpinbox.get())))
-        self.QualityScaleSpinbox.set(self.GUIModel.quality)
+        self.QualityScaleSpinbox.set(self.ProcessingModel.quality)
 
         # Empty space to divide controls
         self.EmptyDivisor: Label = Label(self.SubControlsFrame)
 
         # Volume slider
         self.VolumeLabel: Label = Label(self.SubControlsFrame, text="Vol:")
-        self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.GUIModel.volume, command=lambda position: self.GUIModel.set_volume(int(position)))
+        self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.ProcessingModel.volume, command=lambda position: self.ProcessingModel.set_volume(int(position)))
 
         # Source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
@@ -248,12 +248,12 @@ class GUIForm(AttributeLoader):
         self.OperationsSubMenu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.OperationsSubMenu, label='Frame')  # type: ignore[no-untyped-call]  # it is a library method
         self.OperationsSubMenu.add(COMMAND, label='Save as png', command=lambda: _save_current_frame_command())  # type: ignore[no-untyped-call]  # it is a library method
-        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.GUIModel.update_preview(True))  # type: ignore[no-untyped-call]  # it is a library method
+        self.OperationsSubMenu.add(COMMAND, label='Reprocess', command=lambda: self.ProcessingModel.update_preview(True))  # type: ignore[no-untyped-call]  # it is a library method
 
         def _save_current_frame_command() -> None:
             save_file = filedialog.asksaveasfilename(title='Save frame', defaultextension='png')
             if save_file != '':
-                self.GUIModel.Player.save_to_file(save_file)
+                self.ProcessingModel.Player.save_to_file(save_file)
 
         self.RotateModeVar: StringVar = StringVar(value="0°")
 
@@ -265,34 +265,34 @@ class GUIForm(AttributeLoader):
         self.RotateSubMenu.add(RADIOBUTTON, variable=self.RotateModeVar, label="270°", command=lambda: _set_rotate_mode_command(ROTATE_90_COUNTERCLOCKWISE))  # type: ignore[no-untyped-call]  # it is a library method
 
         def _set_rotate_mode_command(mode: int | None) -> None:
-            self.GUIModel.Player.rotate = mode
+            self.ProcessingModel.Player.rotate = mode
 
-        self.SoundEnabledVar: BooleanVar = BooleanVar(value=self.GUIModel.enable_sound())
+        self.SoundEnabledVar: BooleanVar = BooleanVar(value=self.ProcessingModel.enable_sound())
 
         self.SoundSubMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.SoundSubMenu, label='Sound')  # type: ignore[no-untyped-call]  # it is a library method
-        self.SoundSubMenu.add(CHECKBUTTON, variable=self.SoundEnabledVar, label='Enable sound', command=lambda: self.GUIModel.enable_sound(self.SoundEnabledVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
+        self.SoundSubMenu.add(CHECKBUTTON, variable=self.SoundEnabledVar, label='Enable sound', command=lambda: self.ProcessingModel.enable_sound(self.SoundEnabledVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(COMMAND, label='Volume up', command=lambda: _increase_volume_command())  # type: ignore[no-untyped-call]  # it is a library method
         self.SoundSubMenu.add(COMMAND, label='Volume down', command=lambda: _decrease_volume_command())  # type: ignore[no-untyped-call]  # it is a library method
 
         def _increase_volume_command() -> None:
-            if self.GUIModel.volume.get() < 100:
-                self.GUIModel.volume.set(self.GUIModel.volume.get() + 1)
+            if self.ProcessingModel.volume.get() < 100:
+                self.ProcessingModel.volume.set(self.ProcessingModel.volume.get() + 1)
 
         def _decrease_volume_command() -> None:
-            if self.GUIModel.volume.get() > 0:
-                self.GUIModel.volume.set(self.GUIModel.volume.get() - 1)
+            if self.ProcessingModel.volume.get() > 0:
+                self.ProcessingModel.volume.set(self.ProcessingModel.volume.get() - 1)
 
         self.SoundSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
-        self.AudioBackendVar: StringVar = StringVar(value=self.GUIModel.audio_backend)
+        self.AudioBackendVar: StringVar = StringVar(value=self.ProcessingModel.audio_backend)
 
         self.AudioBackendSelectionMenu: Menu = Menu(self.SoundSubMenu, tearoff=False)
         for available_backend in BaseAudioBackend.list():
             self.AudioBackendSelectionMenu.add(RADIOBUTTON, variable=self.AudioBackendVar, label=available_backend, command=lambda: _switch_audio_backend_command(available_backend))  # type: ignore[no-untyped-call]  # it is a library method
 
         def _switch_audio_backend_command(backend: str) -> None:
-            self.GUIModel.audio_backend = backend
+            self.ProcessingModel.audio_backend = backend
 
         self.SoundSubMenu.add(CASCADE, menu=self.AudioBackendSelectionMenu, label='Audio backend')  # type: ignore[no-untyped-call]  # it is a library method
 
@@ -327,7 +327,7 @@ class GUIForm(AttributeLoader):
         self.NavigateSlider.pack(anchor=NW, side=LEFT, expand=True, fill=BOTH)
         self.update_slider_bounds()
 
-        self.GUIModel.progress_control = self.NavigateSlider.progress
+        self.ProcessingModel.progress_control = self.NavigateSlider.progress
 
         self.RunButton.pack(side=TOP, fill=BOTH, expand=True)
         self.ButtonsFrame.pack(anchor=CENTER, expand=False, side=LEFT, fill=BOTH)
@@ -368,18 +368,18 @@ class GUIForm(AttributeLoader):
     def set_topmost(self, on_top: bool = True) -> None:
         """Set window to stay on top."""
         self.GUIWindow.wm_attributes("-topmost", on_top)
-        self.GUIModel.Player.set_topmost(on_top)
+        self.ProcessingModel.Player.set_topmost(on_top)
 
     def show(self) -> CTk:
         """Show the GUI window and initialize components."""
         self.draw_controls()
-        self.SourcePathEntry.set_text(self.GUIModel.source_path)
-        self.TargetPathEntry.set_text(self.GUIModel.target_path)
-        self.StatusBar.item('Target resolution', str(self.GUIModel.metadata))
-        self.GUIModel.update_preview()
+        self.SourcePathEntry.set_text(self.ProcessingModel.source_path)
+        self.TargetPathEntry.set_text(self.ProcessingModel.target_path)
+        self.StatusBar.item('Target resolution', str(self.ProcessingModel.metadata))
+        self.ProcessingModel.update_preview()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
-        self.GUIModel.Player.bring_to_front()
-        self.GUIModel.Player.set_topmost(self.topmost)
+        self.ProcessingModel.Player.bring_to_front()
+        self.ProcessingModel.Player.set_topmost(self.topmost)
         if self.geometry:
             self.load_geometry()
         if self.state:
@@ -404,7 +404,7 @@ class GUIForm(AttributeLoader):
     # Source and target handling
     def change_source(self) -> bool:
         """Change source file through file dialog."""
-        selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.GUIModel.source_dir)
+        selected_file = self.SelectSourceDialog.askopenfilename(title='Select a source', initialdir=self.ProcessingModel.source_dir)
         if selected_file != '':
             self._set_source(selected_file)
             return True
@@ -412,12 +412,12 @@ class GUIForm(AttributeLoader):
 
     def _set_source(self, filename: str) -> None:
         """Set source file path."""
-        self.GUIModel.source_path = filename
+        self.ProcessingModel.source_path = filename
         self.SourcePathEntry.set_text(filename)
 
     def change_target(self) -> bool:
         """Change target file through file dialog."""
-        selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.GUIModel.target_dir)
+        selected_file = self.SelectTargetDialog.askopenfilename(title='Select a target', initialdir=self.ProcessingModel.target_dir)
         if selected_file != '':
             self._set_target(selected_file)
             return True
@@ -426,15 +426,15 @@ class GUIForm(AttributeLoader):
     def _set_target(self, filename: str) -> None:
         """Set target file path."""
         self.NavigateSlider.position = 1
-        self.GUIModel.target_path = filename
+        self.ProcessingModel.target_path = filename
         self.update_slider_bounds()
         self.TargetPathEntry.set_text(filename)
-        self.on_quality_scale_change(self.GUIModel.quality)
-        self.StatusBar.item('Target resolution', str(self.GUIModel.metadata))
+        self.on_quality_scale_change(self.ProcessingModel.quality)
+        self.StatusBar.item('Target resolution', str(self.ProcessingModel.metadata))
 
     def update_slider_bounds(self) -> None:
         """Update navigation slider bounds based on frame count."""
-        self.NavigateSlider.to = self.GUIModel.metadata.frames_count
+        self.NavigateSlider.to = self.ProcessingModel.metadata.frames_count
         self.NavigateSlider.position = 1
         if self.NavigateSlider.to > 1:
             self.NavigateSlider.enable()
@@ -447,10 +447,10 @@ class GUIForm(AttributeLoader):
             frame_value = self.QualityScaleSpinbox.cget('to')
         if frame_value < self.QualityScaleSpinbox.cget('from'):
             frame_value = self.QualityScaleSpinbox.cget('from')
-        self.GUIModel.quality = frame_value
-        if self.GUIModel.metadata.resolution:
+        self.ProcessingModel.quality = frame_value
+        if self.ProcessingModel.metadata.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
-            self.StatusBar.item('Render size', f"{self.GUIModel.quality}% ({int(self.GUIModel.metadata.resolution[0] * self.GUIModel.quality / 100)}x{int(self.GUIModel.metadata.resolution[1] * self.GUIModel.quality / 100)})")
+            self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({int(self.ProcessingModel.metadata.resolution[0] * self.ProcessingModel.quality / 100)}x{int(self.ProcessingModel.metadata.resolution[1] * self.ProcessingModel.quality / 100)})")
 
     def source_library_add(self, paths: List[str], reload: bool = False) -> None:
         """
@@ -473,7 +473,7 @@ class GUIForm(AttributeLoader):
         file_paths = filedialog.askopenfilenames(
             title="Select files to add to sources",
             filetypes=[('Image files', image_extensions), ('All files', '*.*')],
-            initialdir=self.GUIModel.source_dir
+            initialdir=self.ProcessingModel.source_dir
         )
         if file_paths:
             self.source_library_add(paths=list(file_paths))
@@ -481,7 +481,7 @@ class GUIForm(AttributeLoader):
     def add_source_folder(self) -> None:
         directory = filedialog.askdirectory(
             title="Select a directory to add sources",
-            initialdir=self.GUIModel.source_dir
+            initialdir=self.ProcessingModel.source_dir
         )
         if directory:
             self.source_library_add(paths=[directory])
@@ -509,7 +509,7 @@ class GUIForm(AttributeLoader):
         file_paths = filedialog.askopenfilenames(
             title="Select files to add to targets",
             filetypes=[('All files', '*.*')],
-            initialdir=self.GUIModel.target_dir
+            initialdir=self.ProcessingModel.target_dir
         )
         if file_paths:
             self.target_library_add(paths=list(file_paths))
@@ -517,7 +517,7 @@ class GUIForm(AttributeLoader):
     def add_target_folder(self) -> None:
         directory = filedialog.askdirectory(
             title="Select a directory to add targets",
-            initialdir=self.GUIModel.target_dir
+            initialdir=self.ProcessingModel.target_dir
         )
         if directory:
             self.target_library_add(paths=[directory])
