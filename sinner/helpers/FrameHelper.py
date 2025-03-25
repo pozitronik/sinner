@@ -1,9 +1,11 @@
 # helper methods to work with frames entity
+import base64
 import os.path
 from pathlib import Path
+from typing import SupportsIndex, Optional
 
 import cv2
-from numpy import fromfile, uint8, full, dstack
+from numpy import fromfile, uint8, full, dstack, single, frombuffer
 from psutil import WINDOWS
 
 from sinner.typing import Frame
@@ -69,3 +71,32 @@ def resize_proportionally(frame: Frame, new_shape: tuple[int, int]) -> Frame:
         new_width = 1
     # note: cv2.resize uses WIDTH, HEIGHT order, instead of frames HEIGHT, WIDTH order
     return cv2.resize(frame, (new_width, new_height))
+
+
+def to_b64(frame: Frame) -> str:
+    return base64.b64encode(frame).decode()
+
+
+def from_b64(base64_str: str, dtype: single = uint8, shape: Optional[SupportsIndex] = None) -> Frame:
+    """
+    Преобразует base64-закодированные данные в numpy массив с заданным типом и формой
+
+    Args:
+        base64_str: Строка в формате base64
+        dtype: Тип данных numpy (np.float32, np.uint8 и т.д.)
+        shape: Форма массива для reshape (например, (height, width, channels) для изображения)
+
+    Returns:
+        numpy.ndarray: Массив с данными
+    """
+    # Декодируем base64 в бинарные данные
+    binary_data = base64.b64decode(base64_str)
+
+    # Преобразуем в одномерный массив
+    arr = frombuffer(binary_data, dtype=dtype)
+
+    # Если указана форма, изменяем размерность массива
+    if shape is not None:
+        arr = arr.reshape(shape)
+
+    return arr
