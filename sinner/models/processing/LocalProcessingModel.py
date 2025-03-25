@@ -43,8 +43,6 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     _target_handler: Optional[BaseFrameHandler] = None  # the initial handler of the target file
 
     # player counters
-    _framedrop: int = -1  # the manual value of dropped frames
-
     _processing_fps: float = 1
 
     # internal variables

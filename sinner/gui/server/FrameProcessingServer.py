@@ -4,7 +4,7 @@ import time
 from argparse import Namespace
 from concurrent.futures import Future
 from concurrent.futures.thread import ThreadPoolExecutor
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
 from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage, NTF_FRAME
@@ -18,7 +18,6 @@ from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.helpers.FrameHelper import scale, to_b64
 from sinner.models.Event import Event
-from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.MovingAverage import MovingAverage
@@ -47,24 +46,18 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     TimeLine: FrameTimeLine
     _processors: Dict[str, BaseFrameProcessor]
     _target_handler: Optional[BaseFrameHandler] = None
-    _buffer: Optional[FrameDirectoryBuffer] = None
     _is_target_frames_extracted: bool = False
     _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
     _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
     _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
 
     # processing state
-    _processing: Set[int] = set()  # frames currently in processing
-    _processed: Set[int] = set()  # frames that have been processed
     _source_path: str
     _target_path: str
     _position: int = 0  # player frame position
 
     # metrics
     _processing_fps: float = 1.0
-    _processing_delta: int = 0
-    _last_requested_index: int = 0
-    _last_added_index: int = 0
 
     # threading
     _process_frames_thread: Optional[threading.Thread] = None
