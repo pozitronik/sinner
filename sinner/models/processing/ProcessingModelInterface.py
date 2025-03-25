@@ -73,7 +73,7 @@ class ProcessingModelInterface(ABC):
         pass
 
     @abstractmethod
-    def update_preview(self, processed: bool = True) -> None:
+    def update_preview(self, processed: Optional[bool] = None) -> None:
         """
         Update the preview image.
 

@@ -285,7 +285,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         """Check if playback is active."""
         return self._event_playback.is_set()
 
-    def update_preview(self, processed: bool = True) -> None:
+    def update_preview(self, processed: Optional[bool] = None) -> None:
         """
         Update the preview image.
 

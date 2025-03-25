@@ -252,7 +252,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def is_processors_loaded(self) -> bool:
         return self._processors != {}
 
-    def update_preview(self, processed: bool | None = None) -> None:
+    def update_preview(self, processed: Optional[bool] = None) -> None:
         if processed is None:
             processed = self.is_processors_loaded
         frame_number = self.position.get()
