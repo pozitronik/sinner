@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from argparse import Namespace
@@ -169,7 +170,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
         return self._target_handler
 
-    def _handle_request(self, request: RequestMessage) -> ResponseMessage:
+    def _handle_request(self, request: RequestMessage, payload: Optional[bytes] = None) -> ResponseMessage:
         """Handle client request and return response."""
         match request.request:
             case request.REQ_STATUS:
@@ -203,6 +204,18 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                     frames_count=self.frame_handler.fc
                 ).to_dict())
                 return response
+            case request.SET_SOURCE_FILE:
+                filename = os.path.join(self.temp_dir, "incoming", "source", request.get("filename"))
+                with open(filename, "wb") as f:
+                    f.write(payload)
+                self.source_path = filename
+                return ResponseMessage.ok_response(message=f"Source file set", filename=self.source_path)
+            case request.SET_TARGET_FILE:
+                filename = os.path.join(self.temp_dir, "incoming", "target", request.get("filename"))
+                with open(filename, "wb") as f:
+                    f.write(payload)
+                self.target_path = filename
+                return ResponseMessage.ok_response(message=f"Target file set", filename=self.source_path)
             case _:
                 return ResponseMessage.error_response(message=f"Not implemented: {request.request}")
 

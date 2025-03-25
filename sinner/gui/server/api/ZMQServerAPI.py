@@ -7,6 +7,7 @@ import zmq.asyncio
 from zmq import ZMQError
 from zmq.asyncio import Socket as AsyncSocket
 
+from sinner.gui.server.api.messages.BinaryDataMessage import BinaryDataMessage
 from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
 from sinner.gui.server.api.messages.RequestMessage import RequestMessage
 from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
@@ -23,9 +24,9 @@ class ZMQServerAPI:
 
     _logger: logging.Logger
     _server_running: bool = False
-    _request_handler: Optional[Callable[[RequestMessage], ResponseMessage]] = None  # external method to handle incoming messages
+    _request_handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None  # external method to handle incoming messages
 
-    def __init__(self, handler: Optional[Callable[[RequestMessage], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 1000):
+    def __init__(self, handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 1000):
         if platform.system().lower() == 'windows':
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -77,13 +78,23 @@ class ZMQServerAPI:
         """Async message handler that responds to requests."""
         while self._server_running:
             try:
-                # Асинхронно ждем сообщения - НЕ блокирует поток!
-                message_data = await self._reply_socket.recv()
-                message = RequestMessage.deserialize(message_data)
+                # Всегда получаем multipart сообщения
+                message_parts = await self._reply_socket.recv_multipart()  # Асинхронно ждем сообщения - НЕ блокирует поток!
 
-                self._logger.info(f"Received message: {message_data}")
-                response = self._handle_request(message)
-
+                # Определяем тип сообщения по количеству частей
+                if len(message_parts) == 1:
+                    # Обычное сообщение
+                    message = RequestMessage.deserialize(message_parts[0])
+                    self._logger.info(f"Received message: {message_parts[0]}")
+                    response = self._handle_request(message)
+                elif len(message_parts) == 2:
+                    # Бинарное сообщение
+                    message = BinaryDataMessage.deserialize(message_parts[0])
+                    self._logger.info(f"Received binary message: {message_parts[0]}")
+                    response = self._handle_request(message, message_parts[1])
+                else:
+                    # Неизвестный формат
+                    response = ResponseMessage.error_response(message="Invalid message format")
                 # Асинхронно отправляем ответ
                 await self._reply_socket.send(response.serialize())
             except zmq.ZMQError as e:
@@ -103,8 +114,8 @@ class ZMQServerAPI:
         except Exception as e:
             self._logger.error(f"Failed to send notification: {e}")
 
-    def _handle_request(self, message: RequestMessage) -> ResponseMessage:
+    def _handle_request(self, message: RequestMessage, payload: Optional[bytes] = None) -> ResponseMessage:
         if self._request_handler is None:
             return ResponseMessage.error_response(message="Handler is not defined")
         else:
-            return self._request_handler(message)
+            return self._request_handler(message, payload)
