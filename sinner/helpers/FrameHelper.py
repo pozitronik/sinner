@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import SupportsIndex, Optional
 
 import cv2
-from numpy import fromfile, uint8, full, dstack, single, frombuffer
+from numpy import fromfile, uint8, full, dstack, frombuffer
+from numpy._typing import DTypeLike
 from psutil import WINDOWS
 
 from sinner.typing import Frame
@@ -77,7 +78,7 @@ def to_b64(frame: Frame) -> str:
     return base64.b64encode(frame).decode()  # type: ignore[arg-type]
 
 
-def from_b64(base64_str: str, dtype: single = uint8, shape: Optional[SupportsIndex] = None) -> Frame:
+def from_b64(base64_str: str, dtype: DTypeLike = uint8, shape: Optional[SupportsIndex] = None) -> Frame:
     """
     Преобразует base64-закодированные данные в numpy массив с заданным типом и формой
 
