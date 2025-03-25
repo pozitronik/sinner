@@ -19,7 +19,6 @@ REQ_FRAME = "REQ_FRAME"  # запрос на генерацию кадра
 REQ_METADATA = "REQ_METADATA"  # запрос метаданных цели
 SET_SOURCE_FILE = "SET_SOURCE_FILE"  # Передача бинарного файла в источник
 SET_TARGET_FILE = "SET_TARGET_FILE"  # Передача бинарного файла в цель
-SET_SOURCE_FRAME = "SET_SOURCE_FRAME "  # Передача бинарного кадра для обработки
 
 T = TypeVar('T', bound='RequestMessage')
 
@@ -47,7 +46,6 @@ class RequestMessage(BaseMessage):
     REQ_METADATA: ClassVar[str] = REQ_METADATA
     SET_SOURCE_FILE: ClassVar[str] = SET_SOURCE_FILE
     SET_TARGET_FILE: ClassVar[str] = SET_TARGET_FILE
-    SET_SOURCE_FRAME: ClassVar[str] = SET_SOURCE_FRAME
 
     def __init__(self, request: str) -> None:
         """
