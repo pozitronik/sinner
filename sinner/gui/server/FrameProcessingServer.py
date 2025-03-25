@@ -40,7 +40,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     temp_dir: str
     execution_threads: int
     bootstrap_processors: bool
-    _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
+    _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
     _scale_quality: float  # the processed frame size scale from 0 to 1
 
     # internal objects
@@ -229,21 +229,21 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             processor.load(self.parameters)
 
     @property
-    def source_path(self) -> str | None:
+    def source_path(self) -> Optional[str]:
         return self._source_path
 
     @source_path.setter
-    def source_path(self, value: str | None) -> None:
+    def source_path(self, value: Optional[str]) -> None:
         self.parameters.source = value
         self.reload_parameters()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.frame_handler.fc)
 
     @property
-    def target_path(self) -> str | None:
+    def target_path(self) -> Optional[str]:
         return self._target_path
 
     @target_path.setter
-    def target_path(self, value: str | None) -> None:
+    def target_path(self, value: Optional[str]) -> None:
         self.parameters.target = value
         self.reload_parameters()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.frame_handler.frame_time, start_frame=1, end_frame=self.frame_handler.fc)
@@ -287,7 +287,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         self._APIHandler.stop()
         self.stop(True)
 
-    def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
+    def _process_frame(self, frame_index: int) -> Optional[tuple[float, int]]:
         """
         Renders a frame with the current processors set
         :param frame_index: the frame index
@@ -356,7 +356,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         :param end_frame:
         """
 
-        def process_done(future_: Future[tuple[float, int] | None]) -> None:
+        def process_done(future_: Future[Optional[tuple[float, int]]]) -> None:
             if not future_.cancelled():
                 result = future_.result()
                 if result:
@@ -372,7 +372,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed
-        futures: list[Future[tuple[float, int] | None]] = []
+        futures: list[Future[Optional[tuple[float, int]]]] = []
         processing_delta: int = 0  # additional lookahead to adjust frames synchronization
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
@@ -383,7 +383,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
 
                 if next_frame not in processing and not self.TimeLine.has_index(next_frame):
                     processing.append(next_frame)
-                    future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
+                    future: Future[Optional[tuple[float, int]]] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
                     if len(futures) >= self.execution_threads:

@@ -37,10 +37,10 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     frame_processor: List[str]
     execution_threads: int
     bootstrap_processors: bool  # bootstrap_processors processors on startup
-    _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as bool | None due to AttributeLoader limitations
+    _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
-    _target_handler: BaseFrameHandler | None = None  # the initial handler of the target file
+    _target_handler: Optional[BaseFrameHandler] = None  # the initial handler of the target file
 
     # player counters
     _framedrop: int = -1  # the manual value of dropped frames
@@ -124,7 +124,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             }
         ]
 
-    def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any], on_close_event: Event | None = None, progress_control: BaseProgressIndicator | None = None):
+    def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any], on_close_event: Optional[Event] = None, progress_control: Optional[BaseProgressIndicator] = None):
         self.parameters = parameters
         super().__init__(parameters)
         self._processors = {}
@@ -152,7 +152,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         for _, processor in self.processors.items():
             processor.load(self.parameters)
 
-    def enable_sound(self, enable: bool | None = None) -> bool:
+    def enable_sound(self, enable: Optional[bool] = None) -> bool:
         if enable is not None:
             self._enable_sound = enable
             if self._enable_sound and not self.AudioPlayer:
@@ -173,11 +173,11 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self.enable_sound(True)
 
     @property
-    def source_path(self) -> str | None:
+    def source_path(self) -> Optional[str]:
         return self._source_path
 
     @source_path.setter
-    def source_path(self, value: str | None) -> None:
+    def source_path(self, value: Optional[str]) -> None:
         self.parameters.source = value
         self.reload_parameters()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=self.TimeLine.last_requested_index, end_frame=self.metadata.frames_count)
@@ -187,11 +187,11 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.update_preview()
 
     @property
-    def target_path(self) -> str | None:
+    def target_path(self) -> Optional[str]:
         return self._target_path
 
     @target_path.setter
-    def target_path(self, value: str | None) -> None:
+    def target_path(self, value: Optional[str]) -> None:
         self.parameters.target = value
         self.reload_parameters()
         self.Player.clear()
@@ -210,11 +210,11 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.update_preview()
 
     @property
-    def source_dir(self) -> str | None:
+    def source_dir(self) -> Optional[str]:
         return normalize_path(os.path.dirname(self._source_path)) if self._source_path else None
 
     @property
-    def target_dir(self) -> str | None:
+    def target_dir(self) -> Optional[str]:
         return normalize_path(os.path.dirname(self._target_path)) if self._target_path else None
 
     @property
@@ -368,7 +368,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         :param end_frame:
         """
 
-        def process_done(future_: Future[tuple[float, int] | None]) -> None:
+        def process_done(future_: Future[Optional[tuple[float, int]]]) -> None:
             if not future_.cancelled():
                 result = future_.result()
                 if result:
@@ -383,7 +383,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed
-        futures: list[Future[tuple[float, int] | None]] = []
+        futures: list[Future[Optional[tuple[float, int]]]] = []
         processing_delta: int = 0  # additional lookahead to adjust frames synchronization
 
         with ThreadPoolExecutor(max_workers=self.execution_threads) as executor:  # this adds processing operations into a queue
@@ -394,7 +394,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
 
                 if next_frame not in processing and not self.TimeLine.has_index(next_frame):
                     processing.append(next_frame)
-                    future: Future[tuple[float, int] | None] = executor.submit(self._process_frame, next_frame)
+                    future: Future[Optional[tuple[float, int]]] = executor.submit(self._process_frame, next_frame)
                     future.add_done_callback(process_done)
                     futures.append(future)
                     self.set_progress_index_value(next_frame, PROCESSING)
@@ -419,7 +419,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                 next_frame += step
                 # self.status.debug(msg=f"NEXT: {next_frame}, STEP: {step}, DELTA: {processing_delta}, LAST: {self.TimeLine.last_added_index}, AVG: {self._average_frame_skip.get_average()} ")
 
-    def _process_frame(self, frame_index: int) -> tuple[float, int] | None:
+    def _process_frame(self, frame_index: int) -> Optional[tuple[float, int]]:
         """
         Renders a frame with the current processors set
         :param frame_index: the frame index
