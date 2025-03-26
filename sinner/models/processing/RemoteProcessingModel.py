@@ -205,8 +205,11 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         """Set the target path and update related components."""
         self.parameters.target = value
         self.reload_parameters()
-
         self.position.set(1)
+
+        # Update target in processor client
+        self.ProcessingClient.target_path = self.target_path
+
         # Clear player and reset timeline
         self.Player.clear()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
@@ -218,8 +221,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             if self.AudioPlayer:
                 self.AudioPlayer.stop()
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
-        # Update target in processor client
-        self.ProcessingClient.target_path = self.target_path
 
         # Update playback state
         if self.player_is_started:
