@@ -138,6 +138,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self.progress_control = progress_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
+        self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
         self._event_processing = Event()
         self._event_playback = Event()
@@ -192,6 +193,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def target_path(self, value: Optional[str]) -> None:
         self.parameters.target = value
         self.reload_parameters()
+        self.position.set(1)
         self.Player.clear()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
         self.progress_control = self.ProgressBar  # to update segments
@@ -201,11 +203,12 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.position.set(1)
-            self.player_start(start_frame=1)
+            self.player_start(start_frame=self.position.get())
         else:
             self._is_target_frames_extracted = False
             self.update_preview()
+            self._status("Time position", seconds_to_hmsms(0))
+            self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
     @property
     def source_dir(self) -> Optional[str]:

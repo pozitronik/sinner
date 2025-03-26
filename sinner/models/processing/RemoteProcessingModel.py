@@ -129,6 +129,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.progress_control = progress_control
         self._status = status_callback
         self._status("Time position", seconds_to_hmsms(0))
+        self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
         # Initialize event flags
         self._event_playback = Event()
@@ -205,6 +206,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self.parameters.target = value
         self.reload_parameters()
 
+        self.position.set(1)
         # Clear player and reset timeline
         self.Player.clear()
         self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
@@ -222,10 +224,11 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         # Update playback state
         if self.player_is_started:
             self.player_stop(reload_frames=True)
-            self.position.set(1)
-            self.player_start(start_frame=1)
+            self.player_start(start_frame=self.position.get())
         else:
             self.update_preview()
+            self._status("Time position", seconds_to_hmsms(0))
+            self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
     @property
     def source_dir(self) -> str | None:
