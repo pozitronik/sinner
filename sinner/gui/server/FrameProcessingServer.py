@@ -93,8 +93,8 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             {
                 'parameter': {'quality', 'scale-quality'},
                 'attribute': '_scale_quality',
-                'default': 1,
-                'help': 'Processing scale quality'
+                'default': 100,
+                'help': 'Initial processing scale quality (in percents)'
             },
             {
                 'parameter': {'prepare-frames'},
@@ -177,6 +177,8 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.SET_QUALITY:
                 self.quality = request.get("quality")
                 return ResponseMessage.ok_response(message="Quality set")
+            case request.REQ_QUALITY:
+                return ResponseMessage.ok_response(message="Quality", value=self.quality)
             case request.SET_POSITION:
                 self.rewind(request.get("position"))
                 return ResponseMessage.ok_response(message="Position set")

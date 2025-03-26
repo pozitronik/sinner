@@ -242,14 +242,14 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         return normalize_path(os.path.dirname(self._target_path)) if self._target_path else None
 
     @property
-    def quality(self) -> int:  # todo
+    def quality(self) -> int:
         """Get the processing quality as a percentage (0-100)."""
-        return self._scale_quality
+        return self.ProcessingClient.quality
 
     @quality.setter
-    def quality(self, value: int) -> None:  # todo
+    def quality(self, value: int) -> None:
         """Set the processing quality from a percentage."""
-        self._scale_quality = value
+        self.ProcessingClient.quality = value
 
     @property
     def position(self) -> IntVar:
