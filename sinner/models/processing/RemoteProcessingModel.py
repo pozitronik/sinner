@@ -10,7 +10,6 @@ from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProg
 from sinner.gui.server.FrameProcessingClient import FrameProcessingClient
 from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
 from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
-from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MediaMetaData import MediaMetaData
@@ -26,11 +25,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     """
     GUI model that uses remote processing.
     """
-
-    # Configuration parameters
-
-    # Internal state
-    _target_handler: Optional[BaseFrameHandler] = None  # Initial handler for the target file
 
     # Client-server
     ProcessingClient: FrameProcessingClient  # Client side
@@ -145,7 +139,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
     def reload_parameters(self) -> None:
         """Reload parameters and update components."""
-        self._target_handler = None
+        self.MetaData = None
         super().__init__(self.parameters)
 
     def enable_sound(self, enable: bool | None = None) -> bool:
