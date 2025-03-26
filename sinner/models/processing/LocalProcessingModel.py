@@ -352,6 +352,9 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def __start_playback(self) -> None:
         if not self._event_playback.is_set():
             self._event_playback.set()
+            if self._show_frames_thread is not None:
+                self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
+                self._show_frames_thread = None
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
@@ -359,8 +362,9 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def __stop_playback(self) -> None:
         if self._event_playback.is_set() and self._show_frames_thread:
             self._event_playback.clear()
-            self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
-            self._show_frames_thread = None
+            if self._show_frames_thread != threading.current_thread():
+                self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
+                self._show_frames_thread = None
 
     def _process_frames(self, next_frame: int, end_frame: int) -> None:
         """
@@ -442,30 +446,33 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def _show_frames(self) -> None:
         last_shown_frame_index: int = -1
         if self.Player:
-            while self._event_playback.is_set():
-                start_time = time.perf_counter()
-                try:
-                    n_frame = self.TimeLine.get_frame()
-                except EOFError:
-                    self._event_playback.clear()
-                    break
-                if n_frame is not None:
-                    if n_frame.index != last_shown_frame_index:  # check if frame is really changed
-                        # self.status.debug(msg=f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
-                        self.Player.show_frame(n_frame.frame)
-                        last_shown_frame_index = n_frame.index
-                        if self.TimeLine.last_returned_index is None:
-                            self._status("Time position", "There are no ready frames")
-                        else:
-                            if not self._event_rewind.is_set():
-                                self.position.set(self.TimeLine.last_returned_index)
-                            if self.TimeLine.last_returned_index:
-                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.metadata.frame_time))
-                                self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
-                loop_time = time.perf_counter() - start_time  # time for the current loop, sec
-                sleep_time = self.metadata.frame_time - loop_time  # time to wait for the next loop, sec
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
+            try:
+                while self._event_playback.is_set():
+                    start_time = time.perf_counter()
+                    try:
+                        n_frame = self.TimeLine.get_frame()
+                    except EOFError:
+                        self.player_stop()
+                        break
+                    if n_frame is not None:
+                        if n_frame.index != last_shown_frame_index:  # check if frame is really changed
+                            # self.status.debug(msg=f"REQ: {self.TimeLine.last_requested_index}, SHOW: {n_frame.index}, ASYNC: {self.TimeLine.last_requested_index - n_frame.index}")
+                            self.Player.show_frame(n_frame.frame)
+                            last_shown_frame_index = n_frame.index
+                            if self.TimeLine.last_returned_index is None:
+                                self._status("Time position", "There are no ready frames")
+                            else:
+                                if not self._event_rewind.is_set():
+                                    self.position.set(self.TimeLine.last_returned_index)
+                                if self.TimeLine.last_returned_index:
+                                    self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.metadata.frame_time))
+                                    self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
+                    loop_time = time.perf_counter() - start_time  # time for the current loop, sec
+                    sleep_time = self.metadata.frame_time - loop_time  # time to wait for the next loop, sec
+                    if sleep_time > 0:
+                        time.sleep(sleep_time)
+            finally:
+                self.player_stop()
 
     def extract_frames(self) -> bool:
         if self._prepare_frames is not False and not self._is_target_frames_extracted:
