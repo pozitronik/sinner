@@ -118,10 +118,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             self.ProcessingClient.target_path = self._target_path
 
         # Set up the timeline and player
-        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
-        if self._source_path and self._target_path:  # to load already existed timeline, if present
-            self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
-
+        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir).load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
         self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner distributed player', on_close_event=on_close_event)
 
         # Initialize audio if enabled
