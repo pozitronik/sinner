@@ -198,9 +198,8 @@ class GUIForm(AttributeLoader):
         def _run_button_command() -> None:
             if self.ProcessingModel.player_is_started:
                 self.ProcessingModel.player_stop()
-                self.RunButton.configure(text="PLAY")
             else:
-                self.ProcessingModel.player_start(start_frame=self.NavigateSlider.position)
+                self.ProcessingModel.player_start(start_frame=self.NavigateSlider.position, on_stop_callback=lambda: self.RunButton.configure(text="PLAY"))
                 self.RunButton.configure(text="STOP")
 
         self.ControlsFrame = Frame(self.BaseFrame)

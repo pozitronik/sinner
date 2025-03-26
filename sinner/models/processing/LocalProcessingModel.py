@@ -305,7 +305,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self._status("Time position", seconds_to_hmsms(self.metadata.frame_time * (frame_position - 1)))
         self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
-    def player_start(self, start_frame: int) -> None:
+    def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[[], None]] = None) -> None:
+        self._on_stop_callback = on_stop_callback
         if not self.player_is_started:
             self.TimeLine.reload(frame_time=self.metadata.frame_time, start_frame=start_frame - 1, end_frame=self.metadata.frames_count)
             if self.AudioPlayer:
@@ -328,6 +329,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                 time.sleep(1)  # Allow time for the thread to respond
             if reload_frames:
                 self._is_target_frames_extracted = False
+        if self._on_stop_callback:
+            self._on_stop_callback()
 
     def __start_processing(self, start_frame: int) -> None:
         """
