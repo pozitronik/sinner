@@ -47,7 +47,7 @@ class ProcessingModelInterface(ABC):
     # Playback thread & control event
     _event_playback: Event  # Flag to control playback thread
     _show_frames_thread: Optional[threading.Thread] = None
-    _on_stop_callback: Optional[Callable[[], None]] = None  # Callback called when the player stops
+    _on_stop_callback: Optional[Callable[..., Any]] = None  # Callback called when the player stops
 
     def __init__(self, parameters: Namespace, status_callback: Callable[[str, str], Any],
                  on_close_event: Optional[Event] = None,
@@ -99,7 +99,7 @@ class ProcessingModelInterface(ABC):
         pass
 
     @abstractmethod
-    def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[[], None]] = None) -> None:
+    def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[..., Any]] = None) -> None:
         """
         Start playback from specified frame.
 

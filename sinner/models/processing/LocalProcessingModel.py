@@ -305,7 +305,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self._status("Time position", seconds_to_hmsms(self.metadata.frame_time * (frame_position - 1)))
         self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
-    def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[[], None]] = None) -> None:
+    def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[..., Any]] = None) -> None:
         self._on_stop_callback = on_stop_callback
         if not self.player_is_started:
             self.TimeLine.reload(frame_time=self.metadata.frame_time, start_frame=start_frame - 1, end_frame=self.metadata.frames_count)
