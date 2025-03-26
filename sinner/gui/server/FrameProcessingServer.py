@@ -178,7 +178,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 self.quality = request.get("quality")
                 return ResponseMessage.ok_response(message="Quality set")
             case request.REQ_QUALITY:
-                return ResponseMessage.ok_response(message="Quality", value=self.quality)
+                return ResponseMessage.ok_response(message="Quality", quality=self.quality)
             case request.SET_POSITION:
                 self.rewind(request.get("position"))
                 return ResponseMessage.ok_response(message="Position set")
@@ -194,6 +194,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.REQ_METADATA:  # return the target metadata
                 response = ResponseMessage.ok_response(message="metadata")
                 response.update(MediaMetaData(
+                    render_resolution=(int(self.frame_handler.resolution[0] * self._scale_quality / 100), int(self.frame_handler.resolution[1] * self._scale_quality / 100)),
                     resolution=self.frame_handler.resolution,
                     fps=self.frame_handler.fps,
                     frames_count=self.frame_handler.fc
@@ -297,7 +298,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         except EOutOfRange:
             self.update_status(f"There's no frame {frame_index}")
             return None
-        n_frame.frame = scale(n_frame.frame, self._scale_quality)
+        n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)

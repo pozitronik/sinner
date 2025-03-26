@@ -375,6 +375,7 @@ class GUIForm(AttributeLoader):
         self.SourcePathEntry.set_text(self.ProcessingModel.source_path)
         self.TargetPathEntry.set_text(self.ProcessingModel.target_path)
         self.StatusBar.item('Target resolution', str(self.ProcessingModel.metadata))
+        self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({self.ProcessingModel.metadata.render_resolution[0]}x{self.ProcessingModel.metadata.render_resolution[1]})")
         self.ProcessingModel.update_preview()
         self.GUIWindow.wm_attributes("-topmost", self.topmost)
         self.ProcessingModel.Player.bring_to_front()
@@ -447,9 +448,7 @@ class GUIForm(AttributeLoader):
         if frame_value < self.QualityScaleSpinbox.cget('from'):
             frame_value = self.QualityScaleSpinbox.cget('from')
         self.ProcessingModel.quality = frame_value
-        if self.ProcessingModel.metadata.resolution:
-            #  the quality applies only when playing, the preview always renders with 100% resolution
-            self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({int(self.ProcessingModel.metadata.resolution[0] * self.ProcessingModel.quality)}x{int(self.ProcessingModel.metadata.resolution[1] * self.ProcessingModel.quality / 100)})")
+        self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({self.ProcessingModel.metadata.render_resolution[0]}x{self.ProcessingModel.metadata.render_resolution[1]})")
 
     def source_library_add(self, paths: List[str], reload: bool = False) -> None:
         """

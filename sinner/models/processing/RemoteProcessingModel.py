@@ -250,6 +250,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     def quality(self, value: int) -> None:
         """Set the processing quality from a percentage."""
         self.ProcessingClient.quality = value
+        self.MetaData = None  # clear metadata to refresh scaled quality value
 
     @property
     def position(self) -> IntVar:

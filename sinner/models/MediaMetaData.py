@@ -8,6 +8,7 @@ class MediaMetaData:
     Data class for storing media metadata and parameters.
     """
     resolution: Tuple[int, int] = (0, 0)  # (width, height)
+    render_resolution: Tuple[int, int] = (0, 0)  # The resolution, frame rendered with
     fps: float = 0  # Frames per second, 0 as infinite value
     frames_count: int = 0  # Total number of frames
 
@@ -67,6 +68,7 @@ class MediaMetaData:
     def to_dict(self) -> Dict[str, Any]:
         """Преобразование в обычный словарь"""
         return {
+            "render_resolution": self.render_resolution,
             "resolution": self.resolution,
             "fps": self.fps,
             "frames_count": self.frames_count

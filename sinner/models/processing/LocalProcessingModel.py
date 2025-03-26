@@ -224,7 +224,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
 
     @quality.setter
     def quality(self, value: int) -> None:
-        self._scale_quality
+        self._scale_quality = value
+        self.MetaData = None
 
     @property
     def position(self) -> IntVar:
@@ -283,6 +284,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     def metadata(self) -> MediaMetaData:
         if self.MetaData is None:
             self.MetaData = MediaMetaData(
+                render_resolution=(int(self.frame_handler.resolution[0] * self._scale_quality / 100), int(self.frame_handler.resolution[1] * self._scale_quality / 100)),
                 resolution=self.frame_handler.resolution,
                 fps=self.frame_handler.fps,
                 frames_count=self.frame_handler.fc
@@ -438,7 +440,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         except EOutOfRange:
             self.update_status(f"There's no frame {frame_index}")
             return None
-        n_frame.frame = scale(n_frame.frame, self._scale_quality)
+        n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
         with PerfCounter() as frame_render_time:
             for _, processor in self.processors.items():
                 n_frame.frame = processor.process_frame(n_frame.frame)
