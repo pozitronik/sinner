@@ -25,8 +25,8 @@ class ProcessingModelInterface(ABC):
     """
     parameters: Namespace
 
-    _source_path: str
-    _target_path: str
+    _source_path: Optional[str]
+    _target_path: Optional[str]
     temp_dir: str
     _scale_quality: float  # the processed frame size scale from 0 to 1
     _enable_sound: bool

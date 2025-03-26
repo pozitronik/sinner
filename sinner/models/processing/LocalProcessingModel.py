@@ -129,7 +129,9 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         if self.bootstrap_processors:
             self._processors = self.processors
 
-        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir).load(source_name=self._source_path, target_name=self._target_path, end_frame=self.metadata.frames_count)
+        self.TimeLine = FrameTimeLine(temp_dir=self.temp_dir)
+        if self._source_path and self._target_path:  # to load already existed timeline, if present
+            self.TimeLine.load(source_name=self._source_path, target_name=self._target_path, frame_time=self.metadata.frame_time, start_frame=1, end_frame=self.metadata.frames_count)
         self.Player = PygameFramePlayer(width=self.metadata.resolution[0], height=self.metadata.resolution[1], caption='sinner player', on_close_event=on_close_event)
 
         if self._enable_sound:
