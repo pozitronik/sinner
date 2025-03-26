@@ -345,13 +345,8 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         if self.ProcessingClient:
             self.ProcessingClient.rewind(frame_position)
 
-    def player_start(self, start_frame: int) -> None:
-        """
-        Start playback from specified frame.
-
-        Parameters:
-        start_frame (int): Frame to start playback from
-        """
+    def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[[], None]] = None) -> None:
+        self._on_stop_callback = on_stop_callback
         if not self.player_is_started:
             self.TimeLine.reload(frame_time=self.metadata.frame_time, start_frame=start_frame - 1, end_frame=self.metadata.frames_count)
             if self.AudioPlayer:
@@ -385,6 +380,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             if wait:
                 time.sleep(1)  # Allow time for threads to stop
 
+        if self._on_stop_callback:
+            self._on_stop_callback()
+
     def __start_processing(self, start_frame: int) -> None:
         """
         Start the processing thread.
@@ -403,7 +401,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         """Start the playback thread."""
         if not self._event_playback.is_set():
             self._event_playback.set()
-
+            if self._show_frames_thread is not None:
+                self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
+                self._show_frames_thread = None
             self._show_frames_thread = threading.Thread(target=self._show_frames, name="_show_frames")
             self._show_frames_thread.daemon = True
             self._show_frames_thread.start()
@@ -412,42 +412,44 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         """Stop the playback thread."""
         if self._event_playback.is_set() and self._show_frames_thread:
             self._event_playback.clear()
-            self._show_frames_thread.join(1)
-            self._show_frames_thread = None
+            if self._show_frames_thread != threading.current_thread():
+                self._show_frames_thread.join(1)  # timeout is required to avoid problem with a wiggling navigation slider
+                self._show_frames_thread = None
 
     def _show_frames(self) -> None:
         """Thread that displays frames for playback."""
         last_shown_frame_index: int = -1
 
         if self.Player:
-            while self._event_playback.is_set():
-                start_time = time.perf_counter()
-                try:
-                    n_frame = self.TimeLine.get_frame()
-                except EOFError:
-                    self._event_playback.clear()
+            try:
+                while self._event_playback.is_set():
+                    start_time = time.perf_counter()
+                    try:
+                        n_frame = self.TimeLine.get_frame()
+                    except EOFError:
+                        self.player_stop()
+                        break
+                    if n_frame is not None:
+                        if n_frame.index != last_shown_frame_index:  # Check if frame really changed
+                            self.Player.show_frame(n_frame.frame)
+                            last_shown_frame_index = n_frame.index
 
-                    break
+                            if self.TimeLine.last_returned_index is None:
+                                self._status("Time position", "There are no ready frames")
+                            else:
+                                self.position.set(self.TimeLine.last_returned_index)
 
-                if n_frame is not None:
-                    if n_frame.index != last_shown_frame_index:  # Check if frame really changed
-                        self.Player.show_frame(n_frame.frame)
-                        last_shown_frame_index = n_frame.index
+                                if self.TimeLine.last_returned_index:
+                                    self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.metadata.frame_time))
+                                    self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
-                        if self.TimeLine.last_returned_index is None:
-                            self._status("Time position", "There are no ready frames")
-                        else:
-                            self.position.set(self.TimeLine.last_returned_index)
+                    loop_time = time.perf_counter() - start_time  # Time for the current loop
+                    sleep_time = self.metadata.frame_time - loop_time  # Time to wait for next loop
 
-                            if self.TimeLine.last_returned_index:
-                                self._status("Time position", seconds_to_hmsms(self.TimeLine.last_returned_index * self.metadata.frame_time))
-                                self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
-
-                loop_time = time.perf_counter() - start_time  # Time for the current loop
-                sleep_time = self.metadata.frame_time - loop_time  # Time to wait for next loop
-
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
+                    if sleep_time > 0:
+                        time.sleep(sleep_time)
+            finally:
+                self.player_stop()
 
     def notification_handler(self, notification: NotificationMessage) -> None:
         """Incoming notifications handler"""
