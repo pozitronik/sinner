@@ -40,7 +40,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     execution_threads: int
     bootstrap_processors: bool
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
-    _scale_quality: float  # the processed frame size scale from 0 to 1
+    _scale_quality: int  # the processed frame size scale in percent
 
     # internal objects
     TimeLine: FrameTimeLine
@@ -247,11 +247,11 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
 
     @property
     def quality(self) -> int:
-        return int(self._scale_quality * 100)
+        return self._scale_quality
 
     @quality.setter
     def quality(self, value: int) -> None:
-        self._scale_quality = value / 100
+        self._scale_quality = value
 
     def rewind(self, frame_position: int) -> None:
         if self._event_processing.is_set():

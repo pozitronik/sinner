@@ -449,7 +449,7 @@ class GUIForm(AttributeLoader):
         self.ProcessingModel.quality = frame_value
         if self.ProcessingModel.metadata.resolution:
             #  the quality applies only when playing, the preview always renders with 100% resolution
-            self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({int(self.ProcessingModel.metadata.resolution[0] * self.ProcessingModel.quality / 100)}x{int(self.ProcessingModel.metadata.resolution[1] * self.ProcessingModel.quality / 100)})")
+            self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({int(self.ProcessingModel.metadata.resolution[0] * self.ProcessingModel.quality)}x{int(self.ProcessingModel.metadata.resolution[1] * self.ProcessingModel.quality / 100)})")
 
     def source_library_add(self, paths: List[str], reload: bool = False) -> None:
         """

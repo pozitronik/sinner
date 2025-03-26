@@ -28,7 +28,7 @@ class ProcessingModelInterface(ABC):
     _source_path: Optional[str]
     _target_path: Optional[str]
     temp_dir: str
-    _scale_quality: float  # the processed frame size scale from 0 to 1
+    _scale_quality: int  # the processed frame size scale from 0 to 100
     _enable_sound: bool
     _audio_backend: str  # the current audio backend class name, used to create it in the factory
 

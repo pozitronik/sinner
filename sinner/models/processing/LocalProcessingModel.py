@@ -84,8 +84,8 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             {
                 'parameter': {'quality', 'scale-quality'},
                 'attribute': '_scale_quality',
-                'default': 1,
-                'help': 'Initial processing scale quality'
+                'default': 100,
+                'help': 'Initial processing scale quality (in percents)'
             },
             {
                 'parameter': {'prepare-frames'},
@@ -220,11 +220,11 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
 
     @property
     def quality(self) -> int:
-        return int(self._scale_quality * 100)
+        return self._scale_quality
 
     @quality.setter
     def quality(self, value: int) -> None:
-        self._scale_quality = value / 100
+        self._scale_quality
 
     @property
     def position(self) -> IntVar:

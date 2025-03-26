@@ -45,8 +45,8 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             {
                 'parameter': {'quality', 'scale-quality'},
                 'attribute': '_scale_quality',
-                'default': 1,
-                'help': 'Initial processing scale quality'
+                'default': 100,
+                'help': 'Initial processing scale quality (in percents)'
             },
             {
                 'parameter': ['sound', 'enable-sound'],
@@ -244,12 +244,12 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
     @property
     def quality(self) -> int:  # todo
         """Get the processing quality as a percentage (0-100)."""
-        return int(self._scale_quality * 100)
+        return self._scale_quality
 
     @quality.setter
     def quality(self, value: int) -> None:  # todo
         """Set the processing quality from a percentage."""
-        self._scale_quality = value / 100
+        self._scale_quality = value
 
     @property
     def position(self) -> IntVar:
