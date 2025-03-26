@@ -32,6 +32,14 @@ class FrameDirectoryBuffer:
         self.init_indices()
         return self
 
+    def flush(self) -> None:
+        self._path = None
+        self._zfill_length = None
+        self._source_name = None
+        self._target_name = None
+        self._frames_count = 0
+        self._indices = []
+
     @property
     def temp_dir(self) -> str:
         return self._temp_dir
