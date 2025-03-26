@@ -34,7 +34,7 @@ class FrameTimeLine:
         self.reload(frame_time, start_frame, end_frame)
 
         if self._source_name and self._target_name is not None:
-            self._FrameBuffer.load(source_name, target_name, end_frame)
+            self._FrameBuffer.load(source_name, target_name, end_frame)  # type: ignore[arg-type]  # mypy doesn't see the condition
         else:
             self._FrameBuffer.flush()
         return self
