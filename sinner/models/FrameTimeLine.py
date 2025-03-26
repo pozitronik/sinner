@@ -7,6 +7,9 @@ from sinner.models.NumberedFrame import NumberedFrame
 
 
 class FrameTimeLine:
+    _source_name: Optional[str] = None
+    _target_name: Optional[str] = None
+
     _FrameBuffer: FrameDirectoryBuffer
     _timer: float = 0
     _frame_time: float = 0
@@ -24,10 +27,16 @@ class FrameTimeLine:
         self._temp_dir = temp_dir
         self._FrameBuffer = FrameDirectoryBuffer(self._temp_dir)
 
-    def load(self, source_name: str, target_name: str, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0) -> Self:
+    def load(self, source_name: Optional[str] = None, target_name: Optional[str] = None, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0) -> Self:
         """Loads source/target pair to the timeline"""
+        self._source_name = source_name
+        self._target_name = target_name
         self.reload(frame_time, start_frame, end_frame)
-        self._FrameBuffer.load(source_name, target_name, end_frame)
+
+        if self._source_name and self._target_name is not None:
+            self._FrameBuffer.load(source_name, target_name, end_frame)
+        else:
+            self._FrameBuffer.flush()
         return self
 
     def reload(self, frame_time: float, start_frame: int, end_frame: int) -> None:
@@ -40,7 +49,6 @@ class FrameTimeLine:
     def rewind(self, frame_index: int) -> None:
         self._start_frame_index = frame_index
         self._start_frame_time = self._start_frame_index * self._frame_time
-        self._FrameBuffer.clean()
         if self._is_started:
             self._timer = time.perf_counter()
 
@@ -51,7 +59,6 @@ class FrameTimeLine:
 
     def stop(self) -> None:
         self._is_started = False
-        self._FrameBuffer.clean()
 
     # returns time passed from the start
     def time(self) -> float:
