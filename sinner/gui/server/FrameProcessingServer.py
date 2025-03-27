@@ -166,7 +166,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     def _handle_request(self, request: RequestMessage, payload: Optional[bytes] = None) -> ResponseMessage:
         """Handle client request and return response."""
         match request.request:
-            case request.REQ_STATUS:
+            case request.GET_STATUS:
                 return ResponseMessage.ok_response(message="Alive")
             case request.SET_SOURCE:
                 self.source_path = request.get("source_path")
@@ -177,21 +177,21 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.SET_QUALITY:
                 self.quality = request.get("quality")
                 return ResponseMessage.ok_response(message="Quality set")
-            case request.REQ_QUALITY:
+            case request.GET_QUALITY:
                 return ResponseMessage.ok_response(message="Quality", quality=self.quality)
             case request.SET_POSITION:
                 self.rewind(request.get("position"))
                 return ResponseMessage.ok_response(message="Position set")
-            case request.START_PROCESSING:
+            case request.CMD_START_PROCESSING:
                 self.start(request.get("position"))
                 return ResponseMessage.ok_response(message="Started")
-            case request.START_PROCESSING:
+            case request.CMDSTART_PROCESSING:
                 self.stop()
                 return ResponseMessage.ok_response(message="Stopped")
-            case request.REQ_FRAME_PROCESSED:  # process a frame immediately
+            case request.CMD_FRAME_PROCESSED:  # process a frame immediately
                 self._process_frame(request.get("position"))
                 return ResponseMessage.ok_response(message="Processed")
-            case request.REQ_METADATA:  # return the target metadata
+            case request.GET_METADATA:  # return the target metadata
                 response = ResponseMessage.ok_response(message="metadata")
                 response.update(MediaMetaData(
                     render_resolution=(int(self.frame_handler.resolution[0] * self._scale_quality / 100), int(self.frame_handler.resolution[1] * self._scale_quality / 100)),
@@ -200,7 +200,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                     frames_count=self.frame_handler.fc
                 ).to_dict())
                 return response
-            case request.REQ_FRAME:
+            case request.GET_FRAME:
                 frame = self.frame_handler.extract_frame(request.get("position"))
                 return ResponseMessage.ok_response(frame=to_b64(frame.frame), shape=frame.frame.shape)
             case request.SET_SOURCE_FILE:  # todo: unimplemented on client

@@ -3,23 +3,23 @@ from typing import Dict, Any, ClassVar, Type, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
-# Константы запросов
-REQ_STATUS = "REQ_STATUS"
-REQ_SOURCE = "REQ_SOURCE"
+# Константы запросов: GET_* - получение данных, SET_* - установка данных, CMD_* - управляющая команда
+GET_STATUS = "GET_STATUS"
+GET_SOURCE = "GET_SOURCE"
 SET_SOURCE = "SET_SOURCE"
-REQ_TARGET = "REQ_TARGET"
+GET_TARGET = "GET_TARGET"
 SET_TARGET = "SET_TARGET"
-REQ_QUALITY = "REQ_QUALITY"
+GET_QUALITY = "GET_QUALITY"
 SET_QUALITY = "SET_QUALITY"
-REQ_POSITION = "REQ_POSITION"
+GET_POSITION = "GET_POSITION"
 SET_POSITION = "SET_POSITION"
-START_PROCESSING = "START_PROCESSING"
-STOP_PROCESSING = "STOP_PROCESSING"
-REQ_FRAME_PROCESSED = "REQ_FRAME_PROCESSED"  # запрос на генерацию кадра
-REQ_FRAME = "REQ_FRAME"  # запрос на получение бинарного необработанного кадра
-REQ_METADATA = "REQ_METADATA"  # запрос метаданных цели
+GET_FRAME = "CMD_FRAME"  # запрос на получение бинарного необработанного кадра
+GET_METADATA = "GET_METADATA"  # запрос метаданных цели
 SET_SOURCE_FILE = "SET_SOURCE_FILE"  # Передача бинарного файла в источник
 SET_TARGET_FILE = "SET_TARGET_FILE"  # Передача бинарного файла в цель
+CMD_STOP_PROCESSING = "CMD_STOP_PROCESSING"
+CMD_START_PROCESSING = "CMD_START_PROCESSING"
+CMD_FRAME_PROCESSED = "CMD_FRAME_PROCESSED"  # запрос на генерацию кадра
 
 T = TypeVar('T', bound='RequestMessage')
 
@@ -32,20 +32,20 @@ class RequestMessage(BaseMessage):
     """
 
     # Константы доступны в классе
-    REQ_STATUS: ClassVar[str] = REQ_STATUS
-    REQ_SOURCE: ClassVar[str] = REQ_SOURCE
+    GET_STATUS: ClassVar[str] = GET_STATUS
+    GET_SOURCE: ClassVar[str] = GET_SOURCE
     SET_SOURCE: ClassVar[str] = SET_SOURCE
-    REQ_TARGET: ClassVar[str] = REQ_TARGET
+    GET_TARGET: ClassVar[str] = GET_TARGET
     SET_TARGET: ClassVar[str] = SET_TARGET
-    REQ_QUALITY: ClassVar[str] = REQ_QUALITY
+    GET_QUALITY: ClassVar[str] = GET_QUALITY
     SET_QUALITY: ClassVar[str] = SET_QUALITY
-    REQ_POSITION: ClassVar[str] = REQ_POSITION
+    GET_POSITION: ClassVar[str] = GET_POSITION
     SET_POSITION: ClassVar[str] = SET_POSITION
-    START_PROCESSING: ClassVar[str] = START_PROCESSING
-    STOP_PROCESSING: ClassVar[str] = STOP_PROCESSING
-    REQ_FRAME_PROCESSED: ClassVar[str] = REQ_FRAME_PROCESSED
-    REQ_FRAME: ClassVar[str] = REQ_FRAME
-    REQ_METADATA: ClassVar[str] = REQ_METADATA
+    CMD_START_PROCESSING: ClassVar[str] = CMD_START_PROCESSING
+    CMD_STOP_PROCESSING: ClassVar[str] = CMD_STOP_PROCESSING
+    CMD_FRAME_PROCESSED: ClassVar[str] = CMD_FRAME_PROCESSED
+    GET_FRAME: ClassVar[str] = GET_FRAME
+    GET_METADATA: ClassVar[str] = GET_METADATA
     SET_SOURCE_FILE: ClassVar[str] = SET_SOURCE_FILE
     SET_TARGET_FILE: ClassVar[str] = SET_TARGET_FILE
 
