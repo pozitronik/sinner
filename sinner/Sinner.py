@@ -24,6 +24,11 @@ class Sinner(AttributeLoader):
                 'help': 'Run application in a graphic mode'
             },
             {
+                'parameter': 'server',
+                'default': False,
+                'help': 'Start processing server'
+            },
+            {
                 'parameter': 'benchmark',
                 'default': False,
                 'help': 'Run a benchmark on a selected frame processor'
