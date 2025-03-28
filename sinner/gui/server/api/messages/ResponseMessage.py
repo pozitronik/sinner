@@ -15,102 +15,24 @@ class ResponseMessage(BaseMessage):
     STATUS_OK: ClassVar[str] = "ok"
     STATUS_ERROR: ClassVar[str] = "error"
 
-    def __init__(self, status: str = STATUS_OK, message: Optional[str] = None) -> None:
-        """
-        Инициализация ответа с указанием статуса и сообщения.
+    # Константы типов ответов
+    GENERAL: ClassVar[str] = "GENERAL"  # Общий тип ответа, содержит только статус
+    METADATA: ClassVar[str] = "METADATA"  # Ответ на запрос метаданных
+    FRAME: ClassVar[str] = "FRAME"  # Ответ на запрос кадра
 
-        Args:
-            status: Статус ответа
-            message: Сообщение ответа
-        """
-        super().__init__()
-        if status:
-            self.status = status
-        if message:
-            self.message = message
-
-    @property
-    def status(self) -> str:
-        """Получение статуса ответа"""
-        if hasattr(self, '_status'):
-            return self._status
-        else:
-            raise ValueError("Field 'status' is required")
-
-    @status.setter
-    def status(self, value: str) -> None:
-        """Установка статуса ответа"""
-        self._status = value
-
-    @property
-    def message(self) -> Optional[str]:
-        """Получение сообщения ответа"""
-        return self._message if hasattr(self, '_message') else None
-
-    @message.setter
-    def message(self, value: str) -> None:
-        """Установка сообщения ответа"""
-        self._message = value
-
-    def validate(self) -> None:
-        """Валидация обязательных полей"""
-        if not self.status:
-            raise ValueError("Field 'status' is required")
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Преобразование в обычный словарь"""
-        result = {'status': self.status} if self.status else {}
-        if self.message:
-            result['message'] = self.message
-
-        # Добавляем дополнительные поля
-        result.update(self._extra_fields)
-        return result
+    def __init__(self, status: str = STATUS_OK, type_: str = GENERAL, **kwargs) -> None:
+        kwargs['status'] = status
+        super().__init__(type_=type_, **kwargs)
 
     @classmethod
-    def from_dict(cls: Type[T], data: Dict[str, Any]) -> T:
-        """Создание объекта из словаря"""
-        status_value = data.get('status')
-        message_value = data.get('message')
-
-        if status_value is None:
-            raise ValueError("Field 'status' is required")
-
-        instance = cls(status=status_value, message=message_value)
-
-        # Копируем данные без полей status и message
-        data_copy = data.copy()
-        if 'status' in data_copy:
-            del data_copy['status']
-        if 'message' in data_copy:
-            del data_copy['message']
-
-        # Обновляем дополнительные поля
-        instance.update(data_copy)
-
-        return instance
-
-    @classmethod
-    def ok_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:  # type: ignore[no-untyped-def]
+    def ok_response(cls: Type[T], type_: str = GENERAL, **kwargs) -> T:
         """Создание успешного ответа"""
-        instance = cls(status=cls.STATUS_OK, message=message)
-
-        # Добавляем дополнительные параметры
-        for key, value in kwargs.items():
-            instance[key] = value
-
-        return instance
+        return cls(status=cls.STATUS_OK, type_=type_, **kwargs)
 
     @classmethod
-    def error_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:  # type: ignore[no-untyped-def]
+    def error_response(cls: Type[T], type_: str = GENERAL, **kwargs) -> T:
         """Создание ответа с ошибкой"""
-        instance = cls(status=cls.STATUS_ERROR, message=message)
-
-        # Добавляем дополнительные параметры
-        for key, value in kwargs.items():
-            instance[key] = value
-
-        return instance
+        return cls(status=cls.STATUS_ERROR, type_=type_, **kwargs)
 
     def is_ok(self) -> bool:
-        return self.status == self.STATUS_OK
+        return self._fields.get('status') == self.STATUS_OK

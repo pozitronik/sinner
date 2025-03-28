@@ -454,9 +454,9 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
     def notification_handler(self, notification: NotificationMessage) -> None:
         """Incoming notifications handler"""
-        match notification.notification:
+        match notification.type:
             case notification.NTF_FRAME:  # add frame index to timeline
                 self.TimeLine.add_frame_index(notification.index)
                 self._status("Average processing speed", f"{round(notification.fps, 4)} FPS")
             case _:
-                self.update_status(f"Handler is not implemented for notification {notification.notification}")
+                self.update_status(f"Handler is not implemented for notification {notification.type}")

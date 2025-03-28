@@ -1,4 +1,4 @@
-from typing import Dict, Any, ClassVar, Type, TypeVar
+from typing import ClassVar, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
@@ -8,7 +8,6 @@ T = TypeVar('T', bound='RequestMessage')
 class RequestMessage(BaseMessage):
     """
     Класс для отправки запросов на сервер
-    Обязательно содержит поле request с типом запроса.
     """
 
     # Константы запросов: GET_* - получение данных, SET_* - установка данных, CMD_* - управляющая команда
@@ -29,72 +28,3 @@ class RequestMessage(BaseMessage):
     CMD_START_PROCESSING: ClassVar[str] = "CMD_START_PROCESSING"
     CMD_STOP_PROCESSING: ClassVar[str] = "CMD_STOP_PROCESSING"
     CMD_FRAME_PROCESSED: ClassVar[str] = "CMD_FRAME_PROCESSED"  # запрос на генерацию кадра
-
-    def __init__(self, request: str) -> None:
-        """
-        Инициализация запроса с указанием типа запроса.
-
-        Args:
-            request: Тип запроса
-        """
-        super().__init__()
-        if request:
-            self.request = request
-
-    @property
-    def request(self) -> str:
-        """Получение типа запроса"""
-        if hasattr(self, '_request'):
-            return self._request
-        else:
-            raise ValueError("Field 'request' is required")
-
-    @request.setter
-    def request(self, value: str) -> None:
-        """Установка типа запроса"""
-        self._request = value
-
-    def validate(self) -> None:
-        """Валидация обязательных полей"""
-        if not self.request:
-            raise ValueError("Field 'request' is required")
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Преобразование в обычный словарь"""
-        result = {'request': self.request} if self.request else {}
-        # Добавляем дополнительные поля
-        result.update(self._extra_fields)
-        return result
-
-    @classmethod
-    def from_dict(cls: Type[T], data: Dict[str, Any]) -> T:
-        """Создание объекта из словаря"""
-        request_value = data.get('request')
-
-        if request_value is None:
-            raise ValueError("Field 'request' is required")
-
-        instance = cls(request=request_value)
-
-        # Копируем данные без поля request
-        data_copy = data.copy()
-        if 'request' in data_copy:
-            del data_copy['request']
-
-        # Обновляем дополнительные поля
-        instance.update(data_copy)
-
-        return instance
-
-    @classmethod
-    def create(cls: Type[T], request_type: str, **kwargs) -> T:  # type: ignore[no-untyped-def]
-        """Создать запрос с параметрами"""
-        instance = cls(request=request_type)
-
-        # Добавляем дополнительные параметры
-        for key, value in kwargs.items():
-            instance[key] = value
-
-        # Проверяем валидность созданного объекта
-        instance.validate()
-        return instance

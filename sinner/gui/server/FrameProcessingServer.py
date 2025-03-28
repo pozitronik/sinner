@@ -165,7 +165,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
 
     def _handle_request(self, request: RequestMessage, payload: Optional[bytes] = None) -> ResponseMessage:
         """Handle client request and return response."""
-        match request.request:
+        match request.type:
             case request.GET_STATUS:
                 return ResponseMessage.ok_response(message="Alive")
             case request.SET_SOURCE:
@@ -196,17 +196,20 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 self._process_frame(request.position)
                 return ResponseMessage.ok_response(message="Processed")
             case request.GET_METADATA:  # return the target metadata
-                response = ResponseMessage.ok_response(message="metadata")
-                response.update(MediaMetaData(
+                return ResponseMessage.ok_response(
+                    type=ResponseMessage.METADATA,
                     render_resolution=(int(self.frame_handler.resolution[0] * self._scale_quality / 100), int(self.frame_handler.resolution[1] * self._scale_quality / 100)),
                     resolution=self.frame_handler.resolution,
                     fps=self.frame_handler.fps,
                     frames_count=self.frame_handler.fc
-                ).to_dict())
-                return response
+                )
             case request.GET_FRAME:
                 frame = self.frame_handler.extract_frame(request.position)
-                return ResponseMessage.ok_response(frame=to_b64(frame.frame), shape=frame.frame.shape)
+                return ResponseMessage.ok_response(
+                    type=ResponseMessage.FRAME,
+                    frame=to_b64(frame.frame),
+                    shape=frame.frame.shape
+                )
             case request.SET_SOURCE_FILE:  # todo: unimplemented on client
                 if payload is None:
                     return ResponseMessage.error_response(message="Empty payload")
@@ -224,7 +227,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 self.target_path = filename
                 return ResponseMessage.ok_response(message="Target file set", filename=self.source_path)
             case _:
-                return ResponseMessage.error_response(message=f"Not implemented: {request.request}")
+                return ResponseMessage.error_response(message=f"Not implemented: {request.type}")
 
     def reload_parameters(self) -> None:
         self._target_handler = None
@@ -372,7 +375,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                         self._biggest_processed_frame = frame_index
 
                     # Отправляем уведомление о завершении обработки
-                    self._APIHandler.notify(NotificationMessage.create(notification_type=NotificationMessage.NTF_FRAME, index=frame_index, time=process_time, fps=self._processing_fps))
+                    self._APIHandler.notify(NotificationMessage(type_=NotificationMessage.NTF_FRAME, index=frame_index, time=process_time, fps=self._processing_fps))
             futures.remove(future_)
 
         processing: List[int] = []  # list of frames currently being processed

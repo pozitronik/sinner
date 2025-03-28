@@ -115,7 +115,7 @@ class ZMQClientAPI(BaseClientAPI):
 
     def _handle_notification(self, notification: NotificationMessage) -> None:
         if self._notification_handler is None:
-            self._logger.error(f"No handler defined for notification: {notification.notification}")
+            self._logger.error(f"No handler defined for notification: {notification.type}")
         else:
             try:
                 self._logger.debug(f"Handling notification: {notification}")

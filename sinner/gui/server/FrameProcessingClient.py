@@ -17,7 +17,7 @@ class FrameProcessingClient:
 
     @property
     def source_path(self) -> Optional[str]:
-        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.GET_SOURCE))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage(RequestMessage.GET_SOURCE))
         if response.is_ok():
             return response.source_path
         else:
@@ -25,11 +25,11 @@ class FrameProcessingClient:
 
     @source_path.setter
     def source_path(self, value: Optional[str]) -> None:
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_SOURCE, source_path=value))
+        self._APIClient.send_request(RequestMessage(RequestMessage.SET_SOURCE, source_path=value))
 
     @property
     def target_path(self) -> Optional[str]:
-        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.GET_TARGET))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage(RequestMessage.GET_TARGET))
         if response.is_ok():
             return response.target_path
         else:
@@ -37,11 +37,11 @@ class FrameProcessingClient:
 
     @target_path.setter
     def target_path(self, value: Optional[str]) -> None:
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_TARGET, target_path=value))
+        self._APIClient.send_request(RequestMessage(RequestMessage.SET_TARGET, target_path=value))
 
     @property
     def quality(self) -> int:
-        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.GET_QUALITY))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage(RequestMessage.GET_QUALITY))
         if response.is_ok():
             return response.quality
         else:
@@ -49,10 +49,10 @@ class FrameProcessingClient:
 
     @quality.setter
     def quality(self, value: int) -> None:
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_QUALITY, quality=value))
+        self._APIClient.send_request(RequestMessage(RequestMessage.SET_QUALITY, quality=value))
 
     def rewind(self, value: int) -> None:
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.SET_POSITION, position=value))
+        self._APIClient.send_request(RequestMessage(RequestMessage.SET_POSITION, position=value))
 
     def get_processed_frame(self, value: int) -> bool:
         """
@@ -60,7 +60,7 @@ class FrameProcessingClient:
         :param value:
         :return: bool Frame ready status
         """
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.CMD_FRAME_PROCESSED, position=value)).is_ok()
+        return self._APIClient.send_request(RequestMessage(RequestMessage.CMD_FRAME_PROCESSED, position=value)).is_ok()
 
     def get_frame(self, value: int) -> Optional[NumberedFrame]:
         """
@@ -69,7 +69,7 @@ class FrameProcessingClient:
         :param value:
         :return: Optional[NumberedFrame] The requested unprocessed frame
         """
-        response = self._APIClient.send_request(RequestMessage.create(RequestMessage.GET_FRAME, position=value))
+        response = self._APIClient.send_request(RequestMessage(RequestMessage.GET_FRAME, position=value))
         if response.is_ok():
             frame = from_b64(response.frame, shape=response.shape)
             return NumberedFrame(index=value, frame=frame)
@@ -77,10 +77,10 @@ class FrameProcessingClient:
             return None
 
     def start(self, start_frame: int) -> None:
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.CMD_START_PROCESSING, position=start_frame))
+        self._APIClient.send_request(RequestMessage(RequestMessage.CMD_START_PROCESSING, position=start_frame))
 
     def stop(self) -> None:
-        self._APIClient.send_request(RequestMessage.create(RequestMessage.CMD_STOP_PROCESSING))
+        self._APIClient.send_request(RequestMessage(RequestMessage.CMD_STOP_PROCESSING))
 
     @property
     def server_status(self) -> bool:
@@ -90,11 +90,11 @@ class FrameProcessingClient:
         Returns:
         Dict or None: Server status information or None if request failed todo
         """
-        return self._APIClient.send_request(RequestMessage.create(RequestMessage.GET_STATUS)).is_ok()
+        return self._APIClient.send_request(RequestMessage(RequestMessage.GET_STATUS)).is_ok()
 
     @property
     def metadata(self) -> MediaMetaData:
-        response: ResponseMessage = self._APIClient.send_request(RequestMessage.create(RequestMessage.GET_METADATA))
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage(RequestMessage.GET_METADATA))
         if response.is_ok():
             return MediaMetaData(resolution=response.resolution, fps=response.fps, frames_count=response.frames_count, render_resolution=response.render_resolution)
         else:
