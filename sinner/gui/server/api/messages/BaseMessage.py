@@ -10,7 +10,7 @@ class BaseMessage(ABC):
     Абстрактный базовый класс для представления сообщений обмена между клиентом и сервером.
     """
 
-    def __init__(self, type_: str, **kwargs) -> None:
+    def __init__(self, type_: str, **kwargs) -> None:  # type: ignore[no-untyped-def]
         """Инициализация базового класса"""
         self._type: str = type_
         self._fields: Dict[str, Any] = kwargs

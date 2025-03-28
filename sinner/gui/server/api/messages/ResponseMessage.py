@@ -20,17 +20,17 @@ class ResponseMessage(BaseMessage):
     METADATA: ClassVar[str] = "METADATA"  # Ответ на запрос метаданных
     FRAME: ClassVar[str] = "FRAME"  # Ответ на запрос кадра
 
-    def __init__(self, status: str = STATUS_OK, type_: str = GENERAL, **kwargs) -> None:
+    def __init__(self, status: str = STATUS_OK, type_: str = GENERAL, **kwargs) -> None:  # type: ignore[no-untyped-def]
         kwargs['status'] = status
         super().__init__(type_=type_, **kwargs)
 
     @classmethod
-    def ok_response(cls: Type[T], type_: str = GENERAL, **kwargs) -> T:
+    def ok_response(cls: Type[T], type_: str = GENERAL, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создание успешного ответа"""
         return cls(status=cls.STATUS_OK, type_=type_, **kwargs)
 
     @classmethod
-    def error_response(cls: Type[T], type_: str = GENERAL, **kwargs) -> T:
+    def error_response(cls: Type[T], type_: str = GENERAL, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создание ответа с ошибкой"""
         return cls(status=cls.STATUS_ERROR, type_=type_, **kwargs)
 
