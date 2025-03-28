@@ -51,7 +51,7 @@ class ZMQServerAPI:
             self._publish_socket.bind(self._publish_endpoint)
 
             self._server_running = True
-            self._logger.info("Frame processor server started")
+            self._logger.info(f"Frame processor server started at {self._reply_endpoint}")
 
             await asyncio.gather(
                 self._message_handler()
@@ -83,14 +83,10 @@ class ZMQServerAPI:
                 # Определяем тип сообщения по количеству частей
                 if len(message_parts) == 1:
                     # Обычное сообщение
-                    message = RequestMessage.deserialize(message_parts[0])
-                    self._logger.info(f"Received message: {message_parts[0]}")
-                    response = self._handle_request(message)
+                    response = self._handle_request(RequestMessage.deserialize(message_parts[0]))
                 elif len(message_parts) == 2:
                     # Бинарное сообщение
-                    message = RequestMessage.deserialize(message_parts[0])
-                    self._logger.info(f"Received binary message: {message_parts[0]}")
-                    response = self._handle_request(message, message_parts[1])
+                    response = self._handle_request(RequestMessage.deserialize(message_parts[0]), message_parts[1])
                 else:
                     # Неизвестный формат
                     response = ResponseMessage.error_response(message="Invalid message format")
