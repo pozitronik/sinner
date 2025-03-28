@@ -43,9 +43,10 @@ class Sin(Sinner):
 
     @staticmethod
     def signal_handler(sig, frame):
+        # self.logger.info(f"Interrupted")
         sys.exit(0)
 
-    def server(self) -> None:
+    def run_server(self) -> None:
         """Main function to run the server."""
         # self.logger.info(f"Starting Frame Processor Server")
 
@@ -73,7 +74,7 @@ class Sin(Sinner):
             window = preview.show()
             window.mainloop()
         elif self.server:
-            self.server()
+            self.run_server()
         elif self.benchmark is True:
             Benchmark(parameters=self.parameters)
         elif self.camera is True:
