@@ -26,18 +26,16 @@ def teardown_function():
     pygame.quit()
 
 
+@pytest.mark.skipif('CI' in os.environ, reason="Sound can not be initialized in GitHub CI")
 def test_init_default() -> None:
-    if 'CI' in os.environ:
-        pytest.skip("Sound can not be initialized in GitHub CI")
     params: Namespace = Parameters().parameters
     backend = PygameAudioBackend(params)
     assert backend.media_path is None
     assert backend._temp_dir == os.path.join(tempfile.gettempdir(), 'extracted_audio')
 
 
+@pytest.mark.skipif('CI' in os.environ, reason="Sound can not be initialized in GitHub CI")
 def test_init_parameters() -> None:
-    if 'CI' in os.environ:
-        pytest.skip("Sound can not be initialized in GitHub CI")
     params: Namespace = Parameters(f'--temp_dir="{tmp_dir}"').parameters
     backend = PygameAudioBackend(params, target_mp4)
     assert backend._temp_dir == os.path.join(tmp_dir, 'extracted_audio')
@@ -45,9 +43,8 @@ def test_init_parameters() -> None:
     assert os.path.exists(backend.media_path)
 
 
+@pytest.mark.skipif('CI' in os.environ, reason="Sound can not be initialized in GitHub CI")
 def test_on_silent(capsys) -> None:
-    if 'CI' in os.environ:
-        pytest.skip("Sound can not be initialized in GitHub CI")
     params: Namespace = Parameters(f'--temp_dir="{tmp_dir}"').parameters
     PygameAudioBackend(params, silent_target_mp4)
     captured = capsys.readouterr()

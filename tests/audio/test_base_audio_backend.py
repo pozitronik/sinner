@@ -12,9 +12,8 @@ from tests.constants import target_mp4
 parameters: Namespace = Parameters().parameters
 
 
+@pytest.mark.skipif('CI' in os.environ, reason="Sound can not be initialized in GitHub CI")
 def test_audio_backend_factory() -> None:
-    if 'CI' in os.environ:
-        pytest.skip("Sound can not be initialized in GitHub CI")
     assert (BaseAudioBackend.create(backend_name='PygameAudioBackend', parameters=parameters, media_path=target_mp4), PygameAudioBackend)
     assert (BaseAudioBackend.create(backend_name='VLCAudioBackend', parameters=parameters, media_path=target_mp4), VLCAudioBackend)
     with pytest.raises(Exception):
