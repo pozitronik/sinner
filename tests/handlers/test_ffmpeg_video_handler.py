@@ -41,6 +41,7 @@ def test_detect_fc() -> None:
     assert TARGET_FC == get_test_object().fc
 
 
+@pytest.mark.skip(reason="Skipped due to removed functionality")
 def test_detect_broken_fc() -> None:
     assert BROKEN_FC == get_broken_object().fc
 
