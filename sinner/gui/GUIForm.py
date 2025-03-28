@@ -2,9 +2,9 @@ import tempfile
 from argparse import Namespace
 from tkinter import filedialog, LEFT, Button, Frame, BOTH, StringVar, NW, X, Event, TOP, CENTER, Menu, CASCADE, COMMAND, RADIOBUTTON, CHECKBUTTON, SEPARATOR, BooleanVar, RIDGE, BOTTOM, NE
 from tkinter.ttk import Spinbox, Label, Notebook
-from typing import List
+from typing import List, Union
 
-from customtkinter import CTk
+from customtkinter import CTk, CTkSlider
 from psutil import WINDOWS
 
 from sinner.gui.controls.FramePlayer.BaseFramePlayer import ROTATE_90_CLOCKWISE, ROTATE_180, ROTATE_90_COUNTERCLOCKWISE
@@ -186,7 +186,7 @@ class GUIForm(AttributeLoader):
                 _run_button_command()
 
         # Navigation slider
-        self.NavigateSlider: BaseFramePosition = FrameSlider(self.NavigationFrame, from_=1, variable=self.ProcessingModel.position, command=lambda position: self.ProcessingModel.rewind(int(position)), progress=self.show_progress)
+        self.NavigateSlider: Union[CTkSlider, BaseFramePosition] = FrameSlider(self.NavigationFrame, from_=1, variable=self.ProcessingModel.position, command=lambda position: self.ProcessingModel.rewind(int(position)), progress=self.show_progress)
 
         # Controls frame and contents
         self.BaseFrame: Frame = Frame(self.GUIWindow)  # it is a frame that holds all static controls with fixed size, such as main buttons and selectors
@@ -217,7 +217,7 @@ class GUIForm(AttributeLoader):
 
         # Volume slider
         self.VolumeLabel: Label = Label(self.SubControlsFrame, text="Vol:")
-        self.VolumeSlider: BaseFramePosition = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.ProcessingModel.volume, command=lambda position: self.ProcessingModel.set_volume(int(position)))
+        self.VolumeSlider: Union[BaseFramePosition, CTkSlider] = SliderFramePosition(self.SubControlsFrame, from_=0, to=100, variable=self.ProcessingModel.volume, command=lambda position: self.ProcessingModel.set_volume(int(position)))
 
         # Source/target selection controls
         self.SourcePathFrame: Frame = Frame(self.ControlsFrame, borderwidth=2)
@@ -316,6 +316,12 @@ class GUIForm(AttributeLoader):
         self.TargetsLibraryMenu.add(COMMAND, label='Add a folder', command=lambda: self.add_target_folder())  # type: ignore[no-untyped-call]  # it is a library method
         self.TargetsLibraryMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
         self.TargetsLibraryMenu.add(COMMAND, label='Clear', command=lambda: self.target_clear())  # type: ignore[no-untyped-call]  # it is a library method
+
+        self.ModeMenu: Menu = Menu(self.MainMenu, tearoff=False)
+        self.MainMenu.add(CASCADE, menu=self.ModeMenu, label='Processing Mode')  # type: ignore[no-untyped-call]  # it is a library method
+        self.ProcessingModeVar: StringVar = StringVar(value=self.processing_mode)
+        self.ModeMenu.add(RADIOBUTTON, variable=self.ProcessingModeVar, label="Standalone", value=MODE_STANDALONE, command=lambda: self._switch_processing_mode_command(MODE_STANDALONE))  # type: ignore[no-untyped-call]  # it is a library method
+        self.ModeMenu.add(RADIOBUTTON, variable=self.ProcessingModeVar, label="Distributed", value=MODE_DISTRIBUTED, command=lambda: self._switch_processing_mode_command(MODE_DISTRIBUTED))  # type: ignore[no-untyped-call]  # it is a library method
 
         self.GUIWindow.configure(menu=self.MainMenu, tearoff=False)
 
@@ -522,3 +528,26 @@ class GUIForm(AttributeLoader):
 
     def target_clear(self) -> None:
         self.TargetsLibrary.clear_thumbnails()
+
+    def _switch_processing_mode_command(self, mode: str) -> None:
+        """Switch processing mode and reinitialize the processing model."""
+        if mode != self.processing_mode:
+            self.processing_mode = mode
+            # Останавливаем текущий проигрыватель если он запущен
+            self.ProcessingModel.player_stop(wait=True)
+
+            # Переинициализируем модель обработки в зависимости от выбранного режима
+            if self.processing_mode == MODE_STANDALONE:
+                self.ProcessingModel = LocalProcessingModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+            elif self.processing_mode == MODE_DISTRIBUTED:
+                self.ProcessingModel = RemoteProcessingModel(self.parameters, status_callback=lambda name, value: self.StatusBar.item(name, value), on_close_event=self._event_player_window_closed)
+            else:
+                raise Exception(f"Unknown mode: {self.processing_mode}")
+            self.ProcessingModel.progress_control = self.NavigateSlider.progress
+            # Обновляем интерфейс после смены модели
+            self.NavigateSlider.configure(variable=self.ProcessingModel.position)
+            self.VolumeSlider.configure(variable=self.ProcessingModel.volume)
+            self.ProcessingModel.update_preview()
+            self.StatusBar.item('Target resolution', str(self.ProcessingModel.metadata))
+            self.StatusBar.item('Render size', f"{self.ProcessingModel.quality}% ({self.ProcessingModel.metadata.render_resolution[0]}x{self.ProcessingModel.metadata.render_resolution[1]})")
+            self.update_slider_bounds()
