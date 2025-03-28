@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Dict, Any, ClassVar, Optional, Type, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
@@ -6,7 +5,6 @@ from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 T = TypeVar('T', bound='ResponseMessage')
 
 
-@dataclass
 class ResponseMessage(BaseMessage):
     """
     Класс для представления ответов сервера.

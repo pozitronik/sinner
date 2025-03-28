@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Dict, Any, ClassVar, Type, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
@@ -6,7 +5,6 @@ from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 T = TypeVar('T', bound='NotificationMessage')
 
 
-@dataclass
 class NotificationMessage(BaseMessage):
     """
     Класс для отправки нотификаций клиенту
