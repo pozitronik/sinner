@@ -1,4 +1,4 @@
-from typing import ClassVar,TypeVar
+from typing import ClassVar, TypeVar
 
 from sinner.server.api.messages.BaseMessage import BaseMessage
 
