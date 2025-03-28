@@ -19,7 +19,6 @@ from sinner.handlers.frame.NoneHandler import NoneHandler
 from sinner.helpers.FrameHelper import scale, to_b64
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
-from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.MovingAverage import MovingAverage
 from sinner.models.PerfCounter import PerfCounter
 from sinner.models.State import State
