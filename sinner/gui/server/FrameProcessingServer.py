@@ -185,7 +185,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.CMD_START_PROCESSING:
                 self.start(request.get("position"))
                 return ResponseMessage.ok_response(message="Started")
-            case request.CMDSTART_PROCESSING:
+            case request.CMD_START_PROCESSING:
                 self.stop()
                 return ResponseMessage.ok_response(message="Stopped")
             case request.CMD_FRAME_PROCESSED:  # process a frame immediately
