@@ -169,27 +169,31 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.GET_STATUS:
                 return ResponseMessage.ok_response(message="Alive")
             case request.SET_SOURCE:
-                self.source_path = request.get("source_path")
+                self.source_path = request.source_path
                 return ResponseMessage.ok_response(message="Source path set")
+            case request.GET_SOURCE:
+                return ResponseMessage.ok_response(source_path=self.source_path)
             case request.SET_TARGET:
-                self.target_path = request.get("target_path")
+                self.target_path = request.target_path
                 return ResponseMessage.ok_response(message="Target path set")
+            case request.GET_TARGET:
+                return ResponseMessage.ok_response(source_path=self.target_path)
             case request.SET_QUALITY:
-                self.quality = request.get("quality")
+                self.quality = request.quality
                 return ResponseMessage.ok_response(message="Quality set")
             case request.GET_QUALITY:
                 return ResponseMessage.ok_response(message="Quality", quality=self.quality)
             case request.SET_POSITION:
-                self.rewind(request.get("position"))
+                self.rewind(request.position)
                 return ResponseMessage.ok_response(message="Position set")
             case request.CMD_START_PROCESSING:
-                self.start(request.get("position"))
+                self.start(request.position)
                 return ResponseMessage.ok_response(message="Started")
             case request.CMD_START_PROCESSING:
                 self.stop()
                 return ResponseMessage.ok_response(message="Stopped")
             case request.CMD_FRAME_PROCESSED:  # process a frame immediately
-                self._process_frame(request.get("position"))
+                self._process_frame(request.position)
                 return ResponseMessage.ok_response(message="Processed")
             case request.GET_METADATA:  # return the target metadata
                 response = ResponseMessage.ok_response(message="metadata")
@@ -201,12 +205,12 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 ).to_dict())
                 return response
             case request.GET_FRAME:
-                frame = self.frame_handler.extract_frame(request.get("position"))
+                frame = self.frame_handler.extract_frame(request.position)
                 return ResponseMessage.ok_response(frame=to_b64(frame.frame), shape=frame.frame.shape)
             case request.SET_SOURCE_FILE:  # todo: unimplemented on client
                 if payload is None:
                     return ResponseMessage.error_response(message="Empty payload")
-                filename = os.path.join(self.temp_dir, "incoming", "source", request.get("filename"))
+                filename = os.path.join(self.temp_dir, "incoming", "source", request.filename)
                 with open(filename, "wb") as f:
                     f.write(payload)
                 self.source_path = filename
@@ -214,7 +218,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             case request.SET_TARGET_FILE:  # todo: unimplemented on client
                 if payload is None:
                     return ResponseMessage.error_response(message="Empty payload")
-                filename = os.path.join(self.temp_dir, "incoming", "target", request.get("filename"))
+                filename = os.path.join(self.temp_dir, "incoming", "target", request.filename)
                 with open(filename, "wb") as f:
                     f.write(payload)
                 self.target_path = filename
