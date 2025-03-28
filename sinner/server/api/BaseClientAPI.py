@@ -20,6 +20,12 @@ class BaseClientAPI(ABC):
         """Close connection"""
         pass
 
+    @property
+    @abstractmethod
+    def connected(self) -> bool:
+        """Returns connection status"""
+        pass
+
     @abstractmethod
     def send_request(self, request: RequestMessage) -> ResponseMessage:
         """Sends a request to the endpoint and returns the response when it is ready."""

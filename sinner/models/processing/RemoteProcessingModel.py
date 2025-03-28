@@ -101,7 +101,8 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         """
         self.parameters = parameters
         super().__init__(parameters)
-
+        self._status = status_callback
+        self._status("Connection", f"Connecting to {self._reply_endpoint}")
         # Initialize processor client
         self.ProcessingClient = FrameProcessingClient(
             ZMQClientAPI(
@@ -111,6 +112,11 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 timeout=self._timeout
             )
         )
+
+        if not self.ProcessingClient.connected:
+            self._status("Connection", f"Timeout connecting to {self._reply_endpoint}")
+        else:
+            self._status("Connected", f"Connected to {self._reply_endpoint}")
 
         if self._source_path:
             self.ProcessingClient.source_path = self._source_path
@@ -127,7 +133,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
         # Set progress control and status callback
         self.progress_control = progress_control
-        self._status = status_callback
+
         self._status("Time position", seconds_to_hmsms(0))
         self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 

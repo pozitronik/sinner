@@ -20,6 +20,7 @@ class ZMQClientAPI(BaseClientAPI):
     _sub_socket: Optional[Socket] = None
     _logger: logging.Logger
     _lock: threading.Lock
+    _connected: bool = False
 
     _notification_thread: Optional[threading.Thread] = None  # тред подписки на нотификации
     _notification_handler: Optional[Callable[[NotificationMessage], None]] = None  # Колбэк обработки нотификаций от сервера
@@ -47,11 +48,17 @@ class ZMQClientAPI(BaseClientAPI):
     def connect(self) -> bool:
         try:
             self._req_socket.connect(self._endpoint)
-            self.start_notification_listener()
-            return True
+            self._connected = self.send_request(RequestMessage(RequestMessage.GET_STATUS)).is_ok()
         except ZMQError as e:
-            self._logger.error(f"Failed to connect REQ socket: {e}")
-            return False
+            self._logger.error(f"Failed to connect to {self._endpoint}: {e}")
+            self._connected = False
+        if self._connected:
+            self.start_notification_listener()
+        return self._connected
+
+    @property
+    def connected(self) -> bool:
+        return self._connected
 
     def disconnect(self) -> None:
         """Close ZeroMQ context and sockets."""
@@ -63,6 +70,7 @@ class ZMQClientAPI(BaseClientAPI):
             self._sub_socket.close()
         if self._context:
             self._context.term()
+        self._connected = False
 
     def start_notification_listener(self) -> bool:
         """Start listening for notifications in background thread."""

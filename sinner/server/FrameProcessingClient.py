@@ -16,6 +16,10 @@ class FrameProcessingClient:
         self._APIClient.connect()
 
     @property
+    def connected(self) -> bool:
+        return self._APIClient.connected
+
+    @property
     def source_path(self) -> Optional[str]:
         response: ResponseMessage = self._APIClient.send_request(RequestMessage(RequestMessage.GET_SOURCE))
         if response.is_ok():
