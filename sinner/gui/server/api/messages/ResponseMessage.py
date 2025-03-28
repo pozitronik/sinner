@@ -3,10 +3,6 @@ from typing import Dict, Any, ClassVar, Optional, Type, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
-# Константы статусов
-STATUS_OK: str = "ok"
-STATUS_ERROR: str = "error"
-
 T = TypeVar('T', bound='ResponseMessage')
 
 
@@ -17,9 +13,9 @@ class ResponseMessage(BaseMessage):
     Обязательно содержит поле status с типом статуса ответа.
     Может содержать дополнительное поле message и другие параметры.
     """
-    # Константы доступны в классе
-    STATUS_OK: ClassVar[str] = STATUS_OK
-    STATUS_ERROR: ClassVar[str] = STATUS_ERROR
+    # Константы статусов
+    STATUS_OK: ClassVar[str] = "ok"
+    STATUS_ERROR: ClassVar[str] = "error"
 
     def __init__(self, status: str = STATUS_OK, message: Optional[str] = None) -> None:
         """
@@ -99,7 +95,7 @@ class ResponseMessage(BaseMessage):
     @classmethod
     def ok_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создание успешного ответа"""
-        instance = cls(status=STATUS_OK, message=message)
+        instance = cls(status=cls.STATUS_OK, message=message)
 
         # Добавляем дополнительные параметры
         for key, value in kwargs.items():
@@ -110,7 +106,7 @@ class ResponseMessage(BaseMessage):
     @classmethod
     def error_response(cls: Type[T], message: Optional[str] = None, **kwargs) -> T:  # type: ignore[no-untyped-def]
         """Создание ответа с ошибкой"""
-        instance = cls(status=STATUS_ERROR, message=message)
+        instance = cls(status=cls.STATUS_ERROR, message=message)
 
         # Добавляем дополнительные параметры
         for key, value in kwargs.items():
@@ -119,4 +115,4 @@ class ResponseMessage(BaseMessage):
         return instance
 
     def is_ok(self) -> bool:
-        return self.status == STATUS_OK
+        return self.status == self.STATUS_OK

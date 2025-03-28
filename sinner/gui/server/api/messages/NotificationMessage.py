@@ -3,8 +3,6 @@ from typing import Dict, Any, ClassVar, Type, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
-NTF_FRAME = "NTF_FRAME"  # оповещение о готовности фрейма
-
 T = TypeVar('T', bound='NotificationMessage')
 
 
@@ -15,8 +13,7 @@ class NotificationMessage(BaseMessage):
     Обязательно содержит поле notification с типом нотфикации
     """
 
-    # Константы доступны в классе
-    NTF_FRAME: ClassVar[str] = NTF_FRAME
+    NTF_FRAME: ClassVar[str] = "NTF_FRAME"  # оповещение о готовности фрейма
 
     def __init__(self, notification: str) -> None:
         """
