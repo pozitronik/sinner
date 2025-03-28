@@ -7,9 +7,9 @@ from typing import Callable, Any, Optional
 
 from sinner.gui.controls.FramePlayer.PygameFramePlayer import PygameFramePlayer
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
-from sinner.gui.server.FrameProcessingClient import FrameProcessingClient
-from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
-from sinner.gui.server.api.ZMQClientAPI import ZMQClientAPI
+from sinner.server.FrameProcessingClient import FrameProcessingClient
+from sinner.server.api.messages.NotificationMessage import NotificationMessage
+from sinner.server.api.ZMQClientAPI import ZMQClientAPI
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MediaMetaData import MediaMetaData

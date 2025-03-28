@@ -1,6 +1,6 @@
 from typing import ClassVar, TypeVar
 
-from sinner.gui.server.api.messages.BaseMessage import BaseMessage
+from sinner.server.api.messages.BaseMessage import BaseMessage
 
 T = TypeVar('T', bound='RequestMessage')
 

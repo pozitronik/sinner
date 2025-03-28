@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from sinner.gui.server.api.messages.RequestMessage import RequestMessage
-from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
+from sinner.server.api.messages.RequestMessage import RequestMessage
+from sinner.server.api.messages.ResponseMessage import ResponseMessage
 
 
 class BaseClientAPI(ABC):

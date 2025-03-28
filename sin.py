@@ -3,7 +3,7 @@ import asyncio
 import os
 import time
 
-from sinner.gui.server.FrameProcessingServer import FrameProcessingServer
+from sinner.server.FrameProcessingServer import FrameProcessingServer
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
 

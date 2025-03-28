@@ -7,9 +7,9 @@ import zmq.asyncio
 from zmq import ZMQError
 from zmq.asyncio import Socket as AsyncSocket
 
-from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
-from sinner.gui.server.api.messages.RequestMessage import RequestMessage
-from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
+from sinner.server.api.messages.NotificationMessage import NotificationMessage
+from sinner.server.api.messages.RequestMessage import RequestMessage
+from sinner.server.api.messages.ResponseMessage import ResponseMessage
 
 
 class ZMQServerAPI:

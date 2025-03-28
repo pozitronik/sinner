@@ -7,11 +7,11 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from typing import Dict, List, Optional
 
 from sinner.BatchProcessingCore import BatchProcessingCore
-from sinner.gui.server.api.messages.NotificationMessage import NotificationMessage
+from sinner.server.api.messages.NotificationMessage import NotificationMessage
 
-from sinner.gui.server.api.messages.RequestMessage import RequestMessage
-from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
-from sinner.gui.server.api.ZMQServerAPI import ZMQServerAPI
+from sinner.server.api.messages.RequestMessage import RequestMessage
+from sinner.server.api.messages.ResponseMessage import ResponseMessage
+from sinner.server.api.ZMQServerAPI import ZMQServerAPI
 from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange

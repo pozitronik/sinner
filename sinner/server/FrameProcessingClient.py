@@ -1,8 +1,8 @@
 from typing import Optional
 
-from sinner.gui.server.api.BaseClientAPI import BaseClientAPI
-from sinner.gui.server.api.messages.RequestMessage import RequestMessage
-from sinner.gui.server.api.messages.ResponseMessage import ResponseMessage
+from sinner.server.api.BaseClientAPI import BaseClientAPI
+from sinner.server.api.messages.RequestMessage import RequestMessage
+from sinner.server.api.messages.ResponseMessage import ResponseMessage
 from sinner.helpers.FrameHelper import from_b64
 from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.NumberedFrame import NumberedFrame
