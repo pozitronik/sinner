@@ -126,7 +126,6 @@ class ZMQClientAPI(BaseClientAPI):
             self._logger.error(f"No handler defined for notification: {notification.type}")
         else:
             try:
-                self._logger.debug(f"Handling notification: {notification}")
                 self._notification_handler(notification)
             except Exception as e:
                 self._logger.error(f"Error in notification callback: {e}")
@@ -154,7 +153,6 @@ class ZMQClientAPI(BaseClientAPI):
 
     def _recreate_socket(self) -> None:
         """Пересоздание REQ сокета после ошибки."""
-        self._logger.info("Recreating REQ socket")
         if self._req_socket:
             self._req_socket.close(linger=0)  # linger=0 важно для немедленного закрытия
 
