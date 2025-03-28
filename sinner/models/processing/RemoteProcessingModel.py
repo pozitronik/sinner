@@ -458,5 +458,6 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             case notification.NTF_FRAME:  # add frame index to timeline
                 self.TimeLine.add_frame_index(notification.index)
                 self._status("Average processing speed", f"{round(notification.fps, 4)} FPS")
+                self.set_progress_index_value(notification.index, PROCESSED)
             case _:
                 self.update_status(f"Handler is not implemented for notification {notification.type}")
