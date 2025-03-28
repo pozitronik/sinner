@@ -1,4 +1,4 @@
-from typing import Dict, Any, ClassVar, Optional, Type, TypeVar
+from typing import ClassVar, Type, TypeVar
 
 from sinner.gui.server.api.messages.BaseMessage import BaseMessage
 
