@@ -4,6 +4,7 @@ import os
 import time
 import sys
 from types import FrameType
+from typing import Optional
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
 
@@ -33,17 +34,12 @@ class Sin(Sinner):
     parameters: Namespace
 
     def __init__(self) -> None:
-        signal.signal(signal.SIGINT, self.signal_handler)
-        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, lambda signal_number, frame: quit())
+        signal.signal(signal.SIGTERM, lambda signal_number, frame: quit())
         self.parameters = Parameters().parameters
         super().__init__(parameters=self.parameters)
         self.update_parameters(self.parameters)
         limit_resources(self.max_memory)
-
-    @staticmethod
-    def signal_handler(sig: int, frame: FrameType) -> None:
-        # self.logger.info(f"Interrupted")
-        sys.exit(0)
 
     def run_server(self) -> None:
         """Main function to run the server."""
