@@ -3,8 +3,6 @@ import asyncio
 import os
 import time
 import sys
-from types import FrameType
-from typing import Optional
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
 
