@@ -21,6 +21,22 @@
 * `--frames-widget-width`, `--fw-width`: processed widget maximum width, -1 to set as 10% of original image size.
 * `--frames-widget-height`, `--fw-height`: processed widget maximum height, -1 to set as 10% of original image size.
 
+# Server: the server module
+* `--frame-processor`, `--processor`, `--processors`: the set of frame processors to handle the target. See the [Built-in frame processors](../README.md#built-in-frame-processors) documentation for the list of built-in modules and their possibilities. Defaults to `FaceSwapper`.
+* `--execution-threads`: the count of simultaneous processing threads. Defaults to the system-suggested value based on your hardware.
+* `--source`, `--source-path`: path to the source image containing a face for processors that require it (such as FaceSwapper).
+* `--target`, `--target-path`: path to the target file that will be processed when requested by the client.
+* `--quality`, `--scale-quality`: initial processing scale quality (in percents). Lower values improve performance but reduce quality. Defaults to `100`.
+* `--prepare-frames`: extract target frames to files to make realtime player run smoother. This helps reduce lag during playback. Defaults to `None`.
+* `--bootstrap_processors`, `--bootstrap`: bootstrap frame processors on startup. This initializes processors immediately rather than on first request. Defaults to `true`.
+* `--temp-dir`: select the directory for temporary files. Defaults to the `temp` subdirectory in the application directory.
+* `--endpoint`, `--reply-endpoint`: endpoint for the frame processor server. This is the address where the server listens for processing requests. Defaults to `tcp://127.0.0.1:5555`.
+* `--pub-endpoint`: endpoint for the frame processor server publishing notifications. The server will send status updates and notifications through this endpoint. Defaults to `tcp://127.0.0.1:5556`.
+**Note:** This parameter can be applied to GUI client when executed in the distributed mode:
+* `--endpoint`, `--reply-endpoint`: endpoint for the frame processor server. This is the address where the client sends processing requests. Defaults to `tcp://127.0.0.1:5555`.
+* `--sub-endpoint`: endpoint for receiving frame processor server notifications. The client will listen for status updates and notifications through this endpoint. Defaults to `tcp://127.0.0.1:5556`.
+* `--timeout`: network communications timeout in milliseconds. If the server doesn't respond within this time, the client will time out. Defaults to `5000`.
+
 # WebCam: The virtual camera module
 **Note**: You may need to install OBS drivers to create virtual camera device.
 * `--auto-restart`, `--restart`: try to restart input camera on error (may help with buggy drivers/hardware).
