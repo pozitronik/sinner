@@ -11,6 +11,10 @@ class BaseFramePosition:
     def pack(self, **kwargs) -> Any:  # type: ignore[no-untyped-def]
         pass
 
+    @abstractmethod
+    def configure(self, **kwargs) -> Any:  # type: ignore[no-untyped-def]
+        pass
+
     @property
     @abstractmethod
     def position(self) -> int:
