@@ -28,7 +28,7 @@ class ZMQServerAPI:
     def __init__(self, handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 1000):
         if platform.system().lower() == 'windows':
             try:
-                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore[attr-defined]  # has to be ignored, method can be unavailable on non-windows environments
             except AttributeError:
                 pass  # there's no WindowsSelectorEventLoopPolicy available
 
