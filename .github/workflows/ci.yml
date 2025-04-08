@@ -69,6 +69,8 @@ jobs:
           pip install pygame
           pip install moviepy>=1.0.4
           pip install python-vlc
+          pip install zmq
+          pip install pytest-asyncio
       - run: |
           export DISPLAY=:1:0
           Xvfb :1 -screen 0 1600x1200x16 &

@@ -41,13 +41,13 @@ Run `pip install -r requirements-mac-x86.txt`. It will use only CPU powers, but 
 
 Run `pip install -r requirements-mac-arm64.txt`. There is no CUDA, obviously, but there's some hardware acceleration too.
 
-Anyway, packages should be installed successfully. Otherwise, get a look to the command output, usually you may fix minor issues (like version requirements change) by yourself.
+Anyway, packages should be installed successfully. Otherwise, gtake a look at the command output, usually you may fix minor issues (like version requirements change) by yourself.
 
 If nothing helps, feel free to create an issue with your problem, we will try to figure it out together.
 
 ## How do I use it?
 
-Go to application folder and run `python sin.py` with desired set of command-line parameters (or just pick one of [examples](#command-line-usage-examples) and make changes to suit your need).
+Go to the application folder and run `python sin.py` with desired set of command-line parameters (or just pick one of [examples](#command-line-usage-examples) and make changes to suit your need).
 
 You can get the list of all available command-line parameters by running the program with `--h` or `--help` keys. Those commands will list all configurable modules and their supported parameters.
 
@@ -92,11 +92,30 @@ python sin.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_
 Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory using the `cuda` provider and 8 simultaneous execution threads, with limit of 24 Gb RAM, and save every enhanced image to the `d:\pictures\pngs_dir\enhanced` directory.<br/>
 
 ## Real-time player
-This feature is still in the alpha stage, so things can be changed. There's not much to document yet; it's better to try it yourself, by running it:
+Sinner can be launched as a GUI application with the following command:
 ```cmd
 python sin.py --gui
 ```
+This mode enables real-time face swapping while watching videos. You can enjoy any movie with faces swapped on the fly:
+
 ![FaceSwapper demo](/demos/player-demo.png)
+
+The playback performance may vary and could be choppy at times. The resulting frame rate heavily depends on your hardware capabilities. More powerful systems will provide smoother playback experience.
+
+## Distributed mode
+You can run sinner in distributed mode, with the GUI and processing server as two separate processes. This mode improves playback smoothness in real-time operation since the resource-intensive face processing tasks are separated from the video player process.
+To start the server, run the application with the `--server` key:
+```cmd
+python sin.py --server
+```
+
+Then start the client in distributed mode:
+```cmd
+python sin.py --gui --mode=distributed
+```
+(The player can be switched to distributed mode itself via the menu).
+
+By default, distributed mode uses TCP ports 5556 and 5555, but these can be customized. See [Server module](/docs/modules.md#server-the-server-module) for more details.
 
 ## Virtual camera feature
 
@@ -130,7 +149,7 @@ python sin.py --camera --device=no --input="path\to\video.mp4" --source="path\to
 
 ## Configuration file
 
-You can store commonly used options in the configuration file, to make them apply on every run by default. Just edit `sinner.ini` file in the application directory and add desired parameters inside the `[sinner]` section as key-value pairs.
+You can store commonly used options in the configuration file to make them apply on every run by default. Just edit `sinner.ini` file in the application directory and add desired parameters inside the `[sinner]` section as key-value pairs.
 
 Example:
 
@@ -155,11 +174,11 @@ execution-threads = 4
 ```
 
 In the example above FaceSwapper will run in four execution threads, when other modules will run in two threads (if they support this parameter).
-Module configurations have the priority over global parameters (even if they passed directly from the command line).
+Module configurations have priority over global parameters (even if they passed directly from the command line).
 
 Any parameter set from command line will override corresponding global (not module) parameter from the ini file.
 
-You also can pass path to the custom configuration file as a command line parameter:
+You also can pass a path to the custom configuration file as a command line parameter:
 
 ```cmd
 python sin.py --ini="d:\path\custom.ini"
@@ -175,7 +194,7 @@ for this key (remember not to forget enclosing the value string in commas). Ther
 * `--ffmpeg_resulting_parameters="-c:v hevc_nvenc -preset slow -qp 20 -pix_fmt yuv420p"`: the same as above, but with x265 encoding.
 * `--ffmpeg_resulting_parameters="-c:v h264_amf -b:v 2M -pix_fmt yuv420p"`: the AMD hardware-accelerated x264 encoder (`-c:v h264_amf`) with 2mbps resulting video bitrate (-b:v 2M). This should be good for AMD GPUs.
 
-And so on. As you can find, there are a lot of different presets and options for the every `ffmpeg` encoder, and you can rely on the [documentation](https://ffmpeg.org/ffmpeg-codecs.html) to achieve desired results.
+And so on. As you can find, there are a lot of different presets and options for every `ffmpeg` encoder, and you can rely on the [documentation](https://ffmpeg.org/ffmpeg-codecs.html) to achieve desired results.
 
 In case, when `ffmpeg` is not available in your system, sinner will gracefully degrade to CV2 library possibilities. In that case all video processing features should work, but in a very basic way: only with the software x264 encoder, which is slow and thriftless.
 
@@ -188,11 +207,11 @@ currently lacks.
 
 Also, roop is dead, baby, roop is dead.
 
-:question: Is there a NSWF filter?<br/>
+:question: Is there a NSFW filter?<br/>
 :exclamation: Nope. I don't care if you do nasty things with sinner, it's your responsibility. And sinner is just a neutral tool, like a hammer or a knife.
 
 :question: Can I use several execution providers simultaneously?<br/>
-:exclamation: You can try. Seriously, you can set `--execution-provider cuda cpu`, and look, what will happen. May be it will work faster, may be it won't work at all. It is a large space for experiments.
+:exclamation: You can try. Seriously, you can set `--execution-provider cuda cpu`, and look, what will happen. Maybe it will work faster, maybe it won't work at all. There is a large space for experiments.
 
 ## Credits
 

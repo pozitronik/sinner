@@ -1,30 +1,46 @@
 import threading
 import time
-from typing import List
+from typing import List, Optional, Self
 
 from sinner.models.FrameDirectoryBuffer import FrameDirectoryBuffer
 from sinner.models.NumberedFrame import NumberedFrame
 
 
 class FrameTimeLine:
+    _source_name: Optional[str] = None
+    _target_name: Optional[str] = None
+
     _FrameBuffer: FrameDirectoryBuffer
     _timer: float = 0
-    _frame_time: float
-    _start_frame_index: int
-    _end_frame_index: int
+    _frame_time: float = 0
+    _start_frame_index: int = 0
+    _end_frame_index: int = 0
     _start_frame_time: float = 0
 
-    _is_started: bool
+    _is_started: bool = False
     _last_added_index: int = 0
     _last_requested_index: int = 0
-    _last_returned_index: int | None = None
+    _last_returned_index: Optional[int] = None
+    _temp_dir: str
 
-    def __init__(self, source_name: str, target_name: str, temp_dir: str, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0):
+    def __init__(self, temp_dir: str) -> None:
+        self._temp_dir = temp_dir
+        self._FrameBuffer = FrameDirectoryBuffer(self._temp_dir)
+
+    def load(self, source_name: Optional[str] = None, target_name: Optional[str] = None, frame_time: float = 0, start_frame: int = 0, end_frame: int = 0) -> Self:
+        """Loads source/target pair to the timeline"""
+        self._source_name = source_name
+        self._target_name = target_name
         self.reload(frame_time, start_frame, end_frame)
-        self._is_started = False
-        self._FrameBuffer = FrameDirectoryBuffer(source_name, target_name, temp_dir, end_frame)
+
+        if self._source_name and self._target_name is not None:
+            self._FrameBuffer.load(source_name, target_name, end_frame)  # type: ignore[arg-type]  # mypy doesn't see the condition
+        else:
+            self._FrameBuffer.flush()
+        return self
 
     def reload(self, frame_time: float, start_frame: int, end_frame: int) -> None:
+        """Reloads the same source/target pair"""
         self._frame_time = frame_time
         self._start_frame_index = start_frame
         self._end_frame_index = end_frame
@@ -33,7 +49,6 @@ class FrameTimeLine:
     def rewind(self, frame_index: int) -> None:
         self._start_frame_index = frame_index
         self._start_frame_time = self._start_frame_index * self._frame_time
-        self._FrameBuffer.clean()
         if self._is_started:
             self._timer = time.perf_counter()
 
@@ -44,7 +59,6 @@ class FrameTimeLine:
 
     def stop(self) -> None:
         self._is_started = False
-        self._FrameBuffer.clean()
 
     # returns time passed from the start
     def time(self) -> float:
@@ -64,6 +78,11 @@ class FrameTimeLine:
         with threading.Lock():
             self._FrameBuffer.add_frame(frame)
             self._last_added_index = frame.index
+
+    def add_frame_index(self, index: int) -> None:
+        with threading.Lock():
+            self._FrameBuffer.add_index(index)
+            self._last_added_index = index
 
     # return the frame at current time position, or None, if there's no frame
     def get_frame(self, time_aligned: bool = True) -> NumberedFrame | None:

@@ -2,7 +2,7 @@ import glob
 import os
 from abc import ABC, abstractmethod
 from argparse import Namespace
-from typing import List
+from typing import List, Self
 
 from sinner.models.NumberedFrame import NumberedFrame
 from sinner.models.status.StatusMixin import StatusMixin
@@ -103,7 +103,7 @@ class BaseFrameHandler(AttributeLoader, ABC, StatusMixin):
         """
         pass
 
-    def __iter__(self) -> 'BaseFrameHandler':
+    def __iter__(self) -> Self:
         return self
 
     def __next__(self) -> int:

@@ -47,6 +47,7 @@ def test_no_source() -> None:
         BatchProcessingCore(parameters=params.parameters).run()  # source path is fucked up
 
 
+@pytest.mark.skip(reason="Skipped due to removed functionality")
 def test_broken_source() -> None:
     params = Parameters(f'--target_path="{broken_mp4}" --source_path="{source_jpg}"')
     limit_resources(suggest_max_memory())

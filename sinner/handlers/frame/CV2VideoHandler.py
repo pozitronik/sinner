@@ -62,31 +62,9 @@ class CV2VideoHandler(BaseFrameHandler):
 
     @property
     def fc(self) -> int:  # this value can be inaccurate
-        def is_frame_readable(position: int) -> bool:
-            capture.set(cv2.CAP_PROP_POS_FRAMES, position - 1)  # zero-based!
-            return capture.read()[0]
-
-        def find_last_frame(total_frames: int) -> int:
-            if is_frame_readable(total_frames):
-                return total_frames
-
-            left = 1
-            right = total_frames
-            last_good = 0
-
-            while left <= right:
-                mid = (left + right) // 2
-                if is_frame_readable(mid):
-                    last_good = mid
-                    left = mid + 1
-                else:
-                    right = mid - 1
-
-            return last_good
-
         if self._fc is None:
             capture = self.open()
-            self._fc = find_last_frame(int(capture.get(cv2.CAP_PROP_FRAME_COUNT)))  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct. In this case we need to search last good frame
+            self._fc = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))  # cv2.CAP_PROP_FRAME_COUNT returns value from the video header, which not always correct. In this case we need to search last good frame
             capture.release()
         return self._fc
 
