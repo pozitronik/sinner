@@ -48,7 +48,6 @@ class TestZMQServerAPI:
             handler=request_handler,
             reply_endpoint="tcp://localhost:5555",
             publish_endpoint="tcp://localhost:5556",
-            timeout=1000
         )
 
         yield server
@@ -92,7 +91,6 @@ class TestZMQServerAPI:
         server = ZMQServerAPI()
         assert server._reply_endpoint == "tcp://127.0.0.1:5555"
         assert server._publish_endpoint == "tcp://127.0.0.1:5556"
-        assert server._timeout == 1000
         assert server._request_handler is None
         assert server._server_running is False
 
@@ -102,11 +100,9 @@ class TestZMQServerAPI:
             handler=handler,
             reply_endpoint="tcp://localhost:5000",
             publish_endpoint="tcp://localhost:5001",
-            timeout=2000
         )
         assert server._reply_endpoint == "tcp://localhost:5000"
         assert server._publish_endpoint == "tcp://localhost:5001"
-        assert server._timeout == 2000
         assert server._request_handler is handler
 
         # Verify socket initialization
