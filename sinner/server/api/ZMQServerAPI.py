@@ -13,7 +13,6 @@ from sinner.server.api.messages.ResponseMessage import ResponseMessage
 
 
 class ZMQServerAPI:
-    _timeout: int = 1000
     _reply_endpoint: str = "tcp://127.0.0.1:5555"
     _context: zmq.asyncio.Context
     _publish_context: zmq.Context[Any]
@@ -25,7 +24,7 @@ class ZMQServerAPI:
     _server_running: bool = False
     _request_handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None  # external method to handle incoming messages
 
-    def __init__(self, handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556", timeout: int = 1000):
+    def __init__(self, handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556"):
         if platform.system().lower() == 'windows':
             try:
                 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore[attr-defined]  # has to be ignored, method can be unavailable on non-windows environments
@@ -33,7 +32,6 @@ class ZMQServerAPI:
                 pass  # there's no WindowsSelectorEventLoopPolicy available
 
         self._request_handler = handler
-        self._timeout = timeout
         self._reply_endpoint = reply_endpoint
         self._context = zmq.asyncio.Context()
         self._reply_socket = self._context.socket(zmq.REP)
