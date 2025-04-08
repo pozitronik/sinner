@@ -40,6 +40,8 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     bootstrap_processors: bool
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
     _scale_quality: int  # the processed frame size scale in percent
+    _reply_endpoint: str
+    _pub_endpoint: str
 
     # internal objects
     TimeLine: FrameTimeLine
@@ -113,6 +115,18 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 'help': 'Select the directory for temporary files'
             },
             {
+                'parameter': ['endpoint', 'reply-endpoint'],
+                'attribute': '_reply_endpoint',
+                'default': "tcp://127.0.0.1:5555",
+                'help': 'Endpoint for the frame processor server'
+            },
+            {
+                'parameter': ['pub-endpoint'],
+                'attribute': '_pub_endpoint',
+                'default': "tcp://127.0.0.1:5556",
+                'help': 'Endpoint for the frame processor server publishing notifications'
+            },
+            {
                 'module_help': 'The server for frame processing'
             }
         ]
@@ -128,7 +142,12 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         # Initialize attribute loader first
         AttributeLoader.__init__(self, parameters)
 
-        self._APIHandler = ZMQServerAPI(handler=self._handle_request)
+        self._APIHandler = ZMQServerAPI(
+            handler=self._handle_request,
+            reply_endpoint=self._reply_endpoint,
+            publish_endpoint=self._pub_endpoint
+
+        )
 
         self.parameters = parameters
         self._processors = {}
