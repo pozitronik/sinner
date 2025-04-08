@@ -115,7 +115,7 @@ python sin.py --gui --mode=distributed
 ```
 (The player can be switched to distributed mode itself via the menu).
 
-By default, distributed mode uses TCP ports 5556 and 5555, but these can be customized. See [Server module](/docs/modules.md#server-the-server-module) for more details.
+By default, distributed mode uses TCP ports 5556 and 5555, but these can be customized. See [Server module](/docs/modules.md#server-the-server-module) documentation for more details.
 
 ## Virtual camera feature
 
