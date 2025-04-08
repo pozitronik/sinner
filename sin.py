@@ -2,19 +2,16 @@
 import asyncio
 import os
 import time
-
-from sinner.server.FrameProcessingServer import FrameProcessingServer
+import sys
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
-
-import signal  # noqa: E402
-import sys  # noqa: E402
-from argparse import Namespace  # noqa: E402
 
 if sys.version_info < (3, 10):
     print('Python version is not supported - please upgrade to 3.10 or higher.')
     quit()
 
+import signal  # noqa: E402
+from argparse import Namespace  # noqa: E402
 from sinner.Benchmark import Benchmark  # noqa: E402
 from sinner.Parameters import Parameters  # noqa: E402
 from sinner.BatchProcessingCore import BatchProcessingCore  # noqa: E402
@@ -22,6 +19,7 @@ from sinner.Sinner import Sinner  # noqa: E402
 from sinner.gui.GUIForm import GUIForm  # noqa: E402
 from sinner.webcam.WebCam import WebCam  # noqa: E402
 from sinner.utilities import limit_resources  # noqa: E402
+from sinner.server.FrameProcessingServer import FrameProcessingServer  # noqa: E402
 
 
 class Sin(Sinner):
