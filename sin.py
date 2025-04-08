@@ -3,6 +3,7 @@ import asyncio
 import os
 import time
 import sys
+from types import FrameType
 
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'  # do not flood with oneDNN spam
 
@@ -40,7 +41,7 @@ class Sin(Sinner):
         limit_resources(self.max_memory)
 
     @staticmethod
-    def signal_handler(sig, frame):
+    def signal_handler(sig: int, frame: FrameType) -> None:
         # self.logger.info(f"Interrupted")
         sys.exit(0)
 
