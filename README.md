@@ -92,11 +92,30 @@ python sin.py --source="d:\pictures\any_picture.jpg" --target="d:\pictures\pngs_
 Enhance all faces in every PNG file in the `d:\pictures\pngs_dir` directory using the `cuda` provider and 8 simultaneous execution threads, with limit of 24 Gb RAM, and save every enhanced image to the `d:\pictures\pngs_dir\enhanced` directory.<br/>
 
 ## Real-time player
-This feature is still in the alpha stage, so things can be changed. There's not much to document yet; it's better to try it yourself by running it:
+Sinner can be launched as a GUI application with the following command:
 ```cmd
 python sin.py --gui
 ```
+This mode enables real-time face swapping while watching videos. You can enjoy any movie with faces swapped on the fly:
+
 ![FaceSwapper demo](/demos/player-demo.png)
+
+The playback performance may vary and could be choppy at times. The resulting frame rate heavily depends on your hardware capabilities. More powerful systems will provide smoother playback experience.
+
+## Distributed mode
+You can run sinner in distributed mode, with the GUI and processing server as two separate processes. This mode improves playback smoothness in real-time operation since the resource-intensive face processing tasks are separated from the video player process.
+To start the server, run the application with the `--server` key:
+```cmd
+python sin.py --server
+```
+
+Then start the client in distributed mode:
+```cmd
+python sin.py --gui --mode=distributed
+```
+(The player can be switched to distributed mode itself via the menu).
+
+By default, distributed mode uses TCP ports 5556 and 5555, but these can be customized. See [Server module](/docs/modules.md#server-the-server-module) for more details.
 
 ## Virtual camera feature
 
