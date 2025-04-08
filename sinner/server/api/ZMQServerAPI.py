@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import platform
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
 import zmq.asyncio
 from zmq import ZMQError
@@ -16,10 +16,10 @@ class ZMQServerAPI:
     _timeout: int = 1000
     _reply_endpoint: str = "tcp://127.0.0.1:5555"
     _context: zmq.asyncio.Context
-    _publish_context: zmq.Context
+    _publish_context: zmq.Context[Any]
     _reply_socket: AsyncSocket  # the listening socket
     _publish_endpoint: str = "tcp://127.0.0.1:5556"
-    _publish_socket: zmq.Socket  # the publishing socket
+    _publish_socket: zmq.Socket[Any]  # the publishing socket
 
     _logger: logging.Logger
     _server_running: bool = False

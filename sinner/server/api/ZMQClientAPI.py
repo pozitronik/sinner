@@ -2,7 +2,7 @@ import logging
 import threading
 
 import zmq
-from typing import Optional, Callable
+from typing import Optional, Callable, Any
 
 from zmq import Socket, ZMQError
 
@@ -15,9 +15,9 @@ from sinner.server.api.messages.ResponseMessage import ResponseMessage
 class ZMQClientAPI(BaseClientAPI):
     _sub_endpoint: str = "tcp://127.0.0.1:5556"  # Эндпоинт для подписки на нотификации
     _timeout: int = 5000
-    _context: zmq.Context
-    _req_socket: Socket
-    _sub_socket: Optional[Socket] = None
+    _context: zmq.Context[Any]
+    _req_socket: Socket[Any]
+    _sub_socket: Optional[Socket[Any]] = None
     _logger: logging.Logger
     _lock: threading.Lock
     _connected: bool = False
@@ -78,11 +78,11 @@ class ZMQClientAPI(BaseClientAPI):
         if not self._sub_socket:
             self._sub_socket = self._context.socket(zmq.SUB)
             # Подписываемся на все сообщения (пустая строка - нет фильтрации)
-            self._sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+            self._sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # type: ignore[union-attr]  #  socket is defined
 
         try:
             # Подключаемся к PUB сокету сервера
-            self._sub_socket.connect(self._sub_endpoint)
+            self._sub_socket.connect(self._sub_endpoint)  # type: ignore[union-attr]  #  socket is defined
 
             # Запускаем фоновый поток для получения нотификаций
             self._notification_running = True
