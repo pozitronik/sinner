@@ -85,7 +85,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 'help': 'Network communications timeout'
             },
             {
-                'module_help': 'Distributed GUI processing model'
+                'module_help': 'Distributed GUI processing client model'
             }
         ]
 
