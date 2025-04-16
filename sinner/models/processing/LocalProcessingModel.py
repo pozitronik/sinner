@@ -461,7 +461,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                 n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
 
             # Общий сегмент обработки
-            with total_perf.segment("process") as process_perf:
+            with total_perf.segment("process") as _:
                 # Для каждого процессора измеряем время отдельно
                 for processor_name, processor in self.processors.items():
                     processor_start = time.perf_counter() if not total_perf.ns_mode else time.perf_counter_ns()

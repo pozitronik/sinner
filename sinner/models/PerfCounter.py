@@ -1,5 +1,5 @@
 import time
-from typing import Optional, Self, Dict, List, Any, Type, Union
+from typing import Optional, Self, Dict, List, Any, Type
 
 
 class PerfCounter:
