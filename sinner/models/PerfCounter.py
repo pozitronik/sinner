@@ -1,59 +1,52 @@
 import time
-from datetime import datetime
-from typing import Optional, Self
-
-from sinner.utilities import get_mem_usage
+from typing import Optional, Self, Dict, List, Any, Type, Union
 
 
 class PerfCounter:
-    def __init__(self, name: str = "total", ns_mode: bool = False, enabled: bool = True, track_memory: bool = False, track_timestamp: bool = False):
+    def __init__(self, name: str = "total", ns_mode: bool = False, enabled: bool = True, parent: Optional['PerfCounter'] = None):
         self.name: str = name
         self.execution_time: float = 0
         self.ns_mode: bool = ns_mode
         self.enabled: bool = enabled
-        self.track_memory: bool = track_memory and enabled  # Отключаем трекинг памяти, если счетчик отключен
-        self.track_timestamp: bool = track_timestamp and enabled
+        self.parent: Optional['PerfCounter'] = parent
+        self.start_time: float = 0
+        self.end_time: float = 0
 
         # Инициализируем только если счетчик включен
         if enabled:
-            self.segments: dict[str, float] = {}
-            self.subsegments: dict[str, dict[str, float]] = {}
-            self.memory_start: tuple[float, float] = (0, 0)
-            self.memory_end: tuple[float, float] = (0, 0)
-            self.timestamp: Optional[float] = None
+            self.segments: Dict[str, float] = {}
+            self.subsegments: Dict[str, Dict[str, float]] = {}
+            # Для сохранения порядка сегментов
+            self.segment_order: List[str] = []
 
     def __enter__(self) -> Self:
         # Всегда измеряем общее время
         self.start_time = time.perf_counter_ns() if self.ns_mode else time.perf_counter()
-
-        # Остальные измерения только при enabled=True
-        if self.enabled:
-            if self.track_timestamp:
-                self.timestamp = time.time()
-        if self.track_memory:
-            self.memory_start = (get_mem_usage(), get_mem_usage('vms'))
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_value: Optional[BaseException], traceback: Any) -> None:
         # Всегда измеряем общее время
         self.end_time = time.perf_counter_ns() if self.ns_mode else time.perf_counter()
         self.execution_time = self.end_time - self.start_time
 
-        # Остальные измерения только при enabled=True
-        if self.enabled and self.track_memory:
-            self.memory_end = (get_mem_usage(), get_mem_usage('vms'))
+        # Если у нас есть родитель, обновляем его информацию
+        if self.parent and self.enabled:
+            self.parent.record_segment(self.name, self.execution_time)
 
     def segment(self, name: str) -> 'PerfCounter':
         """Create a timing segment - returns a noop counter if disabled"""
         if not self.enabled:
             return PerfCounter(name=name, enabled=False, ns_mode=self.ns_mode)
 
+        # Добавляем новый сегмент в порядок выполнения
+        if name not in self.segment_order:
+            self.segment_order.append(name)
+
         segment_counter = PerfCounter(
             name=name,
             ns_mode=self.ns_mode,
             enabled=True,
-            track_memory=self.track_memory,
-            track_timestamp=self.track_timestamp
+            parent=self  # Устанавливаем текущий счетчик как родителя
         )
         return segment_counter
 
@@ -61,6 +54,9 @@ class PerfCounter:
         """Record a segment duration"""
         if self.enabled:
             self.segments[name] = duration
+            # Добавляем в порядок, если его нет
+            if name not in self.segment_order:
+                self.segment_order.append(name)
 
     def record_subsegment(self, segment_name: str, subsegment_name: str, duration: float) -> None:
         """Record a subsegment duration"""
@@ -73,50 +69,42 @@ class PerfCounter:
 
     def percentage(self, segment_name: str) -> float:
         """Return the percentage of total time spent in segment"""
-        if not self.enabled or self.execution_time == 0:
+        if not self.enabled or self.execution_time <= 0:
             return 0
         return (self.segments.get(segment_name, 0) / self.execution_time) * 100
 
     def subsegment_percentage(self, segment_name: str, subsegment_name: str) -> float:
         """Return the percentage of segment time spent in subsegment"""
+        if not self.enabled:
+            return 0
         segment_time = self.segments.get(segment_name, 0)
-        if segment_time == 0:
+        if segment_time <= 0:
             return 0
         subsegment_time = self.subsegments.get(segment_name, {}).get(subsegment_name, 0)
         return (subsegment_time / segment_time) * 100
-
-    def memory_usage_str(self) -> str:
-        """Format memory usage information"""
-        if not self.track_memory:
-            return ""
-        rss_diff = self.memory_end[0] - self.memory_start[0]
-        vms_diff = self.memory_end[1] - self.memory_start[1]
-        return f"Memory: {rss_diff:.2f}MB RSS, {vms_diff:.2f}MB VMS"
-
-    def timestamp_str(self) -> str:
-        """Format timestamp information"""
-        if not self.track_timestamp or self.timestamp is None:
-            return ""
-        return f"Time: {datetime.fromtimestamp(self.timestamp).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}"
 
     def __str__(self) -> str:
         """Format timing information with percentages"""
         if not self.enabled:
             return f"{self.name}: {self.execution_time:.6f}s"
-        result = [f"{self.name}: {self.execution_time:.6f}s"]
 
-        if self.track_timestamp and self.timestamp:
-            result.append(f"  {self.timestamp_str()}")
+        # Вычисляем общее время из сегментов, если execution_time нулевое
+        total_time = self.execution_time
+        if total_time <= 0 and self.segments:
+            total_time = sum(self.segments.values())
 
-        if self.track_memory:
-            result.append(f"  {self.memory_usage_str()}")
+        result = [f"{self.name}: {total_time:.6f}s"]
 
-        if self.segments:
-            for name, time_value in sorted(self.segments.items()):
-                result.append(f"  {name}: {time_value:.6f}s ({self.percentage(name):.2f}%)")
+        # Выводим сегменты в порядке их создания
+        for name in self.segment_order:
+            if name in self.segments:
+                time_value = self.segments[name]
+                # Используем actual_percentage для корректного отображения
+                actual_percentage = (time_value / total_time * 100) if total_time > 0 else 0
+                result.append(f"  {name}: {time_value:.6f}s ({actual_percentage:.2f}%)")
 
-                # Add subsegments if they exist
-                if name in self.subsegments:
+                # Добавляем подсегменты, если они есть
+                if name in self.subsegments and self.subsegments[name]:
                     for sub_name, sub_time in sorted(self.subsegments[name].items()):
                         sub_percentage = self.subsegment_percentage(name, sub_name)
                         result.append(f"    {sub_name}: {sub_time:.6f}s ({sub_percentage:.2f}% of {name})")
