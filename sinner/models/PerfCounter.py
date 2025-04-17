@@ -7,7 +7,7 @@ class PerfCounter:
         self.name: str = name
         self.execution_time: float = 0
         self.ns_mode: bool = ns_mode
-        self.enabled: bool = enabled
+        self.enabled: bool = enabled  # todo: rename parameter
         self.parent: Optional['PerfCounter'] = parent
         self.start_time: float = 0
         self.end_time: float = 0
@@ -43,7 +43,6 @@ class PerfCounter:
         segment_counter = PerfCounter(
             name=name,
             ns_mode=self.ns_mode,
-            enabled=True,
             parent=self  # Устанавливаем текущий счетчик как родителя
         )
         return segment_counter
