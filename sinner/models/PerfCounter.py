@@ -94,8 +94,9 @@ class PerfCounter:
 
     def __str__(self) -> str:
         """Format timing information with percentages"""
+        unit = "ns" if self.ns_mode else "s"
         if not self.collect_stats:
-            return f"{self.name}: {self.execution_time:.6f}s"
+            return f"{self.name}: {self.execution_time:.6f}{unit}"
 
         # Вычисляем общее время из сегментов, если execution_time нулевое (вызов до закрытия контекста)
         total_time = self.execution_time
@@ -107,12 +108,12 @@ class PerfCounter:
         # Выводим сегменты в порядке их создания
         for name in self.segment_order:
             if name in self.segments:
-                result.append(f"  {name}: {self.segments[name]:.6f}s ({self.percentage(name, total_time):.2f}%)")
+                result.append(f"  {name}: {self.segments[name]:.6f}{unit} ({self.percentage(name, total_time):.2f}%)")
 
                 # Добавляем подсегменты, если они есть
                 if name in self.subsegments and self.subsegments[name]:
                     for sub_name, sub_time in sorted(self.subsegments[name].items()):
                         sub_percentage = self.subsegment_percentage(name, sub_name)
-                        result.append(f"    {sub_name}: {sub_time:.6f}s ({sub_percentage:.2f}% of {name})")
+                        result.append(f"    {sub_name}: {sub_time:.6f}{unit} ({sub_percentage:.2f}% of {name})")
 
         return "\n".join(result)
