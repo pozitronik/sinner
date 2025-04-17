@@ -442,7 +442,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         :param frame_index: the frame index
         :return: the [render time, frame index], or None on error
         """
-        with PerfCounter(name=f"Frame {frame_index}", enabled=self._detailed_metrics) as total_perf:
+        with PerfCounter(name=f"Frame {frame_index}", collect_stats=self._detailed_metrics) as total_perf:
             try:
                 # Извлечение кадра
                 with total_perf.segment("extract") as _:
