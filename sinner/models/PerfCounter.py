@@ -64,11 +64,22 @@ class PerfCounter:
             self.subsegments[segment_name] = {}
         self.subsegments[segment_name][subsegment_name] = duration
 
-    def percentage(self, segment_name: str) -> float:
-        """Return the percentage of total time spent in segment"""
-        if not self.enabled or self.execution_time <= 0:
+    def percentage(self, segment_name: str, total_time: Optional[float] = None) -> float:
+        """Return the percentage of total time spent in segment
+
+        Args:
+            segment_name: Name of the segment
+            total_time: Optional total time to use instead of execution_time
+        """
+        if not self.enabled:
             return 0
-        return (self.segments.get(segment_name, 0) / self.execution_time) * 100
+
+        # Используем переданное total_time или execution_time
+        used_total = total_time if total_time is not None else self.execution_time
+        if used_total <= 0:
+            return 0
+
+        return (self.segments.get(segment_name, 0) / used_total) * 100
 
     def subsegment_percentage(self, segment_name: str, subsegment_name: str) -> float:
         """Return the percentage of segment time spent in subsegment"""
@@ -85,7 +96,7 @@ class PerfCounter:
         if not self.enabled:
             return f"{self.name}: {self.execution_time:.6f}s"
 
-        # Вычисляем общее время из сегментов, если execution_time нулевое
+        # Вычисляем общее время из сегментов, если execution_time нулевое (вызов до закрытия контекста)
         total_time = self.execution_time
         if total_time <= 0 and self.segments:
             total_time = sum(self.segments.values())
@@ -95,10 +106,7 @@ class PerfCounter:
         # Выводим сегменты в порядке их создания
         for name in self.segment_order:
             if name in self.segments:
-                time_value = self.segments[name]
-                # Используем actual_percentage для корректного отображения
-                actual_percentage = (time_value / total_time * 100) if total_time > 0 else 0
-                result.append(f"  {name}: {time_value:.6f}s ({actual_percentage:.2f}%)")
+                result.append(f"  {name}: {self.segments[name]:.6f}s ({self.percentage(name, total_time):.2f}%)")
 
                 # Добавляем подсегменты, если они есть
                 if name in self.subsegments and self.subsegments[name]:
