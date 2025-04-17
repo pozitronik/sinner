@@ -39,6 +39,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     execution_threads: int
     bootstrap_processors: bool
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
+    _detailed_metrics: bool
     _scale_quality: int  # the processed frame size scale in percent
     _reply_endpoint: str
     _pub_endpoint: str
@@ -113,6 +114,12 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 'parameter': 'temp-dir',
                 'default': lambda: suggest_temp_dir(self.temp_dir),
                 'help': 'Select the directory for temporary files'
+            },
+            {
+                'parameter': 'detailed-metrics',
+                'attribute': '_detailed_metrics',
+                'default': True,
+                'help': 'Enable detailed frame processing metrics'
             },
             {
                 'parameter': ['endpoint', 'reply-endpoint'],
@@ -318,18 +325,40 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         :param frame_index: the frame index
         :return: the [render time, frame index], or None on error
         """
-        try:
-            n_frame = self.frame_handler.extract_frame(frame_index)
-        except EOutOfRange:
-            self.update_status(f"There's no frame {frame_index}")
-            return None
-        n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
-        with PerfCounter() as frame_render_time:
-            for _, processor in self.processors.items():
-                n_frame.frame = processor.process_frame(n_frame.frame)
-                # self.status.debug(msg=f"DONE: {n_frame.index}")
-        self.TimeLine.add_frame(n_frame)
-        return frame_render_time.execution_time, n_frame.index
+        with PerfCounter(name=f"Frame {frame_index}", collect_stats=self._detailed_metrics) as total_perf:
+            try:
+                # Извлечение кадра
+                with total_perf.segment("extract") as _:
+                    n_frame = self.frame_handler.extract_frame(frame_index)
+            except EOutOfRange:
+                self.update_status(f"There's no frame {frame_index}")
+                return None
+
+            # Масштабирование
+            with total_perf.segment("scale") as _:
+                n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
+
+            # Общий сегмент обработки
+            with total_perf.segment("process") as _:
+                # Для каждого процессора измеряем время отдельно
+                for processor_name, processor in self.processors.items():
+                    processor_start = time.perf_counter() if not total_perf.ns_mode else time.perf_counter_ns()
+                    n_frame.frame = processor.process_frame(n_frame.frame)
+                    processor_end = time.perf_counter() if not total_perf.ns_mode else time.perf_counter_ns()
+                    processor_time = processor_end - processor_start
+
+                    # Вручную записываем подсегмент
+                    total_perf.record_subsegment("process", processor_name, processor_time)
+
+            # Добавление в timeline
+            with total_perf.segment("timeline") as _:
+                self.TimeLine.add_frame(n_frame)
+
+        # Вывод метрик только если активированы
+        if self._detailed_metrics:
+            print(total_perf)
+
+        return total_perf.execution_time, n_frame.index
 
     @property
     def is_processors_loaded(self) -> bool:
