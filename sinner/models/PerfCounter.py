@@ -31,14 +31,17 @@ class PerfCounter:
         if self.parent and self.enabled:
             self.parent.record_segment(self.name, self.execution_time)
 
+    def _add_to_segment_order(self, name: str) -> None:
+        """Add segment name to order list if not already present"""
+        if name not in self.segment_order:
+            self.segment_order.append(name)
+
     def segment(self, name: str) -> 'PerfCounter':
         """Create a timing segment - returns a noop counter if disabled"""
         if not self.enabled:
             return PerfCounter(name=name, enabled=False, ns_mode=self.ns_mode)
 
-        # Добавляем новый сегмент в порядок выполнения
-        if name not in self.segment_order:
-            self.segment_order.append(name)
+        self._add_to_segment_order(name)
 
         segment_counter = PerfCounter(
             name=name,
@@ -51,9 +54,7 @@ class PerfCounter:
         """Record a segment duration"""
         if self.enabled:
             self.segments[name] = duration
-            # Добавляем в порядок, если его нет
-            if name not in self.segment_order:
-                self.segment_order.append(name)
+            self._add_to_segment_order(name)
 
     def record_subsegment(self, segment_name: str, subsegment_name: str, duration: float) -> None:
         """Record a subsegment duration"""
