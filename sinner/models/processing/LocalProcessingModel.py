@@ -523,7 +523,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             if state.is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.metadata.fps, self.metadata.frames_count, self.metadata.resolution)
             if self.ProgressBar:
-                self.ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
+                self.ProgressBar.set_segment_values(state.processed_frames_indices, EXTRACTED, False, False)
 
     @staticmethod
     def get_mem_usage() -> str:
@@ -539,3 +539,9 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             else:
                 self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._target_handler
+
+    @ProcessingModelInterface.progress_control.setter
+    def progress_control(self, value: Optional[BaseProgressIndicator]) -> None:
+        """Set the progress indicator control."""
+        super(LocalProcessingModel, type(self)).progress_control.__set__(self, value)
+        self.extract_frames()
