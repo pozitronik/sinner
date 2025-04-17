@@ -49,7 +49,6 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     _processing_fps: float = 1
 
     # internal variables
-    _is_target_frames_extracted: bool = False
     _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
     _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
     _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
@@ -153,12 +152,15 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         self._event_playback = Event()
         self._event_rewind = Event()
 
+        self.extract_frames()  # instantly extracts frames and switches handler
+
     def reload_parameters(self) -> None:
         self._target_handler = None
         self.MetaData = None
         super().__init__(self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
+        self.extract_frames()
 
     def enable_sound(self, enable: Optional[bool] = None) -> bool:
         if enable is not None:
@@ -214,7 +216,6 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.player_stop(reload_frames=True)
             self.player_start(start_frame=self.position.get())
         else:
-            self._is_target_frames_extracted = False
             self.update_preview()
             self._status("Time position", seconds_to_hmsms(0))
             self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
@@ -265,7 +266,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
 
     def update_preview(self, processed: Optional[bool] = None) -> None:
         if processed is None:
-            processed = self.is_processors_loaded
+            processed = (self._source_path and self._target_path) is not None
         frame_number = self.position.get()
         if not processed:  # base frame requested
             try:
@@ -322,7 +323,6 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             self.TimeLine.reload(frame_time=self.metadata.frame_time, start_frame=start_frame - 1, end_frame=self.metadata.frames_count)
             if self.AudioPlayer:
                 self.AudioPlayer.position = int(start_frame * self.metadata.frame_time)
-            self.extract_frames()
             self.__start_processing(start_frame)  # run the main rendering process
             self.__start_playback()  # run the separate playback
             if self.AudioPlayer:
@@ -508,26 +508,24 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             finally:
                 self.player_stop()
 
-    def extract_frames(self) -> bool:
-        if self._prepare_frames is not False and not self._is_target_frames_extracted:
+    def extract_frames(self) -> None:
+        if self._prepare_frames:
             frame_extractor = FrameExtractor(self.parameters)
             state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.metadata.frames_count, processor_name=frame_extractor.__class__.__name__)
             frame_extractor.configure_state(state)
-            state_is_finished = state.is_finished
 
-            if state_is_finished:
+            if state.is_finished:
                 self.update_status(f'Extracting frames already done ({state.processed_frames_count}/{state.frames_count})')
-            elif self._prepare_frames is True:
+            else:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
                 frame_extractor.process(self.frame_handler, state)  # todo: return the GUI progressbar
                 frame_extractor.release_resources()
-            if state_is_finished:
+
+            if state.is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.metadata.fps, self.metadata.frames_count, self.metadata.resolution)
-            self._is_target_frames_extracted = state_is_finished
             if self.ProgressBar:
                 self.ProgressBar.set_segment_values(state.processed_frames_indices, PROCESSING, False, False)
-        return self._is_target_frames_extracted
 
     @staticmethod
     def get_mem_usage() -> str:
