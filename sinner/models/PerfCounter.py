@@ -6,11 +6,11 @@ class TimingSegment:
     """Lightweight timing segment for PerfCounter"""
 
     def __init__(self, parent: 'PerfCounter', name: str, enabled: bool = True):
-        self.parent = parent
-        self.name = name
-        self.ns_mode = parent.ns_mode if parent else False
-        self.enabled = enabled
-        self.start_time = 0
+        self.parent: PerfCounter = parent
+        self.name: str = name
+        self.ns_mode: bool = parent.ns_mode if parent else False
+        self.enabled: bool = enabled
+        self.start_time: float = 0
 
     def __enter__(self) -> Self:
         self.start_time = time.perf_counter_ns() if self.ns_mode else time.perf_counter()
