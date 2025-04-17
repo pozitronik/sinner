@@ -110,13 +110,12 @@ class ProcessingModelInterface(ABC):
         pass
 
     @abstractmethod
-    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
+    def player_stop(self, wait: bool = False, shutdown: bool = False) -> None:
         """
         Stop playback.
 
         Parameters:
         wait: If True, wait for threads to stop
-        reload_frames: If True, reload frames on next start
         shutdown: useful for remote connections, shutdown everything
         """
         pass

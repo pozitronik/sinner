@@ -366,7 +366,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             if self.AudioPlayer:
                 self.AudioPlayer.play()
 
-    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
+    def player_stop(self, wait: bool = False, shutdown: bool = False) -> None:
         """
         Stop playback.
 

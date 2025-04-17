@@ -328,7 +328,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             if self.AudioPlayer:
                 self.AudioPlayer.play()
 
-    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
+    def player_stop(self, wait: bool = False, shutdown: bool = False) -> None:
         if self.player_is_started:
             if self.AudioPlayer:
                 self.AudioPlayer.stop()
@@ -338,8 +338,6 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                 self.TimeLine.stop()
             if wait:
                 time.sleep(1)  # Allow time for the thread to respond
-            if reload_frames:
-                self._is_target_frames_extracted = False
         if self._on_stop_callback:
             self._on_stop_callback()
 
