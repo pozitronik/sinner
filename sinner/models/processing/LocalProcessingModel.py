@@ -39,8 +39,6 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
     bootstrap_processors: bool  # bootstrap_processors processors on startup
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
     _detailed_metrics: bool
-    _track_memory_metrics: bool
-    _track_timestamp_metrics: bool
 
     _processors: dict[str, BaseFrameProcessor]  # cached processors for gui [processor_name, processor]
     _target_handler: Optional[BaseFrameHandler] = None  # the initial handler of the target file
