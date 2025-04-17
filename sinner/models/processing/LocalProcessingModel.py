@@ -444,10 +444,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         :param frame_index: the frame index
         :return: the [render time, frame index], or None on error
         """
-        with PerfCounter(
-                name=f"Frame {frame_index}",
-                enabled=self._detailed_metrics
-        ) as total_perf:
+        with PerfCounter(name=f"Frame {frame_index}", enabled=self._detailed_metrics) as total_perf:
             try:
                 # Извлечение кадра
                 with total_perf.segment("extract") as _:
@@ -476,11 +473,11 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             with total_perf.segment("timeline") as _:
                 self.TimeLine.add_frame(n_frame)
 
-            # Вывод метрик только если активированы
-            if self._detailed_metrics:
-                print(total_perf)
+        # Вывод метрик только если активированы
+        if self._detailed_metrics:
+            print(total_perf)
 
-            return total_perf.execution_time, n_frame.index
+        return total_perf.execution_time, n_frame.index
 
     def _show_frames(self) -> None:
         last_shown_frame_index: int = -1
