@@ -12,12 +12,10 @@ class PerfCounter:
         self.start_time: float = 0
         self.end_time: float = 0
 
-        # Инициализируем только если счетчик включен
-        if enabled:
-            self.segments: Dict[str, float] = {}
-            self.subsegments: Dict[str, Dict[str, float]] = {}
-            # Для сохранения порядка сегментов
-            self.segment_order: List[str] = []
+        self.segments: Dict[str, float] = {}
+        self.subsegments: Dict[str, Dict[str, float]] = {}
+        # Для сохранения порядка сегментов
+        self.segment_order: List[str] = []
 
     def __enter__(self) -> Self:
         # Всегда измеряем общее время
