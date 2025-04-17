@@ -13,9 +13,12 @@ from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
-PROCESSING = 1
-PROCESSED = 2
-EXTRACTED = 3
+
+# colors for progressbar
+EMPTY = 0  # no frame at position
+PROCESSING = 1  # the frame being processed
+PROCESSED = 2  # already processed frames
+EXTRACTED = 3  # frames extracted, but not processed
 
 
 class ProcessingModelInterface(ABC):

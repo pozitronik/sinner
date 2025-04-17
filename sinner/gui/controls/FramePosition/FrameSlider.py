@@ -7,6 +7,7 @@ from sinner.gui.controls.FramePosition.BaseFramePosition import BaseFramePositio
 from sinner.gui.controls.ProgressIndicator.BaseProgressIndicator import BaseProgressIndicator
 from sinner.gui.controls.ProgressIndicator.DummyProgressIndicator import DummyProgressIndicator
 from sinner.gui.controls.ProgressIndicator.SegmentedProgressBar import SegmentedProgressBar
+from sinner.models.processing.ProcessingModelInterface import PROCESSING, PROCESSED, EXTRACTED, EMPTY
 
 
 class FrameSlider(CTkSlider, BaseFramePosition):
@@ -33,7 +34,7 @@ class FrameSlider(CTkSlider, BaseFramePosition):
                 height=progress_height,
                 borderwidth=0,
                 border=0,
-                colors={0: 'orange', 1: 'yellow', 2: 'green', 3: 'red'}
+                colors={EMPTY: 'ivory', PROCESSING: 'yellow', PROCESSED: 'green', EXTRACTED: 'orange'}
             )
         else:
             self.progress = DummyProgressIndicator()
