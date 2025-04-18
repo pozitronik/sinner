@@ -303,8 +303,8 @@ class GUIForm(AttributeLoader):
         self.ToolsSubMenu.add(CHECKBUTTON, label='Stay on top', variable=self.StayOnTopVar, command=lambda: self.set_topmost(self.StayOnTopVar.get()))  # type: ignore[no-untyped-call]  # it is a library method
 
         self.PrepareFramesVar = BooleanVar(value=self.ProcessingModel.prepare_frames)
-        self.ToolsSubMenu.add(SEPARATOR)  # Add a separator for visual grouping
-        self.ToolsSubMenu.add(CHECKBUTTON, label='Extract frames before processing', variable=self.PrepareFramesVar, command=lambda: toggle_prepare_frames())
+        self.ToolsSubMenu.add(SEPARATOR)  # type: ignore[no-untyped-call]  # it is a library method
+        self.ToolsSubMenu.add(CHECKBUTTON, label='Extract frames before processing', variable=self.PrepareFramesVar, command=lambda: toggle_prepare_frames())  # type: ignore[no-untyped-call]  # it is a library method
 
         def toggle_prepare_frames() -> None:
             self.ProcessingModel.prepare_frames = self.PrepareFramesVar.get()
