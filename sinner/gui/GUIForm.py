@@ -309,7 +309,6 @@ class GUIForm(AttributeLoader):
         def toggle_prepare_frames() -> None:
             self.ProcessingModel.prepare_frames = self.PrepareFramesVar.get()
 
-
         self.LibraryMenu: Menu = Menu(self.MainMenu, tearoff=False)
         self.MainMenu.add(CASCADE, menu=self.LibraryMenu, label='Library')  # type: ignore[no-untyped-call]  # it is a library method
         self.SourcesLibraryMenu: Menu = Menu(self.LibraryMenu, tearoff=False)
