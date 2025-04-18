@@ -20,6 +20,8 @@ class FrameDirectoryBuffer:
     _indices: List[int] = []
     _miss: int = 0  # the current miss between requested frame and the returned one
 
+    _loaded: bool = False  # flag to check if source & target names are loaded
+
     def __init__(self, temp_dir: str):
         self.temp_dir = temp_dir
 
@@ -30,6 +32,7 @@ class FrameDirectoryBuffer:
         self._target_name = target_name
         self._frames_count = frames_count
         self.init_indices()
+        self._loaded = True
         return self
 
     def flush(self) -> None:
@@ -39,6 +42,7 @@ class FrameDirectoryBuffer:
         self._target_name = None
         self._frames_count = 0
         self._indices = []
+        self._loaded = False
 
     @property
     def temp_dir(self) -> str:
@@ -84,12 +88,16 @@ class FrameDirectoryBuffer:
 
     def add_frame(self, frame: NumberedFrame) -> None:
         with threading.Lock():
+            if not self._loaded:
+                return
+                # raise Exception(f"{self.__class__.__name__} isn't in loaded state. Call load() method properly first!")
+
             if not write_to_image(frame.frame, self.get_frame_processed_name(frame)):
                 raise Exception(f"Error saving frame: {self.get_frame_processed_name(frame)}")
             self._indices.append(frame.index)
 
     def get_frame(self, index: int, return_previous: bool = True) -> NumberedFrame | None:
-        if not self._indices:  # not loaded
+        if not self._loaded:  # not loaded
             return None
         filename = str(index).zfill(self.zfill_length) + '.png'
         filepath = str(os.path.join(self.path, filename))

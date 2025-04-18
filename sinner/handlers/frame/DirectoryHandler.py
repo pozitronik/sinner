@@ -70,7 +70,12 @@ class DirectoryHandler(BaseFrameHandler):
         if self._frames_path is None:
             self._frames_path = sorted((file_path for file_path in glob.glob(os.path.join(glob.escape(self._target_path), '*.*')) if is_image(file_path)))
         start_frame = frames_range[0] if frames_range[0] is not None else 0
-        stop_frame = frames_range[1] + 1 if frames_range[1] is not None else len(self._frames_path)
+        if frames_range[1] is None:
+            stop_frame = self.fc
+        elif frames_range[1] == self.fc:
+            return [(self.fc, self._frames_path[self.fc - 1])]
+        else:
+            stop_frame = frames_range[1] + 1
         return [(frames_index, file_path) for frames_index, file_path in enumerate(self._frames_path)][start_frame:stop_frame]
 
     def extract_frame(self, frame_number: int) -> NumberedFrame:

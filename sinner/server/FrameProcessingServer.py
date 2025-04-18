@@ -39,6 +39,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     execution_threads: int
     bootstrap_processors: bool
     _prepare_frames: bool  # True: always extract and use, False: never extract nor use, Null: newer extract, use if exists. Note: attribute can't be typed as Optional[bool] due to AttributeLoader limitations
+    _detailed_metrics: bool
     _scale_quality: int  # the processed frame size scale in percent
     _reply_endpoint: str
     _pub_endpoint: str
@@ -47,7 +48,6 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
     TimeLine: FrameTimeLine
     _processors: Dict[str, BaseFrameProcessor]
     _target_handler: Optional[BaseFrameHandler] = None
-    _is_target_frames_extracted: bool = False
     _biggest_processed_frame: int = 0  # the last (by number) processed frame index, needed to indicate if processing gap is too big
     _average_processing_time: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average processing time
     _average_frame_skip: MovingAverage = MovingAverage(window_size=10)  # Calculator for the average frame skip
@@ -115,6 +115,12 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 'help': 'Select the directory for temporary files'
             },
             {
+                'parameter': 'detailed-metrics',
+                'attribute': '_detailed_metrics',
+                'default': False,
+                'help': 'Enable detailed frame processing metrics'
+            },
+            {
                 'parameter': ['endpoint', 'reply-endpoint'],
                 'attribute': '_reply_endpoint',
                 'default': "tcp://127.0.0.1:5555",
@@ -146,7 +152,6 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             handler=self._handle_request,
             reply_endpoint=self._reply_endpoint,
             publish_endpoint=self._pub_endpoint
-
         )
 
         self.parameters = parameters
@@ -221,6 +226,13 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                     fps=self.frame_handler.fps,
                     frames_count=self.frame_handler.fc
                 )
+            case request.GET_PREPARE_FRAMES:
+                return ResponseMessage.ok_response(message="Prepare frames", value=self._prepare_frames)
+            case request.SET_PREPARE_FRAMES:
+                self.parameters.prepare_frames = request.value
+                self._prepare_frames = request.value
+                self.extract_frames()
+                return ResponseMessage.ok_response(message="Set")
             case request.GET_FRAME:
                 frame = self.frame_handler.extract_frame(request.position)
                 return ResponseMessage.ok_response(
@@ -252,6 +264,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         AttributeLoader.__init__(self, self.parameters)
         for _, processor in self.processors.items():
             processor.load(self.parameters)
+        self.extract_frames()
 
     @property
     def source_path(self) -> Optional[str]:
@@ -295,15 +308,13 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
             self.extract_frames()
             self._start_processing(start_frame)  # run the main rendering process
 
-    def stop(self, wait: bool = False, reload_frames: bool = False) -> None:
+    def stop(self, wait: bool = False) -> None:
         if self._event_processing.is_set():
             self._stop_processing()
             if self.TimeLine:
                 self.TimeLine.stop()
             if wait:
                 time.sleep(1)  # Allow time for the thread to respond
-            if reload_frames:
-                self._is_target_frames_extracted = False
 
     async def start_server(self) -> None:
         await self._APIHandler.start()
@@ -318,41 +329,61 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
         :param frame_index: the frame index
         :return: the [render time, frame index], or None on error
         """
-        try:
-            n_frame = self.frame_handler.extract_frame(frame_index)
-        except EOutOfRange:
-            self.update_status(f"There's no frame {frame_index}")
-            return None
-        n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
-        with PerfCounter() as frame_render_time:
-            for _, processor in self.processors.items():
-                n_frame.frame = processor.process_frame(n_frame.frame)
-                # self.status.debug(msg=f"DONE: {n_frame.index}")
-        self.TimeLine.add_frame(n_frame)
-        return frame_render_time.execution_time, n_frame.index
+        with PerfCounter(name=f"Frame {frame_index}", collect_stats=self._detailed_metrics) as total_perf:
+            try:
+                # Извлечение кадра
+                with total_perf.segment("extract") as _:
+                    n_frame = self.frame_handler.extract_frame(frame_index)
+            except EOutOfRange:
+                self.update_status(f"There's no frame {frame_index}")
+                return None
+
+            # Масштабирование
+            with total_perf.segment("scale") as _:
+                n_frame.frame = scale(n_frame.frame, self._scale_quality / 100)
+
+            # Общий сегмент обработки
+            with total_perf.segment("process") as _:
+                # Для каждого процессора измеряем время отдельно
+                for processor_name, processor in self.processors.items():
+                    processor_start = time.perf_counter() if not total_perf.ns_mode else time.perf_counter_ns()
+                    n_frame.frame = processor.process_frame(n_frame.frame)
+                    processor_end = time.perf_counter() if not total_perf.ns_mode else time.perf_counter_ns()
+                    processor_time = processor_end - processor_start
+
+                    # Вручную записываем подсегмент
+                    total_perf.record_subsegment("process", processor_name, processor_time)
+
+            # Добавление в timeline
+            with total_perf.segment("timeline") as _:
+                self.TimeLine.add_frame(n_frame)
+
+        # Вывод метрик только если активированы
+        if self._detailed_metrics:
+            print(total_perf)
+
+        return total_perf.execution_time, n_frame.index
 
     @property
     def is_processors_loaded(self) -> bool:
         return self._processors != {}
 
-    def extract_frames(self) -> bool:
-        if self._prepare_frames is not False and not self._is_target_frames_extracted:
+    def extract_frames(self) -> None:
+        if self._prepare_frames:
             frame_extractor = FrameExtractor(self.parameters)
             state = State(parameters=self.parameters, target_path=self._target_path, temp_dir=self.temp_dir, frames_count=self.frame_handler.fc, processor_name=frame_extractor.__class__.__name__)
             frame_extractor.configure_state(state)
-            state_is_finished = state.is_finished
 
-            if state_is_finished:
+            if state.is_finished:
                 self.update_status(f'Extracting frames already done ({state.processed_frames_count}/{state.frames_count})')
-            elif self._prepare_frames is True:
+            else:
                 if state.is_started:
                     self.update_status(f'Temp resources for this target already exists with {state.processed_frames_count} frames extracted, continue with {state.processor_name}')
                 frame_extractor.process(self.frame_handler, state)  # todo: return the GUI progressbar
                 frame_extractor.release_resources()
-            if state_is_finished:
+
+            if state.is_finished:
                 self._target_handler = DirectoryHandler(state.path, self.parameters, self.frame_handler.fps, self.frame_handler.fc, self.frame_handler.resolution)
-            self._is_target_frames_extracted = state_is_finished
-        return self._is_target_frames_extracted
 
     def _start_processing(self, start_frame: int) -> None:
         """

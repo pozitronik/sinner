@@ -13,9 +13,12 @@ from sinner.models.audio.BaseAudioBackend import BaseAudioBackend
 
 BUFFERING_PROGRESS_NAME = "Buffering"
 EXTRACTING_PROGRESS_NAME = "Extracting"
-PROCESSING = 1
-PROCESSED = 2
-EXTRACTED = 3
+
+# colors for progressbar
+EMPTY = 0  # no frame at position
+PROCESSING = 1  # the frame being processed
+PROCESSED = 2  # already processed frames
+EXTRACTED = 3  # frames extracted, but not processed
 
 
 class ProcessingModelInterface(ABC):
@@ -110,13 +113,12 @@ class ProcessingModelInterface(ABC):
         pass
 
     @abstractmethod
-    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
+    def player_stop(self, wait: bool = False, shutdown: bool = False) -> None:
         """
         Stop playback.
 
         Parameters:
         wait: If True, wait for threads to stop
-        reload_frames: If True, reload frames on next start
         shutdown: useful for remote connections, shutdown everything
         """
         pass
@@ -223,3 +225,15 @@ class ProcessingModelInterface(ABC):
         if self.ProgressBar:
             self.ProgressBar.set_segments(self.metadata.frames_count + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
             self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+
+    @property
+    @abstractmethod
+    def prepare_frames(self) -> bool:
+        """Get the current value of _prepare_frames."""
+        pass
+
+    @prepare_frames.setter
+    @abstractmethod
+    def prepare_frames(self, value: bool) -> None:
+        """Set the value of _prepare_frames and update the parameters."""
+        pass

@@ -116,7 +116,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         if not self.ProcessingClient.connected:
             self._status("Connection", f"Timeout connecting to {self._reply_endpoint}")
         else:
-            self._status("Connected", f"Connected to {self._reply_endpoint}")
+            self._status("Connection", f"Connected to {self._reply_endpoint}")
 
         if self._source_path:
             self.ProcessingClient.source_path = self._source_path
@@ -230,7 +230,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
         # Update playback state
         if self.player_is_started:
-            self.player_stop(reload_frames=True)
+            self.player_stop()
             self.player_start(start_frame=self.position.get())
         else:
             self.update_preview()
@@ -349,8 +349,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
         # Update server with new requested position
-        if self.ProcessingClient:
-            self.ProcessingClient.rewind(frame_position)
+        self.ProcessingClient.rewind(frame_position)
 
     def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[..., Any]] = None) -> None:
         self._on_stop_callback = on_stop_callback
@@ -366,7 +365,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
             if self.AudioPlayer:
                 self.AudioPlayer.play()
 
-    def player_stop(self, wait: bool = False, reload_frames: bool = False, shutdown: bool = False) -> None:
+    def player_stop(self, wait: bool = False, shutdown: bool = False) -> None:
         """
         Stop playback.
 
@@ -467,3 +466,13 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 self.set_progress_index_value(notification.index, PROCESSED)
             case _:
                 self.update_status(f"Handler is not implemented for notification {notification.type}")
+
+    @property
+    def prepare_frames(self) -> bool:
+        return self.ProcessingClient.get_prepare_frames()
+
+    @prepare_frames.setter
+    def prepare_frames(self, value: bool) -> None:
+        """Set the value of _prepare_frames and update the parameters."""
+        self.ProcessingClient.set_prepare_frames(value)
+        self.reload_parameters()

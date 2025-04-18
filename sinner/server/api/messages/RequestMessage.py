@@ -20,6 +20,8 @@ class RequestMessage(BaseMessage):
     SET_QUALITY: ClassVar[str] = "SET_QUALITY"
     GET_POSITION: ClassVar[str] = "GET_POSITION"
     SET_POSITION: ClassVar[str] = "SET_POSITION"
+    GET_PREPARE_FRAMES: ClassVar[str] = "GET_PREPARE_FRAMES"
+    SET_PREPARE_FRAMES: ClassVar[str] = "SET_PREPARE_FRAMES"
     GET_FRAME: ClassVar[str] = "GET_FRAME"  # запрос на получение бинарного необработанного кадра
     GET_METADATA: ClassVar[str] = "GET_METADATA"  # запрос метаданных цели
     SET_SOURCE_FILE: ClassVar[str] = "SET_SOURCE_FILE"  # Передача бинарного файла в источник
