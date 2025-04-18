@@ -349,8 +349,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         self._status("Frame position", f'{self.position.get()}/{self.metadata.frames_count}')
 
         # Update server with new requested position
-        if self.ProcessingClient:
-            self.ProcessingClient.rewind(frame_position)
+        self.ProcessingClient.rewind(frame_position)
 
     def player_start(self, start_frame: int, on_stop_callback: Optional[Callable[..., Any]] = None) -> None:
         self._on_stop_callback = on_stop_callback
