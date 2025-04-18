@@ -116,7 +116,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
         if not self.ProcessingClient.connected:
             self._status("Connection", f"Timeout connecting to {self._reply_endpoint}")
         else:
-            self._status("Connected", f"Connected to {self._reply_endpoint}")
+            self._status("Connection", f"Connected to {self._reply_endpoint}")
 
         if self._source_path:
             self.ProcessingClient.source_path = self._source_path
