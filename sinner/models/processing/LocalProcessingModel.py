@@ -211,7 +211,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                 self.AudioPlayer.stop()
             self.AudioPlayer = BaseAudioBackend.create(self._audio_backend, parameters=self.parameters, media_path=self._target_path)
         if self.player_is_started:
-            self.player_stop(reload_frames=True)
+            self.player_stop()
             self.player_start(start_frame=self.position.get())
         else:
             self.update_preview()

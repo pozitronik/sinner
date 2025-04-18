@@ -230,7 +230,7 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
 
         # Update playback state
         if self.player_is_started:
-            self.player_stop(reload_frames=True)
+            self.player_stop()
             self.player_start(start_frame=self.position.get())
         else:
             self.update_preview()
