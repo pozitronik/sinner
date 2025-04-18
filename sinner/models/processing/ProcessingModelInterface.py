@@ -225,3 +225,15 @@ class ProcessingModelInterface(ABC):
         if self.ProgressBar:
             self.ProgressBar.set_segments(self.metadata.frames_count + 1)  # todo: разобраться, почему прогрессбар требует этот один лишний индекс
             self.ProgressBar.set_segment_values(self.TimeLine.processed_frames, PROCESSED)
+
+    @property
+    @abstractmethod
+    def prepare_frames(self) -> bool:
+        """Get the current value of _prepare_frames."""
+        pass
+
+    @prepare_frames.setter
+    @abstractmethod
+    def prepare_frames(self, value: bool) -> None:
+        """Set the value of _prepare_frames and update the parameters."""
+        pass

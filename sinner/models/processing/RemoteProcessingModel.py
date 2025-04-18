@@ -466,3 +466,13 @@ class RemoteProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfa
                 self.set_progress_index_value(notification.index, PROCESSED)
             case _:
                 self.update_status(f"Handler is not implemented for notification {notification.type}")
+
+    @property
+    def prepare_frames(self) -> bool:
+        return self.ProcessingClient.get_prepare_frames()
+
+    @prepare_frames.setter
+    def prepare_frames(self, value: bool) -> None:
+        """Set the value of _prepare_frames and update the parameters."""
+        self.ProcessingClient.set_prepare_frames(value)
+        self.reload_parameters()

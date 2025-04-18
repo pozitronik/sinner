@@ -106,3 +106,13 @@ class FrameProcessingClient:
 
     def close(self) -> None:
         self._APIClient.disconnect()
+
+    def get_prepare_frames(self) -> bool:
+        response: ResponseMessage = self._APIClient.send_request(RequestMessage(RequestMessage.GET_PREPARE_FRAMES))
+        if response.is_ok():
+            return response.value
+        else:
+            return False
+
+    def set_prepare_frames(self, value: bool) -> None:
+        self._APIClient.send_request(RequestMessage(RequestMessage.SET_PREPARE_FRAMES, value=value))
