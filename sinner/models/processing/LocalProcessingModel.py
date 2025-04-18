@@ -545,3 +545,15 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
         """Set the progress indicator control."""
         super(LocalProcessingModel, type(self)).progress_control.__set__(self, value)
         self.extract_frames()
+
+    @property
+    def prepare_frames(self) -> bool:
+        """Get the current value of _prepare_frames."""
+        return self._prepare_frames
+
+    @prepare_frames.setter
+    def prepare_frames(self, value: bool) -> None:
+        """Set the value of _prepare_frames and update the parameters."""
+        self.parameters.prepare_frames = value
+        self._prepare_frames = value
+        self.reload_parameters()
