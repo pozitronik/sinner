@@ -120,7 +120,7 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
             {
                 'parameter': 'detailed-metrics',
                 'attribute': '_detailed_metrics',
-                'default': True,
+                'default': False,
                 'help': 'Enable detailed frame processing metrics'
             },
             {
