@@ -540,10 +540,10 @@ class LocalProcessingModel(AttributeLoader, StatusMixin, ProcessingModelInterfac
                 self._target_handler = BatchProcessingCore.suggest_handler(self.target_path, self.parameters)
         return self._target_handler
 
-    @ProcessingModelInterface.progress_control.setter
+    @ProcessingModelInterface.progress_control.setter  # type: ignore[attr-defined]  # price for overloading property
     def progress_control(self, value: Optional[BaseProgressIndicator]) -> None:
         """Set the progress indicator control."""
-        super(LocalProcessingModel, type(self)).progress_control.__set__(self, value)
+        super(LocalProcessingModel, type(self)).progress_control.__set__(self, value)  # type: ignore[attr-defined]  # price for overloading property
         self.extract_frames()
 
     @property
