@@ -101,8 +101,8 @@ class ZMQServerAPI:
         except Exception as e:
             self._logger.error(f"Failed to send notification: {e}")
 
-    def _handle_request(self, message: RequestMessage, payload: Optional[bytes] = None) -> ResponseMessage:
+    def _handle_request(self, message: RequestMessage) -> ResponseMessage:
         if self._request_handler is None:
             return ResponseMessage.error_response(message="Handler is not defined")
         else:
-            return self._request_handler(message, payload)
+            return self._request_handler(message)
