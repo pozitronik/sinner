@@ -1,9 +1,10 @@
 from typing import Optional
 
+from numpy import frombuffer, uint8
+
 from sinner.server.api.BaseClientAPI import BaseClientAPI
 from sinner.server.api.messages.RequestMessage import RequestMessage
 from sinner.server.api.messages.ResponseMessage import ResponseMessage
-from sinner.helpers.FrameHelper import from_b64
 from sinner.models.MediaMetaData import MediaMetaData
 from sinner.models.NumberedFrame import NumberedFrame
 
@@ -75,10 +76,12 @@ class FrameProcessingClient:
         """
         response = self._APIClient.send_request(RequestMessage(RequestMessage.GET_FRAME, position=value))
         if response.is_ok():
-            frame = from_b64(response.frame, shape=response.shape)
-            return NumberedFrame(index=value, frame=frame)
-        else:
-            return None
+            # Reconstruct the frame from binary data and shape
+            frame_data = response.payload()
+            if frame_data:
+                frame_array = frombuffer(frame_data, dtype=uint8).reshape(response.shape)
+                return NumberedFrame(index=value, frame=frame_array)
+        return None
 
     def start(self, start_frame: int) -> None:
         self._APIClient.send_request(RequestMessage(RequestMessage.CMD_START_PROCESSING, position=start_frame))

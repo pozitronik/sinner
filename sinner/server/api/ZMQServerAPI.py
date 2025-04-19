@@ -80,19 +80,10 @@ class ZMQServerAPI:
             try:
                 # Всегда получаем multipart сообщения
                 message_parts = await self._reply_socket.recv_multipart()  # Асинхронно ждем сообщения - НЕ блокирует поток!
-
-                # Определяем тип сообщения по количеству частей
-                if len(message_parts) == 1:
-                    # Обычное сообщение
-                    response = self._handle_request(RequestMessage.deserialize(message_parts[0]))
-                elif len(message_parts) == 2:
-                    # Бинарное сообщение
-                    response = self._handle_request(RequestMessage.deserialize(message_parts[0]), message_parts[1])
-                else:
-                    # Неизвестный формат
-                    response = ResponseMessage.error_response(message="Invalid message format")
-                # Асинхронно отправляем ответ
-                await self._reply_socket.send(response.serialize())
+                request = RequestMessage.deserialize_multipart(message_parts)
+                response = self._handle_request(request)
+                response_parts = response.serialize_multipart()
+                await self._reply_socket.send_multipart(response_parts)
             except zmq.ZMQError as e:
                 if e.errno == zmq.EAGAIN:  # Тайм-аут
                     self._logger.error(f"Timeout handling message: {e}")

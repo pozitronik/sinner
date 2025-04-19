@@ -16,7 +16,7 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.handlers.frame.NoneHandler import NoneHandler
-from sinner.helpers.FrameHelper import scale, to_b64
+from sinner.helpers.FrameHelper import scale
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MovingAverage import MovingAverage
@@ -237,9 +237,8 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 frame = self.frame_handler.extract_frame(request.position)
                 return ResponseMessage.ok_response(
                     type=ResponseMessage.FRAME,
-                    frame=to_b64(frame.frame),
-                    shape=frame.frame.shape
-                )
+                    shape=frame.frame.shape,
+                ).set_payload(frame.frame.tobytes())
             case request.SET_SOURCE_FILE:  # todo: unimplemented on client
                 if payload is None:
                     return ResponseMessage.error_response(message="Empty payload")

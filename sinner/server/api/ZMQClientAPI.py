@@ -134,8 +134,14 @@ class ZMQClientAPI(BaseClientAPI):
         try:
             with self._lock:
                 try:
-                    self._req_socket.send(request.serialize())
-                    return ResponseMessage.deserialize(self._req_socket.recv())
+                    # Сериализуем запрос в multipart
+                    request_parts = request.serialize_multipart()
+                    # Отправляем multipart-сообщение
+                    self._req_socket.send_multipart(request_parts)
+                    # Получаем multipart-ответ
+                    response_parts = self._req_socket.recv_multipart()
+                    # Десериализуем ответ из multipart
+                    return ResponseMessage.deserialize_multipart(response_parts)
                 except zmq.ZMQError as e:
                     if e.errno == zmq.EAGAIN:  # Timeout
                         self._logger.error(f"Timeout waiting for response when sending to {self._endpoint}: {e}")
