@@ -22,9 +22,9 @@ class ZMQServerAPI:
 
     _logger: logging.Logger
     _server_running: bool = False
-    _request_handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None  # external method to handle incoming messages
+    _request_handler: Optional[Callable[[RequestMessage], ResponseMessage]] = None  # external method to handle incoming messages
 
-    def __init__(self, handler: Optional[Callable[[RequestMessage, Optional[bytes]], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556"):
+    def __init__(self, handler: Optional[Callable[[RequestMessage], ResponseMessage]] = None, reply_endpoint: str = "tcp://127.0.0.1:5555", publish_endpoint: str = "tcp://127.0.0.1:5556"):
         if platform.system().lower() == 'windows':
             try:
                 asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore[attr-defined]  # has to be ignored, method can be unavailable on non-windows environments
