@@ -198,3 +198,121 @@ class TestBaseMessage:
         serialized = msg.serialize()
         deserialized_dict = json.loads(serialized.decode())
         assert deserialized_dict["to_dict"] == "collision"
+
+    def test_set_payload(self):
+        """Test setting binary payload."""
+        binary_data = b"\x00\x01\x02\x03"
+        msg = BaseMessage(type_="TEST", field1="value1")
+
+        # Test method chaining
+        result = msg.set_payload(binary_data)
+        assert result is msg  # Должен возвращать self
+
+        # Verify payload was set
+        assert msg.payload() == binary_data
+
+    def test_payload_default(self):
+        """Test default payload is None."""
+        msg = BaseMessage(type_="TEST")
+        assert msg.payload() is None
+
+    def test_serialize_multipart_no_payload(self):
+        """Test multipart serialization without payload."""
+        msg = BaseMessage(type_="TEST", field1="value1")
+        parts = msg.serialize_multipart()
+
+        assert len(parts) == 1
+        assert isinstance(parts[0], bytes)
+        # Проверяем, что первая часть - корректно сериализованный JSON
+        assert json.loads(parts[0].decode()) == {"type": "TEST", "field1": "value1"}
+
+    def test_serialize_multipart_with_payload(self):
+        """Test multipart serialization with binary payload."""
+        binary_data = b"\x00\x01\x02\x03"
+        msg = BaseMessage(type_="TEST", field1="value1")
+        msg.set_payload(binary_data)
+
+        parts = msg.serialize_multipart()
+
+        assert len(parts) == 2
+        # Проверяем первую часть (JSON)
+        assert json.loads(parts[0].decode()) == {"type": "TEST", "field1": "value1"}
+        # Проверяем вторую часть (бинарные данные)
+        assert parts[1] == binary_data
+
+    def test_deserialize_multipart_one_part(self):
+        """Test multipart deserialization with only one part (JSON)."""
+        msg = BaseMessage(type_="TEST", field1="value1")
+        parts = [msg.serialize()]
+
+        deserialized = BaseMessage.deserialize_multipart(parts)
+
+        assert deserialized.type == "TEST"
+        assert deserialized.field1 == "value1"
+        assert deserialized.payload() is None
+
+    def test_deserialize_multipart_two_parts(self):
+        """Test multipart deserialization with two parts (JSON + binary)."""
+        binary_data = b"\x00\x01\x02\x03"
+        msg = BaseMessage(type_="TEST", field1="value1")
+        parts = [msg.serialize(), binary_data]
+
+        deserialized = BaseMessage.deserialize_multipart(parts)
+
+        assert deserialized.type == "TEST"
+        assert deserialized.field1 == "value1"
+        assert deserialized.payload() == binary_data
+
+    def test_deserialize_multipart_empty(self):
+        """Test multipart deserialization with empty parts list."""
+        with pytest.raises(ValueError, match="Empty multipart message"):
+            BaseMessage.deserialize_multipart([])
+
+    def test_serialize_deserialize_multipart_roundtrip(self):
+        """Test complete serialize/deserialize roundtrip with payload."""
+        # Создаем сообщение с различными типами данных
+        original = BaseMessage(
+            type_="TEST",
+            string="text",
+            number=42,
+            boolean=True,
+            list_data=[1, 2, 3],
+            dict_data={"key": "value"}
+        )
+
+        # Устанавливаем бинарную нагрузку
+        binary_data = b"\x00\x01\x02\x03\xff\xfe"
+        original.set_payload(binary_data)
+
+        # Сериализуем в multipart
+        parts = original.serialize_multipart()
+
+        # Десериализуем обратно
+        reconstructed = BaseMessage.deserialize_multipart(parts)
+
+        # Проверяем все поля
+        assert reconstructed.type == original.type
+        assert reconstructed.string == original.string
+        assert reconstructed.number == original.number
+        assert reconstructed.boolean == original.boolean
+        assert reconstructed.list_data == original.list_data
+        assert reconstructed.dict_data == original.dict_data
+        assert reconstructed.payload() == original.payload()
+
+    def test_large_payload(self):
+        """Test with a large binary payload."""
+        # Создаем большую бинарную нагрузку (например, 1MB)
+        large_binary = b"\x00" * (1024 * 1024)
+
+        msg = BaseMessage(type_="TEST", field1="value1")
+        msg.set_payload(large_binary)
+
+        # Сериализуем и десериализуем
+        parts = msg.serialize_multipart()
+        reconstructed = BaseMessage.deserialize_multipart(parts)
+
+        # Проверяем корректность десериализации
+        assert reconstructed.type == "TEST"
+        assert reconstructed.field1 == "value1"
+        assert len(reconstructed.payload()) == len(large_binary)
+        assert reconstructed.payload() == large_binary
