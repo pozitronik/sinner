@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Dict, Any, TypeVar, Type, Optional, Union, Self
+from typing import Dict, Any, TypeVar, Type, Optional, Self
 import json
 
 T = TypeVar('T', bound='BaseMessage')
