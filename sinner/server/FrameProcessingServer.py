@@ -16,7 +16,7 @@ from sinner.handlers.frame.BaseFrameHandler import BaseFrameHandler
 from sinner.handlers.frame.DirectoryHandler import DirectoryHandler
 from sinner.handlers.frame.EOutOfRange import EOutOfRange
 from sinner.handlers.frame.NoneHandler import NoneHandler
-from sinner.helpers.FrameHelper import scale, to_b64
+from sinner.helpers.FrameHelper import scale
 from sinner.models.Event import Event
 from sinner.models.FrameTimeLine import FrameTimeLine
 from sinner.models.MovingAverage import MovingAverage
@@ -186,7 +186,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 self._target_handler = BatchProcessingCore.suggest_handler(self._target_path, self.parameters)
         return self._target_handler
 
-    def _handle_request(self, request: RequestMessage, payload: Optional[bytes] = None) -> ResponseMessage:
+    def _handle_request(self, request: RequestMessage) -> ResponseMessage:
         """Handle client request and return response."""
         match request.type:
             case request.GET_STATUS:
@@ -237,10 +237,10 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 frame = self.frame_handler.extract_frame(request.position)
                 return ResponseMessage.ok_response(
                     type=ResponseMessage.FRAME,
-                    frame=to_b64(frame.frame),
-                    shape=frame.frame.shape
-                )
+                    shape=frame.frame.shape,
+                ).set_payload(frame.frame.tobytes())
             case request.SET_SOURCE_FILE:  # todo: unimplemented on client
+                payload = request.payload()
                 if payload is None:
                     return ResponseMessage.error_response(message="Empty payload")
                 filename = os.path.join(self.temp_dir, "incoming", "source", request.filename)
@@ -249,6 +249,7 @@ class FrameProcessingServer(AttributeLoader, StatusMixin):
                 self.source_path = filename
                 return ResponseMessage.ok_response(message="Source file set", filename=self.source_path)
             case request.SET_TARGET_FILE:  # todo: unimplemented on client
+                payload = request.payload()
                 if payload is None:
                     return ResponseMessage.error_response(message="Empty payload")
                 filename = os.path.join(self.temp_dir, "incoming", "target", request.filename)

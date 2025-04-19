@@ -169,7 +169,7 @@ class TestZMQServerAPI:
         # Configure mock to return one message then exit
         request = RequestMessage(RequestMessage.GET_STATUS)
         mock_rep_socket.recv_multipart.side_effect = [
-            [request.serialize()],  # First call returns a single-part message
+            request.serialize_multipart(),  # First call returns a multipart message
             ZMQError("Server stopped")  # Second call raises error to exit loop
         ]
 
@@ -190,9 +190,8 @@ class TestZMQServerAPI:
 
         # Verify handler called and response sent
         server_api._request_handler.assert_called_once()
-        mock_rep_socket.send.assert_awaited_once_with(response.serialize())
+        mock_rep_socket.send_multipart.assert_awaited_once_with(response.serialize_multipart())
 
-    @pytest.mark.skip("Tested API isn't implemented")
     @pytest.mark.asyncio
     async def test_message_handler_binary_message(self, server_api, mock_zmq_asyncio_context):
         """Test message handler with binary message (with payload)."""
@@ -200,9 +199,11 @@ class TestZMQServerAPI:
 
         # Configure mock to return one binary message then exit
         request = RequestMessage(RequestMessage.SET_SOURCE_FILE, filename="test.jpg")
-        payload = b"binary file content"
+        binary_data = b"binary file content"
+        request.set_payload(binary_data)
+
         mock_rep_socket.recv_multipart.side_effect = [
-            [request.serialize(), payload],  # Binary message with two parts
+            request.serialize_multipart(),  # Multipart message with payload
             ZMQError("Server stopped")  # Exit loop
         ]
 
@@ -221,36 +222,13 @@ class TestZMQServerAPI:
         asyncio.create_task(stop_server())
         await server_api._message_handler()
 
-        # Verify handler called with request and payload
-        server_api._request_handler.assert_called_once_with(request, payload)
-        mock_rep_socket.send.assert_awaited_once_with(response.serialize())
+        # Verify handler called with request that has payload
+        server_api._request_handler.assert_called_once()
+        called_request = server_api._request_handler.call_args[0][0]
+        assert called_request.payload() == binary_data
 
-    @pytest.mark.asyncio
-    async def test_message_handler_invalid_format(self, server_api, mock_zmq_asyncio_context):
-        """Test message handler with invalid message format."""
-        _, mock_rep_socket = mock_zmq_asyncio_context
-
-        # Configure mock to return invalid message then exit
-        mock_rep_socket.recv_multipart.side_effect = [
-            [b"part1", b"part2", b"part3"],  # Invalid format (3 parts)
-            ZMQError("Server stopped")  # Exit loop
-        ]
-
-        # Set server as running, then stop after handling message
-        server_api._server_running = True
-
-        async def stop_server():
-            await asyncio.sleep(0.1)  # Let message handler process one message
-            server_api._server_running = False
-
-        # Run message handler in background
-        asyncio.create_task(stop_server())
-        await server_api._message_handler()
-
-        # Verify error response sent
-        sent_response = ResponseMessage.deserialize(mock_rep_socket.send.call_args[0][0])
-        assert sent_response.status == ResponseMessage.STATUS_ERROR
-        assert "Invalid message format" in sent_response.message
+        # Verify response sent
+        mock_rep_socket.send_multipart.assert_awaited_once_with(response.serialize_multipart())
 
     @pytest.mark.asyncio
     async def test_message_handler_zmq_error_timeout(self, server_api, mock_zmq_asyncio_context):
@@ -383,22 +361,27 @@ class TestZMQServerAPI:
         response = server_api._handle_request(request)
 
         # Verify handler called and response returned
-        request_handler.assert_called_once_with(request, None)
+        request_handler.assert_called_once_with(request)
         assert response is expected_response
 
     def test_handle_request_with_payload(self, server_api, request_handler):
         """Test handle_request with payload."""
-        # Create request and payload
+        # Create request with payload
         request = RequestMessage(RequestMessage.SET_SOURCE_FILE)
-        payload = b"binary data"
+        binary_data = b"binary data"
+        request.set_payload(binary_data)
 
         # Expected response
         expected_response = ResponseMessage.ok_response(message="File handled")
         request_handler.return_value = expected_response
 
         # Handle request
-        response = server_api._handle_request(request, payload)
+        response = server_api._handle_request(request)
 
-        # Verify handler called with payload and response returned
-        request_handler.assert_called_once_with(request, payload)
+        # Verify handler called with request containing payload
+        request_handler.assert_called_once_with(request)
+        # Verify the request passed to the handler contains the payload
+        called_request = request_handler.call_args[0][0]
+        assert called_request.payload() == binary_data
+
         assert response is expected_response

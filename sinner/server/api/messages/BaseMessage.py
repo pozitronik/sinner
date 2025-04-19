@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Dict, Any, TypeVar, Type
+from typing import Dict, Any, TypeVar, Type, Optional, Self
 import json
 
 T = TypeVar('T', bound='BaseMessage')
@@ -14,6 +14,7 @@ class BaseMessage(ABC):
         """Инициализация базового класса"""
         self._type: str = type_
         self._fields: Dict[str, Any] = kwargs
+        self._payload: Optional[bytes] = None
 
     def __getattr__(self, name: str) -> Any:
         """Доступ к дополнительным полям через атрибуты"""
@@ -74,3 +75,39 @@ class BaseMessage(ABC):
             return cls.from_json(message.decode())
         except UnicodeDecodeError as e:
             raise ValueError(f"Invalid message encoding: {e}")
+
+    def set_payload(self, data: bytes) -> Self:
+        """
+        Установка или получение бинарной нагрузки.
+        """
+        self._payload = data
+        return self
+
+    def payload(self) -> Optional[bytes]:
+        return self._payload
+
+    def serialize_multipart(self) -> list[bytes]:
+        """Сериализация в формат multipart-сообщения для ZMQ"""
+        # Первая часть - JSON с метаданными
+        json_part = self.serialize()
+
+        # Если есть бинарные данные, добавляем их как вторую часть
+        if self._payload is not None:
+            return [json_part, self._payload]
+        else:
+            return [json_part]
+
+    @classmethod
+    def deserialize_multipart(cls: Type[T], parts: list[bytes]) -> T:
+        """Десериализация из multipart-сообщения ZMQ"""
+        if not parts or len(parts) == 0:
+            raise ValueError("Empty multipart message")
+
+        # Первая часть - сериализованные JSON-метаданные
+        instance = cls.deserialize(parts[0])
+
+        # Если есть вторая часть - это бинарная нагрузка
+        if len(parts) > 1:
+            instance._payload = parts[1]
+
+        return instance
