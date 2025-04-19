@@ -77,8 +77,9 @@ class TestZMQClientAPI:
         """Test successful connection."""
         _, mock_socket = mock_zmq_context
 
-        # Configure mock for successful connection
-        mock_socket.recv.return_value = ResponseMessage.ok_response().serialize()
+        # Configure mock for successful connection - обновлено для multipart
+        response = ResponseMessage.ok_response()
+        mock_socket.recv_multipart.return_value = response.serialize_multipart()
 
         # Patch start_notification_listener to avoid actual threading
         with patch.object(client_api, 'start_notification_listener', return_value=True):
@@ -126,15 +127,16 @@ class TestZMQClientAPI:
         """Test sending request with successful response."""
         _, mock_socket = mock_zmq_context
 
-        # Configure mock for successful response
-        mock_socket.recv.return_value = ResponseMessage.ok_response(field1="value1").serialize()
+        # Configure mock for successful multipart response
+        response_msg = ResponseMessage.ok_response(field1="value1")
+        mock_socket.recv_multipart.return_value = response_msg.serialize_multipart()
 
         request = RequestMessage(RequestMessage.GET_STATUS)
         response = client_api.send_request(request)
 
         assert response.is_ok() is True
         assert response.field1 == "value1"
-        mock_socket.send.assert_called_with(request.serialize())
+        mock_socket.send_multipart.assert_called_with(request.serialize_multipart())
 
     def test_send_request_timeout(self, client_api, mock_zmq_context):
         """Test sending request with timeout."""
@@ -143,8 +145,8 @@ class TestZMQClientAPI:
         # Configure mock for timeout
         error = ZMQError("Timeout")
         error.errno = zmq.EAGAIN
-        mock_socket.send.side_effect = None
-        mock_socket.recv.side_effect = error
+        mock_socket.send_multipart.side_effect = None
+        mock_socket.recv_multipart.side_effect = error
 
         # Patch _recreate_socket to avoid actual recreation
         with patch.object(client_api, '_recreate_socket') as mock_recreate:
@@ -160,7 +162,7 @@ class TestZMQClientAPI:
         # Configure mock for ZMQ error
         error = ZMQError("Connection lost")
         error.errno = zmq.ETERM
-        mock_socket.send.side_effect = error
+        mock_socket.send_multipart.side_effect = error
 
         # Patch _recreate_socket to avoid actual recreation
         with patch.object(client_api, '_recreate_socket') as mock_recreate:
@@ -174,7 +176,7 @@ class TestZMQClientAPI:
         _, mock_socket = mock_zmq_context
 
         # Configure mock for general exception
-        mock_socket.send.side_effect = Exception("Unexpected error")
+        mock_socket.send_multipart.side_effect = Exception("Unexpected error")
 
         response = client_api.send_request(RequestMessage(RequestMessage.GET_STATUS))
 
