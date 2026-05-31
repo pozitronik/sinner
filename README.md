@@ -2,6 +2,9 @@
 
 # sinner: sinner is non exactly roop
 
+~~The pool is closed because of AIDS~~
+**[The project is stopped because of sinner2](https://github.com/pozitronik/sinner2)**
+
 Deepfakes and more.
 
 # What is it?
